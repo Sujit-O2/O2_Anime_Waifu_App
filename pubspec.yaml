@@ -1,0 +1,44 @@
+name: anime_waifu
+description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_dotenv: ^6.0.0
+  http: ^1.2.0
+  speech_to_text: ^7.3.0
+  flutter_tts: ^4.2.3
+  shared_preferences: ^2.2.2
+  avatar_glow: ^3.0.1
+  porcupine_flutter: ^3.0.0 # Use the latest version
+  flutter_voice_processor:
+ # This is a dependency of porcupine_flutter, might be implicitly added
+  # ... other packages
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4   # Add this for launcher icon generation
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - zero_two.png
+    - .env
+    - ic_launcher.png
+
+# Launcher icon config
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "ic_launcher.png"
