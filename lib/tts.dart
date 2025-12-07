@@ -10,10 +10,10 @@ class TtsService {
 
   TtsService() {
     // ADJUSTED TTS SETTINGS: Stable base before character voice selection
-    _tts.setSpeechRate(0.55); 
+    _tts.setSpeechRate(0.50); 
     _tts.setVolume(1.0);
     _tts.setPitch(1.0); 
-    _tts.setLanguage("en-US");
+    _tts.setLanguage("en-IN");
     
     _tts.setStartHandler(() => onStart?.call());
     _tts.setCompletionHandler(() => onComplete?.call());
@@ -31,7 +31,7 @@ class TtsService {
               "locale": "en-IN",
               "gender": v['gender'] != null ? v['gender'].toString() : 'Unknown',
             })
-        .where((v) => v['locale']!.startsWith('en'))
+        .where((v) => v['locale']!.startsWith('en')||v['locale']!.startsWith('hi'))
         .toList();
   }
 

@@ -51,7 +51,7 @@ class ApiService {
     final extBody=ss.substring(ss.indexOf("Body:")+6);
     print(extSub);
     print(extBody);
-    print(await sendMail(mail, extBody, extSub));
+    return sendMail(mail, extBody, extSub);
    }
 
   return msg["content"] ?? "No response";
@@ -72,9 +72,10 @@ Future<String> sendMail(String mailId,String body,String head)async{
                 "content": [{"type": "text/plain", "value": body}]
               }), );
               if(respon.statusCode==202) {
-                return "send";
+                return "send......";
               } else {
-               return respon.statusCode.toString();
+                print(respon.statusCode);
+               return "failed to send.......";
               }
 }
 

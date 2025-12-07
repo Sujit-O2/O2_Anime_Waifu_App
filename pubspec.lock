@@ -156,7 +156,7 @@ packages:
     source: hosted
     version: "4.2.3"
   flutter_voice_processor:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_voice_processor
       sha256: "8ae3fc196d6060a13392e4ca557f7a2f4a6b87898ae519787f6929f986538572"
