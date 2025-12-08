@@ -17,6 +17,7 @@ dependencies:
   shared_preferences: ^2.2.2
   avatar_glow: ^3.0.1
   porcupine_flutter: ^3.0.0 
+  audioplayers: ^5.2.1
  # This is a dependency of porcupine_flutter, might be implicitly added
   # ... other packages
 
