@@ -67,20 +67,29 @@ flutter run
 
 Create a .env file:
 
-GROQ_API_KEY=your_groq_key
+GROQ_API_KEY=your_groq_key 
+
 SENDGRID_API_KEY=your_sendgrid_key
 
 
 🚫 Do NOT commit this file.
 
-📁 Project Structure
-lib/
+📁 Project Structure 
+
+lib/ 
+
  ├── ApiCall.dart          # API logic
+
  ├── main.dart             # Entry point
+
  ├── tts.dart              # text to speech
+
  ├── stt.dart              # speech to text
+
 android/
+
 ios/
+
 
 📸 Animated UI Previews
 <p align="center"> <img src="sc1.jpg" width="220" /> <img src="sc2.jpg" width="220" /> <img src="sc3.jpg" width="220" /> </p>
