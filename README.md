@@ -120,6 +120,6 @@ Feel free to open issues or suggest features.
 MIT License — free to use & modify.
 
 💖 Support the Project
-<p align="center"> <img src="https://media.tenor.com/N8K3-QOB1l0AAAAC/zero-two-smile.gif" width="200" /> </p>
+<p align="center"> <img src="z2s.jpg" width="200" /> </p>
 
 If you enjoyed this project, please ⭐ the repo!
