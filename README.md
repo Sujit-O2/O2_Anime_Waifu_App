@@ -84,10 +84,7 @@ ios/
 
 📸 Animated UI Previews
 <p align="center"> <img src="sc1.jpg" width="220" /> <img src="sc2.jpg" width="220" /> <img src="sc3.jpg" width="220" /> </p>
-🌈 Demo Screens (Add your real screenshots later)
-📱 Home Screen
-📱 Random Waifu Screen
-📱 Tag-Based Waifu Selection
+🌈 Demo Screens
 📱 Settings / UI Effects
 
 🏗️ Roadmap
