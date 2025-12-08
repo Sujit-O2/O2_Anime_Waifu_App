@@ -83,7 +83,7 @@ android/
 ios/
 
 📸 Animated UI Previews
-<p align="center"> <img src="https://media.tenor.com/8wA8JwE8dXkAAAAC/anime-girl-typing.gif" width="220" /> <img src="https://media.tenor.com/B-L6YPs0RmoAAAAC/anime-girl-loading.gif" width="220" /> <img src="https://media.tenor.com/3VZJxNmPR9oAAAAd/anime-girl.gif" width="220" /> </p>
+<p align="center"> <img src="sc1.jpg" width="220" /> <img src="sc2.jpg" width="220" /> <img src="sc3.jpg" width="220" /> </p>
 🌈 Demo Screens (Add your real screenshots later)
 📱 Home Screen
 📱 Random Waifu Screen
