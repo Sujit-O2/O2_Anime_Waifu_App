@@ -1,9 +1,9 @@
 🌸 Anime Waifu Mobile App
 <p align="center"> <img src="https://media.tenor.com/3XxWP5Q5K7QAAAAC/zero-two-darling.gif" width="280" /> </p> <p align="center"> <img src="https://img.shields.io/badge/Flutter-3.24-blue?style=for-the-badge" /> <img src="https://img.shields.io/badge/Dart-3.0-blue?style=for-the-badge" /> <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-pink?style=for-the-badge" /> <img src="https://img.shields.io/badge/Anime Waifu App-%F0%9F%8C%B8-pink?style=for-the-badge" /> </p>
 🎀 Banner
-<p align="center"> <img src="https://media.tenor.com/WShqN7hBqNAAAAAC/anime-banner.gif" width="100%" /> </p>
+<p align="center"> <img src="zero_two.png" width="100%" /> </p>
 💗 Logo
-<p align="center"> <img src="https://media.tenor.com/IPhnU5XCyF4AAAAi/zero-two.gif" width="150" /> </p>
+<p align="center"> <img src="ic_launcher.png" width="150" /> </p>
 🌟 Overview
 
 Anime Waifu Mobile App is a beautifully designed Flutter application that fetches and displays anime waifu images with smooth animations, modern UI, and fast API performance.

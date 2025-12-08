@@ -13,7 +13,7 @@ class TtsService {
     _tts.setSpeechRate(0.50); 
     _tts.setVolume(1.0);
     _tts.setPitch(1.0); 
-    _tts.setLanguage("en-IN");
+    _tts.setLanguage("en-US");
     
     _tts.setStartHandler(() => onStart?.call());
     _tts.setCompletionHandler(() => onComplete?.call());
@@ -28,7 +28,7 @@ class TtsService {
     return voices
         .map((v) => {
               "name": v['name'].toString(), 
-              "locale": "en-IN",
+              "locale": "en-US",
               "gender": v['gender'] != null ? v['gender'].toString() : 'Unknown',
             })
         .where((v) => v['locale']!.startsWith('en')||v['locale']!.startsWith('hi'))
