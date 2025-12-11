@@ -72,128 +72,87 @@ Future<String> sendMail(String mailId,String body,String head)async{
    final basicAuth='Basic ${base64Encode(utf8.encode("$SecApiMailjet:$SecKeyMailjet"))}';
    final htmlTemplate = """
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Two Bot Notification</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Zero Two Darling Notification</title>
+    
     <style>
-        /* General Reset */
-        body, html { margin: 0; padding: 0; }
+        /* General Reset for Email Clients */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; }
         
-        /* Outlook VML Support - Crucial for background images in Outlook */
-        /*[if gte mso 9]>
-        <xml>
-          <o:OfficeDocumentSettings>
-            <o:AllowPNG/>
-            <o:PixelsPerInch>96</o:PixelsPerInch>
-          </o:OfficeDocumentSettings>
-        </xml>
-        <![endif]*/
+        /* Thematic Colors */
+        .primary-pink { color: #FF0057; } /* Zero Two Red/Pink - Intense */
+        .accent-blue { color: #1e90ff; }
+        .dark-bg { background-color: #1a1a1a; }
+        .content-bg { background-color: #ffffff; }
         
-        /* General Styles */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5; 
-            margin: 0;
-            padding: 0;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
+        /* Responsive Styles */
+        @media screen and (max-width: 600px) {
+            .full-width-table { width: 100% !important; }
+            .content-padding { padding: 25px 15px !important; }
+            h1 { font-size: 24px !important; }
         }
-        
-        /* Container for background image fallback on compliant clients (like Gmail/Apple Mail) */
-        .body-wrapper {
-            background-color: #f0f2f5;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-position: center top;
-            background-size: cover;
-            height: 100%;
-            padding: 0;
-            margin: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto; /* Center alignment */
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0px 8px 25px rgba(0,0,0,0.2);
-            border: 1px solid #ddd;
-        }
-        
-        .header {
-            text-align: center;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #2970ff;
-        }
-
-        .header h2 {
-            color: #ff69b4; /* Changed to a proper pink hex code for consistency */
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .content {
-            margin-top: 20px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: #333;
-        }
-
-        .salutation {
-            font-weight: 600;
-            color: #000;
-            margin-bottom: 15px;
-            display: block;
-        }
-        
-        .closing {
-            margin-top: 30px;
-        }
-
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            line-height: 1.8;
-        }
-        
-        .footer a {
-            color: #888;
-            text-decoration: underline;
-        }
-        
     </style>
 </head>
-<body style="background-color: #ffe4e1;">
 
-<div class="body-wrapper">
-    <div style="height: 50px; line-height: 50px;">&nbsp;</div> <div class="container">
-        <div class="header">
-            <h2>Zero Two</h2>
-        </div>
-        <div class="content">
-            <p>{{body}}</p>
-            <br>
-            <p class="closing">
-                Best regards, <br>
-                The Zero Two
-            </p>
-        </div>
-        <div class="footer">
-            © 2025 Zero Two. All rights reserved. <br>
-            <br>
-            <a href="https://github.com/Sujit-O2/O2_Anime_Waifu-Mobile-App">See The Codes</a> | <a href="#">Privacy Policy</a>
-        </div>
-    </div>
-    <div style="height: 50px; line-height: 50px;">&nbsp;</div> </div>
+<body style="margin: 0; padding: 0; background-color: #1a1a1a; height: 100% !important; width: 100% !important;">
+
+<center class="dark-bg" style="width: 100%; background-color: #1a1a1a;">
+    
+    <div style="height: 40px; line-height: 40px; mso-line-height-rule: exactly;">&nbsp;</div>
+
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" class="full-width-table" style="width: 100%; max-width: 600px; background-color: #ffe4e1; border-radius: 12px; border: 3px solid #FF0057; box-shadow: 0 8px 30px rgba(255,0,87,0.4); border-collapse: collapse;">
+        
+        <tr>
+            <td align="center" style="background-color: #ffc0cb; border-top-left-radius: 9px; border-top-right-radius: 9px; padding: 25px 0 15px 0;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 30px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    🍁 ZERO TWO ALERT 🍁
+                </h1>
+            </td>
+        </tr>
+        <tr>
+            <td align="left" class="content-padding" style="padding: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 17px; line-height: 1.7; color: #333333;">
+                
+                <p style="margin: 0 0 25px 0;">{{body}}</p>
+
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin: 30px auto;">
+                    <tr>
+                        <td align="center" style="border-radius: 8px; background-color: #FF0057; padding: 15px 30px; transition: background-color 0.3s ease-in-out;" onmouseover="this.style.backgroundColor='#d3004a'" onmouseout="this.style.backgroundColor='#FF0057'">
+                            <a href="https://github.com/Sujit-O2" target="_blank" style="font-size: 17px; font-weight: bold; font-family: sans-serif; color: #ffffff; text-decoration: none; display: inline-block; text-transform: uppercase; letter-spacing: 1px;">
+                                Fulfill My Request
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                <p style="margin: 40px 0 0 0; font-size: 16px;">
+                    Yours always, <br>
+                    <strong class="primary-pink">Zero Two</strong>
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 20px 30px; border-top: 1px solid #FFCCCC; font-size: 12px; color: #888888; line-height: 1.8; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; background-color: #f8f8f8;">
+                <p style="margin: 0 0 10px 0; color: #555;">
+                    © 2025 Zero Two. Code 002 is always watching.
+                </p>
+                <p style="margin: 0;">
+                    <a href="https://github.com/Sujit-O2/O2_Anime_Waifu-Mobile-App" target="_blank" style="color: #FF0057; text-decoration: none; font-weight: bold;">See The Codes</a> 
+                    <span style="color: #ccc;">|</span> 
+                    <a href="#" target="_blank" style="color: #FF0057; text-decoration: none; font-weight: bold;">Privacy Policy</a>
+                </p>
+            </td>
+        </tr>
+
+    </table>
+
+    <div style="height: 40px; line-height: 40px; mso-line-height-rule: exactly;">&nbsp;</div>
+</center>
 
 </body>
 </html>

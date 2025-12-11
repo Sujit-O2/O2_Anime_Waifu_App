@@ -1,61 +1,80 @@
 // ignore: file_names
+import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:audioplayers/audioplayers.dart';
 
-/// TTS service
 class TtsService {
-  final FlutterTts _tts = FlutterTts();
+  final AudioPlayer _player = AudioPlayer();
+
   VoidCallback? onStart;
   VoidCallback? onComplete;
 
+  static final String _apiKey = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
+  static const String _voice = "Arista-PlayAI";
+  static const String _model = "playai-tts";
+
   TtsService() {
-    // ADJUSTED TTS SETTINGS: Stable base before character voice selection
-    _tts.setSpeechRate(0.50); 
-    _tts.setVolume(1.0);
-    _tts.setPitch(1.0); 
-    _tts.setLanguage("en-US");
-    
-    _tts.setStartHandler(() => onStart?.call());
-    _tts.setCompletionHandler(() => onComplete?.call());
+    _player.onPlayerComplete.listen((_) {
+      onComplete?.call();
+    });
   }
 
-  // Fetch all available voices from the OS
-  Future<List<Map<String, String>>> getAvailableVoices() async {
-    List<dynamic>? voices = await _tts.getVoices;
-    if (voices == null) return [];
-    
-    // Filter to English voices and map to a consistent structure
-    return voices
-        .map((v) => {
-              "name": v['name'].toString(), 
-              "locale": "en-US",
-              "gender": v['gender'] != null ? v['gender'].toString() : 'Unknown',
-            })
-        .where((v) => v['locale']!.startsWith('en')||v['locale']!.startsWith('hi'))
-        .toList();
-  }
+//Call Groq TTS API
+  Future<Uint8List?> _fetchAudioFromApi(String text) async {
+  try {
+    final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
 
-  // Set a specific voice by name and locale
-  Future<void> setCharacterVoice(String name, String locale) async {
-    try {
-      await _tts.setVoice({"name": name, "locale": locale});
-      // Apply the final character pitch/rate AFTER setting the high-quality base voice
-      await _tts.setPitch(1.0); 
-      await _tts.setSpeechRate(0.50); 
-      await _tts.setVolume(1.0);
+    final bodyData = {
+      "model": _model,
+      "voice": _voice,
+      "input": text,
+      "response_format": "mp3"
+    };
 
-      debugPrint("TTS Voice successfully set to: $name ($locale)");
-    } catch (e) {
-      debugPrint("Error setting voice $name: $e");
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $_apiKey",
+      },
+      body: jsonEncode(bodyData),
+    );
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      debugPrint("TTS API Error: ${response.body}");
+      return null;
     }
+  } catch (e) {
+    debugPrint("TTS API Exception: $e");
+    return null;
   }
+}
 
+
+  //Speak text (API call + play)
   Future<void> speak(String text) async {
-    await _tts.stop();
-    await _tts.speak(text);
+    onStart?.call();
+
+    final audioBytes = await _fetchAudioFromApi(text);
+
+    if (audioBytes == null) {
+      debugPrint("No audio received from API");
+      onComplete?.call();
+      return;
+    }
+
+    await _player.stop();
+    await Future.delayed(Duration(milliseconds: 100));
+    await _player.play(BytesSource(audioBytes));
   }
 
+  /// ---- Stop audio ----
   Future<void> stop() async {
-    await _tts.stop();
+    await _player.stop();
   }
 }

@@ -114,7 +114,6 @@ class _ChatHomePageState extends State<ChatHomePage>
     _initServices();
     _loadMemory();
     _checkApiKey();
-    _selectPreferredVoice();
   }
 
   @override
@@ -148,27 +147,6 @@ class _ChatHomePageState extends State<ChatHomePage>
             "CRITICAL ERROR: API_KEY is missing or invalid in .env file.");
       }
     });
-  }
-
-  Future<void> _selectPreferredVoice() async {
-    final List<Map<String, String>> availableVoices =
-        await _ttsService.getAvailableVoices();
-    Map<String, String>? preferredVoice;
-
-    for (Map<String, String> voice in availableVoices) {
-      if (preferredVoice == null && voice['gender'] == '2') {
-        preferredVoice = voice;
-      }
-    }
-
-    if (preferredVoice != null) {
-      await _ttsService.setCharacterVoice(
-        preferredVoice['name']!,
-        preferredVoice['locale']!,
-      );
-    } else {
-      debugPrint("Could not find a preferred voice. Using default settings.");
-    }
   }
 
   Future<void> _saveMemory() async {
