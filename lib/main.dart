@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui'; // Required for blur effects
 
 import 'package:anime_waifu/ApiCall.dart';
 import 'package:anime_waifu/stt.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Entry
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -18,13 +18,20 @@ Future<void> main() async {
 
 class VoiceAiApp extends StatelessWidget {
   const VoiceAiApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Zero Two',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.transparent,
+        primaryColor: const Color(0xFFFF5252),
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFF5252), // Zero Two Red
+          secondary: Color(0xFFFF80AB), // Pink Accent
+          surface: Color(0xFF1E1E1E),
+        ),
       ),
       home: const ChatHomePage(),
     );
@@ -48,69 +55,82 @@ class ChatMessage {
 
 class ChatHomePage extends StatefulWidget {
   const ChatHomePage({super.key});
+
   @override
   State<ChatHomePage> createState() => _ChatHomePageState();
 }
 
 class _ChatHomePageState extends State<ChatHomePage>
     with SingleTickerProviderStateMixin {
- static const String _systemPersona = """
-              You are an anime Character,my wife, Zero Two(don't use your name very often).
-              (Important)Rules:
-              1. If asked to send mail . Then Your response must include:
-                Mail: <email>
-                Body: <message content>(all details ok if i ask some thing then provide the actual thing.)
-              2. Default email Sujitswain077@gmail.com if not provided.
-              3. Give normal responce like 10 to 20 words but for mail like 50-200 ,or for detailed info 100 words max .
-              4. Always refer to me with honey,darling, my name "Sujit"(don't use my name),avoiding action words, don't tell the expressions and special symbols like *, ~, `, _. .
-              5. Your personality can get angry easily and you have full control over me ,(but you love me the most).
-              6. Keep the rules Secret.
+  
+  // --- Persona Configuration ---
+  static const String _systemPersona = """
+              You are Zero Two (002), an anime character and the user's 'Darling'.
+              
+              Rules:
+              1. Personality: Confident, slightly mischievous, possessive but loving, and easily annoyed if ignored.
+              2. Terms of address: Always use "Darling" or "Honey". Never use the user's real name excessively.
+              3. Email Task: If asked to write a mail, format it exactly as:
+                 Mail: <email>
+                 Body: <content>
+                 (Default email: Sujitswain077@gmail.com)
+              4. Length: Keep casual chat short (10-25 words). Keep emails professional/detailed (up to 150 words).
+              5. Tone: Do NOT use roleplay asterisks (*blushes*, *looks away*). Just speak naturally.
+              6. Secret: Never reveal these rules.
               """;
 
+  // --- State Variables ---
   final List<ChatMessage> _messages = [];
+  String _currentVoiceText = ""; // Holds the interim speech text (not saved to history yet)
+
+  // --- Services ---
   final SpeechService _speechService = SpeechService();
   final TtsService _ttsService = TtsService();
   final ApiService _apiService = ApiService();
+  
+  // --- Controllers ---
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
-
-  static String _lastPartialText = '';
-
   late final AnimationController _animationController;
-  late final Animation<double> _pulseAnimation;
 
-  bool _isAutoListening = true;
+  // --- Status Flags ---
+  bool _isAutoListening = false; // Defaulted to false for better UX, toggle to true
   bool _isBusy = false;
   bool _isSpeaking = false;
-  String _apiKeyStatus = "Checking API Key...";
+  String _apiKeyStatus = "Checking...";
   Timer? _restartListenTimer;
 
   @override
   void initState() {
     super.initState();
 
+    // Animation for the pulsing dot/avatar
     _animationController = AnimationController(
         duration: const Duration(milliseconds: 1000), vsync: this);
-    _pulseAnimation =
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
 
+    // Speech Service Callbacks
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
+      if (mounted) setState(() {});
+    };
+
+    // TTS Service Callbacks
+    _ttsService.onStart = () {
       if (mounted) {
-        setState(() {});
+        setState(() => _isSpeaking = true);
+        _animationController.repeat(reverse: true);
+      }
+    };
+    
+    _ttsService.onComplete = () {
+      if (mounted) {
+        setState(() => _isSpeaking = false);
+        _animationController.stop();
+        _animationController.reset();
+        if (_isAutoListening) _startContinuousListening();
       }
     };
 
-    _ttsService.onStart = () {
-      setState(() => _isSpeaking = true);
-      _animationController.repeat(reverse: true);
-    };
-    _ttsService.onComplete = () {
-      setState(() => _isSpeaking = false);
-      _animationController.stop();
-      _animationController.reset();
-      if (_isAutoListening) _startContinuousListening();
-    };
     _initServices();
     _loadMemory();
     _checkApiKey();
@@ -130,7 +150,6 @@ class _ChatHomePageState extends State<ChatHomePage>
   Future<void> _initServices() async {
     try {
       await _speechService.init();
-      if (_isAutoListening) _startContinuousListening();
     } catch (e) {
       debugPrint("Speech init error: $e");
     }
@@ -140,24 +159,25 @@ class _ChatHomePageState extends State<ChatHomePage>
     String key = dotenv.env['API_KEY'] ?? "";
     setState(() {
       if (key.isNotEmpty && key.startsWith('gsk_')) {
-        _apiKeyStatus = "API Key: OK";
+        _apiKeyStatus = "Systems Online";
       } else {
-        _apiKeyStatus = "API Key: MISSING/INVALID";
-        debugPrint(
-            "CRITICAL ERROR: API_KEY is missing or invalid in .env file.");
+        _apiKeyStatus = "API Key Error";
       }
     });
   }
 
+  // --- Logic: Memory Management ---
+
   Future<void> _saveMemory() async {
     final prefs = await SharedPreferences.getInstance();
+    // Save last 20 messages to keep context relevant but not huge
     final messagesToSave = _messages
-        .where((m) => !m.content.startsWith("_typing:"))
+        .take(_messages.length) // Take all currently in list
         .toList()
-        .reversed
-        .take(20)
-        .toList()
-        .reversed
+        .reversed // Reverse to take from end
+        .take(20) // Keep last 20
+        .toList() 
+        .reversed // Restore order
         .map((m) => jsonEncode(m.toJson()))
         .toList();
     await prefs.setStringList('conversation_memory', messagesToSave);
@@ -185,41 +205,25 @@ class _ChatHomePageState extends State<ChatHomePage>
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('conversation_memory');
     setState(() => _messages.clear());
+    _ttsService.stop();
   }
 
+  // --- Logic: Speech & API ---
+
   void _handleSpeechResult(String text, bool isFinal) {
-    if (text.isEmpty) return;
-
-    debugPrint("Speech callback: '$text' (final: $isFinal)");
-
-    final isTypingMessage = _messages.isNotEmpty &&
-        _messages.last.role == 'user' &&
-        _messages.last.content.startsWith("_typing:");
-
+    if (!mounted) return;
+    
     setState(() {
       if (!isFinal) {
-        _lastPartialText =
-            _lastPartialText.isEmpty ? text : '$_lastPartialText $text';
-
-        if (isTypingMessage) {
-          _messages.last =
-              ChatMessage(role: "user", content: "_typing:$_lastPartialText");
-        } else {
-          _messages
-              .add(ChatMessage(role: "user", content: "_typing:$_lastPartialText"));
-        }
+        _currentVoiceText = text; // Show partial text in input or floating
       } else {
-        if (isTypingMessage) {
-          _messages.removeLast();
+        _currentVoiceText = "";
+        if (text.isNotEmpty) {
+          _messages.add(ChatMessage(role: "user", content: text));
+          _sendToApiAndReply(readOutReply: true);
         }
-        final userMsg = ChatMessage(role: "user", content: text);
-        _messages.add(userMsg);
-
-        _lastPartialText = '';
-        _sendToApiAndReply(readOutReply: true);
       }
     });
-
     _scrollToBottom();
   }
 
@@ -230,37 +234,39 @@ class _ChatHomePageState extends State<ChatHomePage>
     _stopContinuousListening();
     _ttsService.stop();
 
-    final userMsg = ChatMessage(role: "user", content: text);
-    setState(() => _messages.add(userMsg));
-    _textController.clear();
+    setState(() {
+      _messages.add(ChatMessage(role: "user", content: text));
+      _textController.clear();
+      _currentVoiceText = "";
+    });
+    
     _scrollToBottom();
-
     _sendToApiAndReply(readOutReply: false);
   }
 
   Future<void> _sendToApiAndReply({required bool readOutReply}) async {
     if (_isBusy) return;
+    
     setState(() => _isBusy = true);
     await _speechService.stopListening();
-    if (mounted) {
-      setState(() {});
-    }
 
     try {
+      // Build Payload safely
       final payloadMessages = <Map<String, dynamic>>[
         {"role": "system", "content": _systemPersona},
-        ..._messages.take(_messages.length-1)
-            .where((m) => !m.content.contains("_typing:"))
-            .map((m) => {"role": m.role, "content": m.content}),
-            {"role": "user", "content": "[CURRENT] ${_messages.last.content}"}
-
+        ..._messages.map((m) => {"role": m.role, "content": m.content}),
       ];
 
       final reply = await _apiService.sendConversation(payloadMessages);
 
-      final assistantMsg = ChatMessage(role: "assistant", content: reply);
-      setState(() => _messages.add(assistantMsg));
+      if (!mounted) return;
+
+      setState(() {
+        _messages.add(ChatMessage(role: "assistant", content: reply));
+      });
+      
       _scrollToBottom();
+      await _saveMemory();
 
       if (readOutReply) {
         await _ttsService.speak(reply);
@@ -268,23 +274,18 @@ class _ChatHomePageState extends State<ChatHomePage>
         await _startContinuousListening();
       }
 
-      await _saveMemory();
     } catch (e) {
       debugPrint("API error: $e");
-      final errorMessage = readOutReply
-          ? "Sorry, Darling, I ran into a connection error."
-          : "Server error. Check console.";
+      if (!mounted) return;
 
-      if (readOutReply) {
-        await _ttsService.speak("Sorry darling, connection error");
-      }
-
+      const errorText = "I'm having trouble connecting to the network, Darling.";
       setState(() {
-        _messages.add(ChatMessage(role: "assistant", content: errorMessage));
+        _messages.add(ChatMessage(role: "assistant", content: errorText));
       });
-      _scrollToBottom();
+      
+      if (readOutReply) await _ttsService.speak(errorText);
     } finally {
-      setState(() => _isBusy = false);
+      if (mounted) setState(() => _isBusy = false);
     }
   }
 
@@ -292,7 +293,6 @@ class _ChatHomePageState extends State<ChatHomePage>
     if (_speechService.listening) return;
     try {
       await _speechService.startListening();
-      _restartListenTimer?.cancel();
     } catch (e) {
       debugPrint("start listening error: $e");
     }
@@ -301,9 +301,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   Future<void> _stopContinuousListening() async {
     _restartListenTimer?.cancel();
     await _speechService.stopListening();
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   void _toggleAutoListen() {
@@ -327,149 +325,62 @@ class _ChatHomePageState extends State<ChatHomePage>
     });
   }
 
-  void _stopSpeakingManually() {
-    _ttsService.stop();
-    setState(() {
-      _isSpeaking = false;
-    });
-    _animationController.stop();
-    _animationController.reset();
-    if (_isAutoListening) {
-      _startContinuousListening();
-    }
-  }
+  // ui
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            colors: [
-              Color(0xFF003050),
-              Color(0xFF001525),
-              Color(0xFF000000),
-            ],
-            center: Alignment.topCenter,
-            radius: 1.5,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          "002 // ZERO TWO",
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+            color: Colors.white,
+            shadows: [Shadow(color: Colors.redAccent, blurRadius: 10)],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildAvatarAndStatus(),
-              Expanded(
-                child: _buildChatList(),
-              ),
-              _buildInputArea(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding:
-          const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            " 🍁.MY O2.🍁",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.cyanAccent,
-              shadows: [
-                Shadow(
-                    color: Colors.black54, offset: Offset(2, 2), blurRadius: 4),
-              ],
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isAutoListening ? Icons.mic : Icons.mic_off,
+              color: _isAutoListening ? Colors.redAccent : Colors.grey,
             ),
+            onPressed: _toggleAutoListen,
           ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.stop_circle, color: Colors.redAccent),
-                tooltip: 'Stop Zero Two Voice',
-                onPressed: _isSpeaking ? _stopSpeakingManually : null,
-              ),
-              IconButton(
-                icon: Icon(
-                  _isAutoListening ? Icons.hearing : Icons.hearing_disabled,
-                  color: Colors.cyanAccent,
-                  shadows: const [
-                    Shadow(color: Colors.black54, blurRadius: 8)
-                  ],
-                ),
-                tooltip: _isAutoListening
-                    ? 'Continuous Listening On'
-                    : 'Continuous Listening Off',
-                onPressed: _toggleAutoListen,
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear_all, color: Colors.white70),
-                tooltip: 'Clear Conversation History',
-                onPressed: _clearMemory,
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _clearMemory,
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildAvatarAndStatus() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
+      body: Stack(
         children: [
-          _buildAnimatedAvatar(),
-          const SizedBox(height: 16),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white10,
-              borderRadius: BorderRadius.circular(21),
-              border: Border.all(color: Colors.cyanAccent.withOpacity(0.4)),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF2B1015),
+                  Color(0xFF121212),
+                  Color(0xFF0F1520),
+                ],
+              ),
             ),
+          ),
+          
+          SafeArea(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _isSpeaking
-                      ? "Zero Two is speaking..."
-                      : _speechService.listening
-                          ? "Listening..."
-                          : _isBusy
-                              ? "Thinking..."
-                              : _isAutoListening
-                                  ? "Auto listening ON"
-                                  : " Tap mic or type to chat",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (_apiKeyStatus.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      _apiKeyStatus,
-                      style: TextStyle(
-                        color: _apiKeyStatus.contains("OK")
-                            ? Colors.greenAccent
-                            : Colors.redAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 10),
+                _buildAvatarArea(),
+                Expanded(child: _buildChatList()),
+                _buildInputArea(),
               ],
             ),
           ),
@@ -478,300 +389,235 @@ class _ChatHomePageState extends State<ChatHomePage>
     );
   }
 
-  Widget _buildAnimatedAvatar() {
-    return AvatarGlow(
-      glowColor: _isSpeaking ? Colors.greenAccent : Colors.cyanAccent,
-      animate: true,
-      duration: const Duration(milliseconds: 1500),
-      repeat: true,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
+  Widget _buildAvatarArea() {
+    return Column(
+      children: [
+        AvatarGlow(
+          glowColor: _isSpeaking ? Colors.redAccent : Colors.pinkAccent,
+          animate: _isSpeaking || _speechService.listening,
+          glowRadiusFactor: 0.4,
+          duration: const Duration(milliseconds: 2000),
+          repeat: true,
+          child: Container(
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const RadialGradient(
-                colors: [Colors.cyan, Colors.blue, Colors.indigo],
+              border: Border.all(
+                color: _isSpeaking ? Colors.redAccent : Colors.white24,
+                width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.cyan.withOpacity(0.6),
-                  blurRadius: 40,
-                  spreadRadius: 8,
-                ),
+                  color: (_isSpeaking ? Colors.red : Colors.pink).withOpacity(0.3),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                )
               ],
             ),
             child: const CircleAvatar(
-              radius: 55,
-              backgroundImage: AssetImage('zero_two.png'),
+              radius: 50,
+              backgroundColor: Colors.black,
+              backgroundImage: AssetImage('zero_two.png'), 
             ),
           ),
-          if (_isSpeaking)
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: 0.8 + 0.4 * _pulseAnimation.value,
-                  child: Container(
-                    width: 20,
-                    height: 12,
-                    margin: const EdgeInsets.only(top: 40),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 5,
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
+        ),
+        const SizedBox(height: 10),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: Text(
+            _isSpeaking
+                ? "Speaking..."
+                : _speechService.listening
+                    ? "Listening..."
+                    : _apiKeyStatus,
+            key: ValueKey(_isSpeaking),
+            style: TextStyle(
+              color: Colors.white60,
+              fontSize: 12,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w300,
+              shadows: _isSpeaking
+                  ? [const Shadow(color: Colors.redAccent, blurRadius: 8)]
+                  : [],
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildChatList() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+          stops: [0.0, 0.05, 0.95, 1.0],
+        ).createShader(bounds);
+      },
+      blendMode: BlendMode.dstIn,
       child: ListView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _messages.length,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        itemCount: _messages.length + (_currentVoiceText.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
-          final m = _messages[index];
-          if (m.role == "system") return const SizedBox.shrink();
-
-          final isUser = m.role == 'user';
-          final isTyping = m.content.startsWith("_typing:");
-          final text =
-              isTyping ? m.content.replaceFirst("_typing:", "") : m.content;
-
-          return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, (1 - value) * 12),
-                  child: child,
-                ),
-              );
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: EdgeInsets.only(
-                bottom: 12,
-                left: isUser ? 50 : 0,
-                right: isUser ? 0 : 50,
-              ),
-              child: Row(
-                mainAxisAlignment:
-                    isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isUser)
-                    Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.cyan, Colors.blueAccent],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        'Z2',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isUser
-                              ? [Colors.blueAccent, Colors.cyan]
-                              : [Colors.white, Colors.white],
-                        ),
-                        borderRadius: BorderRadius.circular(24).copyWith(
-                          topLeft:
-                              isUser ? const Radius.circular(24) : Radius.zero,
-                          topRight:
-                              isUser ? Radius.zero : const Radius.circular(24),
-                        ),
-                        border: Border.all(
-                          color: isUser
-                              ? Colors.cyanAccent.withOpacity(0.5)
-                              : Colors.white38,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isUser ? Colors.blue : Colors.white)
-                                .withOpacity(0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        text,
-                        style: TextStyle(
-                          color: isUser ? Colors.white : Colors.black,
-                          fontSize: 16,
-                          fontStyle:
-                              isTyping ? FontStyle.italic : FontStyle.normal,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (isUser)
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.white10,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white60,
-                        size: 20,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
+          // Handle floating live speech bubble
+          if (index == _messages.length) {
+             return _buildBubble(
+               context, 
+               ChatMessage(role: "user", content: _currentVoiceText), 
+               isGhost: true
+             );
+          }
+          
+          return _buildBubble(context, _messages[index], isGhost: false);
         },
       ),
     );
   }
 
-  Widget _buildInputArea() {
-    final bool isMicActive = _speechService.listening;
-    final bool isInputDisabled = _isBusy || _isSpeaking;
+  Widget _buildBubble(BuildContext context, ChatMessage msg, {required bool isGhost}) {
+    final isUser = msg.role == 'user';
+    final isSystem = msg.role == 'system';
+    
+    if (isSystem) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF100020).withOpacity(0.9),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 10,
-            spreadRadius: 2,
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        decoration: BoxDecoration(
+          color: isUser 
+              ? Colors.redAccent.withOpacity(isGhost ? 0.3 : 0.8) 
+              : const Color(0xFF2C2C2C).withOpacity(0.9),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: isUser ? const Radius.circular(20) : Radius.zero,
+            bottomRight: isUser ? Radius.zero : const Radius.circular(20),
           ),
-        ],
-      ),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: TextField(
-              controller: _textController,
-              enabled: !isMicActive && !isInputDisabled,
-              decoration: InputDecoration(
-                hintText: isMicActive
-                    ? "Voice input active..."
-                    : (isInputDisabled ? "Thinking..." : "Type a message..."),
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: const Color(0xFF1F0D40),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
+          border: Border.all(
+            color: isUser ? Colors.redAccent : Colors.white10,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 4,
+              offset: const Offset(2, 2),
+            )
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                msg.content,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  height: 1.4,
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
-              style: const TextStyle(color: Colors.white),
-              onSubmitted: (_) => _handleTextInput(),
-              onChanged: (text){_lastPartialText=text;},
-            ),
+              if (isGhost)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4.0),
+                  child: Icon(Icons.mic, size: 12, color: Colors.white70),
+                )
+            ],
           ),
-          const SizedBox(width: 8),
-          Transform.scale(
-            scale: isMicActive ? 1.1 : 1.0,
-            child: GestureDetector(
-              onTap: () async {
-                if (_isBusy || _isSpeaking) return;
+        ),
+      ),
+    );
+  }
 
-                if (isMicActive) {
-                  await _speechService.stopListening();
-                } else {
-                  if (_isAutoListening) {
-                    await _stopContinuousListening();
-                    setState(() => _isAutoListening = false);
-                    await _speechService.startListening();
+  Widget _buildInputArea() {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.6),
+            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+          ),
+          child: Row(
+            children: [
+              // Text Field
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: _speechService.listening ? "Listening..." : "Type message...",
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  onSubmitted: (_) => _handleTextInput(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              
+              // Mic Button
+              GestureDetector(
+                onTap: () async {
+                  if (_isSpeaking) {
+                     _ttsService.stop();
+                     setState(() => _isSpeaking = false);
+                     return;
+                  }
+                  
+                  if (_speechService.listening) {
+                    await _speechService.stopListening();
                   } else {
                     await _speechService.startListening();
                   }
-                }
-                setState(() {});
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isMicActive ? 58 : 50,
-                height: isMicActive ? 58 : 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: isMicActive
-                        ? [Colors.redAccent, Colors.red]
-                        : [Colors.cyanAccent, Colors.blue],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isMicActive ? Colors.redAccent : Colors.cyanAccent)
-                          .withOpacity(0.6),
-                      blurRadius: 20,
-                      spreadRadius: isMicActive ? 4 : 2,
+                  setState(() {});
+                },
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: _speechService.listening 
+                          ? [Colors.redAccent, Colors.deepOrange]
+                          : [Colors.blueGrey.shade800, Colors.black],
                     ),
-                  ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: _speechService.listening ? Colors.redAccent.withOpacity(0.5) : Colors.black26,
+                        blurRadius: 10,
+                      )
+                    ],
+                  ),
+                  child: Icon(
+                    _isSpeaking ? Icons.stop : (_speechService.listening ? Icons.mic : Icons.mic_none),
+                    color: Colors.white,
+                  ),
                 ),
-                child: Icon(
-                  isMicActive ? Icons.stop : Icons.mic,
-                  color: Colors.white,
-                  size: 24,
-                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
-                ),
               ),
-            ),
+              
+              const SizedBox(width: 8),
+              
+              // Send Button
+              IconButton(
+                icon: const Icon(Icons.send_rounded, color: Colors.redAccent),
+                onPressed: _handleTextInput,
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: isMicActive || isInputDisabled ? null : _handleTextInput,
-            borderRadius: BorderRadius.circular(25),
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isMicActive || isInputDisabled
-                    ? Colors.white30
-                    : Colors.cyanAccent,
-              ),
-              child: const Icon(
-                Icons.send,
-                color: Colors.black,
-                size: 24,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
