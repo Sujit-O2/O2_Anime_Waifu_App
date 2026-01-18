@@ -13,8 +13,8 @@ class TtsService {
   VoidCallback? onComplete;
 
   static final String _apiKey = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
-  static const String _voice = "Arista-PlayAI";
-  static const String _model = "playai-tts";
+  static const String _voice = "lulwa";
+  static const String _model = "canopylabs/orpheus-arabic-saudi";
 
   TtsService() {
     _player.onPlayerComplete.listen((_) {
@@ -31,7 +31,7 @@ class TtsService {
       "model": _model,
       "voice": _voice,
       "input": text,
-      "response_format": "mp3"
+      "response_format": "wav"
     };
 
     final response = await http.post(
