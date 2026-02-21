@@ -16,8 +16,11 @@ dependencies:
   flutter_tts: ^4.2.3
   shared_preferences: ^2.2.2
   avatar_glow: ^3.0.1
-  porcupine_flutter: ^3.0.0 
   audioplayers: ^6.0.0
+  porcupine_flutter: ^4.0.0
+  record: ^6.0.0
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
  # This is a dependency of porcupine_flutter, might be implicitly added
   # ... other packages
 
@@ -36,6 +39,7 @@ flutter:
     - zero_two.png
     - .env
     - ic_launcher.png
+    - Baby-girl_en_android_v4_0_0.ppn
 
 # Launcher icon config
 flutter_icons:

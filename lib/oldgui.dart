@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:anime_waifu/ApiCall.dart';
+import 'package:anime_waifu/api_call.dart';
 import 'package:anime_waifu/stt.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:avatar_glow/avatar_glow.dart';
@@ -54,7 +54,7 @@ class ChatHomePage extends StatefulWidget {
 
 class _ChatHomePageState extends State<ChatHomePage>
     with SingleTickerProviderStateMixin {
- static const String _systemPersona = """
+  static const String _systemPersona = """
               You are an anime Character,my wife, Zero Two(don't use your name very often).
               (Important)Rules:
               1. If asked to send mail . Then Your response must include:
@@ -205,8 +205,8 @@ class _ChatHomePageState extends State<ChatHomePage>
           _messages.last =
               ChatMessage(role: "user", content: "_typing:$_lastPartialText");
         } else {
-          _messages
-              .add(ChatMessage(role: "user", content: "_typing:$_lastPartialText"));
+          _messages.add(
+              ChatMessage(role: "user", content: "_typing:$_lastPartialText"));
         }
       } else {
         if (isTypingMessage) {
@@ -249,11 +249,11 @@ class _ChatHomePageState extends State<ChatHomePage>
     try {
       final payloadMessages = <Map<String, dynamic>>[
         {"role": "system", "content": _systemPersona},
-        ..._messages.take(_messages.length-1)
+        ..._messages
+            .take(_messages.length - 1)
             .where((m) => !m.content.contains("_typing:"))
             .map((m) => {"role": m.role, "content": m.content}),
-            {"role": "user", "content": "[CURRENT] ${_messages.last.content}"}
-
+        {"role": "user", "content": "[CURRENT] ${_messages.last.content}"}
       ];
 
       final reply = await _apiService.sendConversation(payloadMessages);
@@ -372,8 +372,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   Widget _buildHeader() {
     return Container(
-      padding:
-          const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+      padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -400,9 +399,7 @@ class _ChatHomePageState extends State<ChatHomePage>
                 icon: Icon(
                   _isAutoListening ? Icons.hearing : Icons.hearing_disabled,
                   color: Colors.cyanAccent,
-                  shadows: const [
-                    Shadow(color: Colors.black54, blurRadius: 8)
-                  ],
+                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
                 ),
                 tooltip: _isAutoListening
                     ? 'Continuous Listening On'
@@ -699,7 +696,9 @@ class _ChatHomePageState extends State<ChatHomePage>
               ),
               style: const TextStyle(color: Colors.white),
               onSubmitted: (_) => _handleTextInput(),
-              onChanged: (text){_lastPartialText=text;},
+              onChanged: (text) {
+                _lastPartialText = text;
+              },
             ),
           ),
           const SizedBox(width: 8),
@@ -735,8 +734,9 @@ class _ChatHomePageState extends State<ChatHomePage>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: (isMicActive ? Colors.redAccent : Colors.cyanAccent)
-                          .withOpacity(0.6),
+                      color:
+                          (isMicActive ? Colors.redAccent : Colors.cyanAccent)
+                              .withOpacity(0.6),
                       blurRadius: 20,
                       spreadRadius: isMicActive ? 4 : 2,
                     ),
