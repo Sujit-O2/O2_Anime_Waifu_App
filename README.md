@@ -1,6 +1,6 @@
 ﻿<div align="center">
 
-# 🌸 Anime Waifu Voice Assistant: Neural Nexus 🌸
+# 🌸 Anime Waifu Assistant 🌸
 
 
 <p align="center">
