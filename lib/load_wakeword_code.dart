@@ -7,7 +7,8 @@ typedef WakeWordCallback = void Function(int keywordIndex);
 
 /// Service for managing wake word detection using Picovoice Porcupine
 class WakeWordService {
-  PorcupineManager? _manager;
+  final List<PorcupineManager> _managers = [];
+  final Set<String> _activeKeywordPaths = <String>{};
   bool _running = false;
   bool _initialized = false;
   bool _initializing = false;
@@ -16,23 +17,39 @@ class WakeWordService {
   WakeWordCallback? _onDetected;
 
   static const String _babyGirlKeyword = "Baby-girl_en_android_v4_0_0.ppn";
-  static const String _zeroTwoKeyword = "Hay-Zero-two_en_android_v3_0_0.ppn";
+  static const String _zeroTwoKeyword = "Zero-two_en_android_v4_0_0.ppn";
   static const String _darlingKeyword = "Darling_en_android_v4_0_0.ppn";
 
-  // Try paired keywords first so both wake phrases are supported.
+  // Prefer grouped keyword initialization first, then fill any missing
+  // keywords with individual managers.
   static const List<List<String>> _keywordSetCandidates = [
+    // Prefer trying all three together first.
     [
-      "assets/wakeword/Baby-girl_en_android_v4_0_0.ppn",
-      "assets/wakeword/Hay-Zero-two_en_android_v3_0_0.ppn",
-      "assets/wakeword/Darling_en_android_v4_0_0.ppn",
+      "assets/wakeword/${_babyGirlKeyword}",
+      "assets/wakeword/${_zeroTwoKeyword}",
+      "assets/wakeword/${_darlingKeyword}",
+    ],
+    // If loading all three at once fails (for example mixed model versions),
+    // try pair combinations first.
+    [
+      "assets/wakeword/${_babyGirlKeyword}",
+      "assets/wakeword/${_zeroTwoKeyword}",
+    ],
+    [
+      "assets/wakeword/${_babyGirlKeyword}",
+      "assets/wakeword/${_darlingKeyword}",
+    ],
+    [
+      "assets/wakeword/${_zeroTwoKeyword}",
+      "assets/wakeword/${_darlingKeyword}",
     ],
   ];
 
-  // Fallback to a single keyword when only one model is packaged.
+  // Canonical list of keyword asset paths in global callback index order.
   static const List<String> _singleKeywordCandidates = [
-    "assets/wakeword/Baby-girl_en_android_v4_0_0.ppn",
-    "assets/wakeword/Hay-Zero-two_en_android_v3_0_0.ppn",
-    "assets/wakeword/Darling_en_android_v4_0_0.ppn",
+    "assets/wakeword/${_babyGirlKeyword}",
+    "assets/wakeword/${_zeroTwoKeyword}",
+    "assets/wakeword/${_darlingKeyword}",
   ];
 
   /// Configure access key for Picovoice
@@ -74,19 +91,46 @@ class WakeWordService {
     return _isActivationLimitError(error) || _isAccessKeyError(error);
   }
 
+  int _globalKeywordIndex(String keywordPath) {
+    return _singleKeywordCandidates.indexOf(keywordPath);
+  }
+
+  WakeWordCallback _buildKeywordCallback(List<String> keywordPaths) {
+    final mappedIndexes = keywordPaths.map(_globalKeywordIndex).toList();
+    return (int localKeywordIndex) {
+      if (localKeywordIndex >= 0 && localKeywordIndex < mappedIndexes.length) {
+        final mapped = mappedIndexes[localKeywordIndex];
+        if (mapped >= 0) {
+          _handleWakeWordDetected(mapped);
+          return;
+        }
+      }
+      _handleWakeWordDetected(localKeywordIndex);
+    };
+  }
+
   Future<PorcupineManager> _createManager(
     String accessKey,
     List<String> keywordPaths,
+    WakeWordCallback onDetected,
   ) {
-    final sensitivitiesList = List<double>.filled(keywordPaths.length, 0.6);
+    // Create sensitivity array matching keyword count.
+    final sensitivities = List<double>.filled(keywordPaths.length, 0.6);
+    debugPrint(
+      "Creating Porcupine manager with ${keywordPaths.length} keywords and ${sensitivities.length} sensitivities",
+    );
     return PorcupineManager.fromKeywordPaths(
       accessKey,
       keywordPaths,
-      _handleWakeWordDetected,
-      sensitivities: sensitivitiesList,
+      onDetected,
+      sensitivities: sensitivities,
       errorCallback: _handleWakeWordError,
     );
   }
+
+  /// Returns keyword paths in canonical callback-index order.
+  List<String> get loadedKeywords =>
+      List.unmodifiable(_singleKeywordCandidates);
 
   /// Initialize wake word engine
   Future<void> init(
@@ -99,21 +143,30 @@ class WakeWordService {
     _initializing = true;
 
     try {
-      await _disposeManager();
+      await _disposeManagers();
+      _activeKeywordPaths.clear();
+
       final accessKey = _resolveAccessKey();
       if (accessKey.isEmpty) {
         throw Exception('WAKE_WORD_KEY/PICOVOICE_KEY is missing in .env');
       }
 
-      PorcupineManager? manager;
       Object? lastError;
+      var fatalAccessKeyError = false;
 
-      debugPrint("Wake word: trying paired keyword models first");
+      debugPrint("Wake word: trying grouped keyword models first");
       for (final keywordPaths in _keywordSetCandidates) {
         try {
           debugPrint("Wake word: trying paths $keywordPaths");
-          manager = await _createManager(accessKey, keywordPaths);
-          debugPrint("Wake word initialized with keywords: $keywordPaths");
+          final manager = await _createManager(
+            accessKey,
+            keywordPaths,
+            _buildKeywordCallback(keywordPaths),
+          );
+          _managers.add(manager);
+          _activeKeywordPaths.addAll(keywordPaths);
+          debugPrint(
+              "Wake word initialized with grouped keywords: $keywordPaths");
           break;
         } catch (e) {
           lastError = e;
@@ -122,23 +175,35 @@ class WakeWordService {
           if (_isFatalAccessKeyError(errorStr)) {
             debugPrint(
                 "Wake word: access key/activation error, aborting retries");
+            fatalAccessKeyError = true;
             break;
           }
         }
       }
 
-      if (manager == null &&
-          !_isFatalAccessKeyError(lastError?.toString() ?? "")) {
-        debugPrint(
-          "Wake word: paired models unavailable, trying single model fallback",
-        );
-        for (final keywordPath in _singleKeywordCandidates) {
+      if (!fatalAccessKeyError) {
+        final missingKeywordPaths = _singleKeywordCandidates
+            .where((path) => !_activeKeywordPaths.contains(path))
+            .toList();
+
+        if (missingKeywordPaths.isNotEmpty) {
+          debugPrint(
+            "Wake word: trying single model fallback for missing: $missingKeywordPaths",
+          );
+        }
+
+        for (final keywordPath in missingKeywordPaths) {
           try {
             debugPrint("Wake word: trying single path $keywordPath");
-            manager = await _createManager(accessKey, [keywordPath]);
+            final manager = await _createManager(
+              accessKey,
+              [keywordPath],
+              _buildKeywordCallback([keywordPath]),
+            );
+            _managers.add(manager);
+            _activeKeywordPaths.add(keywordPath);
             debugPrint(
                 "Wake word initialized with single keyword: $keywordPath");
-            break;
           } catch (e) {
             lastError = e;
             final errorStr = e.toString();
@@ -147,13 +212,14 @@ class WakeWordService {
             if (_isFatalAccessKeyError(errorStr)) {
               debugPrint(
                   "Wake word: access key/activation error, aborting retries");
+              fatalAccessKeyError = true;
               break;
             }
           }
         }
       }
 
-      if (manager == null) {
+      if (_managers.isEmpty) {
         final errorStr = lastError.toString();
         final isActivationError = _isActivationLimitError(errorStr);
         final isAccessKeyError = _isAccessKeyError(errorStr);
@@ -193,7 +259,7 @@ Wake word disabled for now - using text input mode
 Failed to load wake word model.
 
 SOLUTION:
-1. Ensure $_babyGirlKeyword and $_zeroTwoKeyword exist
+1. Ensure $_babyGirlKeyword, $_zeroTwoKeyword, and $_darlingKeyword exist
 2. For PRODUCTION: put .ppn files in assets/wakeword/
 3. Confirm pubspec.yaml includes assets/wakeword/ via assets/
 4. Run 'flutter clean && flutter pub get'
@@ -207,19 +273,32 @@ Last error: $lastError
         throw Exception(solution);
       }
 
-      _manager = manager;
+      final missingAfterFallback = _singleKeywordCandidates
+          .where((path) => !_activeKeywordPaths.contains(path))
+          .toList();
+      if (missingAfterFallback.isNotEmpty) {
+        debugPrint(
+          "Wake word warning: some keywords are unavailable: $missingAfterFallback",
+        );
+      } else {
+        debugPrint("Wake word initialized with all keywords");
+      }
+
       if (startImmediately) {
-        await _manager!.start();
+        for (final manager in _managers) {
+          await manager.start();
+        }
         _running = true;
       } else {
         _running = false;
       }
+
       _initialized = true;
       _reinitRequired = false;
       debugPrint("Wake word service initialized");
     } catch (e) {
       debugPrint("Wake word init error: $e");
-      _manager = null;
+      await _disposeManagers();
       _initialized = false;
       rethrow;
     } finally {
@@ -257,11 +336,30 @@ Last error: $lastError
       return;
     }
 
-    debugPrint("Wake word detected: keyword $keywordIndex");
+    final names = loadedKeywords
+        .map((p) => p.split('/').last.replaceAll('.ppn', ''))
+        .toList();
+    final detectedName = (keywordIndex >= 0 && keywordIndex < names.length)
+        ? names[keywordIndex]
+        : 'unknown';
+    debugPrint(
+      "Wake word detected: keyword index $keywordIndex (detected=$detectedName)",
+    );
     try {
       callback(keywordIndex);
     } catch (e, st) {
       debugPrint("Wake word callback error: $e\n$st");
+    }
+  }
+
+  /// Developer helper: trigger the detection callback programmatically.
+  void testTriggerByIndex(int keywordIndex) {
+    final callback = _onDetected;
+    if (callback == null) return;
+    try {
+      callback(keywordIndex);
+    } catch (e, st) {
+      debugPrint("Wake word test trigger error: $e\n$st");
     }
   }
 
@@ -273,37 +371,40 @@ Last error: $lastError
     _reinitRequired = true;
   }
 
-  /// Safely dispose of the Porcupine manager
-  Future<void> _disposeManager() async {
-    final manager = _manager;
-    if (manager == null) {
+  /// Safely dispose all Porcupine managers
+  Future<void> _disposeManagers() async {
+    if (_managers.isEmpty) {
       _running = false;
       _initialized = false;
+      _activeKeywordPaths.clear();
       return;
     }
 
-    try {
-      if (_running) {
+    final managers = List<PorcupineManager>.from(_managers);
+    _managers.clear();
+    _activeKeywordPaths.clear();
+
+    for (final manager in managers) {
+      try {
         await manager.stop();
+      } catch (e) {
+        debugPrint("Error stopping wake word manager: $e");
       }
-    } catch (e) {
-      debugPrint("Error stopping wake word manager: $e");
+
+      try {
+        await manager.delete();
+      } catch (e) {
+        debugPrint("Error deleting wake word manager: $e");
+      }
     }
 
-    try {
-      await manager.delete();
-    } catch (e) {
-      debugPrint("Error deleting wake word manager: $e");
-    }
-
-    _manager = null;
     _running = false;
     _initialized = false;
   }
 
   /// Dispose of all resources
   Future<void> dispose() async {
-    await _disposeManager();
+    await _disposeManagers();
     _reinitRequired = false;
     _onDetected = null;
     debugPrint("Wake word service disposed");
@@ -311,18 +412,19 @@ Last error: $lastError
 
   /// Stop wake word detection
   Future<void> stop() async {
-    final manager = _manager;
-    if (manager == null || !_running) {
+    if (_managers.isEmpty || !_running) {
       return;
     }
 
     _running = false;
-    try {
-      await manager.stop();
-      debugPrint("Wake word detection stopped");
-    } catch (e) {
-      debugPrint("Error stopping wake word: $e");
+    for (final manager in _managers) {
+      try {
+        await manager.stop();
+      } catch (e) {
+        debugPrint("Error stopping wake word: $e");
+      }
     }
+    debugPrint("Wake word detection stopped");
   }
 
   /// Start wake word detection
@@ -339,7 +441,7 @@ Last error: $lastError
       return;
     }
 
-    if (!_initialized || _manager == null) {
+    if (!_initialized || _managers.isEmpty) {
       final callback = _onDetected;
       if (callback == null) {
         debugPrint("Cannot start: no callback registered");
@@ -350,7 +452,9 @@ Last error: $lastError
     }
 
     try {
-      await _manager!.start();
+      for (final manager in _managers) {
+        await manager.start();
+      }
       _running = true;
       debugPrint("Wake word detection started");
     } catch (e) {

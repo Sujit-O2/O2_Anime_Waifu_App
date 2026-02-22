@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:anime_waifu/api_call.dart';
 import 'package:anime_waifu/config/app_theme.dart';
 import 'package:anime_waifu/config/system_persona.dart';
+import 'package:anime_waifu/debug/wakeword_debug.dart';
 import 'package:anime_waifu/load_wakeword_code.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
@@ -37,6 +38,9 @@ class VoiceAiApp extends StatelessWidget {
       title: 'Zero Two',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      routes: {
+        '/wake-debug': (ctx) => const WakewordDebugPage(),
+      },
       home: const ChatHomePage(),
     );
   }
@@ -88,10 +92,12 @@ class _ChatHomePageState extends State<ChatHomePage>
   String _devMailJetSecOverride = "";
   Timer? _wakeEffectTimer;
   Timer? _titleTapResetTimer;
+  Timer? _logoTapResetTimer;
   Timer? _wakeInitRetryTimer;
   Timer? _wakeWatchdogTimer;
   Future<void>? _ensureWakeWordActiveTask;
   int _titleTapCount = 0;
+  int _logoTapCount = 0;
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
   DateTime? _lastWakeDetectedAt;
   static const Duration _wakeDetectCooldown = Duration(seconds: 4);
@@ -184,12 +190,12 @@ class _ChatHomePageState extends State<ChatHomePage>
   void _scheduleStartupTasks() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _playAppOpenSound();
-      
+
       // Request microphone permission - critical for wake word
       debugPrint("=== STARTUP: Requesting microphone permission ===");
       var micGranted = await _ensureMicPermission(requestIfNeeded: true);
       debugPrint("Microphone permission granted: $micGranted");
-      
+
       // If not granted, retry once more after a short delay
       if (!micGranted) {
         await Future.delayed(const Duration(milliseconds: 500));
@@ -205,7 +211,7 @@ class _ChatHomePageState extends State<ChatHomePage>
       debugPrint("Wake word enabled by user: $_wakeWordEnabledByUser");
 
       await _loadAssistantMode();
-      
+
       if (micGranted && _wakeWordEnabledByUser) {
         debugPrint("=== STARTUP: Initializing wake word ===");
         await _initWakeWord();
@@ -237,7 +243,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     try {
       var status = await Permission.microphone.status;
       debugPrint("Microphone permission status: $status");
-      
+
       if (status.isGranted) {
         debugPrint("✓ Microphone permission already granted");
         return true;
@@ -362,6 +368,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     _wakeEffectTimer?.cancel();
     _wakeWatchdogTimer?.cancel();
     _titleTapResetTimer?.cancel();
+    _logoTapResetTimer?.cancel();
     _wakeInitRetryTimer?.cancel();
     unawaited(_speechService.cancel());
     unawaited(_ttsService.stop());
@@ -543,9 +550,20 @@ class _ChatHomePageState extends State<ChatHomePage>
       }
       _lastWakeDetectedAt = now;
       _showWakeEffect();
+
+      // Map keywordIndex to actual loaded keyword name when available
+      String wakeName = "";
+      try {
+        final loaded = _wakeWordService.loadedKeywords;
+        if (keywordIndex >= 0 && keywordIndex < loaded.length) {
+          wakeName =
+              loaded[keywordIndex].split('/').last.replaceAll('.ppn', '');
+        }
+      } catch (_) {}
+
       await _showBackgroundListeningNotification(
         status: "Listening...",
-        transcript: "",
+        transcript: wakeName,
         pulse: true,
       );
 
@@ -1387,6 +1405,23 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
   }
 
+  void _onLogoTap() {
+    _logoTapCount += 1;
+    _logoTapResetTimer?.cancel();
+    _logoTapResetTimer = Timer(const Duration(milliseconds: 2200), () {
+      _logoTapCount = 0;
+    });
+
+    if (_logoTapCount >= 5) {
+      _logoTapCount = 0;
+      _logoTapResetTimer?.cancel();
+      Navigator.of(context).pushNamed(
+        '/wake-debug',
+        arguments: _wakeWordService,
+      );
+    }
+  }
+
   void _scrollToBottom() {
     if (_isDisposed) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1651,33 +1686,37 @@ class _ChatHomePageState extends State<ChatHomePage>
           ),
         ),
         const SizedBox(height: 6),
-        AvatarGlow(
-          glowColor: _isSpeaking ? Colors.redAccent : Colors.pinkAccent,
-          animate: _isSpeaking || _speechService.listening,
-          glowRadiusFactor: 0.4,
-          duration: const Duration(milliseconds: 2000),
-          repeat: true,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: _isSpeaking ? Colors.redAccent : Colors.white24,
-                width: 2,
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _onLogoTap,
+          child: AvatarGlow(
+            glowColor: _isSpeaking ? Colors.redAccent : Colors.pinkAccent,
+            animate: _isSpeaking || _speechService.listening,
+            glowRadiusFactor: 0.4,
+            duration: const Duration(milliseconds: 2000),
+            repeat: true,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _isSpeaking ? Colors.redAccent : Colors.white24,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        (_isSpeaking ? Colors.red : Colors.pink).withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  )
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      (_isSpeaking ? Colors.red : Colors.pink).withOpacity(0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                )
-              ],
-            ),
-            child: const CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.black,
-              backgroundImage: AssetImage('zero_two.png'),
+              child: const CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.black,
+                backgroundImage: AssetImage('zero_two.png'),
+              ),
             ),
           ),
         ),

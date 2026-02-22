@@ -1,125 +1,149 @@
-🌸 Anime Waifu Mobile App
-<p align="center"> <img src="https://media.tenor.com/3XxWP5Q5K7QAAAAC/zero-two-darling.gif" width="280" /> </p> <p align="center"> <img src="https://img.shields.io/badge/Flutter-3.24-blue?style=for-the-badge" /> <img src="https://img.shields.io/badge/Dart-3.0-blue?style=for-the-badge" /> <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-pink?style=for-the-badge" /> <img src="https://img.shields.io/badge/Anime Waifu App-%F0%9F%8C%B8-pink?style=for-the-badge" /> </p>
-🎀 Banner
-<p align="center"> <img src="zero_two.png" width="100%" /> </p>
-💗 Logo
-<p align="center"> <img src="ic_launcher.png" width="150" /> </p>
-🌟 Overview
+﻿<div align="center">
 
-Anime Waifu Mobile App is a beautifully designed Flutter application that fetches and displays anime waifu images with smooth animations, modern UI, and fast API performance.
+# Anime Waifu Voice Assistant
 
-Built for anime lovers who want a cute, fun, and aesthetic mobile experience 💖
+**Zero Two-inspired Flutter app with wake word activation, live voice chat, and personality-driven AI replies.**
 
-✨ Features
+<p>
+  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white" />
+  <img src="https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-ff4d88?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Voice%20AI-STT%20%2B%20TTS-ff7a59?style=for-the-badge" />
+</p>
 
-🎴 Beautiful waifu gallery
+<img src="zero_two.png" width="100%" alt="Zero Two banner" />
 
-🎲 Random waifu generator
+</div>
 
-🎯 Tag-based filtering (cute, angry, cool, etc.)
+---
 
-⚡ Fast performance with API integration
+## Why This App Feels Different
+- Wake word listener with **Porcupine** (`Baby-girl`, `Zero-two`, `Darling`)
+- Conversational memory with assistant mode persistence
+- Full voice loop: **Speech-to-Text -> LLM -> Text-to-Speech**
+- Mail task support through MailJet integration
+- Stylized Zero Two theme and animated interaction states
 
-🔮 Flutter animations (fade, shimmer, slide)
+## Tech Stack
+| Layer | Tools |
+|---|---|
+| UI | Flutter, Material |
+| Voice Input | `speech_to_text` |
+| Voice Output | `flutter_tts` |
+| Wake Word | `porcupine_flutter` |
+| Networking | `http` |
+| Config | `flutter_dotenv` |
+| Local State | `shared_preferences` |
 
-📱 Android & iOS support
+## Architecture (High-Level)
+```mermaid
+flowchart LR
+A[User Voice] --> B[Wake Word Engine]
+B --> C[STT]
+C --> D[Conversation Builder]
+D --> E[LLM API]
+E --> F[TTS]
+F --> G[Audio Reply]
+D --> H[Local Memory]
+E --> I[Optional MailJet Action]
+```
 
-🤍 Minimal and aesthetic UI
+## Project Structure
+```text
+lib/
+  main.dart                        # App entry + main chat UI
+  api_call.dart                    # LLM + MailJet calls
+  stt.dart                         # Speech recognition service
+  tts.dart                         # Text-to-speech service
+  load_wakeword_code.dart          # Wake word lifecycle and fallback logic
+  models/chat_message.dart         # Chat message model
+  services/assistant_mode_service.dart
+  config/app_theme.dart
+  config/system_persona.dart
+  debug/wakeword_debug.dart        # Debug route: /wake-debug
+assets/
+  wakeword/
+    Baby-girl_en_android_v4_0_0.ppn
+    Zero-two_en_android_v4_0_0.ppn
+    Darling_en_android_v4_0_0.ppn
+```
 
-🛠️ Tech Stack
-<p align="center"> <img src="https://raw.githubusercontent.com/flutter/website/master/src/_assets/image/flutter-lockup-bg.jpg" width="300" /> </p>
-
-Flutter
-
-Dart
-
-REST APIs
-
-Environment variables (.env)
-
-Modern UI widgets
-
-⚡ Getting Started
-📦 Prerequisites
-
-You need:
-
-Flutter SDK
-
-Android Studio / VS Code
-
-A device or emulator
-
-🔧 Installation
-# 1️⃣ Clone the repository
-git clone https://github.com/Sujit-O2/O2_Anime_Waifu-Mobile-App.git
-
-# 2️⃣ Navigate into the directory
-cd O2_Anime_Waifu-Mobile-App
-
-# 3️⃣ Install dependencies
+## Quick Start
+### 1. Install dependencies
+```bash
 flutter pub get
+```
 
-# 4️⃣ Run the app
+### 2. Configure environment
+Create `.env` in project root:
+
+```env
+API_KEY=your_llm_api_key
+MAIL_JET_API=your_mailjet_api_key
+MAILJET_SEC=your_mailjet_secret
+WAKE_WORD_KEY=your_picovoice_access_key
+# Optional fallback key name supported by code:
+# PICOVOICE_KEY=your_picovoice_access_key
+```
+
+### 3. Run the app
+```bash
 flutter run
+```
 
-🔑 Environment Setup
+### 4. Release build (Android)
+```bash
+flutter build apk --release
+```
 
-Create a .env file:
+## Security Notes
+- Never commit `.env` with real keys.
+- If secrets were exposed before, rotate them immediately.
+- Keep production keys scoped and revocable.
 
-GROQ_API_KEY=your_groq_key 
+## Runtime Requirements
+- Microphone permission is required for wake word and STT.
+- Wake word `.ppn` models must be present in `assets/wakeword/`.
 
-SENDGRID_API_KEY=your_sendgrid_key
+## Troubleshooting
+<details>
+<summary><b>Wake word is not starting</b></summary>
 
+- Verify `WAKE_WORD_KEY` or `PICOVOICE_KEY` is valid.
+- Confirm `.ppn` files exist under `assets/wakeword/`.
+- Rebuild cleanly:
 
-🚫 Do NOT commit this file.
+```bash
+flutter clean
+flutter pub get
+flutter run
+```
+</details>
 
-📁 Project Structure 
+<details>
+<summary><b>No AI response from chat</b></summary>
 
-lib/ 
+- Check `API_KEY` in `.env`.
+- Ensure device internet connection is active.
+- Review model/API overrides (if changed in dev settings).
+</details>
 
- ├── ApiCall.dart          # API logic
+<details>
+<summary><b>Mail sending fails</b></summary>
 
- ├── main.dart             # Entry point
+- Validate `MAIL_JET_API` and `MAILJET_SEC`.
+- Confirm destination email is present in generated instruction.
+</details>
 
- ├── tts.dart              # text to speech
+## UI Preview
+<div align="center">
+  <img src="sc1.jpg" width="220" />
+  <img src="sc2.jpg" width="220" />
+  <img src="sc3.jpg" width="220" />
+</div>
 
- ├── stt.dart              # speech to text
+---
 
-android/
-
-ios/
-
-
-📸 Animated UI Previews
-<p align="center"> <img src="sc1.jpg" width="220" /> <img src="sc2.jpg" width="220" /> <img src="sc3.jpg" width="220" /> </p>
-🌈 Demo Screens
-📱 Settings / UI Effects
-
-🏗️ Roadmap
-
- Add more waifu APIs
-
- Add download button
-
- Enable favorites system
-
- Cloud sync
-
- Add AI chat with waifu (Groq-based)
-
- Add Lottie animations
-
-🤝 Contributing
-
-Pull requests are welcome!
-Feel free to open issues or suggest features.
-
-📜 License
-
-MIT License — free to use & modify.
-
-💖 Support the Project
-<p align="center"> <img src="z2s.jpg" width="200" /> </p>
-
-If you enjoyed this project, please ⭐ the repo!
+<div align="center">
+Made with Flutter for immersive voice-first anime assistant experiences.
+</div>
