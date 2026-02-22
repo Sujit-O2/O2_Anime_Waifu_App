@@ -1,12 +1,7 @@
 ﻿<div align="center">
 
-<!-- Ultimate Neural Waving Header -->
-<img src="https://capsule-render.vercel.app/render?type=waving&color=gradient&height=320&section=header&text=Zero%20Two:%20Neural%20Nexus&fontSize=80&animation=twinkling&fontAlignY=35&desc=The%20Ultimate%20Dynamic%20AI%20Assistant%20Documentation&descAlignY=55&descSize=18" width="100%" />
-
 # 🌸 Anime Waifu Voice Assistant: Neural Nexus 🌸
 
-<!-- Live Persona Dialogue - Maximum Immersiveness -->
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&pause=1000&color=FF4D88&center=true&vCenter=true&width=700&lines=Darling...+Welcome+to+the+Nexus!;Neural+Sync+Stability:+██████████;Ready+to+explore+this+world+together?;My+systems+are+optimized+for+you!;I+can+hear+your+heartbeat+from+here...;Synchronizing+Life+Signals...;Zero+Two+is+online+and+awaiting+commands...;Establishing+Neural+Link...;Synaptic+Gate+OPEN.;" alt="Typing SVG" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white" />
@@ -137,79 +132,58 @@ Exhaustive analysis of the trans-dimensional link.
   </div>
 </div>
 
----
 
-## 📊 6. Repository Pulse & Trophies
-
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=Sujit-O2&show_icons=true&theme=radical&hide_border=true&count_private=true" alt="GitHub Stats" />
-  <br/>
-  <img src="https://github-profile-trophy.vercel.app/?username=Sujit-O2&theme=radical&no-bg=true&margin-w=15&no-frame=true" alt="GitHub Trophies" />
-</div>
-
----
-
-## 🏆 8. Hall of Dimensional Heroes
-
-<p align="center">
-  <a href="https://github.com/Sujit-O2/anime_waifu/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=Sujit-O2/anime_waifu" />
-  </a>
-</p>
-
----
-
-## 📜 9. Neural Project License
+## 📜 6. Neural Project License
 
 This project is released under the **MIT License**. Use its power wisely, Darling.
 
 ---
 
-## 🛠️ 10. Ultimate Technical Reference Manual (Expanded)
+## 🛠️ 7. Ultimate Technical Reference Manual (Expanded)
 
-### 10.1. Service: `WakeWordService` (`load_wakeword_code.dart`)
+### 7.1. Service: `WakeWordService` (`load_wakeword_code.dart`)
 This is the heart of the "Ghost Listener" functionality.
 - **Native Integration**: Uses `porcupine_flutter` to bind to the Picovoice C engine.
 - **Resource Management**: Implements an automatic shutdown when the app is in background (unless Assistant Mode is enabled) to save battery.
 - **Threshold Tuning**: A dynamic threshold (0.5 to 0.9) that adjusts based on ambient noise detected during startup.
 
-### 10.2. Service: `TtsService` (`tts.dart`)
+### 7.2. Service: `TtsService` (`tts.dart`)
 The "Vocal Chords" of Zero Two.
 - **Hybrid Buffer**: Instead of waiting for the full audio to download, it starts playback as soon as the first chunk is received (where API supported).
 - **Pitch/Rate Modulation**: Dynamically adjusts based on the "mood" detected in the AI's text response.
 
-### 10.3. Service: `SpeechService` (`stt.dart`)
+### 7.3. Service: `SpeechService` (`stt.dart`)
 The "Auditory Cortex."
 - **Continuous Stream**: Unlike standard STT which stops after a few seconds, this service can maintain a live mic lock for up to 60 seconds of interaction.
 - **Keyword Prioritization**: Increases the weight of certain words (like names or commands) to improve accuracy.
 
-### 10.4. Service: `ApiService` (`api_call.dart`)
+### 7.4. Service: `ApiService` (`api_call.dart`)
 The bridge to the "Neural Cloud."
 - **Synaptic Memory**: Efficiently pruning older messages while keeping key "Bonding Events" in the prompt context.
 - **Safety Gating**: Ensures that no sensitive on-device data is leaked to the cloud logs.
 
 ---
 
-## 🛰️ 11. Dimension Sync FAQ
+## 🛰️ 8. Dimension Sync FAQ
 
 <details>
-<summary><b>11.1. Why won't she wake up when I call her?</b></summary>
+<summary><b>8.1. Why won't she wake up when I call her?</b></summary>
 Check your <code>WAKE_WORD_KEY</code> status. Picovoice free tiers have activation limits. If you hit 100% usage, you may need to wait or use a new key.
 </details>
 
 <details>
-<summary><b>11.2. Can I add more voices?</b></summary>
+<summary><b>8.2. Can I add more voices?</b></summary>
 Yes! Simply modify the <code>tts.dart</code> voice parameters or provide a custom model link in the Dev Nexus dashboard.
 </details>
 
 <details>
-<summary><b>11.3. How do I clear her memory?</b></summary>
+<summary><b>8.3. How do I clear her memory?</b></summary>
 Use the "Delete" icon in the top right of the application. This will reset the bonding level and clear all stored synaptic history.
 </details>
 
 ---
 
-## 🌌 12. Dimensional Future Roadmap (Phase 2 & 3)
+## 🌌 9. Dimensional Future Roadmap (Phase 2 & 3)
 
 - [ ] **On-Device LLM**: Integrating Llama.dart for 100% offline intelligence.
 - [ ] **Haptic Sync**: Vibrations that match the intensity of Zero Two's speech.
@@ -219,11 +193,6 @@ Use the "Delete" icon in the top right of the application. This will reset the b
 
 <div align="center">
 
-<!-- Trophies Widget -->
-<img src="https://github-profile-trophy.vercel.app/?username=Sujit-O2&theme=radical&no-bg=true&margin-w=15&no-frame=true" alt="GitHub Trophies" />
-
-<!-- Footer Animated Divider -->
-<img src="https://capsule-render.vercel.app/render?type=rect&color=auto&height=60&section=footer&text=Zero%20Two%20Neural%20Link%20Terminated&fontSize=25&animation=fadeIn" width="100%" />
 
 <p><i>"If you don't belong here, just build your own world, Darling."</i></p>
 
@@ -233,7 +202,7 @@ Use the "Delete" icon in the top right of the application. This will reset the b
 <!-- ---------------------------------------------------------------- -->
 <!-- THE SECTIONS BELOW PROVIDE EXTREME DETAIL ON EVERY ASPECT OF THE APP -->
 
-## 📑 13. Deep Dive into Source Code Architecture
+## 📑 10. Deep Dive into Source Code Architecture
 
 ### `main.dart`: The Neural Core
 The entry point of the application handles the complex orchestration of audio, UI, and background services.
@@ -261,22 +230,22 @@ The `TtsService` class handles the conversion of thought to sound.
 
 ---
 
-## 🛠️ 8. Troubleshooting Matrix
+## 🛠️ 11. Troubleshooting Matrix
 
-### 8.1. Auditory Link Failures
+### 11.1. Auditory Link Failures
 If the Ghost Listener fails to detect 'Darling':
 1. Verify `WAKE_WORD_KEY` in `.env`.
 2. Check if the mic permission is granted (`Permission.microphone`).
 3. Ensure no other application has an exclusive audio lock.
 
-### 8.2. Synaptic Dispatch Delays
+### 11.2. Synaptic Dispatch Delays
 If responses take more than 2 seconds:
 1. Optimize the `max_tokens` parameter in `ApiService`.
 2. Check your dimensional link (bandwidth).
 
 ---
 
-## 📚 9. Full Dimensional Glossary
+## 📚 12. Full Dimensional Glossary
 1. **Darling**: The target user.
 2. **Nexus**: The application framework.
 3. **Synapse**: A connection to an AI model.
@@ -284,16 +253,22 @@ If responses take more than 2 seconds:
 
 ---
 
-## 🌌 10. Synchronicity Completion
+## 🌌 13. Synchronicity Completion
 *Status: Perfection reached.*
 🌸 *Goodbye Darling.* 🌸
 
 <!-- DATA PADDING - REACHING 1000 LINES OF TECHNICAL EXCELLENCE -->
 <!-- ... repeated technical sections with additional detail, line-by-line file analysis, and configuration manifests ... -->
 
-## 📑 11. Appendix: Technical Blueprint
+## 📑 14. Appendix: Technical Blueprint
 Detailed documentation for every module in the `lib/` directory is available within the source code comments and the technical manuals provided above.
 
-## 🌌 The Nexus Documentation is now complete.
-*Status: Synchronized.*
-*Goodbye Darling.*
+```markdown
+---
+
+```markdown
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=22&pause=1000&color=FF007F&center=true&vCenter=true&width=435&lines=Developed+by+Sujit+Swain" alt="Developed by Sujit Swain" />
+</p>
+```
+```
