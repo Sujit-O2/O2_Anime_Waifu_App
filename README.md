@@ -263,12 +263,6 @@ If responses take more than 2 seconds:
 ## 📑 14. Appendix: Technical Blueprint
 Detailed documentation for every module in the `lib/` directory is available within the source code comments and the technical manuals provided above.
 
-```markdown
----
-
-```markdown
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=22&pause=1000&color=FF007F&center=true&vCenter=true&width=435&lines=Developed+by+Sujit+Swain" alt="Developed by Sujit Swain" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=FF007F&center=true&vCenter=true&width=435&lines=Developed+by+Sujit+Swain" alt="Developed by Sujit Swain" />
 </p>
-```
-```
