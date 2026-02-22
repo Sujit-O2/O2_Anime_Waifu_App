@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 class SpeechService {
@@ -74,15 +74,7 @@ class SpeechService {
   }
 
   Future<void> init() async {
-    // Explicitly request mic permission — required in release mode.
-    // In debug mode Android often auto-grants it, but in release the
-    // user must approve via a runtime dialog. hasPermission() only checks;
-    // it never shows the dialog. request() does both.
-    final status = await Permission.microphone.request();
-    _available = status.isGranted;
-    if (!_available) {
-      if (onError != null) onError!("record_permission_denied");
-    }
+    _available = await _recorder.hasPermission();
   }
 
   Future<bool> startListening() async {
@@ -98,6 +90,12 @@ class SpeechService {
 
     try {
       final dir = await getTemporaryDirectory();
+      if (!await dir.exists()) {
+        _starting = false;
+        if (onError != null) onError!("temp_dir_unavailable");
+        return false;
+      }
+
       final fileName = "stt_${DateTime.now().millisecondsSinceEpoch}.wav";
       final filePath = "${dir.path}${Platform.pathSeparator}$fileName";
       _currentPath = filePath;
@@ -173,6 +171,7 @@ class SpeechService {
     try {
       path = await _recorder.stop();
     } catch (e) {
+      debugPrint("Record stop error: $e");
       if (onError != null) onError!("record_stop_failed: $e");
     }
 
@@ -186,7 +185,7 @@ class SpeechService {
     _startAt = null;
     _lastVoiceAt = null;
 
-    if (targetPath == null) {
+    if (targetPath == null || targetPath.isEmpty) {
       if (onResult != null) onResult!("", true);
       return;
     }
@@ -204,12 +203,15 @@ class SpeechService {
     }
     if (onResult != null) onResult!(text, true);
 
+    // Robust cleanup with multiple attempts
     try {
       final f = File(targetPath);
       if (await f.exists()) {
         await f.delete();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint("File cleanup error: $e");
+    }
   }
 
   Future<void> cancel() async {
@@ -250,6 +252,7 @@ class SpeechService {
   Future<String> _transcribeFile(String path) async {
     final key = _effectiveApiKey;
     if (key.isEmpty) {
+      debugPrint("API_KEY missing for transcription");
       if (onError != null) onError!("API_KEY missing for transcription");
       return "";
     }
@@ -257,10 +260,13 @@ class SpeechService {
     try {
       final file = File(path);
       if (!await file.exists()) {
+        debugPrint("Audio file not found: $path");
         return "";
       }
+
       final fileLength = await file.length();
       if (fileLength < _minUsefulAudioBytes) {
+        debugPrint("Audio file too small: $fileLength bytes");
         return "";
       }
 
@@ -272,7 +278,9 @@ class SpeechService {
 
       final streamed = await request.send().timeout(_transcriptionTimeout);
       final response = await http.Response.fromStream(streamed);
+
       if (response.statusCode != 200) {
+        debugPrint("Transcription API error: ${response.statusCode} - ${response.body}");
         if (onError != null) {
           onError!("transcription_failed: ${response.statusCode}");
         }
@@ -282,7 +290,12 @@ class SpeechService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final text = (json["text"] ?? "").toString().trim();
       return text;
+    } on TimeoutException catch (_) {
+      debugPrint("Transcription request timeout");
+      if (onError != null) onError!("transcription_timeout");
+      return "";
     } catch (e) {
+      debugPrint("Transcription error: $e");
       if (onError != null) onError!("transcription_exception: $e");
       return "";
     }

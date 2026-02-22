@@ -13,6 +13,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Suppress Java 8 obsolete warnings from transitive dependencies
+        isCoreLibraryDesugaringEnabled = false
     }
 
     kotlinOptions {

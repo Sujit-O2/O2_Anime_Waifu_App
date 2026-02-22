@@ -1,12 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
 // ignore: file_names
 import 'dart:typed_data';
-import 'dart:convert';
-import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
 
 class TtsService {
   final AudioPlayer _player = AudioPlayer();
@@ -70,14 +71,15 @@ class TtsService {
     onComplete?.call();
   }
 
-//Call Groq TTS API
+  /// Calls Groq TTS API and returns audio bytes
   Future<Uint8List?> _fetchAudioFromApi(String text) async {
     try {
       if (_effectiveApiKey.isEmpty) {
+        debugPrint("TTS API key is missing");
         return null;
       }
-      final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
 
+      final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
       final bodyData = {
         "model": _effectiveModel,
         "voice": _effectiveVoice,
@@ -99,19 +101,23 @@ class TtsService {
       if (response.statusCode == 200) {
         return response.bodyBytes;
       } else {
-        debugPrint("TTS API Error: ${response.body}");
+        debugPrint("TTS API Error: ${response.statusCode} - ${response.body}");
         return null;
       }
+    } on TimeoutException catch (_) {
+      debugPrint("TTS API request timeout");
+      return null;
     } catch (e) {
       debugPrint("TTS API Exception: $e");
       return null;
     }
   }
 
-  //Speak text (API call + play)
+  /// Speak text (API call + play)
   Future<void> speak(String text) async {
     final cleanText = text.trim();
     if (cleanText.isEmpty) {
+      debugPrint("TTS: Empty text provided");
       return;
     }
 
@@ -119,19 +125,24 @@ class TtsService {
     _activeSessionId = sessionId;
     onStart?.call();
 
-    final audioBytes = await _fetchAudioFromApi(cleanText);
+    try {
+      final audioBytes = await _fetchAudioFromApi(cleanText);
 
-    if (audioBytes == null || audioBytes.isEmpty) {
-      debugPrint("No audio from Groq TTS, falling back to free device TTS");
+      if (audioBytes == null || audioBytes.isEmpty) {
+        debugPrint("No audio from Groq TTS, falling back to device TTS");
+        await _speakWithFallbackTts(cleanText, sessionId);
+        return;
+      }
+
+      _playerSessionId = sessionId;
+      _fallbackSessionId = 0;
+      await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await _player.play(BytesSource(audioBytes));
+    } catch (e) {
+      debugPrint("TTS speak error: $e");
       await _speakWithFallbackTts(cleanText, sessionId);
-      return;
     }
-
-    _playerSessionId = sessionId;
-    _fallbackSessionId = 0;
-    await _player.stop();
-    await Future.delayed(const Duration(milliseconds: 100));
-    await _player.play(BytesSource(audioBytes));
   }
 
   Future<void> _speakWithFallbackTts(String text, int sessionId) async {
@@ -142,8 +153,10 @@ class TtsService {
       await _flutterTts.setLanguage("en-US");
       await _flutterTts.setPitch(1.0);
       await _flutterTts.setSpeechRate(0.47);
+      
       final result = await _flutterTts.speak(text);
       if (result != 1) {
+        debugPrint("Fallback TTS speak returned: $result");
         _notifyComplete(sessionId);
       }
     } catch (e) {
@@ -152,14 +165,25 @@ class TtsService {
     }
   }
 
-  /// ---- Stop audio ----
+  /// Stop all audio playback and cleanup
   Future<void> stop() async {
     final previous = _activeSessionId;
     _activeSessionId = 0;
     _playerSessionId = 0;
     _fallbackSessionId = 0;
-    await _player.stop();
-    await _flutterTts.stop();
+    
+    try {
+      await _player.stop();
+    } catch (e) {
+      debugPrint("TTS player stop error: $e");
+    }
+    
+    try {
+      await _flutterTts.stop();
+    } catch (e) {
+      debugPrint("FlutterTTS stop error: $e");
+    }
+    
     if (previous != 0) {
       onComplete?.call();
     }

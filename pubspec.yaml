@@ -34,12 +34,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets
+  # Keep wake-word models under assets/wakeword for stable release loading.
   assets:
+    - assets/
+    - assets/wakeword/
     - zero_two.png
     - .env
     - ic_launcher.png
-    - Baby-girl_en_android_v4_0_0.ppn
 
 # Launcher icon config
 flutter_icons:

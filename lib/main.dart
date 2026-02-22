@@ -12,15 +12,20 @@ import 'package:anime_waifu/stt.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  runApp(const VoiceAiApp());
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load(fileName: ".env");
+    runApp(const VoiceAiApp());
+  } catch (e, st) {
+    debugPrint("Fatal startup error: $e\n$st");
+    rethrow;
+  }
 }
 
 class VoiceAiApp extends StatelessWidget {
@@ -81,28 +86,34 @@ class _ChatHomePageState extends State<ChatHomePage>
   String _devTtsVoiceOverride = "";
   String _devMailJetApiOverride = "";
   String _devMailJetSecOverride = "";
-  Timer? _restartListenTimer;
   Timer? _wakeEffectTimer;
   Timer? _titleTapResetTimer;
   Timer? _wakeInitRetryTimer;
+  Timer? _wakeWatchdogTimer;
+  Future<void>? _ensureWakeWordActiveTask;
   int _titleTapCount = 0;
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
   DateTime? _lastWakeDetectedAt;
   static const Duration _wakeDetectCooldown = Duration(seconds: 4);
+  static const int _maxConversationMessages = 40;
+  static const int _maxPayloadMessages = 20;
   bool _showOpeningOverlay = true;
   bool _wakeWordReady = false;
   bool _wakeInitInProgress = false;
   bool _isDisposed = false;
+  bool _wakeWordEnabledByUser = true;
+  bool _wakeWordActivationLimitHit = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startWakeWatchdog();
 
     _animationController = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
+        duration: const Duration(milliseconds: 600), vsync: this);
     _openingController = AnimationController(
-      duration: const Duration(milliseconds: 3800),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     _openingFade = Tween<double>(begin: 1.0, end: 0.0).animate(
@@ -173,16 +184,44 @@ class _ChatHomePageState extends State<ChatHomePage>
   void _scheduleStartupTasks() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _playAppOpenSound();
-      // Request microphone permission first — CRITICAL for release mode.
-      // On debug builds Android usually auto-grants it, but a signed
-      // release APK requires an explicit runtime permission dialog.
-      await Permission.microphone.request();
+      
+      // Request microphone permission - critical for wake word
+      debugPrint("=== STARTUP: Requesting microphone permission ===");
+      var micGranted = await _ensureMicPermission(requestIfNeeded: true);
+      debugPrint("Microphone permission granted: $micGranted");
+      
+      // If not granted, retry once more after a short delay
+      if (!micGranted) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        debugPrint("=== STARTUP: Retry microphone permission ===");
+        micGranted = await _ensureMicPermission(requestIfNeeded: true);
+        debugPrint("Microphone permission granted (retry): $micGranted");
+      }
+
       // Keep startup deterministic: config first, then wake engine.
       await _initServices();
       await _loadDevConfig();
+      await _loadWakePreferences();
+      debugPrint("Wake word enabled by user: $_wakeWordEnabledByUser");
+
       await _loadAssistantMode();
-      await _initWakeWord();
-      await _ensureWakeWordActive();
+      
+      if (micGranted && _wakeWordEnabledByUser) {
+        debugPrint("=== STARTUP: Initializing wake word ===");
+        await _initWakeWord();
+        debugPrint("Wake word ready: $_wakeWordReady");
+        if (_wakeWordReady) {
+          debugPrint("=== STARTUP: Starting wake word listening ===");
+          await _ensureWakeWordActive();
+          debugPrint("=== STARTUP: Wake word active ===");
+        } else {
+          debugPrint("=== STARTUP: Wake word initialization failed ===");
+        }
+      } else {
+        debugPrint(
+            "=== STARTUP: Skipping wake word (micGranted=$micGranted, enabled=$_wakeWordEnabledByUser) ===");
+        await _wakeWordService.stop();
+      }
       unawaited(_loadMemory());
       if (mounted) {
         unawaited(precacheImage(const AssetImage('zero_two.png'), context));
@@ -194,12 +233,134 @@ class _ChatHomePageState extends State<ChatHomePage>
     SystemSound.play(SystemSoundType.click);
   }
 
+  Future<bool> _ensureMicPermission({required bool requestIfNeeded}) async {
+    try {
+      var status = await Permission.microphone.status;
+      debugPrint("Microphone permission status: $status");
+      
+      if (status.isGranted) {
+        debugPrint("✓ Microphone permission already granted");
+        return true;
+      }
+
+      if (status.isDenied) {
+        if (!requestIfNeeded) {
+          debugPrint("✗ Microphone permission denied (not requesting)");
+          return false;
+        }
+        debugPrint("⚠ Permission denied, requesting now...");
+        status = await Permission.microphone.request();
+        debugPrint("Request result: $status");
+      } else if (status.isPermanentlyDenied) {
+        debugPrint("✗ Microphone permission permanently denied");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Microphone is permanently disabled. Enable in Settings → Apps → Permissions",
+              ),
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+        return false;
+      }
+
+      if (status.isGranted) {
+        debugPrint("✓ Microphone permission granted after request");
+        return true;
+      } else {
+        debugPrint("✗ Microphone permission not granted. Status: $status");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Microphone permission is required for wake word."),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+
+      return status.isGranted;
+    } catch (e) {
+      debugPrint("✗ Mic permission check error: $e");
+      return false;
+    }
+  }
+
+  void _appendMessage(ChatMessage message) {
+    if (_isDisposed) return;
+    _messages.add(message);
+    if (_messages.length > _maxConversationMessages) {
+      final startIndex = _messages.length - _maxConversationMessages;
+      if (startIndex > 0 && startIndex < _messages.length) {
+        _messages.removeRange(0, startIndex);
+      }
+    }
+  }
+
+  void _startWakeWatchdog() {
+    _wakeWatchdogTimer?.cancel();
+    _wakeWatchdogTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (!mounted || _isDisposed) return;
+      if (!_wakeWordEnabledByUser) return;
+      unawaited(_ensureWakeWordActive());
+    });
+  }
+
+  Future<void> _loadWakePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('wake_word_enabled') ?? true;
+    if (mounted) {
+      setState(() => _wakeWordEnabledByUser = enabled);
+    } else {
+      _wakeWordEnabledByUser = enabled;
+    }
+  }
+
+  Future<void> _toggleWakeWordEnabled() async {
+    final next = !_wakeWordEnabledByUser;
+
+    if (next) {
+      final hasMic = await _ensureMicPermission(requestIfNeeded: true);
+      if (!hasMic) return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('wake_word_enabled', next);
+
+    if (mounted) {
+      setState(() => _wakeWordEnabledByUser = next);
+    } else {
+      _wakeWordEnabledByUser = next;
+    }
+
+    if (!_wakeWordEnabledByUser) {
+      _wakeWordReady = false;
+      await _wakeWordService.stop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Wake word disabled")),
+        );
+      }
+      return;
+    }
+
+    await _initWakeWord();
+    await _ensureWakeWordActive();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Wake word enabled")),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
-    _restartListenTimer?.cancel();
     _wakeEffectTimer?.cancel();
+    _wakeWatchdogTimer?.cancel();
     _titleTapResetTimer?.cancel();
     _wakeInitRetryTimer?.cancel();
     unawaited(_speechService.cancel());
@@ -264,22 +425,105 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
   }
 
+  bool _containsToken(String input, List<String> tokens) {
+    final lower = input.toLowerCase();
+    return tokens.any(lower.contains);
+  }
+
+  bool _isWakeActivationLimitError(String error) {
+    return _containsToken(error, ['activationlimit', 'activation limit']);
+  }
+
+  bool _isWakeAccessKeyError(String error) {
+    return _containsToken(
+      error,
+      ['accesskey', 'access key', 'invalid access key', 'expired access key'],
+    );
+  }
+
   Future<void> _initWakeWord() async {
-    if (_isDisposed || _wakeWordReady || _wakeInitInProgress) return;
+    if (_isDisposed || _wakeWordReady || _wakeInitInProgress) {
+      return;
+    }
+    if (!_wakeWordEnabledByUser) {
+      return;
+    }
+    if (_wakeWordActivationLimitHit) {
+      debugPrint("_initWakeWord: Skipped - Activation limit hit");
+      return;
+    }
+    final hasMic = await _ensureMicPermission(requestIfNeeded: false);
+    if (!hasMic) {
+      _wakeWordReady = false;
+      return;
+    }
     _wakeInitInProgress = true;
     try {
+      debugPrint("_initWakeWord: Starting initialization...");
       await _wakeWordService.init(_onWakeWordDetected);
       _wakeWordReady = true;
       _wakeInitRetryTimer?.cancel();
-    } catch (e) {
+      _wakeWordActivationLimitHit = false;
+      debugPrint("_initWakeWord: SUCCESS");
+    } catch (e, st) {
       _wakeWordReady = false;
-      debugPrint("Wake word init error: $e");
-      _wakeInitRetryTimer?.cancel();
-      _wakeInitRetryTimer = Timer(const Duration(seconds: 5), () {
-        if (mounted && !_wakeWordReady) {
-          unawaited(_initWakeWord());
+      final errorStr = e.toString();
+      debugPrint("_initWakeWord: FAILED - $e");
+
+      // Activation limit - don't retry, just disable
+      if (_isWakeActivationLimitError(errorStr)) {
+        _wakeWordActivationLimitHit = true;
+        _wakeWordEnabledByUser = false;
+        _wakeInitRetryTimer?.cancel();
+        debugPrint("_initWakeWord: Activation limit hit - Wake word disabled");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Picovoice activation limit reached. Update WAKE_WORD_KEY in .env",
+              ),
+              duration: Duration(seconds: 6),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
-      });
+        return;
+      }
+
+      // Access key invalid - don't retry
+      if (_isWakeAccessKeyError(errorStr)) {
+        _wakeWordActivationLimitHit = true;
+        _wakeWordEnabledByUser = false;
+        _wakeInitRetryTimer?.cancel();
+        debugPrint("_initWakeWord: Invalid access key - Wake word disabled");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Invalid Picovoice key. Check WAKE_WORD_KEY in .env",
+              ),
+              duration: Duration(seconds: 6),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // File not found - retry with longer delay
+      if (errorStr.contains('IOException') || errorStr.contains('File')) {
+        _wakeInitRetryTimer?.cancel();
+        _wakeInitRetryTimer = Timer(const Duration(seconds: 12), () {
+          if (mounted && !_wakeWordReady && !_wakeWordActivationLimitHit) {
+            debugPrint("_initWakeWord: Retrying after 12 seconds");
+            unawaited(_initWakeWord());
+          }
+        });
+        return;
+      }
+
+      // Other errors - single retry only
+      debugPrint("_initWakeWord: Other error - $e\n$st");
     } finally {
       _wakeInitInProgress = false;
     }
@@ -287,6 +531,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   Future<void> _onWakeWordDetected(int keywordIndex) async {
     try {
+      if (!_wakeWordEnabledByUser) return;
       if (_isManualMicSession) return;
       final now = DateTime.now();
       if (_lastWakeDetectedAt != null &&
@@ -310,7 +555,6 @@ class _ChatHomePageState extends State<ChatHomePage>
       if (!_speechService.listening && !_isBusy) {
         await _startSttFromWake();
       }
-      if (mounted) setState(() {});
     } catch (e) {
       debugPrint("Wake word callback error: $e");
       await _showBackgroundListeningNotification(
@@ -322,6 +566,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   void _showWakeEffect() {
+    if (_isDisposed) return;
     _wakeEffectTimer?.cancel();
     if (mounted) {
       setState(() => _wakeEffectVisible = true);
@@ -330,7 +575,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
     HapticFeedback.mediumImpact();
     _wakeEffectTimer = Timer(const Duration(milliseconds: 1800), () {
-      if (mounted) {
+      if (mounted && !_isDisposed) {
         setState(() => _wakeEffectVisible = false);
       } else {
         _wakeEffectVisible = false;
@@ -338,25 +583,62 @@ class _ChatHomePageState extends State<ChatHomePage>
     });
   }
 
-  Future<void> _ensureWakeWordActive() async {
+  Future<void> _ensureWakeWordActive() {
+    final inFlight = _ensureWakeWordActiveTask;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final task = _ensureWakeWordActiveInternal();
+    _ensureWakeWordActiveTask = task;
+    task.whenComplete(() {
+      if (identical(_ensureWakeWordActiveTask, task)) {
+        _ensureWakeWordActiveTask = null;
+      }
+    });
+    return task;
+  }
+
+  Future<void> _ensureWakeWordActiveInternal() async {
     if (!mounted || _isDisposed) return;
-    // Allow wake word in foreground always.
-    // In background, require assistant mode.
-    if (!_isInForeground && !_assistantModeEnabled) {
-      await _wakeWordService.stop();
+
+    if (!_wakeWordEnabledByUser) {
+      if (_wakeWordService.isRunning) {
+        await _wakeWordService.stop();
+      }
+      _wakeWordReady = false;
       return;
     }
-    if (!_wakeWordReady) {
-      await _initWakeWord();
-      return;
-    }
+
+    // While another mic/audio flow is active, keep wake engine paused.
     if (_isAutoListening ||
         _isBusy ||
         _isSpeaking ||
         _suspendWakeWord ||
         _speechService.listening) {
+      if (_wakeWordService.isRunning) {
+        await _wakeWordService.stop();
+      }
       return;
     }
+
+    if (_wakeWordService.isRunning) {
+      return;
+    }
+
+    final hasMic = await _ensureMicPermission(requestIfNeeded: false);
+    if (!hasMic) {
+      _wakeWordReady = false;
+      return;
+    }
+
+    if (!_wakeWordReady) {
+      await _initWakeWord();
+      if (!_wakeWordReady) {
+        return;
+      }
+    }
+
     try {
       await _wakeWordService.start();
     } catch (e) {
@@ -372,7 +654,9 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   void _onSpeechStatusChanged(String status) {
-    if (mounted) {
+    final updatesUi =
+        status == 'listening' || status == 'done' || status == 'notListening';
+    if (mounted && updatesUi) {
       setState(() {});
     }
     if (status == 'listening') {
@@ -431,13 +715,15 @@ class _ChatHomePageState extends State<ChatHomePage>
     String key = _devApiKeyOverride.trim().isNotEmpty
         ? _devApiKeyOverride
         : (dotenv.env['API_KEY'] ?? "");
-    setState(() {
-      if (key.isNotEmpty && key.startsWith('gsk_')) {
-        _apiKeyStatus = "Systems Online";
-      } else {
-        _apiKeyStatus = "API Key Error";
-      }
-    });
+    final nextStatus = (key.isNotEmpty && key.startsWith('gsk_'))
+        ? "Systems Online"
+        : "API Key Error";
+    if (_apiKeyStatus == nextStatus) return;
+    if (mounted) {
+      setState(() => _apiKeyStatus = nextStatus);
+    } else {
+      _apiKeyStatus = nextStatus;
+    }
   }
 
   Future<void> _saveMemory() async {
@@ -468,6 +754,9 @@ class _ChatHomePageState extends State<ChatHomePage>
             content: map['content'] ?? '',
           ));
         } catch (_) {}
+      }
+      if (_messages.length > _maxConversationMessages) {
+        _messages.removeRange(0, _messages.length - _maxConversationMessages);
       }
     });
     _scrollToBottom();
@@ -552,7 +841,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
     if (text.isNotEmpty) {
       setState(() {
-        _messages.add(ChatMessage(role: "user", content: text));
+        _appendMessage(ChatMessage(role: "user", content: text));
       });
       unawaited(_setBackgroundIdleNotification());
       unawaited(_sendToApiAndReply(readOutReply: true));
@@ -572,7 +861,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     unawaited(_ttsService.stop());
 
     setState(() {
-      _messages.add(ChatMessage(role: "user", content: text));
+      _appendMessage(ChatMessage(role: "user", content: text));
       _textController.clear();
       _currentVoiceText = "";
     });
@@ -582,7 +871,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   Future<void> _sendToApiAndReply({required bool readOutReply}) async {
-    if (_isBusy) return;
+    if (_isBusy || _isDisposed) return;
 
     setState(() => _isBusy = true);
     await _speechService.stopListening();
@@ -590,19 +879,22 @@ class _ChatHomePageState extends State<ChatHomePage>
     try {
       // Build Payload safely
       final injectedSystemQuery = _devSystemQuery.trim();
+      final contextMessages = _messages.length > _maxPayloadMessages
+          ? _messages.sublist(_messages.length - _maxPayloadMessages)
+          : List<ChatMessage>.from(_messages);
       final payloadMessages = <Map<String, dynamic>>[
         {"role": "system", "content": systemPersona},
         if (injectedSystemQuery.isNotEmpty)
           {"role": "system", "content": injectedSystemQuery},
-        ..._messages.map((m) => {"role": m.role, "content": m.content}),
+        ...contextMessages.map((m) => {"role": m.role, "content": m.content}),
       ];
 
       final reply = await _apiService.sendConversation(payloadMessages);
 
-      if (!mounted) return;
+      if (!mounted || _isDisposed) return;
 
       setState(() {
-        _messages.add(ChatMessage(role: "assistant", content: reply));
+        _appendMessage(ChatMessage(role: "assistant", content: reply));
       });
 
       _scrollToBottom();
@@ -617,27 +909,31 @@ class _ChatHomePageState extends State<ChatHomePage>
       }
     } catch (e) {
       debugPrint("API error: $e");
-      if (!mounted) return;
+      if (!mounted || _isDisposed) return;
 
       const errorText =
           "I'm having trouble connecting to the network, Darling.";
       setState(() {
-        _messages.add(ChatMessage(role: "assistant", content: errorText));
+        _appendMessage(ChatMessage(role: "assistant", content: errorText));
       });
 
       if (readOutReply) await _ttsService.speak(errorText);
     } finally {
-      if (mounted) {
+      if (mounted && !_isDisposed) {
         setState(() => _isBusy = false);
       } else {
         _isBusy = false;
       }
-      await _ensureWakeWordActive();
+      if (!_isDisposed) {
+        await _ensureWakeWordActive();
+      }
     }
   }
 
   Future<void> _startContinuousListening() async {
     if (_speechService.listening) return;
+    final hasMic = await _ensureMicPermission(requestIfNeeded: true);
+    if (!hasMic) return;
     try {
       _isManualMicSession = false;
       _suspendWakeWord = true;
@@ -655,11 +951,9 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   Future<void> _stopContinuousListening() async {
-    _restartListenTimer?.cancel();
     await _speechService.stopListening();
     _suspendWakeWord = false;
     await _ensureWakeWordActive();
-    if (mounted) setState(() {});
   }
 
   Future<void> _toggleAutoListen() async {
@@ -676,6 +970,8 @@ class _ChatHomePageState extends State<ChatHomePage>
 
     try {
       if (next) {
+        final hasMic = await _ensureMicPermission(requestIfNeeded: true);
+        if (!hasMic) return;
         final canNotifications =
             await _assistantModeService.canPostNotifications();
         if (!canNotifications) {
@@ -1069,6 +1365,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     try {
       _wakeWordReady = false;
       await _wakeWordService.stop();
+      if (!_wakeWordEnabledByUser) return;
       await _initWakeWord();
       await _ensureWakeWordActive();
     } catch (e) {
@@ -1091,8 +1388,9 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   void _scrollToBottom() {
+    if (_isDisposed) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (_scrollController.hasClients && !_isDisposed) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -1146,9 +1444,11 @@ class _ChatHomePageState extends State<ChatHomePage>
       if (!_isAutoListening) {
         await _ensureWakeWordActive();
       }
-      setState(() {});
       return;
     }
+
+    final hasMic = await _ensureMicPermission(requestIfNeeded: true);
+    if (!hasMic) return;
 
     _isManualMicSession = true;
     _suspendWakeWord = true;
@@ -1168,7 +1468,6 @@ class _ChatHomePageState extends State<ChatHomePage>
       }
       await _ensureWakeWordActive();
     }
-    setState(() {});
   }
 
   @override
@@ -1198,6 +1497,14 @@ class _ChatHomePageState extends State<ChatHomePage>
         titleSpacing: 0,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: Icon(
+              _wakeWordEnabledByUser ? Icons.sensors : Icons.sensors_off,
+              color: _wakeWordEnabledByUser ? Colors.redAccent : Colors.grey,
+            ),
+            tooltip: _wakeWordEnabledByUser ? "Wake word ON" : "Wake word OFF",
+            onPressed: _toggleWakeWordEnabled,
+          ),
           IconButton(
             icon: Icon(
               _assistantModeEnabled ? Icons.hearing : Icons.hearing_disabled,
@@ -1244,9 +1551,11 @@ class _ChatHomePageState extends State<ChatHomePage>
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    _buildAvatarArea(),
-                    Expanded(child: _buildChatList()),
-                    _buildInputArea(),
+                    RepaintBoundary(child: _buildAvatarArea()),
+                    Expanded(
+                      child: RepaintBoundary(child: _buildChatList()),
+                    ),
+                    RepaintBoundary(child: _buildInputArea()),
                   ],
                 ),
               ),
@@ -1380,9 +1689,11 @@ class _ChatHomePageState extends State<ChatHomePage>
                 ? "Speaking..."
                 : _speechService.listening
                     ? "Listening..."
-                    : _wakeWordService.isRunning
-                        ? "Wake Ready"
-                        : _apiKeyStatus,
+                    : !_wakeWordEnabledByUser
+                        ? "Wake Off"
+                        : _wakeWordService.isRunning
+                            ? "Wake Ready"
+                            : _apiKeyStatus,
             key: ValueKey(
                 "${_isSpeaking}_${_speechService.listening}_${_wakeWordService.isRunning}_$_apiKeyStatus"),
             style: TextStyle(
@@ -1449,6 +1760,28 @@ class _ChatHomePageState extends State<ChatHomePage>
   }
 
   Widget _buildChatList() {
+    final listView = ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      itemCount: _messages.length + (_currentVoiceText.isNotEmpty ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _messages.length) {
+          return _buildBubble(
+            context,
+            ChatMessage(role: "user", content: _currentVoiceText),
+            isGhost: true,
+          );
+        }
+
+        return _buildBubble(context, _messages[index], isGhost: false);
+      },
+    );
+
+    // Shader mask is visually nice but expensive for tiny lists.
+    if (_messages.length <= 2 && _currentVoiceText.isEmpty) {
+      return listView;
+    }
+
     return ShaderMask(
       shaderCallback: (Rect bounds) {
         return const LinearGradient(
@@ -1464,22 +1797,7 @@ class _ChatHomePageState extends State<ChatHomePage>
         ).createShader(bounds);
       },
       blendMode: BlendMode.dstIn,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        itemCount: _messages.length + (_currentVoiceText.isNotEmpty ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _messages.length) {
-            return _buildBubble(
-              context,
-              ChatMessage(role: "user", content: _currentVoiceText),
-              isGhost: true,
-            );
-          }
-
-          return _buildBubble(context, _messages[index], isGhost: false);
-        },
-      ),
+      child: listView,
     );
   }
 

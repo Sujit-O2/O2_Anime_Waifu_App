@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Build the custom theme for the Zero Two application
+/// Uses dark theme with red/pink accent colors matching the anime character
 ThemeData buildAppTheme() {
   return ThemeData.dark().copyWith(
     primaryColor: const Color(0xFFFF5252),
