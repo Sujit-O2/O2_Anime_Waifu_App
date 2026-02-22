@@ -1,6 +1,6 @@
 ﻿<div align="center">
 
-# 🌸 Anime Waifu Assistant 🌸
+# 🍁 Anime Waifu Assistant 🍁
 
 
 <p align="center">
