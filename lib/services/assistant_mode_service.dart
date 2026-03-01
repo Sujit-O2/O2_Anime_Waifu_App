@@ -117,4 +117,16 @@ class AssistantModeService {
   Future<void> requestIgnoreBatteryOptimizations() async {
     await _invoke('requestIgnoreBatteryOptimizations');
   }
+
+  Future<bool> setLauncherIconVariant({required bool useNew}) async {
+    final result = await _invoke<bool>('setLauncherIconVariant', {
+      'variant': useNew ? 'new' : 'old',
+    });
+    return result ?? false;
+  }
+
+  Future<String> getLauncherIconVariant() async {
+    final result = await _invoke<String>('getLauncherIconVariant');
+    return result ?? 'old';
+  }
 }

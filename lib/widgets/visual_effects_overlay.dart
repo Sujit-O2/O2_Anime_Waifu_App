@@ -7,8 +7,11 @@ class VisualEffectsOverlay extends StatefulWidget {
   final Widget child;
   final AppThemeMode themeMode;
 
-  const VisualEffectsOverlay(
-      {super.key, required this.child, required this.themeMode});
+  const VisualEffectsOverlay({
+    super.key,
+    required this.child,
+    required this.themeMode,
+  });
 
   @override
   State<VisualEffectsOverlay> createState() => _VisualEffectsOverlayState();
@@ -37,7 +40,6 @@ class _VisualEffectsOverlayState extends State<VisualEffectsOverlay>
     return Stack(
       children: [
         widget.child,
-        // Screen-Edge Glow
         Positioned.fill(
           child: IgnorePointer(
             child: AnimatedBuilder(
@@ -72,7 +74,6 @@ class _VisualEffectsOverlayState extends State<VisualEffectsOverlay>
             ),
           ),
         ),
-        // Grain & Scanlines
         Positioned.fill(
           child: IgnorePointer(
             child: AnimatedBuilder(
@@ -104,7 +105,6 @@ class _CinemaPainter extends CustomPainter {
     final paint = Paint();
     final random = math.Random();
 
-    // Grain Effect
     final grainIntensity = AppThemes.getGrainIntensity(mode);
     if (grainIntensity > 0) {
       for (int i = 0; i < 1000; i++) {
@@ -116,11 +116,10 @@ class _CinemaPainter extends CustomPainter {
       }
     }
 
-    // Scanlines Effect
     if (AppThemes.hasScanlines(mode)) {
       paint.color = Colors.black.withOpacity(0.05);
       paint.strokeWidth = 1.0;
-      double scroll = animation * 8.0;
+      final scroll = animation * 8.0;
       for (double y = scroll; y < size.height; y += 4.0) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
       }

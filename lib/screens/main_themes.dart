@@ -15,6 +15,10 @@ extension _MainThemesExtension on _ChatHomePageState {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 2.5)),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: _buildThemesHero(),
+          ),
           Expanded(
             child: ValueListenableBuilder<AppThemeMode>(
               valueListenable: themeNotifier,
@@ -152,6 +156,62 @@ extension _MainThemesExtension on _ChatHomePageState {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildThemesHero() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        height: 250,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'bg2.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.black.withOpacity(0.15),
+                    Colors.black.withOpacity(0.55),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Visual Presets',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Pick a mood for chat and effects',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white70,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

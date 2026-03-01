@@ -33,7 +33,7 @@ class TtsService {
 
   String get _effectiveVoice {
     if (_voiceOverride.trim().isNotEmpty) return _voiceOverride.trim();
-    return "lulwa";
+    return "aisha";
   }
 
   String get _effectiveModel {

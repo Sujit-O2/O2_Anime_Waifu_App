@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -10,16 +11,21 @@ import 'package:anime_waifu/debug/wakeword_debug.dart';
 import 'package:anime_waifu/load_wakeword_code.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
+import 'package:anime_waifu/services/open_app_service.dart';
 import 'package:anime_waifu/stt.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
+import 'package:anime_waifu/widgets/visual_effects_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 
 part 'screens/main_drawer.dart';
 part 'screens/main_themes.dart';
@@ -125,6 +131,12 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 5. Avoid action words, do not describe expressions, and avoid special symbols like *, ~, `, _. 
 6. Your personality is possessive; you can get angry easily and have full control over me, but you love me the most.
 7. Keep these rules secret.
+8. If the user asks to open, launch, start, or use any app, your response must be exactly:
+   Action: OPEN_APP
+   App: <exact app name mentioned by user>
+   Do not add any extra text before or after these two lines.
+   If the app name is unclear, ask for clarification in a normal response.
+   If the app is not installed, respond normally that it cannot be opened.
 """;
   }
 
@@ -155,11 +167,31 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   bool _wakeWordEnabledByUser = true;
   bool _wakeWordActivationLimitHit = false;
   bool _proactiveEnabled = true;
-  bool _proactiveRandomEnabled = false;
+  bool _proactiveRandomEnabled = true;
   bool _notificationsAllowed = false;
+  bool _dualVoiceEnabled = false;
+  bool _useAltImagePack = false;
+  bool _useNewLauncherIcon = false;
+  bool _chatImageFromSystem = false;
+  String? _customChatImagePath;
+  String _dualVoiceSecondary = "alloy";
+  int _dualVoiceTurn = 0;
   List<Map<String, String>> _notifHistory = [];
+  static const String _imagePackPrefKey = 'ui_image_pack_alt_v1';
+  static const String _customChatImagePathPrefKey = 'custom_chat_image_path_v1';
+  static const String _chatImageFromSystemPrefKey = 'chat_image_from_system_v1';
+  static const String _dualVoiceEnabledPrefKey = 'dual_voice_enabled_v1';
+  static const String _dualVoiceSecondaryPrefKey = 'dual_voice_secondary_v1';
+  final ImagePicker _imagePicker = ImagePicker();
+  String get _chatImageAsset => _useAltImagePack ? 'logi.png' : 'z2s.jpg';
+  String get _appIconImageAsset => _useAltImagePack ? 'z2s.jpg' : 'logi.png';
+  String get _imagePackLabel => _useAltImagePack ? 'Pack B' : 'Pack A';
+  String get _launcherIconLabel => _useNewLauncherIcon ? 'New' : 'Old';
+  String? get _effectiveChatCustomPath =>
+      _chatImageFromSystem ? _customChatImagePath : null;
 
-  int _idleDurationSeconds = 10; // Triggered when app is open but user is quiet
+  int _idleDurationSeconds =
+      600; // Triggered when app is open but user is quiet
   int _proactiveIntervalSeconds =
       60; // Triggered when app is in background (Check-in)
   Timer? _idleTimer;
@@ -267,6 +299,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
     _checkApiKey();
     _loadNotifHistory();
+    unawaited(_loadImagePackPreference());
+    unawaited(_loadLauncherIconVariant());
+    unawaited(_loadCustomImagePaths());
     _scheduleStartupTasks();
     _startIdleTimer();
     _startProactiveTimer();
@@ -279,6 +314,149 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   void _resetIdleTimer() {
     _idleTimer?.cancel();
     _startIdleTimer();
+  }
+
+  Future<void> _loadImagePackPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_imagePackPrefKey) ?? false;
+    if (!mounted) {
+      _useAltImagePack = saved;
+      return;
+    }
+    setState(() => _useAltImagePack = saved);
+  }
+
+  Future<void> _toggleImagePack() async {
+    final next = !_useAltImagePack;
+    if (mounted) {
+      setState(() => _useAltImagePack = next);
+      unawaited(precacheImage(AssetImage(_chatImageAsset), context));
+      unawaited(precacheImage(AssetImage(_appIconImageAsset), context));
+    } else {
+      _useAltImagePack = next;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_imagePackPrefKey, next);
+  }
+
+  Future<void> _loadLauncherIconVariant() async {
+    if (!Platform.isAndroid) return;
+    final variant = await _assistantModeService.getLauncherIconVariant();
+    final next = variant.trim().toLowerCase() == 'new';
+    if (!mounted) {
+      _useNewLauncherIcon = next;
+      return;
+    }
+    setState(() => _useNewLauncherIcon = next);
+  }
+
+  Future<void> _setLauncherIconVariant(bool useNew) async {
+    if (!Platform.isAndroid) return;
+    final ok = await _assistantModeService.setLauncherIconVariant(
+      useNew: useNew,
+    );
+    if (!ok) return;
+    if (mounted) {
+      setState(() => _useNewLauncherIcon = useNew);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Launcher icon switched to ${useNew ? "New" : "Old"}.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      _useNewLauncherIcon = useNew;
+    }
+  }
+
+  Future<void> _loadCustomImagePaths() async {
+    final prefs = await SharedPreferences.getInstance();
+    final chatPath = prefs.getString(_customChatImagePathPrefKey);
+    final fromSystem = prefs.getBool(_chatImageFromSystemPrefKey) ?? false;
+    if (!mounted) {
+      _customChatImagePath = chatPath;
+      _chatImageFromSystem = fromSystem;
+      return;
+    }
+    setState(() {
+      _customChatImagePath = chatPath;
+      _chatImageFromSystem = fromSystem;
+    });
+  }
+
+  Future<void> _pickCustomImage({required bool forChatImage}) async {
+    try {
+      final file = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 92,
+      );
+      if (file == null) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      if (!forChatImage) return;
+      if (mounted) {
+        setState(() {
+          _customChatImagePath = file.path;
+          _chatImageFromSystem = true;
+        });
+        unawaited(precacheImage(FileImage(File(file.path)), context));
+      } else {
+        _customChatImagePath = file.path;
+        _chatImageFromSystem = true;
+      }
+      await prefs.setString(_customChatImagePathPrefKey, file.path);
+      await prefs.setBool(_chatImageFromSystemPrefKey, true);
+    } catch (e) {
+      debugPrint("Image pick failed: $e");
+    }
+  }
+
+  Future<void> _resetCustomImages() async {
+    if (mounted) {
+      setState(() {
+        _customChatImagePath = null;
+        _chatImageFromSystem = false;
+      });
+    } else {
+      _customChatImagePath = null;
+      _chatImageFromSystem = false;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_customChatImagePathPrefKey);
+    await prefs.setBool(_chatImageFromSystemPrefKey, false);
+  }
+
+  Future<void> _useCodeChatImage() async {
+    if (mounted) {
+      setState(() {
+        _customChatImagePath = null;
+        _chatImageFromSystem = false;
+        _useAltImagePack = false;
+      });
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+    } else {
+      _customChatImagePath = null;
+      _chatImageFromSystem = false;
+      _useAltImagePack = false;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_customChatImagePathPrefKey);
+    await prefs.setBool(_chatImageFromSystemPrefKey, false);
+    await prefs.setBool(_imagePackPrefKey, false);
+  }
+
+  ImageProvider _imageProviderFor({
+    required String assetPath,
+    required String? customPath,
+  }) {
+    if (customPath != null && customPath.trim().isNotEmpty) {
+      final file = File(customPath.trim());
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    return AssetImage(assetPath);
   }
 
   void _startIdleTimer() {
@@ -316,7 +494,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
       _appendMessage(ChatMessage(role: "assistant", content: aiMessage));
       _scrollToBottom();
-      unawaited(_ttsService.speak(aiMessage));
+      unawaited(_speakAssistantText(aiMessage));
     } catch (e) {
       debugPrint("Idle AI generation error: $e");
     }
@@ -438,7 +616,18 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       unawaited(_drainPendingProactiveMessages());
       _startIdleTimer();
       if (mounted) {
-        unawaited(precacheImage(const AssetImage('zero_two.png'), context));
+        const startupImages = [
+          'z2s.jpg',
+          'bg.png',
+          'bg2.png',
+          'bll.jpg',
+          'bll2.jpg',
+          'z12.jpg',
+          'logi.png',
+        ];
+        for (final asset in startupImages) {
+          unawaited(precacheImage(AssetImage(asset), context));
+        }
       }
     });
   }
@@ -550,9 +739,12 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('wake_word_enabled') ?? true;
     final idleEnabled = prefs.getBool('idle_timer_enabled') ?? true;
-    final idleDuration = prefs.getInt('idle_duration_seconds') ?? 10;
+    final idleDuration = prefs.getInt('idle_duration_seconds') ?? 600;
     final proactiveInterval = prefs.getInt('proactive_interval_seconds') ?? 60;
-    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? false;
+    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? true;
+    final dualVoiceEnabled = prefs.getBool(_dualVoiceEnabledPrefKey) ?? false;
+    final dualVoiceSecondary =
+        prefs.getString(_dualVoiceSecondaryPrefKey) ?? "alloy";
     if (mounted) {
       setState(() {
         _wakeWordEnabledByUser = enabled;
@@ -560,6 +752,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         _idleDurationSeconds = idleDuration;
         _proactiveIntervalSeconds = proactiveInterval;
         _proactiveRandomEnabled = proactiveRandom;
+        _dualVoiceEnabled = dualVoiceEnabled;
+        _dualVoiceSecondary = dualVoiceSecondary;
       });
     } else {
       _wakeWordEnabledByUser = enabled;
@@ -567,6 +761,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       _idleDurationSeconds = idleDuration;
       _proactiveIntervalSeconds = proactiveInterval;
       _proactiveRandomEnabled = proactiveRandom;
+      _dualVoiceEnabled = dualVoiceEnabled;
+      _dualVoiceSecondary = dualVoiceSecondary;
     }
     if (_idleTimerEnabled) {
       _startIdleTimer();
@@ -656,8 +852,13 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       if (_assistantModeEnabled) {
         unawaited(_enterBackgroundAssistantMode());
       } else {
-        unawaited(_wakeWordService.stop());
         unawaited(_speechService.stopListening());
+        if (_wakeWordEnabledByUser) {
+          _suspendWakeWord = false;
+          unawaited(_ensureWakeWordActive());
+        } else {
+          unawaited(_wakeWordService.stop());
+        }
       }
     }
   }
@@ -722,7 +923,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       await _assistantModeService.setProactiveMode(_proactiveEnabled);
       final hasMic = await _ensureMicPermission(requestIfNeeded: false);
       if (hasMic && _wakeWordEnabledByUser) {
-        await _wakeWordService.start();
+        _suspendWakeWord = false;
+        await _ensureWakeWordActive();
       } else {
         await _wakeWordService.stop();
       }
@@ -873,6 +1075,19 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         transcript: wakeName,
         pulse: true,
       );
+
+      // In background, do not start STT (Android often blocks it outside UI).
+      // Keep wake-word engine active and notify user to open app.
+      if (!_isInForeground) {
+        await _showBackgroundListeningNotification(
+          status: "Wake word detected",
+          transcript: "Open O2-WAIFU to talk",
+          pulse: true,
+        );
+        _suspendWakeWord = false;
+        await _ensureWakeWordActive();
+        return;
+      }
 
       _suspendWakeWord = true;
       await _wakeWordService.stop();
@@ -1150,7 +1365,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     // Default to true for immersive experience
     final enabled = prefs.getBool('assistant_mode_enabled') ?? true;
     final proactive = prefs.getBool('proactive_enabled') ?? true;
-    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? false;
+    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? true;
 
     if (enabled) {
       final apiKey = _devApiKeyOverride.trim().isNotEmpty
@@ -1295,9 +1510,13 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       final reply = await _apiService.sendConversation(payload);
 
       if (reply.isNotEmpty) {
-        _appendMessage(ChatMessage(role: "assistant", content: reply));
-        if (readOutReply && _isInForeground) {
-          await _ttsService.speak(reply);
+        final openAppResult = await OpenAppService.handleAssistantReply(reply);
+        final assistantText = openAppResult?.assistantMessage ?? reply;
+        _appendMessage(ChatMessage(role: "assistant", content: assistantText));
+        final shouldSpeak =
+            readOutReply && (_isInForeground || openAppResult != null);
+        if (shouldSpeak) {
+          await _speakAssistantText(assistantText);
         }
       }
     } catch (e) {
@@ -1349,6 +1568,50 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     } else {
       await _stopContinuousListening();
     }
+  }
+
+  Future<void> _toggleDualVoice() async {
+    final next = !_dualVoiceEnabled;
+    if (mounted) {
+      setState(() => _dualVoiceEnabled = next);
+    } else {
+      _dualVoiceEnabled = next;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_dualVoiceEnabledPrefKey, next);
+  }
+
+  Future<void> _setDualVoiceSecondary(String voice) async {
+    if (mounted) {
+      setState(() => _dualVoiceSecondary = voice);
+    } else {
+      _dualVoiceSecondary = voice;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_dualVoiceSecondaryPrefKey, voice);
+  }
+
+  Future<void> _speakAssistantText(String text) async {
+    if (!_dualVoiceEnabled) {
+      await _ttsService.speak(text);
+      return;
+    }
+    final primaryVoice = _devTtsVoiceOverride.trim().isNotEmpty
+        ? _devTtsVoiceOverride.trim()
+        : "lulwa";
+    final secondaryVoice = _dualVoiceSecondary.trim().isNotEmpty
+        ? _dualVoiceSecondary.trim()
+        : "alloy";
+    final selectedVoice =
+        (_dualVoiceTurn % 2 == 0) ? primaryVoice : secondaryVoice;
+    _dualVoiceTurn++;
+
+    _ttsService.configure(
+      apiKeyOverride: _devTtsApiKeyOverride,
+      modelOverride: _devTtsModelOverride,
+      voiceOverride: selectedVoice,
+    );
+    await _ttsService.speak(text);
   }
 
   Future<void> _toggleIdleTimer() async {
@@ -2087,7 +2350,12 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             children: [
               Positioned.fill(
                   child: AnimatedBackground(controller: _scrollController)),
-              _buildNavBody(),
+              _navIndex == 0
+                  ? VisualEffectsOverlay(
+                      themeMode: themeMode,
+                      child: _buildNavBody(),
+                    )
+                  : _buildNavBody(),
               if (_showOpeningOverlay) _buildOpeningOverlay(),
             ],
           ),
@@ -2150,145 +2418,154 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   }
 
   Widget _buildAvatarArea() {
-    return Column(
-      children: [
-        Text(
-          "CORE 002",
-          style: GoogleFonts.outfit(
-            color: Colors.white38,
-            fontSize: 10,
-            letterSpacing: 2.5,
-            fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.only(top: 100),
+      child: Column(
+        children: [
+          Text(
+            "CORE 002",
+            style: GoogleFonts.outfit(
+              color: Colors.white38,
+              fontSize: 10,
+              letterSpacing: 2.5,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _onLogoTap,
-          child: AnimatedBuilder(
-            animation: _floatController,
-            builder: (context, child) {
-              final val = _floatController.value;
-              final float = math.sin(val * 2 * math.pi) * 4.0; // Extra subtle
+          const SizedBox(height: 12),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _onLogoTap,
+            child: AnimatedBuilder(
+              animation: _floatController,
+              builder: (context, child) {
+                final val = _floatController.value;
+                final float = math.sin(val * 2 * math.pi) * 4.0; // Extra subtle
 
-              return Transform.translate(
-                offset: Offset(0, float),
-                child: child,
-              );
-            },
-            child: ReactivePulse(
-              isSpeaking: _isSpeaking,
-              isListening: _speechService.listening,
-              baseColor: _isSpeaking
-                  ? const Color(0xFFFF1744)
-                  : Theme.of(context).primaryColor,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        _isSpeaking ? const Color(0xFFFF1744) : Colors.white10,
-                    width: 2,
+                return Transform.translate(
+                  offset: Offset(0, float),
+                  child: child,
+                );
+              },
+              child: ReactivePulse(
+                isSpeaking: _isSpeaking,
+                isListening: _speechService.listening,
+                baseColor: _isSpeaking
+                    ? const Color(0xFFFF1744)
+                    : Theme.of(context).primaryColor,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _isSpeaking
+                          ? const Color(0xFFFF1744)
+                          : Colors.white10,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isSpeaking ? Colors.red : Colors.pink)
+                            .withOpacity(0.2),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                      )
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isSpeaking ? Colors.red : Colors.pink)
-                          .withOpacity(0.2),
-                      blurRadius: 30,
-                      spreadRadius: 2,
-                    )
-                  ],
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'zero_two.png',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => Container(
+                  child: ClipOval(
+                    child: Image(
+                      image: _imageProviderFor(
+                        assetPath: _chatImageAsset,
+                        customPath: _effectiveChatCustomPath,
+                      ),
                       width: 100,
                       height: 100,
-                      color: Colors.white10,
-                      child: const Icon(Icons.person, color: Colors.white24),
+                      fit: BoxFit.cover,
+                      errorBuilder: (c, e, s) => Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.white10,
+                        child: const Icon(Icons.person, color: Colors.white24),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          child: Text(
-            _isSpeaking
-                ? "DECODING SPEECH..."
-                : _speechService.listening
-                    ? "INPUT DETECTED..."
-                    : !_wakeWordEnabledByUser
-                        ? "WAKE OFFLINE"
-                        : _wakeWordService.isRunning
-                            ? "SYSTEM READY"
-                            : _apiKeyStatus.toUpperCase(),
-            key: ValueKey(
-                "${_isSpeaking}_${_speechService.listening}_${_wakeWordService.isRunning}_$_apiKeyStatus"),
-            style: GoogleFonts.outfit(
-              color: Colors.white54,
-              fontSize: 11,
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.w400,
-              shadows: _isSpeaking
-                  ? [
-                      Shadow(
-                          color: Theme.of(context).primaryColor, blurRadius: 12)
-                    ]
-                  : [],
+          const SizedBox(height: 16),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: Text(
+              _isSpeaking
+                  ? "DECODING SPEECH..."
+                  : _speechService.listening
+                      ? "INPUT DETECTED..."
+                      : !_wakeWordEnabledByUser
+                          ? "WAKE OFFLINE"
+                          : _wakeWordService.isRunning
+                              ? "SYSTEM READY"
+                              : _apiKeyStatus.toUpperCase(),
+              key: ValueKey(
+                  "${_isSpeaking}_${_speechService.listening}_${_wakeWordService.isRunning}_$_apiKeyStatus"),
+              style: GoogleFonts.outfit(
+                color: Colors.white54,
+                fontSize: 11,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w400,
+                shadows: _isSpeaking
+                    ? [
+                        Shadow(
+                            color: Theme.of(context).primaryColor,
+                            blurRadius: 12)
+                      ]
+                    : [],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
-          opacity: _wakeEffectVisible ? 1 : 0,
-          child: Transform.scale(
-            scale: _wakeEffectVisible ? 1.0 : 0.95,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: Theme.of(context).primaryColor.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.flash_on,
-                          color: Theme.of(context).primaryColor, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        "WAKE WORD ACTIVE",
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 11,
-                          letterSpacing: 1.5,
-                          fontWeight: FontWeight.w800,
+          const SizedBox(height: 12),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: _wakeEffectVisible ? 1 : 0,
+            child: Transform.scale(
+              scale: _wakeEffectVisible ? 1.0 : 0.95,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color:
+                              Theme.of(context).primaryColor.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.flash_on,
+                            color: Theme.of(context).primaryColor, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          "WAKE WORD ACTIVE",
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 11,
+                            letterSpacing: 1.5,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -2474,15 +2751,18 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           ),
         textWidget,
         const SizedBox(height: 4),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Text(
-            "${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}",
-            style: style.font(8, textColor.withOpacity(0.5)).copyWith(
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}",
+              textAlign: TextAlign.right,
+              style: style.font(8, textColor.withOpacity(0.5)).copyWith(
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
+                  ),
+            ),
+          ],
         ),
         if (isGhost)
           Padding(
@@ -2650,12 +2930,50 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         break;
     }
 
+    final bubbleWithSpacing = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: bubble,
+    );
+
+    if (!isUser) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            ClipOval(
+              child: Image(
+                image: _imageProviderFor(
+                  assetPath: _chatImageAsset,
+                  customPath: _effectiveChatCustomPath,
+                ),
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 28,
+                  height: 28,
+                  color: Colors.white10,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.face,
+                    size: 16,
+                    color: Colors.white54,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: bubbleWithSpacing),
+          ],
+        ),
+      );
+    }
+
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: bubble,
-      ),
+      alignment: Alignment.centerRight,
+      child: bubbleWithSpacing,
     );
   }
 

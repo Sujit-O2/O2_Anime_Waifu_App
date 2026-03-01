@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenAppActionResult {
   final bool launched;
@@ -14,10 +17,14 @@ class OpenAppActionResult {
 }
 
 class OpenAppService {
+  static const MethodChannel _nativeChannel =
+      MethodChannel('anime_waifu/assistant_mode');
+  static const String _learnedPackageMapKey = 'open_app_learned_packages_v1';
+  static Map<String, String>? _cachedLearnedPackages;
+
   static final RegExp _openActionPattern = RegExp(
-    r'^\s*Action\s*:\s*open[\s_-]*app\s*$',
+    r'Action\s*:\s*open[\s_-]*app',
     caseSensitive: false,
-    multiLine: true,
   );
 
   static final RegExp _appLinePattern = RegExp(
@@ -25,25 +32,31 @@ class OpenAppService {
     caseSensitive: false,
     multiLine: true,
   );
+  static final RegExp _appInlinePattern = RegExp(
+    r'Action\s*:\s*open[\s_-]*app[\s\S]*?App\s*:\s*([^\r\n]+)',
+    caseSensitive: false,
+  );
 
   static Future<OpenAppActionResult?> handleAssistantReply(
     String reply,
   ) async {
     if (!_openActionPattern.hasMatch(reply)) return null;
 
-    final appMatch = _appLinePattern.firstMatch(reply);
-    if (appMatch == null) {
+    final appNameRaw = _extractAppName(reply);
+    if (appNameRaw == null || appNameRaw.isEmpty) {
       return const OpenAppActionResult(
         launched: false,
-        assistantMessage: "Tell me the app name clearly so I can open it.",
+        assistantMessage:
+            "App name missing. Use Action: OPEN_APP and App: <app name>.",
       );
     }
 
-    final appName = appMatch.group(1)?.trim() ?? "";
+    final appName = appNameRaw;
     if (appName.isEmpty) {
       return const OpenAppActionResult(
         launched: false,
-        assistantMessage: "Tell me the app name clearly so I can open it.",
+        assistantMessage:
+            "App name missing. Use Action: OPEN_APP and App: <app name>.",
       );
     }
 
@@ -56,14 +69,56 @@ class OpenAppService {
 
     final normalized = _normalize(appName);
     final appKey = _canonicalizeAppKey(normalized);
-    final packageCandidates = _resolvePackageCandidates(appKey);
-    for (final packageName in packageCandidates) {
-      final launched = await _launchPackage(packageName);
+    final displayName = _displayAppName(
+      requestedName: appName,
+      appKey: appKey,
+    );
+    final mappingKeys = _buildMappingKeys(appName: appName, appKey: appKey);
+    final learnedPackage = await _lookupLearnedPackage(mappingKeys);
+    if (learnedPackage != null) {
+      final launched = await _launchPackage(learnedPackage);
       if (launched) {
         return OpenAppActionResult(
           launched: true,
-          assistantMessage: "Opening $appName.",
+          assistantMessage: "Opened $displayName.",
         );
+      }
+    }
+
+    final packageCandidates = _resolvePackageCandidates(appKey);
+    if (packageCandidates.isNotEmpty) {
+      for (final packageName in packageCandidates) {
+        final launched = await _launchPackage(packageName);
+        if (launched) {
+          await _rememberPackage(mappingKeys, packageName);
+          return OpenAppActionResult(
+            launched: true,
+            assistantMessage: "Opened $displayName.",
+          );
+        }
+      }
+      final labelQueries = _buildLabelQueries(appName: appName, appKey: appKey);
+      for (final query in labelQueries) {
+        final resolvedPackage = await _tryNativeLabelLaunch(query);
+        if (resolvedPackage != null) {
+          await _rememberPackage(mappingKeys, resolvedPackage);
+          return OpenAppActionResult(
+            launched: true,
+            assistantMessage: "Opened $displayName.",
+          );
+        }
+      }
+    } else {
+      final labelQueries = _buildLabelQueries(appName: appName, appKey: appKey);
+      for (final query in labelQueries) {
+        final resolvedPackage = await _tryNativeLabelLaunch(query);
+        if (resolvedPackage != null) {
+          await _rememberPackage(mappingKeys, resolvedPackage);
+          return OpenAppActionResult(
+            launched: true,
+            assistantMessage: "Opened $displayName.",
+          );
+        }
       }
     }
 
@@ -71,48 +126,324 @@ class OpenAppService {
     if (launchedSystemIntent) {
       return OpenAppActionResult(
         launched: true,
-        assistantMessage: "Opening $appName.",
+        assistantMessage: "Opened $displayName.",
       );
     }
 
-    if (packageCandidates.isEmpty) {
+    final knowsMapping = packageCandidates.isNotEmpty;
+    if (!knowsMapping && await _openPlayStoreSearch(appName)) {
       return OpenAppActionResult(
-        launched: false,
+        launched: true,
         assistantMessage:
-            "I could not map \"$appName\" yet. Tell me the exact app name.",
+            "I couldn't find a direct launcher for $displayName. Opening Play Store search.",
       );
     }
 
     return OpenAppActionResult(
       launched: false,
-      assistantMessage: "I cannot open $appName here. It may not be installed.",
+      assistantMessage:
+          knowsMapping
+              ? "I could not open $displayName. It may be unavailable, disabled, or not installed."
+              : "I could not map \"$displayName\" yet. Tell me the exact app name.",
     );
+  }
+
+  static String? _extractAppName(String reply) {
+    final line = _appLinePattern.firstMatch(reply)?.group(1)?.trim();
+    if (line != null && line.isNotEmpty) {
+      return _sanitizeAppName(line);
+    }
+
+    final inline = _appInlinePattern.firstMatch(reply)?.group(1)?.trim();
+    if (inline != null && inline.isNotEmpty) {
+      return _sanitizeAppName(inline);
+    }
+
+    return null;
+  }
+
+  static String _sanitizeAppName(String value) {
+    var out = value.trim();
+    out = out.replaceAll(RegExp("^[\"']+"), '');
+    out = out.replaceAll(RegExp("[\"']+\$"), '');
+    out = out.replaceAll(RegExp(r'\s+'), ' ');
+    out = out.replaceAll(RegExp(r'[\.;,\)\]]+$'), '');
+    return out.trim();
   }
 
   static String _normalize(String value) {
     return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
   }
 
+  static const Map<String, String> _aliasMap = {
+    'watsapp': 'whatsapp',
+    'whatsaapp': 'whatsapp',
+    'whatsaap': 'whatsapp',
+    'whatapp': 'whatsapp',
+    'whtsapp': 'whatsapp',
+    'wtsp': 'whatsapp',
+    'wtsap': 'whatsapp',
+    'whatsap': 'whatsapp',
+    'whatsup': 'whatsapp',
+    'ewhatsapp': 'whatsapp',
+    'ewhatsap': 'whatsapp',
+    'whatsappmessenger': 'whatsapp',
+    'wa': 'whatsapp',
+    'wabusiness': 'whatsappbusiness',
+    'whatsappbiz': 'whatsappbusiness',
+    'gmailmail': 'gmail',
+    'googlemail': 'gmail',
+    'gmain': 'gmail',
+    'gmai': 'gmail',
+    'gemail': 'gmail',
+    'gmaill': 'gmail',
+    'gmial': 'gmail',
+    'mailapp': 'gmail',
+    'google': 'googleapp',
+    'googleapp': 'googleapp',
+    'googlesearch': 'googleapp',
+    'search': 'googleapp',
+    'youtubeapp': 'youtube',
+    'yt': 'youtube',
+    'youtubemusicapp': 'youtubemusic',
+    'ytmusic': 'youtubemusic',
+    'insta': 'instagram',
+    'instagrm': 'instagram',
+    'fb': 'facebook',
+    'facebookapp': 'facebook',
+    'facebookmessenger': 'messenger',
+    'msgr': 'messenger',
+    'tele': 'telegram',
+    'tg': 'telegram',
+    'telegramapp': 'telegram',
+    'telegramx': 'telegramx',
+    'telegramxapp': 'telegramx',
+    'tgx': 'telegramx',
+    'tx': 'telegramx',
+    'xtelegram': 'telegramx',
+    'xapp': 'x',
+    'twitterapp': 'x',
+    'tweet': 'x',
+    'maps': 'googlemaps',
+    'googlemap': 'googlemaps',
+    'gmap': 'googlemaps',
+    'gmaps': 'googlemaps',
+    'gpsmap': 'googlemaps',
+    'playstoreapp': 'playstore',
+    'googleplay': 'playstore',
+    'googleplaystore': 'playstore',
+    'appstore': 'playstore',
+    'chromebrowser': 'chrome',
+    'googlechrome': 'chrome',
+    'internetbrowser': 'browser',
+    'web': 'browser',
+    'safari': 'browser',
+    'photo': 'photos',
+    'googlephotosapp': 'googlephotos',
+    'pic': 'gallery',
+    'pics': 'gallery',
+    'image': 'gallery',
+    'images': 'gallery',
+    'contactslist': 'contacts',
+    'contactlist': 'contacts',
+    'dialpad': 'dialer',
+    'calling': 'phone',
+    'callingapp': 'phone',
+    'smsapp': 'messages',
+    'msg': 'messages',
+    'messagesapp': 'messages',
+    'text': 'messages',
+    'texts': 'messages',
+    'cam': 'camera',
+    'camra': 'camera',
+    'cameraa': 'camera',
+    'calc': 'calculator',
+    'calci': 'calculator',
+    'alarm': 'clock',
+    'alarms': 'clock',
+    'watch': 'clock',
+    'calender': 'calendar',
+    'calandar': 'calendar',
+    'file': 'files',
+    'filesapp': 'files',
+    'fileapp': 'files',
+    'filemanagerapp': 'filemanager',
+    'myfile': 'myfiles',
+    'setting': 'settings',
+    'settingsapp': 'settings',
+    'mobilesettings': 'settings',
+    'wifioptions': 'wifi',
+    'wiifisettings': 'wifi',
+    'bt': 'bluetooth',
+    'bluetoothapp': 'bluetooth',
+    'loc': 'location',
+    'gpssettings': 'location',
+    'noti': 'notifications',
+    'notification': 'notifications',
+    'notif': 'notifications',
+    'batteryoptimizer': 'battery',
+    'power': 'battery',
+    'hotspotwifi': 'hotspot',
+    'tether': 'tethering',
+    'videoplayerapps': 'videoplayer',
+    'videoplay': 'videoplayer',
+    'movieplayer': 'videoplayer',
+    'media': 'mediaplayer',
+    'mx': 'mxplayer',
+    'vlcplayer': 'vlc',
+    'xvideo': 'xplayer',
+    'xvideos': 'xplayer',
+    'xvideoplayer': 'xplayer',
+    'xvideoplayerapp': 'xplayer',
+    'xplayer': 'xplayer',
+    'xplayerapp': 'xplayer',
+    'videoxplayer': 'xplayer',
+    'spotfy': 'spotify',
+    'spoti': 'spotify',
+    'netfli': 'netflix',
+    'prime': 'primevideo',
+    'amazonprime': 'primevideo',
+    'amazonshopping': 'amazon',
+    'amzn': 'amazon',
+    'uberapp': 'uber',
+    'uberride': 'uber',
+    'olaapp': 'ola',
+    'gpay': 'googlepay',
+    'googlepayapp': 'googlepay',
+    'paytmapp': 'paytm',
+    'phonepay': 'phonepe',
+    'phonepeapp': 'phonepe',
+    'ytkids': 'youtubekids',
+    'redditapp': 'reddit',
+    'snap': 'snapchat',
+    'linkedinapp': 'linkedin',
+    'discordapp': 'discord',
+  };
+
   static String _canonicalizeAppKey(String app) {
     var key = app;
-    key = key.replaceFirst(RegExp(r'^(open|launch|start|use)+'), '');
-    key = key.replaceFirst(RegExp(r'(app|apps|application|applications)$'), '');
+    key = key.replaceFirst(RegExp(r'^(please|plz|kindly|hey|hi)+'), '');
+    key = key.replaceFirst(RegExp(r'^(open|launch|start|use|run)+'), '');
 
-    switch (key) {
-      case 'watsapp':
-      case 'whatsap':
-      case 'whatsup':
-      case 'ewhatsapp':
-      case 'ewhatsap':
-      case 'whatsappmessenger':
-        return 'whatsapp';
-      case 'googlemail':
-      case 'gmailmail':
-        return 'gmail';
-      default:
-        return key;
+    final aliasBeforeTrim = _aliasMap[key];
+    if (aliasBeforeTrim != null && aliasBeforeTrim.isNotEmpty) {
+      return aliasBeforeTrim;
     }
+
+    // Guard real app names that naturally end with "app".
+    if (key == 'whatsapp' || key == 'snapchat' || key == 'cashapp') {
+      return key;
+    }
+
+    if (key.endsWith('applications')) {
+      key = key.substring(0, key.length - 'applications'.length);
+    } else if (key.endsWith('application')) {
+      key = key.substring(0, key.length - 'application'.length);
+    } else if (key.endsWith('apps')) {
+      key = key.substring(0, key.length - 'apps'.length);
+    } else if (key.endsWith('app') && key.length > 6) {
+      key = key.substring(0, key.length - 'app'.length);
+    } else if (key.endsWith('please')) {
+      key = key.substring(0, key.length - 'please'.length);
+    } else if (key.endsWith('plz')) {
+      key = key.substring(0, key.length - 'plz'.length);
+    }
+
+    final aliasAfterTrim = _aliasMap[key];
+    if (aliasAfterTrim != null && aliasAfterTrim.isNotEmpty) {
+      return aliasAfterTrim;
+    }
+
+    if ((key.contains('whats') || key.contains('wats')) &&
+        key.contains('app')) {
+      return 'whatsapp';
+    }
+    if (key.contains('gmail') || key.contains('googlemail')) {
+      return 'gmail';
+    }
+    if (key == 'google' || key.contains('googlesearch')) {
+      return 'googleapp';
+    }
+    if (key.contains('play') && key.contains('store')) {
+      return 'playstore';
+    }
+    if (key.contains('google') && key.contains('map')) {
+      return 'googlemaps';
+    }
+    if (key.contains('video') && key.contains('player')) {
+      return 'videoplayer';
+    }
+
+    return key;
   }
+
+  static String _displayAppName({
+    required String requestedName,
+    required String appKey,
+  }) {
+    final known = _displayNameMap[appKey];
+    if (known != null && known.isNotEmpty) return known;
+    return _titleCase(requestedName.trim());
+  }
+
+  static String _titleCase(String input) {
+    if (input.isEmpty) return input;
+    final words = input
+        .split(RegExp(r'\s+'))
+        .where((w) => w.trim().isNotEmpty)
+        .map((w) => w.trim())
+        .toList();
+    if (words.isEmpty) return input;
+    return words
+        .map((w) =>
+            '${w.substring(0, 1).toUpperCase()}${w.length > 1 ? w.substring(1).toLowerCase() : ''}')
+        .join(' ');
+  }
+
+  static const Map<String, String> _displayNameMap = {
+    'whatsapp': 'WhatsApp',
+    'whatsappbusiness': 'WhatsApp Business',
+    'gmail': 'Gmail',
+    'googleapp': 'Google',
+    'playstore': 'Play Store',
+    'youtube': 'YouTube',
+    'youtubemusic': 'YouTube Music',
+    'instagram': 'Instagram',
+    'facebook': 'Facebook',
+    'messenger': 'Messenger',
+    'telegram': 'Telegram',
+    'telegramx': 'Telegram X',
+    'x': 'X',
+    'googlemaps': 'Google Maps',
+    'chrome': 'Chrome',
+    'photos': 'Photos',
+    'googlephotos': 'Google Photos',
+    'gallery': 'Gallery',
+    'contacts': 'Contacts',
+    'phone': 'Phone',
+    'dialer': 'Dialer',
+    'messages': 'Messages',
+    'camera': 'Camera',
+    'calculator': 'Calculator',
+    'clock': 'Clock',
+    'calendar': 'Calendar',
+    'files': 'Files',
+    'filemanager': 'File Manager',
+    'myfiles': 'My Files',
+    'settings': 'Settings',
+    'videoplayer': 'Video Player',
+    'mxplayer': 'MX Player',
+    'vlc': 'VLC',
+    'xplayer': 'XPlayer',
+    'spotify': 'Spotify',
+    'netflix': 'Netflix',
+    'primevideo': 'Prime Video',
+    'amazon': 'Amazon',
+    'uber': 'Uber',
+    'googlepay': 'Google Pay',
+    'paytm': 'Paytm',
+    'phonepe': 'PhonePe',
+  };
 
   static List<String> _resolvePackageCandidates(String app) {
     switch (app) {
@@ -121,9 +452,21 @@ class OpenAppService {
           'com.whatsapp',
           'com.whatsapp.w4b',
         ];
+      case 'whatsappbusiness':
+        return const [
+          'com.whatsapp.w4b',
+          'com.whatsapp',
+        ];
       case 'gmail':
         return const [
           'com.google.android.gm',
+          'com.google.android.gm.lite',
+          'com.google.android.email',
+        ];
+      case 'googleapp':
+        return const [
+          'com.google.android.googlequicksearchbox',
+          'com.android.chrome',
         ];
       case 'videoplayer':
       case 'videoplayerapp':
@@ -134,9 +477,17 @@ class OpenAppService {
       case 'videos':
       case 'movieplayer':
         return const [
+          'video.player.videoplayer',
           'com.mxtech.videoplayer.ad',
           'org.videolan.vlc',
           'com.google.android.apps.photos',
+        ];
+      case 'xplayer':
+        return const [
+          'video.player.videoplayer',
+          'com.inshot.xplayer',
+          'com.mxtech.videoplayer.ad',
+          'org.videolan.vlc',
         ];
       default:
         final packageName = _resolvePackageName(app);
@@ -145,31 +496,11 @@ class OpenAppService {
   }
 
   static Future<bool> _launchPackage(String packageName) async {
-    if (await _tryLaunch(
-      AndroidIntent(
-        action: 'android.intent.action.MAIN',
-        category: 'android.intent.category.LAUNCHER',
-        package: packageName,
-      ),
-    )) {
-      return true;
+    final opened = await _tryNativePackageLaunch(packageName);
+    if (!opened) {
+      debugPrint("OpenAppService package launch failed: $packageName");
     }
-
-    if (await _tryLaunch(
-      AndroidIntent(
-        action: 'android.intent.action.MAIN',
-        package: packageName,
-      ),
-    )) {
-      return true;
-    }
-
-    if (await _tryLaunch(AndroidIntent(package: packageName))) {
-      return true;
-    }
-
-    debugPrint("OpenAppService package launch failed: $packageName");
-    return false;
+    return opened;
   }
 
   static Future<bool> _launchSystemIntent(String app) async {
@@ -267,9 +598,43 @@ class OpenAppService {
       case 'mail':
       case 'emailapp':
       case 'gmail':
-        return _launchIntent(
+        if (await _launchIntent(
           action: 'android.intent.action.MAIN',
           category: 'android.intent.category.APP_EMAIL',
+        )) {
+          return true;
+        }
+        return _launchIntent(
+          action: 'android.intent.action.SENDTO',
+          data: 'mailto:',
+        );
+      case 'google':
+      case 'googleapp':
+      case 'search':
+        if (await _launchIntent(action: 'android.intent.action.WEB_SEARCH')) {
+          return true;
+        }
+        if (await _launchIntent(
+          action: 'android.intent.action.VIEW',
+          data: 'https://www.google.com',
+        )) {
+          return true;
+        }
+        return _launchIntent(
+          action: 'android.intent.action.MAIN',
+          category: 'android.intent.category.APP_BROWSER',
+        );
+      case 'whatsapp':
+      case 'whatsappbusiness':
+        if (await _launchIntent(
+          action: 'android.intent.action.VIEW',
+          data: 'https://wa.me/',
+        )) {
+          return true;
+        }
+        return _launchIntent(
+          action: 'android.intent.action.MAIN',
+          category: 'android.intent.category.APP_MESSAGING',
         );
       case 'calculator':
       case 'calc':
@@ -296,23 +661,208 @@ class OpenAppService {
     String? category,
     String? data,
   }) async {
-    return _tryLaunch(
-      AndroidIntent(
-        action: action,
-        category: category,
-        data: data,
-      ),
-    );
-  }
-
-  static Future<bool> _tryLaunch(AndroidIntent intent) async {
     try {
-      await intent.launch();
-      return true;
+      final opened = await _nativeChannel.invokeMethod<bool>(
+        'openResolvedIntent',
+        {
+          'action': action,
+          'category': category,
+          'data': data,
+        },
+      );
+      return opened == true;
     } catch (e) {
-      debugPrint("OpenAppService launch attempt failed: $e");
+      debugPrint("OpenAppService native resolved intent failed: $e");
       return false;
     }
+  }
+
+  static Future<bool> _tryNativePackageLaunch(String packageName) async {
+    try {
+      final opened = await _nativeChannel.invokeMethod<bool>(
+        'openAppByPackage',
+        {'package': packageName},
+      );
+      return opened == true;
+    } catch (e) {
+      debugPrint("OpenAppService native launch fallback failed: $e");
+      return false;
+    }
+  }
+
+  static Future<String?> _tryNativeLabelLaunch(String query) async {
+    if (query.trim().isEmpty) return null;
+    try {
+      final packageName = await _nativeChannel.invokeMethod<String>(
+        'openAppByName',
+        {'query': query},
+      );
+      if (packageName == null || packageName.trim().isEmpty) {
+        return null;
+      }
+      return packageName.trim();
+    } catch (e) {
+      debugPrint("OpenAppService native label launch failed: $e");
+      return null;
+    }
+  }
+
+  static List<String> _buildMappingKeys({
+    required String appName,
+    required String appKey,
+  }) {
+    final keys = <String>{
+      _normalize(appName),
+      appKey,
+      _normalize(_prettyLabelFromKey(appKey)),
+    };
+    keys.removeWhere((k) => k.trim().isEmpty);
+    return keys.toList();
+  }
+
+  static Future<String?> _lookupLearnedPackage(List<String> keys) async {
+    final map = await _loadLearnedPackages();
+    for (final key in keys) {
+      final pkg = map[key];
+      if (pkg != null && pkg.trim().isNotEmpty) {
+        return pkg.trim();
+      }
+    }
+    return null;
+  }
+
+  static Future<void> _rememberPackage(
+    List<String> keys,
+    String packageName,
+  ) async {
+    if (packageName.trim().isEmpty) return;
+    final map = await _loadLearnedPackages();
+    var changed = false;
+    for (final key in keys) {
+      if (key.trim().isEmpty) continue;
+      if (map[key] != packageName) {
+        map[key] = packageName;
+        changed = true;
+      }
+    }
+    if (changed) {
+      await _saveLearnedPackages(map);
+    }
+  }
+
+  static Future<Map<String, String>> _loadLearnedPackages() async {
+    if (_cachedLearnedPackages != null) {
+      return _cachedLearnedPackages!;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_learnedPackageMapKey);
+      if (raw == null || raw.trim().isEmpty) {
+        _cachedLearnedPackages = <String, String>{};
+        return _cachedLearnedPackages!;
+      }
+
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        final map = <String, String>{};
+        decoded.forEach((k, v) {
+          final key = (k ?? '').toString().trim();
+          final value = (v ?? '').toString().trim();
+          if (key.isNotEmpty && value.isNotEmpty) {
+            map[key] = value;
+          }
+        });
+        _cachedLearnedPackages = map;
+        return _cachedLearnedPackages!;
+      }
+    } catch (e) {
+      debugPrint("OpenAppService failed to load learned packages: $e");
+    }
+    _cachedLearnedPackages = <String, String>{};
+    return _cachedLearnedPackages!;
+  }
+
+  static Future<void> _saveLearnedPackages(Map<String, String> map) async {
+    try {
+      _cachedLearnedPackages = Map<String, String>.from(map);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _learnedPackageMapKey,
+        jsonEncode(_cachedLearnedPackages),
+      );
+    } catch (e) {
+      debugPrint("OpenAppService failed to save learned packages: $e");
+    }
+  }
+
+  static List<String> _buildLabelQueries({
+    required String appName,
+    required String appKey,
+  }) {
+    final normalizedOriginal = _normalize(appName);
+    final withSpaces = _prettyLabelFromKey(appKey);
+    final queries = <String>[
+      appName,
+      appKey,
+      normalizedOriginal,
+      withSpaces,
+    ];
+
+    if (appKey == 'whatsapp') {
+      queries.addAll(const ['whatsapp messenger', 'whatsapp']);
+    } else if (appKey == 'gmail') {
+      queries.addAll(const ['gmail', 'google mail']);
+    } else if (appKey == 'youtube') {
+      queries.addAll(const ['youtube', 'you tube']);
+    } else if (appKey == 'googleapp') {
+      queries.addAll(const ['google', 'google search']);
+    } else if (appKey == 'telegram') {
+      queries.addAll(const ['telegram messenger', 'telegram']);
+    } else if (appKey == 'telegramx') {
+      queries.addAll(const ['telegram x', 'telegramx', 'tgx']);
+    } else if (appKey == 'xplayer') {
+      queries.addAll(const ['xplayer', 'x video player', 'xvideo player']);
+    }
+
+    final out = <String>[];
+    final seen = <String>{};
+    for (final q in queries) {
+      final trimmed = q.trim();
+      if (trimmed.isEmpty) continue;
+      final norm = _normalize(trimmed);
+      if (norm.isEmpty || seen.contains(norm)) continue;
+      seen.add(norm);
+      out.add(trimmed);
+    }
+    return out.take(math.min(out.length, 10)).toList();
+  }
+
+  static String _prettyLabelFromKey(String key) {
+    if (key == 'googlemaps') return 'google maps';
+    if (key == 'googlepay') return 'google pay';
+    if (key == 'playstore') return 'play store';
+    if (key == 'youtubemusic') return 'youtube music';
+    if (key == 'googledrive') return 'google drive';
+    if (key == 'googlephotos') return 'google photos';
+    if (key == 'googleapp') return 'google';
+    if (key == 'telegramx') return 'telegram x';
+    if (key == 'xplayer') return 'x video player';
+    return key;
+  }
+
+  static Future<bool> _openPlayStoreSearch(String appName) async {
+    final q = Uri.encodeComponent(appName.trim());
+    if (q.isEmpty) return false;
+    if (await _launchIntent(
+      action: 'android.intent.action.VIEW',
+      data: 'market://search?q=$q&c=apps',
+    )) {
+      return true;
+    }
+    return _launchIntent(
+      action: 'android.intent.action.VIEW',
+      data: 'https://play.google.com/store/search?q=$q&c=apps',
+    );
   }
 
   // Switch map with 200+ commonly used app names.
@@ -326,6 +876,8 @@ class OpenAppService {
         return 'org.telegram.messenger';
       case 'telegramx':
         return 'org.thunderdog.challegram';
+      case 'xplayer':
+        return 'video.player.videoplayer';
       case 'signal':
         return 'org.thoughtcrime.securesms';
       case 'messenger':
