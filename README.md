@@ -26,6 +26,12 @@
 
 </div>
 
+## 🆕 Latest Dimensional Updates
+- **Piper TTS Integration**: Upgraded the vocal synthesis to use a local, offline Piper TTS engine to generate high-fidelity, zero-latency female anime voice without relying on cloud APIs.
+- **Foreground Neural Service**: The *Ghost Listener* now runs robustly as an Android Foreground Service (Kotlin), ensuring continuous wake word detection and rich system notifications even when the app is closed or in the background.
+
+---
+
 ## 🌌 1. The Dimensional Vision
 
 The **Anime Waifu Voice Assistant (Neural Nexus)** is an experimental framework designed to provide high-fidelity voice interaction with an AI companion. Inspired by the personality of Zero Two, this app integrates complex on-device logic with cloud-based neural processing to create an experience that feels truly "alive."
@@ -78,7 +84,7 @@ graph TD
 | :--- | :--- | :---: | :--- |
 | **🎙️ Ghost Listener** | `porcupine_flutter` | ⚡⚡⚡⚡ | Edge-computed wake word detection. |
 | **🧠 Deep Memory** | `shared_prefs` | 📚 | Persistent synaptic storage of past conversations. |
-| **🗣️ Vocal Synthesis** | `flutter_tts` / `API` | 🌸 | Neural-grade voice generation. |
+| **🗣️ Vocal Synthesis** | `Piper TTS` (Offline) | 🌸 | Zero-latency, completely offline female anime voice synthesis. |
 | **🎭 Persona Core** | `system_persona` | 💖 | Advanced behavioral guiding prompt. |
 | **📧 Command Nexus** | `mail_jet_api` | 📨 | Voice-to-action layer for real-world tasks. |
 
@@ -106,7 +112,7 @@ Exhaustive analysis of the central nervous system.
 
 ### 4.3. Vocal Synthesis: `lib/tts.dart`
 - **Persona Fingerprinting**: Custom pitch/rate adjustments to match Zero Two's characteristics.
-- **Hybrid Networking**: Streaming cloud synthesis with local on-device fallbacks.
+- **Local Neural Processing**: Fully offline speech generation utilizing the Piper TTS engine for true privacy and uncompromised anime voice quality.
 
 ### 4.4. Neural Cloud Interface: `lib/api_call.dart`
 Exhaustive analysis of the trans-dimensional link.
@@ -143,8 +149,8 @@ This project is released under the **MIT License**. Use its power wisely, Darlin
 
 ### 7.1. Service: `WakeWordService` (`load_wakeword_code.dart`)
 This is the heart of the "Ghost Listener" functionality.
-- **Native Integration**: Uses `porcupine_flutter` to bind to the Picovoice C engine.
-- **Resource Management**: Implements an automatic shutdown when the app is in background (unless Assistant Mode is enabled) to save battery.
+- **Native Integration**: Uses `porcupine_flutter` with pre-trained `.ppn` arrays to securely bind to the Picovoice C engine.
+- **Persistent Foreground Link**: Powered by a robust Kotlin Android Foreground Service to maintain wake word detection and active notification banners even when minimizing or closing the app.
 - **Threshold Tuning**: A dynamic threshold (0.5 to 0.9) that adjusts based on ambient noise detected during startup.
 
 ### 7.2. Service: `TtsService` (`tts.dart`)

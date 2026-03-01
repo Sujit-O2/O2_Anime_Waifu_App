@@ -99,7 +99,20 @@ class AssistantModeService {
     await _invoke('setAssistantIdleNotification');
   }
 
+  Future<void> setProactiveMode(bool enabled) async {
+    await _invoke('setProactiveMode', {'enabled': enabled});
+  }
+
   Future<void> openNotificationSettings() async {
     await _invoke('openNotificationSettings');
+  }
+
+  Future<bool> isIgnoringBatteryOptimizations() async {
+    final result = await _invoke<bool>('isIgnoringBatteryOptimizations');
+    return result ?? true;
+  }
+
+  Future<void> requestIgnoreBatteryOptimizations() async {
+    await _invoke('requestIgnoreBatteryOptimizations');
   }
 }

@@ -9,6 +9,7 @@ import android.graphics.PixelFormat
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.view.Gravity
 import android.view.WindowManager
@@ -86,6 +87,17 @@ class MainActivity : FlutterActivity() {
                         requestNotificationPermission()
                         result.success(true)
                     }
+                    "openNotificationSettings" -> {
+                        openNotificationSettings()
+                        result.success(true)
+                    }
+                    "isIgnoringBatteryOptimizations" -> {
+                        result.success(isIgnoringBatteryOptimizations())
+                    }
+                    "requestIgnoreBatteryOptimizations" -> {
+                        requestIgnoreBatteryOptimizations()
+                        result.success(true)
+                    }
                     "showListeningNotification" -> {
                         val status = call.argument<String>("status") ?: "Listening..."
                         val transcript = call.argument<String>("transcript") ?: ""
@@ -97,8 +109,9 @@ class MainActivity : FlutterActivity() {
                         setAssistantIdleNotification()
                         result.success(true)
                     }
-                    "openNotificationSettings" -> {
-                        openNotificationSettings()
+                    "setProactiveMode" -> {
+                        val enabled = call.argument<Boolean>("enabled") ?: false
+                        setProactiveMode(enabled)
                         result.success(true)
                     }
                     else -> result.notImplemented()
@@ -158,10 +171,34 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun setProactiveMode(enabled: Boolean) {
+        val intent = Intent(this, AssistantForegroundService::class.java).apply {
+            action = "SET_PROACTIVE_MODE"
+            putExtra("ENABLED", enabled)
+        }
+        startService(intent)
+    }
+
     private fun openNotificationSettings() {
         val intent = Intent().apply {
             action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
             putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
+
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun requestIgnoreBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        if (isIgnoringBatteryOptimizations()) return
+        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:$packageName")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(intent)
@@ -293,12 +330,14 @@ class MainActivity : FlutterActivity() {
 
         if (pulse) {
             val wakeNotification = NotificationCompat.Builder(this, wakeEventChannelId)
-                .setContentTitle("Wake word detected")
-                .setContentText("Zero Two is listening...")
+                .setContentTitle(if (status.isNotBlank()) status else "Wake word detected")
+                .setContentText(if (transcript.isNotBlank()) transcript else "Zero Two is listening...")
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setTimeoutAfter(4000)
+                .setDefaults(android.app.Notification.DEFAULT_ALL)
+                .setTimeoutAfter(6000)
                 .build()
             manager?.notify(wakeEventNotificationId, wakeNotification)
         }

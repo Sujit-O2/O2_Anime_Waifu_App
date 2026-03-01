@@ -121,9 +121,9 @@ class WakeWordService {
     );
     return PorcupineManager.fromKeywordPaths(
       accessKey,
-      keywordPaths,
+      List<String>.from(keywordPaths),
       onDetected,
-      sensitivities: sensitivities,
+      sensitivities: List<double>.from(sensitivities),
       errorCallback: _handleWakeWordError,
     );
   }
