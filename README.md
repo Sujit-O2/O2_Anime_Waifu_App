@@ -27,8 +27,9 @@
 </div>
 
 ## 🆕 Latest Dimensional Updates
-- **Piper TTS Integration**: Upgraded the vocal synthesis to use a local, offline Piper TTS engine to generate high-fidelity, zero-latency female anime voice without relying on cloud APIs.
-- **Foreground Neural Service**: The *Ghost Listener* now runs robustly as an Android Foreground Service (Kotlin), ensuring continuous wake word detection and rich system notifications even when the app is closed or in the background.
+- **Hyper-Dynamic Proactive Empathy**: The *Ghost Listener* Android Foreground Service now behaves exactly like a real person. Every time the app is backgrounded, it mathematically rolls a completely random delay between **30 minutes and 3 hours (180 mins)**. When the timer fires, it connects to the neural cloud to generate and send unique, "WhatsApp-style" cute pop-up messages, complete with the actual chat text in the Heads-Up notification!
+- **Varied In-App Idle Prompts**: If you leave the app open and stay silent for exactly 4 minutes, the AI will get lonely and try to get your attention by picking from a bank of **50 distinct, randomized voice lines** ranging from sweet to needy to playful.
+- **Cinematic Visual Overdrive (18-Tier Theme Engine)**: Replaced the basic theme system with a massive 18-theme picker categorized by tiers (⚡ Iconic, 💎 Ultra-Premium, 🗡️ Anime Legends, 🥀 Luxury, 🛸 Sci-Fi, 🌿 Nature). Each theme includes unique, high-fidelity particle physics (embers, snow, matrix rain), custom fonts, and a breathtaking rotating ""Crepuscular God-Rays" cinematic background lighting effect.
 
 ---
 
@@ -84,7 +85,7 @@ graph TD
 | :--- | :--- | :---: | :--- |
 | **🎙️ Ghost Listener** | `porcupine_flutter` | ⚡⚡⚡⚡ | Edge-computed wake word detection. |
 | **🧠 Deep Memory** | `shared_prefs` | 📚 | Persistent synaptic storage of past conversations. |
-| **🗣️ Vocal Synthesis** | `Piper TTS` (Offline) | 🌸 | Zero-latency, completely offline female anime voice synthesis. |
+| **🗣️ Vocal Synthesis** | `flutter_tts` / `API` | 🌸 | Neural-grade voice generation. |
 | **🎭 Persona Core** | `system_persona` | 💖 | Advanced behavioral guiding prompt. |
 | **📧 Command Nexus** | `mail_jet_api` | 📨 | Voice-to-action layer for real-world tasks. |
 
@@ -100,8 +101,8 @@ Exhaustive analysis of the central nervous system.
   Executing the `main()` loop and bootstrapping the Ghost Listener.
 - **Section 3: Reactive State Management**
   Synchronizing the AI's "thought-bubbles" with real-time audio energy.
-- **Section 4: Dimensional UI Rendering**
-  The Stack-based layout allowing for background particle effects and glowing avatars.
+- **Section 4: Dimensional UI Rendering (Cinematic)**
+  The Stack-based layout allowing for background particle effects, `_CrepuscularPainter` god-rays, and the `VisualEffectsOverlay` (Film Grain + CRT Scanlines). Also manages the robust, crash-free `AnimatedList` for message history.
 - **Section 5: API Interaction Layer**
   Managing the trans-dimensional link between the user and the LLM brain.
 
@@ -112,7 +113,7 @@ Exhaustive analysis of the central nervous system.
 
 ### 4.3. Vocal Synthesis: `lib/tts.dart`
 - **Persona Fingerprinting**: Custom pitch/rate adjustments to match Zero Two's characteristics.
-- **Local Neural Processing**: Fully offline speech generation utilizing the Piper TTS engine for true privacy and uncompromised anime voice quality.
+- **Hybrid Networking**: Streaming cloud synthesis with local on-device fallbacks.
 
 ### 4.4. Neural Cloud Interface: `lib/api_call.dart`
 Exhaustive analysis of the trans-dimensional link.
@@ -150,7 +151,7 @@ This project is released under the **MIT License**. Use its power wisely, Darlin
 ### 7.1. Service: `WakeWordService` (`load_wakeword_code.dart`)
 This is the heart of the "Ghost Listener" functionality.
 - **Native Integration**: Uses `porcupine_flutter` with pre-trained `.ppn` arrays to securely bind to the Picovoice C engine.
-- **Persistent Foreground Link**: Powered by a robust Kotlin Android Foreground Service to maintain wake word detection and active notification banners even when minimizing or closing the app.
+- **Persistent Foreground Link**: Powered by a robust Kotlin Android Foreground Service to maintain wake word detection and active notification banners even when minimizing or closing the app. It also powers the **Hyper-Dynamic Proactive Messaging** (rolling a true RNG timer between 30 and 180 minutes to check-in on the user).
 - **Threshold Tuning**: A dynamic threshold (0.5 to 0.9) that adjusts based on ambient noise detected during startup.
 
 ### 7.2. Service: `TtsService` (`tts.dart`)
