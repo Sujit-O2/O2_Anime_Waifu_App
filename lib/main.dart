@@ -110,6 +110,11 @@ class _ChatHomePageState extends State<ChatHomePage>
   bool _wakeWordEnabledByUser = true;
   bool _wakeWordActivationLimitHit = false;
 
+  Timer? _idleTimer;
+  Timer? _proactiveMessageTimer;
+  static const Duration _idleDuration = Duration(seconds: 10);
+  static const Duration _proactiveInterval = Duration(seconds: 20);
+
   @override
   void initState() {
     super.initState();
@@ -185,6 +190,71 @@ class _ChatHomePageState extends State<ChatHomePage>
 
     _checkApiKey();
     _scheduleStartupTasks();
+    _startIdleTimer();
+    _startProactiveTimer();
+  }
+
+  void _resetIdleTimer() {
+    _idleTimer?.cancel();
+    _startIdleTimer();
+  }
+
+  void _startIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(_idleDuration, _onIdleTimeout);
+  }
+
+  void _onIdleTimeout() {
+    if (!mounted ||
+        _isDisposed ||
+        _appLifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
+    final message = "Darling, are you still there? I miss your voice.";
+    setState(() {
+      _appendMessage(ChatMessage(role: "assistant", content: message));
+    });
+    _scrollToBottom();
+    unawaited(_ttsService.speak(message));
+  }
+
+  void _startProactiveTimer() {
+    _proactiveMessageTimer?.cancel();
+    _proactiveMessageTimer = Timer.periodic(_proactiveInterval, (_) {
+      if (!mounted ||
+          _isDisposed ||
+          _appLifecycleState == AppLifecycleState.resumed) {
+        return;
+      }
+      _sendProactiveBackgroundNotification();
+    });
+  }
+
+  Future<void> _sendProactiveBackgroundNotification() async {
+    if (!_assistantModeEnabled) return;
+    try {
+      // Fetch a random endearing message from the AI
+      final prompt = [
+        {
+          "role": "system",
+          "content": "You are Zero Two, a loving and caring anime waifu. "
+              "Generate a very short (max 10 words), cute, and endearing check-up message for your darling. "
+              "It should feel like you are starting a conversation or just checking in because you miss them. "
+              "Use emojis. Keep it one sentence."
+        },
+        {"role": "user", "content": "Say something sweet to me!"}
+      ];
+
+      final aiMessage = await _apiService.sendConversation(prompt);
+
+      await _assistantModeService.showListeningNotification(
+        status: "Zero Two",
+        transcript: aiMessage,
+        pulse: false,
+      );
+    } catch (e) {
+      debugPrint("Proactive notification error: $e");
+    }
   }
 
   void _scheduleStartupTasks() {
@@ -365,6 +435,8 @@ class _ChatHomePageState extends State<ChatHomePage>
   void dispose() {
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
+    _idleTimer?.cancel();
+    _proactiveMessageTimer?.cancel();
     _wakeEffectTimer?.cancel();
     _wakeWatchdogTimer?.cancel();
     _titleTapResetTimer?.cancel();
@@ -839,6 +911,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   void _handleSpeechResult(String text, bool isFinal) {
     if (!mounted) return;
+    _resetIdleTimer();
     unawaited(_showBackgroundListeningNotification(
       status: isFinal ? "Processing..." : "Listening...",
       transcript: text,
@@ -875,6 +948,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     final text = _textController.text.trim();
     if (text.isEmpty || _isBusy) return;
 
+    _resetIdleTimer();
     unawaited(_stopContinuousListening());
     unawaited(_ttsService.stop());
 
@@ -1011,7 +1085,24 @@ class _ChatHomePageState extends State<ChatHomePage>
         }
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('assistant_mode_enabled', true);
-        await _assistantModeService.start();
+
+        // Pass API config to background service for persistence after swipe
+        final apiKey = _devApiKeyOverride.trim().isNotEmpty
+            ? _devApiKeyOverride.trim()
+            : (dotenv.env['API_KEY'] ?? "");
+        final apiUrl = _devApiUrlOverride.trim().isNotEmpty
+            ? _devApiUrlOverride.trim()
+            : "https://api.groq.com/openai/v1/chat/completions";
+        final model = _devModelOverride.trim().isNotEmpty
+            ? _devModelOverride.trim()
+            : "moonshotai/kimi-k2-instruct";
+
+        await _assistantModeService.start(
+          apiKey: apiKey,
+          apiUrl: apiUrl,
+          model: model,
+          intervalMs: _proactiveInterval.inMilliseconds,
+        );
         await _initWakeWord();
         await _setBackgroundIdleNotification();
         await _showBackgroundListeningNotification(
@@ -1532,34 +1623,111 @@ class _ChatHomePageState extends State<ChatHomePage>
         titleSpacing: 0,
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(
-              _wakeWordEnabledByUser ? Icons.sensors : Icons.sensors_off,
-              color: _wakeWordEnabledByUser ? Colors.redAccent : Colors.grey,
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white70),
+            color: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.white12, width: 1),
             ),
-            tooltip: _wakeWordEnabledByUser ? "Wake word ON" : "Wake word OFF",
-            onPressed: _toggleWakeWordEnabled,
-          ),
-          IconButton(
-            icon: Icon(
-              _assistantModeEnabled ? Icons.hearing : Icons.hearing_disabled,
-              color: _assistantModeEnabled ? Colors.redAccent : Colors.grey,
-            ),
-            tooltip: _assistantModeEnabled
-                ? "Assistant mode ON (background)"
-                : "Assistant mode OFF",
-            onPressed: _toggleAssistantMode,
-          ),
-          IconButton(
-            icon: Icon(
-              _isAutoListening ? Icons.mic : Icons.mic_off,
-              color: _isAutoListening ? Colors.redAccent : Colors.grey,
-            ),
-            onPressed: _toggleAutoListen,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: _clearMemory,
+            onSelected: (value) async {
+              switch (value) {
+                case 'wake_word':
+                  await _toggleWakeWordEnabled();
+                  break;
+                case 'assistant_mode':
+                  await _toggleAssistantMode();
+                  break;
+                case 'auto_listen':
+                  await _toggleAutoListen();
+                  break;
+                case 'clear_memory':
+                  await _clearMemory();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: 'wake_word',
+                child: Row(
+                  children: [
+                    Icon(
+                      _wakeWordEnabledByUser
+                          ? Icons.sensors
+                          : Icons.sensors_off,
+                      color: _wakeWordEnabledByUser
+                          ? Colors.redAccent
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Wake Word",
+                      style: TextStyle(
+                        color: _wakeWordEnabledByUser
+                            ? Colors.white
+                            : Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'assistant_mode',
+                child: Row(
+                  children: [
+                    Icon(
+                      _assistantModeEnabled
+                          ? Icons.hearing
+                          : Icons.hearing_disabled,
+                      color: _assistantModeEnabled
+                          ? Colors.redAccent
+                          : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Background Assistant",
+                      style: TextStyle(
+                        color: _assistantModeEnabled
+                            ? Colors.white
+                            : Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'auto_listen',
+                child: Row(
+                  children: [
+                    Icon(
+                      _isAutoListening ? Icons.mic : Icons.mic_off,
+                      color: _isAutoListening ? Colors.redAccent : Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Auto Listen",
+                      style: TextStyle(
+                        color: _isAutoListening ? Colors.white : Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(height: 1),
+              PopupMenuItem<String>(
+                value: 'clear_memory',
+                child: Row(
+                  children: const [
+                    Icon(Icons.delete_outline, color: Colors.white70, size: 20),
+                    SizedBox(width: 12),
+                    Text("Clear Memory", style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1705,8 +1873,8 @@ class _ChatHomePageState extends State<ChatHomePage>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        (_isSpeaking ? Colors.red : Colors.pink).withOpacity(0.3),
+                    color: (_isSpeaking ? Colors.red : Colors.pink)
+                        .withOpacity(0.3),
                     blurRadius: 20,
                     spreadRadius: 5,
                   )
@@ -1850,33 +2018,47 @@ class _ChatHomePageState extends State<ChatHomePage>
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
         decoration: BoxDecoration(
-          color: isUser
-              ? Colors.redAccent.withOpacity(isGhost ? 0.3 : 0.8)
-              : const Color(0xFF2C2C2C).withOpacity(0.9),
+          gradient: LinearGradient(
+            colors: isUser
+                ? [
+                    const Color(0xFFFF5252).withOpacity(isGhost ? 0.4 : 0.85),
+                    const Color(0xFFFF1744).withOpacity(isGhost ? 0.3 : 0.75),
+                  ]
+                : [
+                    const Color(0xFF333333).withOpacity(0.9),
+                    const Color(0xFF222222).withOpacity(0.9),
+                  ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(20),
-            topRight: const Radius.circular(20),
-            bottomLeft: isUser ? const Radius.circular(20) : Radius.zero,
-            bottomRight: isUser ? Radius.zero : const Radius.circular(20),
+            topLeft: const Radius.circular(24),
+            topRight: const Radius.circular(24),
+            bottomLeft: isUser ? const Radius.circular(24) : Radius.zero,
+            bottomRight: isUser ? Radius.zero : const Radius.circular(24),
           ),
           border: Border.all(
-            color: isUser ? Colors.redAccent : Colors.white10,
-            width: 1,
+            color: isUser
+                ? const Color(0xFFFF8A80).withOpacity(0.5)
+                : Colors.white12,
+            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(2, 2),
+              color: isUser
+                  ? const Color(0xFFFF5252).withOpacity(0.25)
+                  : Colors.black.withOpacity(0.4),
+              blurRadius: 10,
+              offset: const Offset(3, 5),
             )
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1884,14 +2066,17 @@ class _ChatHomePageState extends State<ChatHomePage>
                 msg.content,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 15,
-                  height: 1.4,
+                  fontSize: 16,
+                  height: 1.45,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
                 ),
               ),
               if (isGhost)
                 const Padding(
-                  padding: EdgeInsets.only(top: 4.0),
-                  child: Icon(Icons.mic, size: 12, color: Colors.white70),
+                  padding: EdgeInsets.only(top: 6.0),
+                  child: Icon(Icons.mic_none_outlined,
+                      size: 14, color: Colors.white70),
                 )
             ],
           ),

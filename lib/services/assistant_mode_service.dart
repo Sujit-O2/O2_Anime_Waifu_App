@@ -14,8 +14,18 @@ class AssistantModeService {
     }
   }
 
-  Future<void> start() async {
-    await _invoke('start');
+  Future<void> start({
+    String? apiKey,
+    String? apiUrl,
+    String? model,
+    int? intervalMs,
+  }) async {
+    await _invoke('start', {
+      'apiKey': apiKey,
+      'apiUrl': apiUrl,
+      'model': model,
+      'intervalMs': intervalMs,
+    });
   }
 
   Future<void> stop() async {

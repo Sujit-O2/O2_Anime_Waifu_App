@@ -21,6 +21,7 @@ dependencies:
   record: ^6.0.0
   path_provider: ^2.1.5
   permission_handler: ^12.0.1
+  flutter_local_notifications: ^20.1.0
  # This is a dependency of porcupine_flutter, might be implicitly added
   # ... other packages
 

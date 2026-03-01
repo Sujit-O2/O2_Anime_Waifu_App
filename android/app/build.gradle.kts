@@ -13,8 +13,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        // Suppress Java 8 obsolete warnings from transitive dependencies
-        isCoreLibraryDesugaringEnabled = false
+        // Required by flutter_local_notifications for Java 8 features on older Androids
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -50,4 +50,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -38,7 +38,11 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "start" -> {
-                        startAssistantService()
+                        val apiKey = call.argument<String>("apiKey")
+                        val apiUrl = call.argument<String>("apiUrl")
+                        val model = call.argument<String>("model")
+                        val intervalMs = call.argument<Long>("intervalMs")
+                        startAssistantService(apiKey, apiUrl, model, intervalMs)
                         result.success(true)
                     }
                     "stop" -> {
@@ -102,8 +106,13 @@ class MainActivity : FlutterActivity() {
             }
     }
 
-    private fun startAssistantService() {
-        val intent = Intent(this, AssistantForegroundService::class.java)
+    private fun startAssistantService(apiKey: String?, apiUrl: String?, model: String?, intervalMs: Long?) {
+        val intent = Intent(this, AssistantForegroundService::class.java).apply {
+            putExtra("API_KEY", apiKey)
+            putExtra("API_URL", apiUrl)
+            putExtra("MODEL", model)
+            if (intervalMs != null) putExtra("INTERVAL_MS", intervalMs)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {

@@ -25,31 +25,31 @@ class WakeWordService {
   static const List<List<String>> _keywordSetCandidates = [
     // Prefer trying all three together first.
     [
-      "assets/wakeword/${_babyGirlKeyword}",
-      "assets/wakeword/${_zeroTwoKeyword}",
-      "assets/wakeword/${_darlingKeyword}",
+      "assets/wakeword/$_babyGirlKeyword",
+      "assets/wakeword/$_zeroTwoKeyword",
+      "assets/wakeword/$_darlingKeyword",
     ],
     // If loading all three at once fails (for example mixed model versions),
     // try pair combinations first.
     [
-      "assets/wakeword/${_babyGirlKeyword}",
-      "assets/wakeword/${_zeroTwoKeyword}",
+      "assets/wakeword/$_babyGirlKeyword",
+      "assets/wakeword/$_zeroTwoKeyword",
     ],
     [
-      "assets/wakeword/${_babyGirlKeyword}",
-      "assets/wakeword/${_darlingKeyword}",
+      "assets/wakeword/$_babyGirlKeyword",
+      "assets/wakeword/$_darlingKeyword",
     ],
     [
-      "assets/wakeword/${_zeroTwoKeyword}",
-      "assets/wakeword/${_darlingKeyword}",
+      "assets/wakeword/$_zeroTwoKeyword",
+      "assets/wakeword/$_darlingKeyword",
     ],
   ];
 
   // Canonical list of keyword asset paths in global callback index order.
   static const List<String> _singleKeywordCandidates = [
-    "assets/wakeword/${_babyGirlKeyword}",
-    "assets/wakeword/${_zeroTwoKeyword}",
-    "assets/wakeword/${_darlingKeyword}",
+    "assets/wakeword/$_babyGirlKeyword",
+    "assets/wakeword/$_zeroTwoKeyword",
+    "assets/wakeword/$_darlingKeyword",
   ];
 
   /// Configure access key for Picovoice
