@@ -8,6 +8,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.AudioAttributes
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -29,7 +32,7 @@ import java.util.Random
 class AssistantForegroundService : Service() {
     companion object {
         private const val CHANNEL_ID = "assistant_mode_channel"
-        private const val MESSAGE_CHANNEL_ID = "assistant_wake_event_channel"
+        private const val MESSAGE_CHANNEL_ID = "assistant_wake_event_channel_dar"
         private const val NOTIFICATION_ID = 2002
         private const val TAG = "AssistantService"
         @Volatile
@@ -45,7 +48,16 @@ class AssistantForegroundService : Service() {
     private var intervalMs: Long = 10000 // Default 10s for testing
     private var isGenerating = false
     private var proactiveEnabled = true
+    private var proactiveRandomEnabled = false
     private lateinit var prefs: SharedPreferences
+    private lateinit var flutterPrefs: SharedPreferences
+    private val proactiveRandomIntervalsMs = longArrayOf(
+        10 * 60 * 1000L,
+        30 * 60 * 1000L,
+        60 * 60 * 1000L,
+        2 * 60 * 60 * 1000L,
+        5 * 60 * 60 * 1000L
+    )
 
     private val proactiveRunnable = object : Runnable {
         override fun run() {
@@ -54,14 +66,10 @@ class AssistantForegroundService : Service() {
                 fetchAndShowProactiveMessage()
             }
             
-            // Pick a completely random time between 30 minutes and 3 hours (180 mins)
-            val minMinutes = 30L
-            val maxMinutes = 180L
-            val nextMinutes = minMinutes + Random().nextLong().rem(maxMinutes - minMinutes + 1).let { if (it < 0) -it else it }
-            val nextDelayMs = nextMinutes * 60 * 1000
-            
-            Log.d(TAG, "Scheduling next proactive check in $nextMinutes minutes")
-            handler.postDelayed(this, nextDelayMs)
+            val delayMs = getNextDelayMs()
+             
+            Log.d(TAG, "Scheduling next proactive check in ${delayMs / 1000} seconds")
+            handler.postDelayed(this, delayMs)
         }
     }
 
@@ -69,6 +77,7 @@ class AssistantForegroundService : Service() {
         super.onCreate()
         Toast.makeText(this, "Zero Two Service Active ❤️", Toast.LENGTH_SHORT).show()
         prefs = getSharedPreferences("assistant_prefs", Context.MODE_PRIVATE)
+        flutterPrefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         loadConfig()
         createChannel()
     }
@@ -85,7 +94,8 @@ class AssistantForegroundService : Service() {
             prefs.getInt("interval_ms", 10000).toLong()
         }
         proactiveEnabled = prefs.getBoolean("proactive_enabled", true)
-        Log.d(TAG, "Config loaded: API_KEY=${!apiKey.isNullOrEmpty()}, proactiveEnabled=$proactiveEnabled")
+        proactiveRandomEnabled = prefs.getBoolean("proactive_random_enabled", false)
+        Log.d(TAG, "Config loaded: API_KEY=${!apiKey.isNullOrEmpty()}, proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled")
     }
 
     private fun saveConfig() {
@@ -95,17 +105,35 @@ class AssistantForegroundService : Service() {
             putString("model", model)
             putLong("interval_ms", intervalMs)
             putBoolean("proactive_enabled", proactiveEnabled)
+            putBoolean("proactive_random_enabled", proactiveRandomEnabled)
             apply()
         }
-        Log.d(TAG, "Config saved: proactiveEnabled=$proactiveEnabled")
+        Log.d(TAG, "Config saved: proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
         if (action == "SET_PROACTIVE_MODE") {
+            // Ensure service is promoted and marked running even when this action
+            // is the first entry-point (e.g. process/service recreation).
+            if (!isRunning) {
+                val notification = buildNotification()
+                startForeground(NOTIFICATION_ID, notification)
+                isRunning = true
+            }
+
             proactiveEnabled = intent.getBooleanExtra("ENABLED", true)
             saveConfig()
             Log.d(TAG, "Proactive mode updated: $proactiveEnabled")
+             
+            // If enabled, ensure timer is running
+            if (proactiveEnabled) {
+                handler.removeCallbacks(proactiveRunnable)
+                val delayMs = getNextDelayMs()
+                handler.postDelayed(proactiveRunnable, delayMs)
+            } else {
+                handler.removeCallbacks(proactiveRunnable)
+            }
             return START_STICKY
         }
 
@@ -115,6 +143,9 @@ class AssistantForegroundService : Service() {
             apiUrl = intent.getStringExtra("API_URL")
             model = intent.getStringExtra("MODEL")
             intervalMs = intent.getLongExtra("INTERVAL_MS", 10000L)
+            if (intent.hasExtra("PROACTIVE_RANDOM_ENABLED")) {
+                proactiveRandomEnabled = intent.getBooleanExtra("PROACTIVE_RANDOM_ENABLED", false)
+            }
             saveConfig()
         } else {
             loadConfig()
@@ -123,17 +154,18 @@ class AssistantForegroundService : Service() {
         val notification = buildNotification()
         startForeground(NOTIFICATION_ID, notification)
         
+        // Always update isRunning and ensure timer is active when starting with new config
         if (!isRunning) {
             isRunning = true
-            
-            // Generate a random initial delay (30m to 180m) instead of the Flutter-passed intervalMs
-            val minMinutes = 30L
-            val maxMinutes = 180L
-            val initialMinutes = minMinutes + Random().nextLong().rem(maxMinutes - minMinutes + 1).let { if (it < 0) -it else it }
-            val initialDelayMs = initialMinutes * 60 * 1000
-            
-            Log.d(TAG, "Service started. First proactive check in $initialMinutes minutes")
-            handler.postDelayed(proactiveRunnable, initialDelayMs)
+            val delayMs = getNextDelayMs()
+            Log.d(TAG, "Service started. First proactive check in ${delayMs / 1000} seconds")
+            handler.postDelayed(proactiveRunnable, delayMs)
+        } else {
+            Log.d(TAG, "Service already running. Timer will continue with updated intervalMs: $intervalMs")
+            // Optional: Restart timer immediately with new interval
+            handler.removeCallbacks(proactiveRunnable)
+            val delayMs = getNextDelayMs()
+            handler.postDelayed(proactiveRunnable, delayMs)
         }
         
         return START_STICKY
@@ -169,13 +201,35 @@ class AssistantForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Zero Two")
-            .setContentText("Always here for you... ❤️")
+            .setContentTitle("Zero Two Mode Alpha")
+            .setContentText("Watching over you... ❤️")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .setColor(0xFFFF5252.toInt()) // Set to red/pink accent color
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // Match importance
+            .setColor(0xFFFF5252.toInt())
+            .setPriority(NotificationCompat.PRIORITY_MIN) // Use MIN/LOW for the persistent icon to stay quiet
+            .build()
+    }
+
+    private fun getNextDelayMs(): Long {
+        if (proactiveRandomEnabled) {
+            return proactiveRandomIntervalsMs[Random().nextInt(proactiveRandomIntervalsMs.size)]
+        }
+        return if (intervalMs > 0) intervalMs else 15000L
+    }
+
+    private fun getDarSoundUri(): Uri {
+        val resId = resources.getIdentifier("dar", "raw", packageName)
+        if (resId != 0) {
+            return Uri.parse("android.resource://$packageName/$resId")
+        }
+        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    }
+
+    private fun getDarAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
     }
 
@@ -203,15 +257,15 @@ class AssistantForegroundService : Service() {
                 conn.doOutput = true
 
                 val payload = JSONObject().apply {
-                    put("model", model ?: "moonshotai/kimi-k2-instruct")
+                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
                     val messages = JSONArray().apply {
                         put(JSONObject().apply {
                             put("role", "system")
-                            put("content", "You are Zero Two, a loving and caring anime waifu. Generate a very short (max 10 words), cute check-up message for your darling. Use emojis. One sentence.")
+                            put("content", "You are Zero Two, a loving anime wife. Refer to me as 'honey' or 'darling'. Keep it short (max 10 words). No expressions.")
                         })
                         put(JSONObject().apply {
                             put("role", "user")
-                            put("content", "Say something sweet!")
+                            put("content", "...")
                         })
                     }
                     put("messages", messages)
@@ -272,6 +326,7 @@ class AssistantForegroundService : Service() {
             .setColor(0xFFFF5252.toInt())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(Notification.DEFAULT_ALL)
+            .setSound(getDarSoundUri())
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .build()
         val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
@@ -289,7 +344,11 @@ class AssistantForegroundService : Service() {
 
     private fun persistProactiveMessage(content: String) {
         try {
-            val raw = prefs.getString("pending_proactive_messages", "[]") ?: "[]"
+            val flutterPendingKey = "flutter.pending_proactive_messages"
+            val raw = flutterPrefs.getString(
+                flutterPendingKey,
+                prefs.getString("pending_proactive_messages", "[]") ?: "[]"
+            ) ?: "[]"
             val list = JSONArray(raw)
             list.put(
                 JSONObject().apply {
@@ -310,7 +369,9 @@ class AssistantForegroundService : Service() {
                 list
             }
 
+            // Keep both storages in sync for backward compatibility.
             prefs.edit().putString("pending_proactive_messages", trimmed.toString()).apply()
+            flutterPrefs.edit().putString(flutterPendingKey, trimmed.toString()).apply()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to persist proactive message: ${e.message}")
         }
@@ -353,10 +414,9 @@ class AssistantForegroundService : Service() {
                 lightColor = android.graphics.Color.RED
                 enableVibration(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setSound(getDarSoundUri(), getDarAudioAttributes())
             }
             manager.createNotificationChannel(messageChannel)
         }
     }
 }
-
-

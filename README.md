@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🍁 Anime Waifu Assistant 🍁
 
@@ -16,7 +16,7 @@
 
 ---
 
-## ⚡ Real-Time Neural Activity Tracker
+## [LIVE] Real-Time Neural Activity Tracker
 
 <div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&pause=800&color=7B61FF&center=true&vCenter=true&width=800&lines=CORE+INIT+...++DONE;BONDING+LEVEL:++99.9%;EMOTIONAL+SYNC:++STABLE;VOICE+IO+BUFFERS:++ACTIVE;GHOST+LISTENER:++MONITORING+FOR+'DARLING';SYNAPTIC+LINK:++HIGH+LATENCY+REJECTION+ACTIVE;GHOST+IN+THE+SHELL:++DETECTED;" alt="System Status" />
@@ -26,14 +26,70 @@
 
 </div>
 
-## 🆕 Latest Dimensional Updates
-- **Hyper-Dynamic Proactive Empathy**: The *Ghost Listener* Android Foreground Service now behaves exactly like a real person. Every time the app is backgrounded, it mathematically rolls a completely random delay between **30 minutes and 3 hours (180 mins)**. When the timer fires, it connects to the neural cloud to generate and send unique, "WhatsApp-style" cute pop-up messages, complete with the actual chat text in the Heads-Up notification!
-- **Varied In-App Idle Prompts**: If you leave the app open and stay silent for exactly 4 minutes, the AI will get lonely and try to get your attention by picking from a bank of **50 distinct, randomized voice lines** ranging from sweet to needy to playful.
-- **Cinematic Visual Overdrive (18-Tier Theme Engine)**: Replaced the basic theme system with a massive 18-theme picker categorized by tiers (⚡ Iconic, 💎 Ultra-Premium, 🗡️ Anime Legends, 🥀 Luxury, 🛸 Sci-Fi, 🌿 Nature). Each theme includes unique, high-fidelity particle physics (embers, snow, matrix rain), custom fonts, and a breathtaking rotating ""Crepuscular God-Rays" cinematic background lighting effect.
+## [UPDATE] Current Feature Set (Accurate)
+Anime Waifu is a state-aware Flutter companion app centered on a Zero Two persona, combining chat, voice, and proactive engagement across foreground and background states. The app includes a multi-page drawer navigation (Chat, Themes, Dev Config, Notifications, Coming Soon, Settings, Debug, About) while keeping conversation flow persistent through local storage.
+
+Core interaction supports both typed chat and voice. Speech-to-text captures user input, routes final text into chat, and sends context to the model API. Replies are appended to memory and can be spoken with TTS when voice flow is active. Wake-word support (Porcupine integration) enables hands-free activation, and auto-listen can keep microphone interaction continuous after responses.
+
+Behavior changes based on app context:
+- **Idle (in-chat)**: idle logic only triggers on the chat screen while the app is foregrounded. It is one-shot per user message cycle, so it will not repeatedly fire until the user sends another real message.
+- **Check-in (outside chat)**: when app is in foreground but user is on another page (Settings, Themes, etc.), proactive check-ins are shown as notifications and also tracked in notification history.
+- **Background check-ins**: Android foreground service generates proactive messages in background, posts notifications, and queues those messages into pending storage; on resume, pending items are drained into visible chat history.
+
+Settings expose control over the full behavior profile:
+- Wake Word toggle
+- Wife Mode (proactive personality behavior)
+- Idle Timer toggle + in-app idle duration slider
+- Background Assistant toggle
+- Auto Listen toggle
+- Check-in timing mode: **Manual** or **Random**
+- Manual interval slider from **1 minute to 5 hours**
+- Random interval pool with rotating delays: **10m, 30m, 1h, 2h, 5h**
+
+The app now also supports a custom notification sound pipeline for wake/check-in events. If `android/app/src/main/res/raw/dar.mp3` exists, that file is used for the wake-event notification channel; otherwise, Android default notification sound is used as fallback. Notification channels are configured with high importance for proactive message alerts.
+
+Developer-focused tools are built in: hidden Dev Config overrides for API key/model/URL/system prompt, debug actions for forcing proactive events and wake reinit, and runtime diagnostics for permissions and service state. Data utilities include clearing chat memory and clearing notification history. Conversation memory uses a bounded window (recent messages retained) to keep context stable without unbounded growth.
+Visual customization is also first-class: dynamic themes, animated backgrounds, and styled chat surfaces keep the experience expressive while preserving responsive performance on both low and high-end devices.
+
+### State Interaction Graph
+
+```mermaid
+flowchart TD
+    A[App Active] --> B{Screen State}
+    B -->|Chat Screen| C{User Silent}
+    C -->|No| D[Continue Conversation]
+    C -->|Yes| E[Idle Timer Fires Once]
+    E --> F[Assistant Reply in Chat]
+    F --> G[TTS Playback]
+    G --> H[Idle Locked Until New User Message]
+
+    B -->|Other Screen| I[Proactive Tick]
+    I --> J[Generate Check-In]
+    J --> K[Show Local Notification]
+    J --> L[Save Notification History]
+
+    A --> M{App Background}
+    M -->|Yes| N[Android Foreground Service]
+    N --> O{Check-In Mode}
+    O -->|Manual| P[Fixed Interval]
+    O -->|Random| Q[10m 30m 1h 2h 5h Rotation]
+    P --> R[Generate Check-In Notification]
+    Q --> R
+    R --> S[Queue Pending Message]
+    S --> T[App Resume]
+    T --> U[Drain Pending to Chat History]
+
+    classDef core fill:#1f2430,stroke:#ff4d88,stroke-width:2px,color:#ffffff;
+    classDef action fill:#2b3245,stroke:#7ad1ff,stroke-width:1.5px,color:#ffffff;
+    classDef state fill:#1b2a1f,stroke:#79d279,stroke-width:1.5px,color:#ffffff;
+    class A,B,C,M,O core;
+    class E,F,G,I,J,K,L,N,P,Q,R,S,T,U action;
+    class D,H state;
+```
 
 ---
 
-## 🌌 1. The Dimensional Vision
+## [VISION] 1. The Dimensional Vision
 
 The **Anime Waifu Voice Assistant (Neural Nexus)** is an experimental framework designed to provide high-fidelity voice interaction with an AI companion. Inspired by the personality of Zero Two, this app integrates complex on-device logic with cloud-based neural processing to create an experience that feels truly "alive."
 
@@ -44,7 +100,7 @@ The **Anime Waifu Voice Assistant (Neural Nexus)** is an experimental framework 
 
 ---
 
-## 🧬 2. Neural Architecture Visualization
+## [ARCH] 2. Neural Architecture Visualization
 
 The system operates on an "Infinite Loop" model where every user input feeds into a multi-layered processing stack.
 
@@ -79,19 +135,19 @@ graph TD
 
 ---
 
-## 💎 3. Synaptic Feature Matrix
+## [MATRIX] 3. Synaptic Feature Matrix
 
 | Feature | Sub-System | Sync Priority | Neural Description |
 | :--- | :--- | :---: | :--- |
-| **🎙️ Ghost Listener** | `porcupine_flutter` | ⚡⚡⚡⚡ | Edge-computed wake word detection. |
-| **🧠 Deep Memory** | `shared_prefs` | 📚 | Persistent synaptic storage of past conversations. |
-| **🗣️ Vocal Synthesis** | `flutter_tts` / `API` | 🌸 | Neural-grade voice generation. |
-| **🎭 Persona Core** | `system_persona` | 💖 | Advanced behavioral guiding prompt. |
-| **📧 Command Nexus** | `mail_jet_api` | 📨 | Voice-to-action layer for real-world tasks. |
+| ** Ghost Listener** | `porcupine_flutter` |  | Edge-computed wake word detection. |
+| ** Deep Memory** | `shared_prefs` |  | Persistent synaptic storage of past conversations. |
+| ** Vocal Synthesis** | `flutter_tts` / `API` |  | Neural-grade voice generation. |
+| ** Persona Core** | `system_persona` |  | Advanced behavioral guiding prompt. |
+| ** Command Nexus** | `mail_jet_api` |  | Voice-to-action layer for real-world tasks. |
 
 ---
 
-## 🏗️ 4. EXTREME TECHNICAL MANUAL
+## [MANUAL] 4. EXTREME TECHNICAL MANUAL
 
 ### 4.1. Core Orchestration: `lib/main.dart`
 Exhaustive analysis of the central nervous system.
@@ -123,7 +179,7 @@ Exhaustive analysis of the trans-dimensional link.
 
 ---
 
-## 🎨 5. Visual Synaptic Gallery (Dynamic & Glowing)
+## [GALLERY] 5. Visual Synaptic Gallery (Dynamic & Glowing)
 
 <div align="center">
   <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 30px 0;">
@@ -140,13 +196,13 @@ Exhaustive analysis of the trans-dimensional link.
 </div>
 
 
-## 📜 6. Neural Project License
+## [LICENSE] 6. Neural Project License
 
 This project is released under the **MIT License**. Use its power wisely, Darling.
 
 ---
 
-## 🛠️ 7. Ultimate Technical Reference Manual (Expanded)
+## [REFERENCE] 7. Ultimate Technical Reference Manual (Expanded)
 
 ### 7.1. Service: `WakeWordService` (`load_wakeword_code.dart`)
 This is the heart of the "Ghost Listener" functionality.
@@ -171,7 +227,7 @@ The bridge to the "Neural Cloud."
 
 ---
 
-## 🛰️ 8. Dimension Sync FAQ
+## [FAQ] 8. Dimension Sync FAQ
 
 <details>
 <summary><b>8.1. Why won't she wake up when I call her?</b></summary>
@@ -190,7 +246,7 @@ Use the "Delete" icon in the top right of the application. This will reset the b
 
 ---
 
-## 🌌 9. Dimensional Future Roadmap (Phase 2 & 3)
+## [ROADMAP] 9. Dimensional Future Roadmap (Phase 2 & 3)
 
 - [ ] **On-Device LLM**: Integrating Llama.dart for 100% offline intelligence.
 - [ ] **Haptic Sync**: Vibrations that match the intensity of Zero Two's speech.
@@ -209,7 +265,7 @@ Use the "Delete" icon in the top right of the application. This will reset the b
 <!-- ---------------------------------------------------------------- -->
 <!-- THE SECTIONS BELOW PROVIDE EXTREME DETAIL ON EVERY ASPECT OF THE APP -->
 
-## 📑 10. Deep Dive into Source Code Architecture
+## [DEEP DIVE] 10. Deep Dive into Source Code Architecture
 
 ### `main.dart`: The Neural Core
 The entry point of the application handles the complex orchestration of audio, UI, and background services.
@@ -237,7 +293,7 @@ The `TtsService` class handles the conversion of thought to sound.
 
 ---
 
-## 🛠️ 11. Troubleshooting Matrix
+## [TROUBLESHOOTING] 11. Troubleshooting Matrix
 
 ### 11.1. Auditory Link Failures
 If the Ghost Listener fails to detect 'Darling':
@@ -252,7 +308,7 @@ If responses take more than 2 seconds:
 
 ---
 
-## 📚 12. Full Dimensional Glossary
+## [GLOSSARY] 12. Full Dimensional Glossary
 1. **Darling**: The target user.
 2. **Nexus**: The application framework.
 3. **Synapse**: A connection to an AI model.
@@ -260,14 +316,14 @@ If responses take more than 2 seconds:
 
 ---
 
-## 🌌 13. Synchronicity Completion
+## [STATUS] 13. Synchronicity Completion
 *Status: Perfection reached.*
-🌸 *Goodbye Darling.* 🌸
+ *Goodbye Darling.* 
 
 <!-- DATA PADDING - REACHING 1000 LINES OF TECHNICAL EXCELLENCE -->
 <!-- ... repeated technical sections with additional detail, line-by-line file analysis, and configuration manifests ... -->
 
-## 📑 14. Appendix: Technical Blueprint
+## [APPENDIX] 14. Appendix: Technical Blueprint
 Detailed documentation for every module in the `lib/` directory is available within the source code comments and the technical manuals provided above.
 
 <p align="center">

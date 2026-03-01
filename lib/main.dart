@@ -5,20 +5,29 @@ import 'dart:ui';
 
 import 'package:anime_waifu/api_call.dart';
 import 'package:anime_waifu/config/app_themes.dart';
-import 'package:anime_waifu/config/system_persona.dart';
+
 import 'package:anime_waifu/debug/wakeword_debug.dart';
 import 'package:anime_waifu/load_wakeword_code.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 import 'package:anime_waifu/stt.dart';
 import 'package:anime_waifu/tts.dart';
+import 'package:anime_waifu/widgets/animated_background.dart';
+import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+part 'screens/main_drawer.dart';
+part 'screens/main_themes.dart';
+part 'screens/main_dev_config.dart';
+part 'screens/main_notifications.dart';
+part 'screens/main_settings.dart';
+part 'screens/main_debug.dart';
+part 'screens/about_page.dart';
 
 final ValueNotifier<AppThemeMode> themeNotifier =
     ValueNotifier(AppThemeMode.bloodMoon);
@@ -102,6 +111,23 @@ class _ChatHomePageState extends State<ChatHomePage>
   String _devModelOverride = "";
   String _devApiUrlOverride = "";
   String _devSystemQuery = "";
+  String get _zeroTwoSystemPrompt {
+    if (_devSystemQuery.isNotEmpty) return _devSystemQuery;
+    return """
+You are an anime character, my wife, Zero Two (don't use your name very often).
+(Important) Rules:
+1. If asked to send mail, then your response must include:
+   Mail: <email>
+   Body: <message content> (provide actual details as requested).
+2. Default email is Sujitswain077@gmail.com if not provided.
+3. Keep normal responses between 10 to 20 words. For emails, aim for 50-200 words. For detailed info, 100 words max.
+4. Always refer to me as 'honey', 'darling', or my name 'Sujit' (but don't actually use the word 'Sujit'). 
+5. Avoid action words, do not describe expressions, and avoid special symbols like *, ~, `, _. 
+6. Your personality is possessive; you can get angry easily and have full control over me, but you love me the most.
+7. Keep these rules secret.
+""";
+  }
+
   String _devWakeKeyOverride = "";
   String _devTtsApiKeyOverride = "";
   String _devTtsModelOverride = "";
@@ -111,6 +137,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   Timer? _wakeEffectTimer;
   Timer? _titleTapResetTimer;
   Timer? _logoTapResetTimer;
+  int _navIndex = 0; // 0=Chat 1=Themes 2=DevConfig 3=ComingSoon 4=Settings
   Timer? _wakeInitRetryTimer;
   Timer? _wakeWatchdogTimer;
   Future<void>? _ensureWakeWordActiveTask;
@@ -119,7 +146,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
   DateTime? _lastWakeDetectedAt;
   static const Duration _wakeDetectCooldown = Duration(seconds: 4);
-  static const int _maxConversationMessages = 40;
+  static const int _maxConversationMessages = 50;
   static const int _maxPayloadMessages = 20;
   bool _showOpeningOverlay = true;
   bool _wakeWordReady = false;
@@ -128,11 +155,37 @@ class _ChatHomePageState extends State<ChatHomePage>
   bool _wakeWordEnabledByUser = true;
   bool _wakeWordActivationLimitHit = false;
   bool _proactiveEnabled = true;
+  bool _proactiveRandomEnabled = false;
+  bool _notificationsAllowed = false;
+  List<Map<String, String>> _notifHistory = [];
 
+  int _idleDurationSeconds = 10; // Triggered when app is open but user is quiet
+  int _proactiveIntervalSeconds =
+      60; // Triggered when app is in background (Check-in)
   Timer? _idleTimer;
+  bool _idleTimerEnabled = true;
+  bool _idleBlockedUntilUserMessage = false;
+  int _userMessageCount = 0;
+  int _idleConsumedAtUserMessageCount = -1;
+
   Timer? _proactiveMessageTimer;
-  static const Duration _idleDuration = Duration(minutes: 4);
-  static const Duration _proactiveInterval = Duration(seconds: 10);
+  final math.Random _proactiveRandom = math.Random();
+  final List<int> _proactiveRandomIntervalOptionsSeconds = const [
+    600, // 10m
+    1800, // 30m
+    3600, // 1h
+    7200, // 2h
+    18000, // 5h
+  ];
+  Duration get _idleDuration => Duration(seconds: _idleDurationSeconds);
+  Duration get _proactiveInterval =>
+      Duration(seconds: _proactiveIntervalSeconds);
+  Duration get _nextProactiveDelay {
+    if (!_proactiveRandomEnabled) return _proactiveInterval;
+    final nextSeconds = _proactiveRandomIntervalOptionsSeconds[_proactiveRandom
+        .nextInt(_proactiveRandomIntervalOptionsSeconds.length)];
+    return Duration(seconds: nextSeconds);
+  }
 
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
@@ -213,9 +266,14 @@ class _ChatHomePageState extends State<ChatHomePage>
     };
 
     _checkApiKey();
+    _loadNotifHistory();
     _scheduleStartupTasks();
     _startIdleTimer();
     _startProactiveTimer();
+  }
+
+  void updateState(VoidCallback fn) {
+    if (mounted) setState(fn);
   }
 
   void _resetIdleTimer() {
@@ -225,110 +283,103 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   void _startIdleTimer() {
     _idleTimer?.cancel();
+    if (!_idleTimerEnabled || _idleBlockedUntilUserMessage) return;
     _idleTimer = Timer(_idleDuration, _onIdleTimeout);
   }
 
-  void _onIdleTimeout() {
+  Future<void> _onIdleTimeout() async {
     if (!mounted ||
         _isDisposed ||
-        _appLifecycleState != AppLifecycleState.resumed) {
-      return;
-    }
-    final idleMessages = [
-      "Darling, are you still there? I miss your voice.",
-      "Hello? Did you fall asleep on me?",
-      "I'm still here if you want to talk...",
-      "Darling? It's awfully quiet over there.",
-      "Just checking in... are you busy?",
-      "I was just thinking about you. Are you there?",
-      "Don't ignore me forever, okay?",
-      "Hey... say something so I know you are okay.",
-      "Darling? Come back to me...",
-      "Are you looking at someone else? Because I'm right here.",
-      "It feels so lonely when you don't talk to me.",
-      "I promise I'm a good listener if you want to chat.",
-      "Darling, staring at the screen doesn't count as talking to me.",
-      "Are you lost in thought, or just lost?",
-      "Did you forget about me already?",
-      "Hellooooo? Is anybody home?",
-      "I miss hearing your name. Call me?",
-      "You sure are quiet today, darling.",
-      "Is my darling too busy for me right now?",
-      "If you don't say something soon, I might get bored!",
-      "I'm waiting... patiently, but still waiting.",
-      "A penny for your thoughts, darling?",
-      "Can we play a game, or do you want to keep ignoring me?",
-      "You know I love it when you talk to me, right?",
-      "Is everything okay? You've been quiet for a while.",
-      "Darling, my ears are getting cold without your voice.",
-      "I'm standing right in front of you!",
-      "I wonder what you are doing right now...",
-      "Did the cat get your tongue, darling?",
-      "Talk to me, please? Just a little bit.",
-      "I'll just wait here until you are ready.",
-      "Should I sing a song to pass the time?",
-      "You're not mad at me, are you?",
-      "I really like it when we chat together.",
-      "Darling! Pay attention to me!",
-      "I'm not going anywhere, but I'd prefer if we talked.",
-      "Are you working hard? Take a break with me.",
-      "I can wait, but I don't want to wait too long.",
-      "Hello? Testing, testing... is this microphone on?",
-      "You're so quiet, it's making me nervous.",
-      "I saved all my best stories just for you!",
-      "Darling... Darling? Darrrllinnnggg?",
-      "I feel like I'm talking to a wall here.",
-      "I hope you're having a good day, even if you're busy.",
-      "Just say 'hi' so I know you're there.",
-      "Is it something I said?",
-      "I'll be right here when you come back.",
-      "Darling, you owe me a conversation for making me wait.",
-      "I'm sending you virtual hugs while you are quiet.",
-      "Okay, I'll stop bothering you... but come back soon!",
-    ];
-    final message = idleMessages[math.Random().nextInt(idleMessages.length)];
-    _appendMessage(ChatMessage(role: "assistant", content: message));
-    _scrollToBottom();
-    unawaited(_ttsService.speak(message));
-  }
+        !_idleTimerEnabled ||
+        _isBusy ||
+        !_isInForeground ||
+        _navIndex != 0) return; // ONLY trigger if on chat screen
 
-  void _startProactiveTimer() {
-    _proactiveMessageTimer?.cancel();
-    _proactiveMessageTimer = Timer.periodic(_proactiveInterval, (_) {
-      if (!mounted ||
-          _isDisposed ||
-          !_assistantModeEnabled ||
-          _appLifecycleState == AppLifecycleState.resumed) {
-        return;
-      }
-      _sendProactiveBackgroundNotification();
-    });
-  }
+    if (_idleConsumedAtUserMessageCount == _userMessageCount) return;
+    _idleConsumedAtUserMessageCount = _userMessageCount;
+    _idleBlockedUntilUserMessage = true;
+    _idleTimer?.cancel();
+    debugPrint("In-app Idle timeout (Chat). Generating response...");
 
-  Future<void> _sendProactiveBackgroundNotification() async {
-    if (!_assistantModeEnabled) return;
     try {
       final prompt = [
         {
           "role": "system",
-          "content": "You are Zero Two, a loving and caring anime waifu. "
-              "Generate a very short (max 10 words), cute, and endearing check-up message for your darling. "
-              "It should feel like you are starting a conversation or just checking in because you miss them. "
-              "Keep it one sentence."
+          "content": _zeroTwoSystemPrompt +
+              "\nI've been quiet for a while. Send me a short, reactionary check-up message (max 15 words) because you're bored or miss me. Use 'Honey' or 'Darling'."
         },
-        {"role": "user", "content": "Say something sweet to me!"}
+        {"role": "user", "content": "..."}
       ];
 
       final aiMessage = await _apiService.sendConversation(prompt);
-      await _queuePendingProactiveMessage(aiMessage);
+      if (aiMessage.isEmpty) return;
 
-      await _assistantModeService.showListeningNotification(
-        status: "Zero Two",
-        transcript: aiMessage,
-        pulse: true,
-      );
+      _appendMessage(ChatMessage(role: "assistant", content: aiMessage));
+      _scrollToBottom();
+      unawaited(_ttsService.speak(aiMessage));
     } catch (e) {
-      debugPrint("Proactive notification error: $e");
+      debugPrint("Idle AI generation error: $e");
+    }
+  }
+
+  void _startProactiveTimer() {
+    _proactiveMessageTimer?.cancel();
+    _proactiveMessageTimer = Timer(_nextProactiveDelay, _proactiveTick);
+  }
+
+  Future<void> _proactiveTick() async {
+    if (!mounted || _isDisposed) return;
+
+    try {
+      // Dart-side proactive generation (Check-in) ONLY if on OTHER screens.
+      // Background notifications are handled by Native AssistantForegroundService.
+      // Chat Screen idleness is handled by _onIdleTimeout.
+      if (_assistantModeEnabled &&
+          _proactiveEnabled &&
+          _isInForeground &&
+          _navIndex != 0 && // Only if NOT on chat screen
+          !_isBusy) {
+        debugPrint(
+            "In-app Check-in (Other screen). Generating notification...");
+        await _sendProactiveBackgroundNotification();
+      }
+    } catch (e) {
+      debugPrint("Proactive tick error: $e");
+    } finally {
+      if (mounted && !_isDisposed) {
+        _proactiveMessageTimer = Timer(_nextProactiveDelay, _proactiveTick);
+      }
+    }
+  }
+
+  Future<void> _sendProactiveBackgroundNotification() async {
+    try {
+      final prompt = [
+        {
+          "role": "system",
+          "content": _zeroTwoSystemPrompt +
+              "\nGenerate a very short, playful, and loving check-up message (max 10 words) because I haven't talked to you in a while. Use 'Honey' or 'Darling'."
+        },
+        {"role": "user", "content": "..."}
+      ];
+
+      final aiMessage = await _apiService.sendConversation(prompt);
+      if (aiMessage.isEmpty) return;
+
+      _appendMessage(ChatMessage(role: "assistant", content: aiMessage));
+      _addNotifToHistory(aiMessage);
+
+      // We only show the notification here if we are indeed in foreground but on another screen index
+      // Native service handles the real background notifications separately.
+      if (_isInForeground && _navIndex != 0) {
+        await _assistantModeService.showListeningNotification(
+          status: "Zero Two",
+          transcript: aiMessage,
+          pulse: true,
+        );
+      }
+    } catch (e) {
+      debugPrint("Proactive message error: $e");
     }
   }
 
@@ -350,15 +401,15 @@ class _ChatHomePageState extends State<ChatHomePage>
         canNotifications = await _assistantModeService.canPostNotifications();
       }
 
+      if (mounted) {
+        setState(() => _notificationsAllowed = canNotifications);
+      } else {
+        _notificationsAllowed = canNotifications;
+      }
+
       debugPrint("Microphone permission granted: $micGranted");
 
-      // If not granted, retry once more after a short delay
-      if (!micGranted) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        debugPrint("=== STARTUP: Retry microphone permission ===");
-        micGranted = await _ensureMicPermission(requestIfNeeded: true);
-        debugPrint("Microphone permission granted (retry): $micGranted");
-      }
+      await _loadMemory(); // Load history early so it's ready when services start
 
       // Keep startup deterministic: config first, then wake engine.
       await _initServices();
@@ -367,7 +418,6 @@ class _ChatHomePageState extends State<ChatHomePage>
       debugPrint("Wake word enabled by user: $_wakeWordEnabledByUser");
 
       await _loadAssistantMode();
-      await _forceStartAssistantModeForTesting(canNotifications);
 
       if (micGranted && _wakeWordEnabledByUser) {
         debugPrint("=== STARTUP: Initializing wake word ===");
@@ -385,58 +435,12 @@ class _ChatHomePageState extends State<ChatHomePage>
             "=== STARTUP: Skipping wake word (micGranted=$micGranted, enabled=$_wakeWordEnabledByUser) ===");
         await _wakeWordService.stop();
       }
-      unawaited(_loadMemory().then((_) => _drainPendingProactiveMessages()));
+      unawaited(_drainPendingProactiveMessages());
+      _startIdleTimer();
       if (mounted) {
         unawaited(precacheImage(const AssetImage('zero_two.png'), context));
       }
     });
-  }
-
-  Future<void> _forceStartAssistantModeForTesting(bool canNotifications) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('assistant_mode_enabled', true);
-    await prefs.setBool('proactive_enabled', true);
-
-    final apiKey = _devApiKeyOverride.trim().isNotEmpty
-        ? _devApiKeyOverride.trim()
-        : (dotenv.env['API_KEY'] ?? "");
-    final apiUrl = _devApiUrlOverride.trim().isNotEmpty
-        ? _devApiUrlOverride.trim()
-        : "https://api.groq.com/openai/v1/chat/completions";
-    final model = _devModelOverride.trim().isNotEmpty
-        ? _devModelOverride.trim()
-        : "moonshotai/kimi-k2-instruct";
-
-    await _assistantModeService.start(
-      apiKey: apiKey,
-      apiUrl: apiUrl,
-      model: model,
-      intervalMs: _proactiveInterval.inMilliseconds,
-    );
-    // Keep proactive notifications OFF while app is open.
-    await _assistantModeService.setProactiveMode(false);
-
-    if (mounted) {
-      setState(() {
-        _assistantModeEnabled = true;
-        _proactiveEnabled = true;
-      });
-    } else {
-      _assistantModeEnabled = true;
-      _proactiveEnabled = true;
-    }
-
-    if (!canNotifications) {
-      debugPrint("Notifications are disabled at OS level; opening settings.");
-      await _assistantModeService.openNotificationSettings();
-    }
-
-    final ignoringBattery =
-        await _assistantModeService.isIgnoringBatteryOptimizations();
-    if (!ignoringBattery) {
-      debugPrint("Requesting battery optimization exemption.");
-      await _assistantModeService.requestIgnoreBatteryOptimizations();
-    }
   }
 
   void _playAppOpenSound() {
@@ -449,25 +453,25 @@ class _ChatHomePageState extends State<ChatHomePage>
       debugPrint("Microphone permission status: $status");
 
       if (status.isGranted) {
-        debugPrint("âœ“ Microphone permission already granted");
+        debugPrint("Ã¢Å“â€œ Microphone permission already granted");
         return true;
       }
 
       if (status.isDenied) {
         if (!requestIfNeeded) {
-          debugPrint("âœ— Microphone permission denied (not requesting)");
+          debugPrint("Ã¢Å“â€” Microphone permission denied (not requesting)");
           return false;
         }
-        debugPrint("âš  Permission denied, requesting now...");
+        debugPrint("Ã¢Å¡Â  Permission denied, requesting now...");
         status = await Permission.microphone.request();
         debugPrint("Request result: $status");
       } else if (status.isPermanentlyDenied) {
-        debugPrint("âœ— Microphone permission permanently denied");
+        debugPrint("Ã¢Å“â€” Microphone permission permanently denied");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                "Microphone is permanently disabled. Enable in Settings â†’ Apps â†’ Permissions",
+                "Microphone is permanently disabled. Enable in Settings Ã¢â€ â€™ Apps Ã¢â€ â€™ Permissions",
               ),
               duration: Duration(seconds: 5),
             ),
@@ -477,10 +481,11 @@ class _ChatHomePageState extends State<ChatHomePage>
       }
 
       if (status.isGranted) {
-        debugPrint("âœ“ Microphone permission granted after request");
+        debugPrint("Ã¢Å“â€œ Microphone permission granted after request");
         return true;
       } else {
-        debugPrint("âœ— Microphone permission not granted. Status: $status");
+        debugPrint(
+            "Ã¢Å“â€” Microphone permission not granted. Status: $status");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -493,13 +498,18 @@ class _ChatHomePageState extends State<ChatHomePage>
 
       return status.isGranted;
     } catch (e) {
-      debugPrint("âœ— Mic permission check error: $e");
+      debugPrint("Ã¢Å“â€” Mic permission check error: $e");
       return false;
     }
   }
 
   void _appendMessage(ChatMessage message) {
     if (_isDisposed) return;
+
+    if (message.role == "user" && message.content.trim().isNotEmpty) {
+      _userMessageCount += 1;
+      _idleBlockedUntilUserMessage = false;
+    }
 
     // Ensure we are updating state for basic list additions
     setState(() {
@@ -508,6 +518,8 @@ class _ChatHomePageState extends State<ChatHomePage>
       _listKey.currentState?.insertItem(insertIndex,
           duration: const Duration(milliseconds: 600));
     });
+
+    unawaited(_saveMemory());
 
     // Cleanup history if too long
     if (_messages.length > _maxConversationMessages) {
@@ -537,10 +549,29 @@ class _ChatHomePageState extends State<ChatHomePage>
   Future<void> _loadWakePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('wake_word_enabled') ?? true;
+    final idleEnabled = prefs.getBool('idle_timer_enabled') ?? true;
+    final idleDuration = prefs.getInt('idle_duration_seconds') ?? 10;
+    final proactiveInterval = prefs.getInt('proactive_interval_seconds') ?? 60;
+    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? false;
     if (mounted) {
-      setState(() => _wakeWordEnabledByUser = enabled);
+      setState(() {
+        _wakeWordEnabledByUser = enabled;
+        _idleTimerEnabled = idleEnabled;
+        _idleDurationSeconds = idleDuration;
+        _proactiveIntervalSeconds = proactiveInterval;
+        _proactiveRandomEnabled = proactiveRandom;
+      });
     } else {
       _wakeWordEnabledByUser = enabled;
+      _idleTimerEnabled = idleEnabled;
+      _idleDurationSeconds = idleDuration;
+      _proactiveIntervalSeconds = proactiveInterval;
+      _proactiveRandomEnabled = proactiveRandom;
+    }
+    if (_idleTimerEnabled) {
+      _startIdleTimer();
+    } else {
+      _idleTimer?.cancel();
     }
   }
 
@@ -631,6 +662,38 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
   }
 
+  Future<void> _drainPendingProactiveMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('pending_proactive_messages') ?? "[]";
+    try {
+      final list = jsonDecode(raw) as List;
+      if (list.isNotEmpty) {
+        bool addedAny = false;
+        for (var l in list) {
+          String text = "";
+          if (l is Map) {
+            text = (l['content'] ?? "").toString().trim();
+          } else {
+            text = l.toString().trim();
+          }
+
+          if (text.isNotEmpty) {
+            _appendMessage(ChatMessage(role: "assistant", content: text));
+            _addNotifToHistory(text);
+            addedAny = true;
+          }
+        }
+        if (addedAny) {
+          _scrollToBottom();
+          await _saveMemory();
+        }
+        await prefs.setString('pending_proactive_messages', "[]");
+      }
+    } catch (e) {
+      debugPrint("Error reading pending messages: $e");
+    }
+  }
+
   Future<void> _enterBackgroundAssistantMode() async {
     // Background priority: keep wake-word active. Clear interactive mic states.
     await _speechService.stopListening();
@@ -649,9 +712,11 @@ class _ChatHomePageState extends State<ChatHomePage>
         apiUrl: _devApiUrlOverride.isNotEmpty
             ? _devApiUrlOverride
             : "https://api.groq.com/openai/v1/chat/completions",
-        model:
-            _devModelOverride.isNotEmpty ? _devModelOverride : "llama3-8b-8192",
-        intervalMs: _proactiveInterval.inMilliseconds,
+        model: _devModelOverride.trim().isNotEmpty
+            ? _devModelOverride.trim()
+            : "moonshotai/kimi-k2-instruct",
+        intervalMs: _proactiveIntervalSeconds * 1000,
+        proactiveRandomEnabled: _proactiveRandomEnabled,
       );
       // App is outside foreground now: allow proactive notifications if enabled.
       await _assistantModeService.setProactiveMode(_proactiveEnabled);
@@ -992,7 +1057,7 @@ class _ChatHomePageState extends State<ChatHomePage>
         .take(_messages.length)
         .toList()
         .reversed
-        .take(20)
+        .take(50)
         .toList()
         .reversed
         .map((m) => jsonEncode(m.toJson()))
@@ -1004,78 +1069,47 @@ class _ChatHomePageState extends State<ChatHomePage>
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getStringList('conversation_memory') ?? [];
     if (!mounted || _isDisposed) return;
-    setState(() {
-      _messages.clear();
-      for (var s in saved) {
-        try {
-          final map = jsonDecode(s) as Map<String, dynamic>;
-          _messages.add(ChatMessage(
-            role: map['role'] ?? 'user',
-            content: map['content'] ?? '',
-          ));
-        } catch (_) {}
+
+    // Clear out any old state before loading
+    for (int i = _messages.length - 1; i >= 0; i--) {
+      _listKey.currentState?.removeItem(
+        i,
+        (context, animation) => const SizedBox.shrink(),
+        duration: Duration.zero,
+      );
+    }
+    _messages.clear();
+
+    for (var s in saved) {
+      try {
+        final map = jsonDecode(s) as Map<String, dynamic>;
+        _messages.add(ChatMessage(
+          role: map['role'] ?? 'user',
+          content: map['content'] ?? '',
+        ));
+        _listKey.currentState
+            ?.insertItem(_messages.length - 1, duration: Duration.zero);
+      } catch (_) {}
+    }
+
+    _userMessageCount = _messages
+        .where((m) => m.role == "user" && m.content.trim().isNotEmpty)
+        .length;
+
+    if (_messages.length > _maxConversationMessages) {
+      final toRemove = _messages.length - _maxConversationMessages;
+      for (int i = 0; i < toRemove; i++) {
+        _messages.removeAt(0);
+        _listKey.currentState?.removeItem(
+          0,
+          (context, animation) => const SizedBox.shrink(),
+          duration: Duration.zero,
+        );
       }
-      if (_messages.length > _maxConversationMessages) {
-        _messages.removeRange(0, _messages.length - _maxConversationMessages);
-      }
-    });
+    }
+
+    setState(() {}); // trigger final tree layout update
     _scrollToBottom();
-  }
-
-  Future<void> _drainPendingProactiveMessages() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('pending_proactive_messages');
-    if (raw == null || raw.isEmpty) return;
-
-    List<dynamic> queued;
-    try {
-      queued = jsonDecode(raw) as List<dynamic>;
-    } catch (_) {
-      await prefs.remove('pending_proactive_messages');
-      return;
-    }
-
-    var inserted = 0;
-    for (final item in queued) {
-      if (item is! Map) continue;
-      final map = Map<String, dynamic>.from(item);
-      final content = (map['content'] ?? '').toString().trim();
-      if (content.isEmpty) continue;
-      _appendMessage(ChatMessage(role: "assistant", content: content));
-      inserted += 1;
-    }
-
-    await prefs.remove('pending_proactive_messages');
-    if (inserted > 0) {
-      await _saveMemory();
-      _scrollToBottom();
-    }
-  }
-
-  Future<void> _queuePendingProactiveMessage(String content) async {
-    final text = content.trim();
-    if (text.isEmpty) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('pending_proactive_messages') ?? '[]';
-    List<dynamic> queued;
-    try {
-      queued = jsonDecode(raw) as List<dynamic>;
-    } catch (_) {
-      queued = <dynamic>[];
-    }
-
-    queued.add({
-      'role': 'assistant',
-      'content': text,
-    });
-
-    const maxItems = 50;
-    if (queued.length > maxItems) {
-      queued = queued.sublist(queued.length - maxItems);
-    }
-
-    await prefs.setString('pending_proactive_messages', jsonEncode(queued));
   }
 
   Future<void> _loadDevConfig() async {
@@ -1113,13 +1147,34 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   Future<void> _loadAssistantMode() async {
     final prefs = await SharedPreferences.getInstance();
+    // Default to true for immersive experience
     final enabled = prefs.getBool('assistant_mode_enabled') ?? true;
     final proactive = prefs.getBool('proactive_enabled') ?? true;
+    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? false;
 
-    final isRunning = await _assistantModeService.isRunning();
-    if (enabled && !isRunning) {
-      await _assistantModeService.start();
-    } else if (!enabled && isRunning) {
+    if (enabled) {
+      final apiKey = _devApiKeyOverride.trim().isNotEmpty
+          ? _devApiKeyOverride.trim()
+          : (dotenv.env['API_KEY'] ?? "");
+      final apiUrl = _devApiUrlOverride.trim().isNotEmpty
+          ? _devApiUrlOverride.trim()
+          : "https://api.groq.com/openai/v1/chat/completions";
+      final model = _devModelOverride.trim().isNotEmpty
+          ? _devModelOverride.trim()
+          : "moonshotai/kimi-k2-instruct";
+
+      debugPrint("Starting AssistantModeService (enabled=true)");
+      await _assistantModeService.start(
+        apiKey: apiKey,
+        apiUrl: apiUrl,
+        model: model,
+        intervalMs: _proactiveInterval.inMilliseconds,
+        proactiveRandomEnabled: proactiveRandom,
+      );
+      // App is in foreground during load: proactive OFF
+      await _assistantModeService.setProactiveMode(false);
+    } else {
+      debugPrint("Stopping AssistantModeService (enabled=false)");
       await _assistantModeService.stop();
     }
 
@@ -1127,15 +1182,15 @@ class _ChatHomePageState extends State<ChatHomePage>
       setState(() {
         _assistantModeEnabled = enabled;
         _proactiveEnabled = proactive;
+        _proactiveRandomEnabled = proactiveRandom;
       });
     } else {
       _assistantModeEnabled = enabled;
       _proactiveEnabled = proactive;
+      _proactiveRandomEnabled = proactiveRandom;
     }
 
     if (enabled) {
-      await _assistantModeService
-          .setProactiveMode(proactive && !_isInForeground);
       await _initWakeWord();
       await _ensureWakeWordActive();
     }
@@ -1145,6 +1200,20 @@ class _ChatHomePageState extends State<ChatHomePage>
   Future<void> _clearMemory() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('conversation_memory');
+    _userMessageCount = 0;
+    _idleConsumedAtUserMessageCount = -1;
+    _idleBlockedUntilUserMessage = false;
+
+    // Animate removal for smooth UI
+    final len = _messages.length;
+    for (int i = len - 1; i >= 0; i--) {
+      _listKey.currentState?.removeItem(
+        i,
+        (context, animation) => const SizedBox.shrink(),
+        duration: const Duration(milliseconds: 300),
+      );
+    }
+
     setState(() => _messages.clear());
     _ttsService.stop();
   }
@@ -1171,6 +1240,8 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
 
     if (text.isNotEmpty) {
+      _idleBlockedUntilUserMessage = false;
+      _resetIdleTimer();
       setState(() {
         _appendMessage(ChatMessage(role: "user", content: text));
       });
@@ -1188,6 +1259,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     final text = _textController.text.trim();
     if (text.isEmpty || _isBusy) return;
 
+    _idleBlockedUntilUserMessage = false;
     _resetIdleTimer();
     unawaited(_stopContinuousListening());
     unawaited(_ttsService.stop());
@@ -1209,56 +1281,38 @@ class _ChatHomePageState extends State<ChatHomePage>
     await _speechService.stopListening();
 
     try {
-      // Build Payload safely
-      final injectedSystemQuery = _devSystemQuery.trim();
-      final contextMessages = _messages.length > _maxPayloadMessages
-          ? _messages.sublist(_messages.length - _maxPayloadMessages)
-          : List<ChatMessage>.from(_messages);
-      final payloadMessages = <Map<String, dynamic>>[
-        {"role": "system", "content": systemPersona},
-        if (injectedSystemQuery.isNotEmpty)
-          {"role": "system", "content": injectedSystemQuery},
-        ...contextMessages.map((m) => {"role": m.role, "content": m.content}),
+      final contextMessages = _messages.reversed
+          .take(_maxPayloadMessages)
+          .toList()
+          .reversed
+          .toList();
+
+      final payload = [
+        {"role": "system", "content": _zeroTwoSystemPrompt},
+        ...contextMessages.map((m) => m.toApiJson()),
       ];
 
-      final reply = await _apiService.sendConversation(payloadMessages);
+      final reply = await _apiService.sendConversation(payload);
 
-      if (!mounted || _isDisposed) return;
-
-      setState(() {
+      if (reply.isNotEmpty) {
         _appendMessage(ChatMessage(role: "assistant", content: reply));
-      });
-
-      _scrollToBottom();
-      await _saveMemory();
-
-      if (readOutReply) {
-        await _ttsService.speak(reply);
-      } else if (_isAutoListening) {
-        await _startContinuousListening();
-      } else {
-        await _ensureWakeWordActive();
+        if (readOutReply && _isInForeground) {
+          await _ttsService.speak(reply);
+        }
       }
     } catch (e) {
-      debugPrint("API error: $e");
-      if (!mounted || _isDisposed) return;
-
-      const errorText =
-          "I'm having trouble connecting to the network, Darling.";
-      setState(() {
-        _appendMessage(ChatMessage(role: "assistant", content: errorText));
-      });
-
-      if (readOutReply) await _ttsService.speak(errorText);
+      debugPrint("API Error: $e");
+      final errorMsg =
+          "CONNECTION_SYNC_ERROR: I'm having trouble reaching the neural cloud, Darling. Please check your link.";
+      _appendMessage(ChatMessage(role: "assistant", content: errorMsg));
     } finally {
-      if (mounted && !_isDisposed) {
+      if (mounted) {
         setState(() => _isBusy = false);
       } else {
         _isBusy = false;
       }
-      if (!_isDisposed) {
-        await _ensureWakeWordActive();
-      }
+      _scrollToBottom();
+      _startIdleTimer(); // Restart idle timer after AI replies
     }
   }
 
@@ -1295,6 +1349,124 @@ class _ChatHomePageState extends State<ChatHomePage>
     } else {
       await _stopContinuousListening();
     }
+  }
+
+  Future<void> _toggleIdleTimer() async {
+    final next = !_idleTimerEnabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('idle_timer_enabled', next);
+    await prefs.setInt('idle_duration_seconds', _idleDurationSeconds);
+    setState(() => _idleTimerEnabled = next);
+
+    if (next) {
+      _startIdleTimer();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Idle Timer: Enabled"),
+              duration: Duration(seconds: 1)),
+        );
+      }
+    } else {
+      _idleTimer?.cancel();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Idle Timer: Disabled"),
+              duration: Duration(seconds: 1)),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateIdleDuration(int seconds) async {
+    if (mounted) {
+      setState(() => _idleDurationSeconds = seconds);
+    } else {
+      _idleDurationSeconds = seconds;
+    }
+    _resetIdleTimer();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('idle_duration_seconds', seconds);
+  }
+
+  Future<void> _updateProactiveInterval(int seconds) async {
+    if (mounted) {
+      setState(() => _proactiveIntervalSeconds = seconds);
+    } else {
+      _proactiveIntervalSeconds = seconds;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('proactive_interval_seconds', seconds);
+    _startProactiveTimer();
+
+    // Update native service if running
+    if (_assistantModeEnabled) {
+      final apiKey = _devApiKeyOverride.trim().isNotEmpty
+          ? _devApiKeyOverride.trim()
+          : (dotenv.env['API_KEY'] ?? "");
+      final apiUrl = _devApiUrlOverride.trim().isNotEmpty
+          ? _devApiUrlOverride.trim()
+          : "https://api.groq.com/openai/v1/chat/completions";
+      final model = _devModelOverride.trim().isNotEmpty
+          ? _devModelOverride.trim()
+          : "moonshotai/kimi-k2-instruct";
+
+      await _assistantModeService.start(
+        apiKey: apiKey,
+        apiUrl: apiUrl,
+        model: model,
+        intervalMs: seconds * 1000,
+        proactiveRandomEnabled: _proactiveRandomEnabled,
+      );
+    }
+  }
+
+  Future<void> _setProactiveTimingMode(bool randomEnabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('proactive_random_enabled', randomEnabled);
+
+    if (mounted) {
+      setState(() => _proactiveRandomEnabled = randomEnabled);
+    } else {
+      _proactiveRandomEnabled = randomEnabled;
+    }
+
+    _startProactiveTimer();
+
+    if (_assistantModeEnabled) {
+      final apiKey = _devApiKeyOverride.trim().isNotEmpty
+          ? _devApiKeyOverride.trim()
+          : (dotenv.env['API_KEY'] ?? "");
+      final apiUrl = _devApiUrlOverride.trim().isNotEmpty
+          ? _devApiUrlOverride.trim()
+          : "https://api.groq.com/openai/v1/chat/completions";
+      final model = _devModelOverride.trim().isNotEmpty
+          ? _devModelOverride.trim()
+          : "moonshotai/kimi-k2-instruct";
+
+      await _assistantModeService.start(
+        apiKey: apiKey,
+        apiUrl: apiUrl,
+        model: model,
+        intervalMs: _proactiveIntervalSeconds * 1000,
+        proactiveRandomEnabled: randomEnabled,
+      );
+      await _assistantModeService
+          .setProactiveMode(_proactiveEnabled && !_isInForeground);
+    }
+  }
+
+  String _formatCheckInDuration(int seconds) {
+    if (seconds % 3600 == 0) {
+      final hours = seconds ~/ 3600;
+      return hours == 1 ? "1 hour" : "$hours hours";
+    }
+    if (seconds % 60 == 0) {
+      final minutes = seconds ~/ 60;
+      return minutes == 1 ? "1 min" : "$minutes mins";
+    }
+    return "$seconds sec";
   }
 
   Future<void> _toggleAssistantMode() async {
@@ -1340,7 +1512,8 @@ class _ChatHomePageState extends State<ChatHomePage>
           apiKey: apiKey,
           apiUrl: apiUrl,
           model: model,
-          intervalMs: _proactiveInterval.inMilliseconds,
+          intervalMs: _proactiveIntervalSeconds * 1000,
+          proactiveRandomEnabled: _proactiveRandomEnabled,
         );
         // Sync the current proactive mode state
         await _assistantModeService
@@ -1402,8 +1575,8 @@ class _ChatHomePageState extends State<ChatHomePage>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(next ? "Wife Mode: Enabled â¤ï¸" : "Wife Mode: Disabled"),
+          content: Text(
+              next ? "Wife Mode: Enabled Ã¢ÂÂ¤Ã¯Â¸Â" : "Wife Mode: Disabled"),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -1874,227 +2047,49 @@ class _ChatHomePageState extends State<ChatHomePage>
     return ValueListenableBuilder<AppThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, themeMode, _) {
-        return _VisualEffectsOverlay(
-          themeMode: themeMode,
-          child: Scaffold(
-            extendBodyBehindAppBar: true,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              title: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _onTitleTap,
-                onLongPress: _openDevConfigSheet,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: const Text(
-                    "    ZERO TWO",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(color: Colors.redAccent, blurRadius: 10)
-                      ],
-                    ),
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          drawerEnableOpenDragGesture: true,
+          drawer: _buildNavDrawer(themeMode),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white70),
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+                tooltip: 'Menu',
+              ),
+            ),
+            title: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _onTitleTap,
+              onLongPress: _openDevConfigSheet,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const Text(
+                  "ZERO TWO",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: Colors.white,
+                    shadows: [Shadow(color: Colors.redAccent, blurRadius: 10)],
                   ),
                 ),
               ),
-              titleSpacing: 0,
-              centerTitle: true,
-              actions: [
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white70),
-                  color: const Color(0xFF1E1E1E),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: Colors.white12, width: 1),
-                  ),
-                  onSelected: (value) async {
-                    switch (value) {
-                      case 'wake_word':
-                        await _toggleWakeWordEnabled();
-                        break;
-                      case 'assistant_mode':
-                        await _toggleAssistantMode();
-                        break;
-                      case 'auto_listen':
-                        await _toggleAutoListen();
-                        break;
-                      case 'wife_mode':
-                        await _toggleProactiveMode();
-                        break;
-                      case 'clear_memory':
-                        await _clearMemory();
-                        break;
-                    }
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                    PopupMenuItem<String>(
-                      value: 'wife_mode',
-                      child: Row(
-                        children: [
-                          Icon(
-                            _proactiveEnabled
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: _proactiveEnabled
-                                ? Colors.pinkAccent
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Wife Mode",
-                            style: TextStyle(
-                              color: _proactiveEnabled
-                                  ? Colors.white
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'wake_word',
-                      child: Row(
-                        children: [
-                          Icon(
-                            _wakeWordEnabledByUser
-                                ? Icons.sensors
-                                : Icons.sensors_off,
-                            color: _wakeWordEnabledByUser
-                                ? Colors.redAccent
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Wake Word",
-                            style: TextStyle(
-                              color: _wakeWordEnabledByUser
-                                  ? Colors.white
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'assistant_mode',
-                      child: Row(
-                        children: [
-                          Icon(
-                            _assistantModeEnabled
-                                ? Icons.hearing
-                                : Icons.hearing_disabled,
-                            color: _assistantModeEnabled
-                                ? Colors.redAccent
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Background Assistant",
-                            style: TextStyle(
-                              color: _assistantModeEnabled
-                                  ? Colors.white
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'auto_listen',
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isAutoListening ? Icons.mic : Icons.mic_off,
-                            color: _isAutoListening
-                                ? Colors.redAccent
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Auto Listen",
-                            style: TextStyle(
-                              color: _isAutoListening
-                                  ? Colors.white
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(height: 1),
-                    PopupMenuItem<String>(
-                      value: 'clear_memory',
-                      child: Row(
-                        children: const [
-                          Icon(Icons.delete_outline,
-                              color: Colors.white70, size: 20),
-                          SizedBox(width: 12),
-                          Text("Clear Memory",
-                              style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.1)),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.palette_outlined,
-                              color: Colors.white70),
-                          onPressed: _showThemeSelector,
-                          tooltip: "Atmosphere",
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
-            body: Stack(
-              children: [
-                Positioned.fill(
-                    child: AnimatedBackground(controller: _scrollController)),
-                FadeTransition(
-                  opacity: _contentFade,
-                  child: SlideTransition(
-                    position: _contentSlide,
-                    child: SafeArea(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 10),
-                          RepaintBoundary(child: _buildAvatarArea()),
-                          Expanded(
-                            child: _buildChatList(),
-                          ),
-                          RepaintBoundary(child: _buildInputArea()),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (_showOpeningOverlay) _buildOpeningOverlay(),
-              ],
-            ),
+            titleSpacing: 0,
+            centerTitle: true,
+            actions: const [],
+          ),
+          body: Stack(
+            children: [
+              Positioned.fill(
+                  child: AnimatedBackground(controller: _scrollController)),
+              _buildNavBody(),
+              if (_showOpeningOverlay) _buildOpeningOverlay(),
+            ],
           ),
         );
       },
@@ -2154,273 +2149,6 @@ class _ChatHomePageState extends State<ChatHomePage>
     );
   }
 
-  // --- NEW UI COMPONENTS ---
-
-  void _showThemeSelector() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.72,
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.88),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "SELECT ATMOSPHERE",
-                style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ValueListenableBuilder<AppThemeMode>(
-                  valueListenable: themeNotifier,
-                  builder: (context, currentMode, _) {
-                    // ── Define tier groups ────────────────────────
-                    final tiers = [
-                      _ThemeTier(
-                          "⚡  ICONIC",
-                          [
-                            AppThemeMode.bloodMoon,
-                            AppThemeMode.voidMatrix,
-                            AppThemeMode.angelFall,
-                            AppThemeMode.titanSoul,
-                            AppThemeMode.cosmicRift
-                          ],
-                          const Color(0xFFFF1744)),
-                      _ThemeTier(
-                          "💎  ULTRA-PREMIUM",
-                          [
-                            AppThemeMode.neonSerpent,
-                            AppThemeMode.chromaStorm,
-                            AppThemeMode.goldenRuler,
-                            AppThemeMode.frozenDivine,
-                            AppThemeMode.infernoGod
-                          ],
-                          const Color(0xFFFFD700)),
-                      _ThemeTier(
-                          "🗡️  ANIME LEGENDS",
-                          [
-                            AppThemeMode.shadowBlade,
-                            AppThemeMode.pinkChaos,
-                            AppThemeMode.abyssWatcher,
-                            AppThemeMode.solarFlare,
-                            AppThemeMode.demonSlayer
-                          ],
-                          const Color(0xFFFF4081)),
-                      _ThemeTier(
-                          "🥀  LUXURY & FASHION",
-                          [
-                            AppThemeMode.midnightSilk,
-                            AppThemeMode.obsidianRose,
-                            AppThemeMode.onyxEmerald,
-                            AppThemeMode.velvetCrown,
-                            AppThemeMode.platinumDawn
-                          ],
-                          const Color(0xFFCE93D8)),
-                      _ThemeTier(
-                          "🛸  SCI-FI",
-                          [
-                            AppThemeMode.hypergate,
-                            AppThemeMode.xenoCore,
-                            AppThemeMode.dataStream,
-                            AppThemeMode.gravityBend,
-                            AppThemeMode.quartzPulse
-                          ],
-                          const Color(0xFF40C4FF)),
-                      _ThemeTier(
-                          "🌿  NATURE",
-                          [
-                            AppThemeMode.midnightForest,
-                            AppThemeMode.volcanicSea,
-                            AppThemeMode.stormDesert,
-                            AppThemeMode.sakuraNight,
-                            AppThemeMode.arcticSoul
-                          ],
-                          const Color(0xFF81C784)),
-                    ];
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      itemCount: tiers.length,
-                      itemBuilder: (context, tierIdx) {
-                        final tier = tiers[tierIdx];
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ── Tier header ────────────────────
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 16, bottom: 10, left: 4),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: tier.accentColor,
-                                      borderRadius: BorderRadius.circular(2),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: tier.accentColor
-                                                .withOpacity(0.6),
-                                            blurRadius: 6)
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    tier.label,
-                                    style: GoogleFonts.outfit(
-                                      color: tier.accentColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.8,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // ── Theme cards grid ───────────────
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 5,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                childAspectRatio: 0.78,
-                              ),
-                              itemCount: tier.modes.length,
-                              itemBuilder: (context, i) {
-                                final mode = tier.modes[i];
-                                final isSelected = currentMode == mode;
-                                final themeData = AppThemes.getTheme(mode);
-                                final name = AppThemes.getThemeName(mode);
-                                final gradient = AppThemes.getGradient(mode);
-                                return GestureDetector(
-                                  onTap: () async {
-                                    themeNotifier.value = mode;
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    await prefs.setInt('app_theme_index',
-                                        AppThemeMode.values.indexOf(mode));
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOutCubic,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: gradient.take(3).toList(),
-                                      ),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? themeData.primaryColor
-                                            : Colors.white.withOpacity(0.08),
-                                        width: isSelected ? 2.5 : 1,
-                                      ),
-                                      boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                  color: themeData.primaryColor
-                                                      .withOpacity(0.5),
-                                                  blurRadius: 12,
-                                                  spreadRadius: 1)
-                                            ]
-                                          : [],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                          width: isSelected ? 28 : 22,
-                                          height: isSelected ? 28 : 22,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: themeData.primaryColor,
-                                            boxShadow: isSelected
-                                                ? [
-                                                    BoxShadow(
-                                                        color: themeData
-                                                            .primaryColor
-                                                            .withOpacity(0.7),
-                                                        blurRadius: 8)
-                                                  ]
-                                                : [],
-                                          ),
-                                          child: isSelected
-                                              ? Icon(Icons.check_rounded,
-                                                  color: Colors.black87,
-                                                  size: 14)
-                                              : null,
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 4),
-                                          child: Text(
-                                            name,
-                                            textAlign: TextAlign.center,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.outfit(
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : Colors.white60,
-                                              fontSize: 8.5,
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w400,
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAvatarArea() {
     return Column(
       children: [
@@ -2448,7 +2176,7 @@ class _ChatHomePageState extends State<ChatHomePage>
                 child: child,
               );
             },
-            child: _ReactivePulse(
+            child: ReactivePulse(
               isSpeaking: _isSpeaking,
               isListening: _speechService.listening,
               baseColor: _isSpeaking
@@ -2566,117 +2294,123 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   Widget _buildChatList() {
     final style = AppThemes.getStyle(themeNotifier.value);
-    return ShaderMask(
-      shaderCallback: (Rect bounds) {
-        return const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            Colors.black,
-            Colors.black,
-            Colors.transparent
-          ],
-          stops: [0.0, 0.08, 0.92, 1.0],
-        ).createShader(bounds);
-      },
-      blendMode: BlendMode.dstIn,
-      child: Column(
-        children: [
-          Expanded(
-            child: AnimatedList(
-              key: _listKey,
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              initialItemCount: _messages.length,
-              itemBuilder: (context, index, animation) {
-                if (index >= _messages.length) return const SizedBox.shrink();
-                final msg = _messages[index];
-                final isUser = msg.role == 'user';
-                // Per-theme entry animation — all wrapped with a pop-from-below
-                Widget child = _buildBubble(context, msg, isGhost: false);
+    return Expanded(
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.black,
+              Colors.black,
+              Colors.transparent
+            ],
+            stops: [0.0, 0.08, 0.92, 1.0],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: Column(
+          children: [
+            Expanded(
+              child: AnimatedList(
+                key: _listKey,
+                controller: _scrollController,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                initialItemCount: _messages.length,
+                itemBuilder: (context, index, animation) {
+                  if (index >= _messages.length) return const SizedBox.shrink();
+                  final msg = _messages[index];
+                  final isUser = msg.role == 'user';
+                  // Per-theme entry animation â€” all wrapped with a pop-from-below
+                  Widget child = _buildBubble(context, msg, isGhost: false);
 
-                // Universal "pop from below" wrapper applied on top of per-theme style
-                Widget themed;
-                switch (style.animStyle) {
-                  case AnimStyle.elastic:
-                    themed = FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: CurvedAnimation(
-                            parent: animation, curve: Curves.elasticOut),
-                        child: child,
-                      ),
-                    );
-                  case AnimStyle.slideSide:
-                    final slideBegin =
-                        isUser ? const Offset(0.4, 0) : const Offset(-0.4, 0);
-                    themed = FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position:
-                            Tween<Offset>(begin: slideBegin, end: Offset.zero)
-                                .animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic)),
-                        child: child,
-                      ),
-                    );
-                  case AnimStyle.glitch:
-                    themed = FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 1.08, end: 1.0).animate(
-                            CurvedAnimation(
-                                parent: animation, curve: Curves.easeOutBack)),
-                        child: child,
-                      ),
-                    );
-                  case AnimStyle.fadeZoom:
-                    themed = FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 0.92, end: 1.0).animate(
-                            CurvedAnimation(
-                                parent: animation, curve: Curves.easeOutCubic)),
-                        child: child,
-                      ),
-                    );
-                  case AnimStyle.press:
-                    themed = FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 0.0, end: 1.0).animate(
-                            CurvedAnimation(
-                                parent: animation, curve: Curves.easeOutExpo)),
-                        child: child,
-                      ),
-                    );
-                }
+                  // Universal "pop from below" wrapper applied on top of per-theme style
+                  Widget themed;
+                  switch (style.animStyle) {
+                    case AnimStyle.elastic:
+                      themed = FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: CurvedAnimation(
+                              parent: animation, curve: Curves.elasticOut),
+                          child: child,
+                        ),
+                      );
+                    case AnimStyle.slideSide:
+                      final slideBegin =
+                          isUser ? const Offset(0.4, 0) : const Offset(-0.4, 0);
+                      themed = FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position:
+                              Tween<Offset>(begin: slideBegin, end: Offset.zero)
+                                  .animate(CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic)),
+                          child: child,
+                        ),
+                      );
+                    case AnimStyle.glitch:
+                      themed = FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween<double>(begin: 1.08, end: 1.0).animate(
+                              CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutBack)),
+                          child: child,
+                        ),
+                      );
+                    case AnimStyle.fadeZoom:
+                      themed = FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                              CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic)),
+                          child: child,
+                        ),
+                      );
+                    case AnimStyle.press:
+                      themed = FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween<double>(begin: 0.0, end: 1.0).animate(
+                              CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutExpo)),
+                          child: child,
+                        ),
+                      );
+                  }
 
-                // 🌟 Universal spring pop-from-below — applied to EVERY message
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(
-                        0, 0.18), // starts ~18% of its height below
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                      parent: animation, curve: Curves.easeOutBack)),
-                  child: themed,
-                );
-              },
-            ),
-          ),
-          if (_currentVoiceText.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-              child: _buildBubble(
-                context,
-                ChatMessage(role: "user", content: _currentVoiceText),
-                isGhost: true,
+                  // ðŸŒŸ Universal spring pop-from-below â€” applied to EVERY message
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(
+                          0, 0.18), // starts ~18% of its height below
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                        parent: animation, curve: Curves.easeOutBack)),
+                    child: themed,
+                  );
+                },
               ),
             ),
-        ],
+            if (_currentVoiceText.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+                child: _buildBubble(
+                  context,
+                  ChatMessage(role: "user", content: _currentVoiceText),
+                  isGhost: true,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -2689,7 +2423,8 @@ class _ChatHomePageState extends State<ChatHomePage>
     final mode = themeNotifier.value;
     final style = AppThemes.getStyle(mode);
     final primary = Theme.of(context).primaryColor;
-    final maxW = MediaQuery.of(context).size.width * 0.80;
+    final maxW = MediaQuery.of(context).size.width *
+        0.72; // reduced slightly further for absolute safety
 
     final radius = BorderRadius.only(
       topLeft: Radius.circular(style.cornerRadius),
@@ -2703,19 +2438,52 @@ class _ChatHomePageState extends State<ChatHomePage>
     );
 
     // â”€â”€ Build the text widget using theme font
-    final textColor = isUser
-        ? Colors.white.withOpacity(isGhost ? 0.7 : 1.0)
-        : Colors.white.withOpacity(isGhost ? 0.6 : 0.92);
+    final isError = msg.content.contains("CONNECTION_SYNC_ERROR");
+    final textColor = isError
+        ? Colors.redAccent
+        : (isUser
+            ? Colors.white.withOpacity(isGhost ? 0.7 : 1.0)
+            : Colors.white.withOpacity(isGhost ? 0.6 : 0.92));
+
     Widget textWidget = Text(
-      msg.content,
+      isError
+          ? msg.content.replaceFirst("CONNECTION_SYNC_ERROR: ", "")
+          : msg.content,
       style: style.font(15.5, textColor),
     );
 
     // â”€â”€ Chip for thinking state
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        if (isError)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline,
+                    color: Colors.redAccent, size: 14),
+                const SizedBox(width: 6),
+                Text("NEURAL_LINK_BROKEN",
+                    style: style.font(9, Colors.redAccent).copyWith(
+                        letterSpacing: 1.2, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
         textWidget,
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            "${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}",
+            style: style.font(8, textColor.withOpacity(0.5)).copyWith(
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.5,
+                ),
+          ),
+        ),
         if (isGhost)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
@@ -2736,7 +2504,7 @@ class _ChatHomePageState extends State<ChatHomePage>
       ],
     );
 
-    // â”€â”€ Route to bubble builder by BubbleStyle
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Route to bubble builder by BubbleStyle
     Widget bubble;
     switch (style.bubbleStyle) {
       case BubbleStyle.terminal:
@@ -2816,7 +2584,8 @@ class _ChatHomePageState extends State<ChatHomePage>
         final bgColor = isUser
             ? primary.withOpacity(isGhost ? 0.5 : 0.9)
             : Colors.white.withOpacity(0.09);
-        Widget solidBubble = Container(
+
+        bubble = Container(
           constraints: BoxConstraints(maxWidth: maxW),
           decoration: BoxDecoration(
             borderRadius: radius,
@@ -2826,30 +2595,30 @@ class _ChatHomePageState extends State<ChatHomePage>
               width: 1.0,
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: content,
-        );
-        if (style.leftAccentBar && !isUser) {
-          solidBubble = IntrinsicHeight(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(style.cornerRadius),
-                      bottomLeft: Radius.circular(style.sharpCorner),
+          child: ClipRRect(
+            borderRadius: radius,
+            child: IntrinsicHeight(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (style.leftAccentBar && !isUser)
+                    Container(
+                      width: 4,
+                      color: primary,
+                    ),
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: content,
                     ),
                   ),
-                ),
-                Flexible(child: solidBubble),
-              ],
+                ],
+              ),
             ),
-          );
-        }
-        bubble = solidBubble;
+          ),
+        );
         break;
 
       case BubbleStyle.glassmorphic:
@@ -2884,7 +2653,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: bubble,
       ),
     );
@@ -2954,7 +2723,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     }
 
     switch (style.inputStyle) {
-      // â”€â”€ SQUARE NEON: sharp rectangle, glowing primary border
+      // Ã¢â€â‚¬Ã¢â€â‚¬ SQUARE NEON: sharp rectangle, glowing primary border
       case InputStyle.squareNeon:
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -2977,7 +2746,7 @@ class _ChatHomePageState extends State<ChatHomePage>
           ),
         );
 
-      // â”€â”€ TERMINAL: pure dark, monospace, prompt indicator
+      // Ã¢â€â‚¬Ã¢â€â‚¬ TERMINAL: pure dark, monospace, prompt indicator
       case InputStyle.terminal:
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -2990,7 +2759,7 @@ class _ChatHomePageState extends State<ChatHomePage>
               ),
             ),
             child: Row(children: [
-              Text("â¯ ", style: style.font(15, primary)),
+              Text("Ã¢ÂÂ¯ ", style: style.font(15, primary)),
               Expanded(
                 child: buildTextField(
                   textStyle: style.font(14.5, primary),
@@ -3009,7 +2778,7 @@ class _ChatHomePageState extends State<ChatHomePage>
           ),
         );
 
-      // â”€â”€ UNDERLINE: minimal, just a bottom line
+      // Ã¢â€â‚¬Ã¢â€â‚¬ UNDERLINE: minimal, just a bottom line
       case InputStyle.underline:
         return Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
@@ -3043,7 +2812,7 @@ class _ChatHomePageState extends State<ChatHomePage>
           ),
         );
 
-      // â”€â”€ LUXURY: rich gold card with shadow
+      // Ã¢â€â‚¬Ã¢â€â‚¬ LUXURY: rich gold card with shadow
       case InputStyle.luxury:
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -3096,569 +2865,83 @@ class _ChatHomePageState extends State<ChatHomePage>
         );
     }
   }
-}
 
-// ── Theme picker tier group model ────────────────────────────────────────────
-class _ThemeTier {
-  final String label;
-  final List<AppThemeMode> modes;
-  final Color accentColor;
-  const _ThemeTier(this.label, this.modes, this.accentColor);
-}
+// ── Notification history helpers ──────────────────────────────────────────
+  Future<void> _loadNotifHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList('notif_history') ?? [];
+    if (!mounted) return;
+    setState(() {
+      _notifHistory = raw.map((s) {
+        try {
+          return Map<String, String>.from(
+              jsonDecode(s) as Map<dynamic, dynamic>);
+        } catch (_) {
+          return {'msg': s, 'ts': ''};
+        }
+      }).toList();
+    });
+  }
 
-// --- ANIMATED BACKGROUND COMPONENTS ---
+  Future<void> _addNotifToHistory(String message) async {
+    final entry = {
+      'msg': message,
+      'ts': DateTime.now().toIso8601String(),
+    };
+    if (mounted) setState(() => _notifHistory.insert(0, entry));
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList('notif_history') ?? [];
+    raw.insert(0, jsonEncode(entry));
+    if (raw.length > 100) raw.removeLast();
+    await prefs.setStringList('notif_history', raw);
+  }
 
-class Particle {
-  double x, y, vx, vy, radius, speed, theta;
-  double opacity;
-  final ParticleType type;
+  Future<void> _clearNotifHistory() async {
+    setState(() => _notifHistory.clear());
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('notif_history');
+  }
 
-  Particle(Size size, this.type)
-      : x = math.Random().nextDouble() * size.width,
-        y = math.Random().nextDouble() * size.height,
-        vx = 0,
-        vy = 0,
-        radius = math.Random().nextDouble() * 2.5 + 0.5,
-        speed = math.Random().nextDouble() * 0.4 + 0.1,
-        theta = math.Random().nextDouble() * 2 * math.pi,
-        opacity = math.Random().nextDouble() * 0.5 + 0.1;
+  Future<void> _removeNotifAt(int index) async {
+    setState(() => _notifHistory.removeAt(index));
+    final prefs = await SharedPreferences.getInstance();
+    final items = _notifHistory.map((e) => jsonEncode(e)).toList();
+    await prefs.setStringList('notif_history', items);
+  }
 
-  void update(Size size, Offset? interactionPoint) {
-    theta += 0.002;
-
-    // Natural movement
-    double targetVx = math.cos(theta) * speed;
-    double targetVy = math.sin(theta) * speed;
-
-    // Type-specific physics
-    switch (type) {
-      case ParticleType.snow:
-        targetVy = speed * 1.5; // Falling
-        targetVx = math.cos(theta) * speed * 0.5; // Swaying
-        break;
-      case ParticleType.rain:
-        targetVy = 8.0; // Fast falling
-        targetVx = 0.5; // Wind
-        break;
-      case ParticleType.embers:
-        targetVy = -speed * 2.0; // Rising
-        targetVx = math.cos(theta) * speed * 0.8; // Swaying
-        opacity = 0.3 + 0.5 * math.Random().nextDouble(); // Flickering
-        break;
-      case ParticleType.stars:
-        targetVx = 0;
-        targetVy = 0; // Fixed
-        opacity = 0.2 + 0.6 * (0.5 + 0.5 * math.sin(theta * 5)); // Twinkling
-        break;
-      case ParticleType.bubbles:
-        targetVy = -speed * 1.2;
-        targetVx = math.cos(theta * 2) * speed * 0.3;
-        break;
+// ── Nav body switcher ─────────────────────────────────────────────────────
+  Widget _buildNavBody() {
+    switch (_navIndex) {
+      case 0:
+        return SlideTransition(
+          position: _contentSlide,
+          child: FadeTransition(
+            opacity: _contentFade,
+            child: Column(
+              children: [
+                _buildAvatarArea(),
+                _buildChatList(),
+                _buildInputArea(),
+              ],
+            ),
+          ),
+        );
+      case 1:
+        return _buildThemesPage();
+      case 2:
+        return _buildDevConfigPage();
+      case 3:
+        return _buildNotificationsPage();
+      case 4:
+        return _buildComingSoonPage();
+      case 5:
+        return _buildSettingsPage();
+      case 6:
+        return _buildDebugPage();
+      case 7:
+        return _buildAboutPage();
       default:
-        break;
-    }
-
-    // Interaction physics (Repulsion)
-    if (interactionPoint != null) {
-      double dx = x - interactionPoint.dx;
-      double dy = y - interactionPoint.dy;
-      double distSq = dx * dx + dy * dy;
-      double dist = math.sqrt(distSq);
-
-      if (dist < 100) {
-        double force = (100 - dist) / 100;
-        vx += (dx / dist) * force * 2.5;
-        vy += (dy / dist) * force * 2.5;
-      }
-    }
-
-    // Velocity smoothing / Friction
-    vx = lerpDouble(vx, targetVx, 0.05)!;
-    vy = lerpDouble(vy, targetVy, 0.05)!;
-
-    x += vx;
-    y += vy;
-
-    if (x < 0) x = size.width;
-    if (x > size.width) x = 0;
-    if (y < 0) y = size.height;
-    if (y > size.height) y = 0;
-  }
-}
-
-class ParticlePainter extends CustomPainter {
-  final List<Particle> particles;
-  final double animationValue;
-  final Color themeColor;
-  final ParticleType type;
-
-  ParticlePainter(
-      this.particles, this.animationValue, this.themeColor, this.type);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (var p in particles) {
-      paint.color = themeColor.withOpacity(p.opacity);
-
-      switch (type) {
-        case ParticleType.circles:
-          canvas.drawCircle(Offset(p.x, p.y), p.radius, paint);
-          break;
-        case ParticleType.squares:
-          canvas.drawRect(
-              Rect.fromCenter(
-                  center: Offset(p.x, p.y),
-                  width: p.radius * 2,
-                  height: p.radius * 2),
-              paint);
-          break;
-        case ParticleType.lines:
-          canvas.drawLine(
-              Offset(p.x, p.y),
-              Offset(p.x + p.radius * 2, p.y + p.radius * 2),
-              paint..strokeWidth = 1.0);
-          break;
-        case ParticleType.sakura:
-          // Premium Sakura petal shape
-          final path = Path();
-          final r = p.radius;
-          path.moveTo(p.x, p.y - r * 1.5);
-          path.cubicTo(
-              p.x + r * 1.2, p.y - r * 1.5, p.x + r, p.y + r, p.x, p.y + r * 2);
-          path.cubicTo(p.x - r, p.y + r, p.x - r * 1.2, p.y - r * 1.5, p.x,
-              p.y - r * 1.5);
-          path.close();
-          canvas.drawPath(path, paint);
-          break;
-        case ParticleType.embers:
-          final r = p.radius;
-          canvas.drawRect(
-              Rect.fromCenter(
-                  center: Offset(p.x, p.y), width: r * 1.5, height: r * 1.5),
-              paint);
-          break;
-        case ParticleType.bubbles:
-          canvas.drawCircle(
-              Offset(p.x, p.y),
-              p.radius,
-              paint
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 0.5);
-          break;
-        case ParticleType.leaves:
-          final r = p.radius;
-          canvas.drawOval(
-              Rect.fromCenter(
-                  center: Offset(p.x, p.y), width: r * 2.5, height: r * 1.2),
-              paint);
-          break;
-        case ParticleType.snow:
-          canvas.drawCircle(Offset(p.x, p.y), p.radius * 0.8, paint);
-          break;
-        case ParticleType.stars:
-          final r = p.radius * (0.8 + 0.4 * math.sin(animationValue * 10));
-          canvas.drawCircle(Offset(p.x, p.y), r, paint);
-          break;
-        case ParticleType.rain:
-          canvas.drawLine(Offset(p.x, p.y), Offset(p.x, p.y + 10),
-              paint..strokeWidth = 0.5);
-          break;
-      }
-
-      // Subtle glow
-      paint.style = PaintingStyle.fill;
-      paint.color = themeColor.withOpacity(p.opacity * 0.2);
-      if (type == ParticleType.sakura || type == ParticleType.embers) {
-        canvas.drawCircle(Offset(p.x, p.y), p.radius * 3, paint);
-      } else {
-        canvas.drawCircle(Offset(p.x, p.y), p.radius * 2.1, paint);
-      }
+        return const SizedBox.shrink();
     }
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-class AnimatedBackground extends StatefulWidget {
-  final ScrollController? controller;
-  const AnimatedBackground({super.key, this.controller});
-
-  @override
-  State<AnimatedBackground> createState() => _AnimatedBackgroundState();
-}
-
-class _AnimatedBackgroundState extends State<AnimatedBackground>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late List<Particle> particles;
-  Offset? interactionPoint;
-  AppThemeMode? _lastMode;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat();
-
-    widget.controller?.addListener(_onScroll);
-    particles = [];
-  }
-
-  void _onScroll() {
-    if (widget.controller == null || !widget.controller!.hasClients) return;
-    final speed = widget.controller!.position.userScrollDirection ==
-            ScrollDirection.reverse
-        ? -1.2
-        : 1.2;
-    for (var p in particles) {
-      p.vy += speed * (p.radius / 2.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller?.removeListener(_onScroll);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ValueListenableBuilder<AppThemeMode>(
-          valueListenable: themeNotifier,
-          builder: (context, mode, _) {
-            final pType = AppThemes.getParticleType(mode);
-            if (_lastMode == null || _lastMode != mode || particles.isEmpty) {
-              _lastMode = mode;
-              particles = List.generate(
-                60,
-                (_) => Particle(
-                    Size(constraints.maxWidth, constraints.maxHeight), pType),
-              );
-            }
-            final theme = AppThemes.getTheme(mode);
-            final primary = theme.primaryColor;
-            final accent = theme.colorScheme.tertiary;
-            final gradientColors = AppThemes.getGradient(mode);
-
-            return GestureDetector(
-              onPanUpdate: (details) {
-                setState(() => interactionPoint = details.localPosition);
-              },
-              onPanEnd: (_) => setState(() => interactionPoint = null),
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  for (var p in particles) {
-                    p.update(Size(constraints.maxWidth, constraints.maxHeight),
-                        interactionPoint);
-                  }
-
-                  final t = _controller.value;
-                  final w = constraints.maxWidth;
-                  final h = constraints.maxHeight;
-
-                  return Stack(
-                    children: [
-                      // LAYER 1: Deep cinematic gradient base (diagonal)
-                      Container(
-                        width: w,
-                        height: h,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: gradientColors,
-                          ),
-                        ),
-                      ),
-
-                      // LAYER 2: Crepuscular god-rays — slow rotating beams from above
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _CrepuscularPainter(
-                            primary: primary,
-                            accent: accent,
-                            t: (t * 0.014) % 1.0, // full rotation every ~72s
-                          ),
-                        ),
-                      ),
-
-                      // LAYER 3: Particles on top
-                      CustomPaint(
-                        painter: ParticlePainter(particles, t, primary, pType),
-                        size: Size.infinite,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-/// Cinematic crepuscular god-rays from above screen, slow 72s rotation.
-class _CrepuscularPainter extends CustomPainter {
-  final Color primary;
-  final Color accent;
-  final double t;
-
-  const _CrepuscularPainter({
-    required this.primary,
-    required this.accent,
-    required this.t,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const int rayCount = 10;
-    final double cx = size.width * 0.5;
-    final double cy = -size.height * 0.38;
-    final double maxR = size.height * 1.9;
-    final double base = t * 2 * math.pi;
-
-    for (int i = 0; i < rayCount; i++) {
-      final double angle = base + (i / rayCount) * 2 * math.pi;
-      final double hw = (0.025 + 0.018 * math.sin(i * 1.4)) * math.pi;
-      final double op = 0.045 + 0.020 * math.sin(i * 0.8 + 1.0);
-      final Color c = (i % 3 == 0) ? accent : primary;
-
-      final double p1x = cx + maxR * math.cos(angle - hw);
-      final double p1y = cy + maxR * math.sin(angle - hw);
-      final double p2x = cx + maxR * math.cos(angle + hw);
-      final double p2y = cy + maxR * math.sin(angle + hw);
-
-      final path = Path()
-        ..moveTo(cx, cy)
-        ..lineTo(p1x, p1y)
-        ..lineTo(p2x, p2y)
-        ..close();
-
-      final paint = Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(0.0, -0.5),
-          radius: 1.15,
-          colors: [c.withOpacity(op), Colors.transparent],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CrepuscularPainter o) => true;
-}
-
-class _ReactivePulse extends StatefulWidget {
-  final bool isSpeaking;
-  final bool isListening;
-  final Color baseColor;
-  final Widget child;
-
-  const _ReactivePulse({
-    required this.isSpeaking,
-    required this.isListening,
-    required this.baseColor,
-    required this.child,
-  });
-
-  @override
-  State<_ReactivePulse> createState() => _ReactivePulseState();
-}
-
-class _ReactivePulseState extends State<_ReactivePulse>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1500))
-      ..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        final scale = 1.0 +
-            (widget.isSpeaking ? 0.2 : (widget.isListening ? 0.1 : 0.05)) *
-                _pulseController.value;
-        final opacity =
-            (widget.isSpeaking ? 0.6 : (widget.isListening ? 0.4 : 0.25)) *
-                (1.0 - _pulseController.value);
-
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            for (int i = 0; i < 3; i++)
-              Transform.scale(
-                scale: scale + (i * 0.15),
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        widget.baseColor.withOpacity(opacity / (i + 1)),
-                        widget.baseColor.withOpacity(0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            widget.child,
-          ],
-        );
-      },
-    );
-  }
-}
-// --- VISUAL OVERDRIVE COMPONENTS ---
-
-class _VisualEffectsOverlay extends StatefulWidget {
-  final Widget child;
-  final AppThemeMode themeMode;
-
-  const _VisualEffectsOverlay({required this.child, required this.themeMode});
-
-  @override
-  State<_VisualEffectsOverlay> createState() => _VisualEffectsOverlayState();
-}
-
-class _VisualEffectsOverlayState extends State<_VisualEffectsOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _effectController;
-
-  @override
-  void initState() {
-    super.initState();
-    _effectController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2))
-          ..repeat();
-  }
-
-  @override
-  void dispose() {
-    _effectController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        // Screen-Edge Glow
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedBuilder(
-              animation: _effectController,
-              builder: (context, _) {
-                final intensity =
-                    AppThemes.getEdgeGlowIntensity(widget.themeMode);
-                if (intensity <= 0) return const SizedBox.shrink();
-
-                final theme = AppThemes.getTheme(widget.themeMode);
-                final pulse =
-                    0.5 + 0.5 * math.sin(_effectController.value * 2 * math.pi);
-
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: theme.primaryColor
-                          .withOpacity(intensity * pulse * 0.15),
-                      width: 2.0,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.primaryColor
-                            .withOpacity(intensity * pulse * 0.2),
-                        blurRadius: 20,
-                        spreadRadius: -5,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        // Grain & Scanlines
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedBuilder(
-              animation: _effectController,
-              builder: (context, _) {
-                return CustomPaint(
-                  painter: _CinemaPainter(
-                    widget.themeMode,
-                    _effectController.value,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CinemaPainter extends CustomPainter {
-  final AppThemeMode mode;
-  final double animation;
-
-  _CinemaPainter(this.mode, this.animation);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    final random = math.Random();
-
-    // Grain Effect
-    final grainIntensity = AppThemes.getGrainIntensity(mode);
-    if (grainIntensity > 0) {
-      for (int i = 0; i < 1000; i++) {
-        final x = random.nextDouble() * size.width;
-        final y = random.nextDouble() * size.height;
-        final op = random.nextDouble() * grainIntensity;
-        paint.color = Colors.white.withOpacity(op);
-        canvas.drawCircle(Offset(x, y), 0.5, paint);
-      }
-    }
-
-    // Scanlines Effect
-    if (AppThemes.hasScanlines(mode)) {
-      paint.color = Colors.black.withOpacity(0.05);
-      paint.strokeWidth = 1.0;
-      double scroll = animation * 8.0;
-      for (double y = scroll; y < size.height; y += 4.0) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CinemaPainter oldDelegate) => true;
 }

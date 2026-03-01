@@ -19,12 +19,14 @@ class AssistantModeService {
     String? apiUrl,
     String? model,
     int? intervalMs,
+    bool? proactiveRandomEnabled,
   }) async {
     await _invoke('start', {
       'apiKey': apiKey,
       'apiUrl': apiUrl,
       'model': model,
       'intervalMs': intervalMs,
+      'proactiveRandomEnabled': proactiveRandomEnabled,
     });
   }
 

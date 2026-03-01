@@ -13,10 +13,16 @@ class ChatMessage {
   ChatMessage({required this.role, required this.content})
       : timestamp = DateTime.now();
 
-  /// Convert to JSON for API/storage
+  /// Convert to JSON for storage (includes timestamp)
   Map<String, dynamic> toJson() => {
         "role": role,
         "content": content,
         "timestamp": timestamp.toIso8601String(),
+      };
+
+  /// Convert to JSON for API (role and content only)
+  Map<String, dynamic> toApiJson() => {
+        "role": role,
+        "content": content,
       };
 }

@@ -86,7 +86,7 @@ class ApiService {
       final timeMessage = {
         "role": "system",
         "content":
-            "The current date and time is $now. Use this information if the user asks about the current time or a related query."
+            "Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked."
       };
       final payloadMessages = [...messages, timeMessage];
       final payload = {
@@ -288,7 +288,9 @@ class ApiService {
                     "Email": "zerozerotwoxsujit@gmail.com",
                     "Name": "Zero Two"
                   },
-                  "To": [{"Email": normalizedMail}],
+                  "To": [
+                    {"Email": normalizedMail}
+                  ],
                   "Subject": head,
                   "HTMLPart": htmlFinal,
                 }

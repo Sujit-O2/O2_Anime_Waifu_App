@@ -4,6 +4,8 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.content.pm.PackageManager
@@ -25,7 +27,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel"
-    private val wakeEventChannelId = "assistant_wake_event_channel"
+    private val wakeEventChannelId = "assistant_wake_event_channel_dar"
     private val assistantNotificationId = 2002
     private val wakeEventNotificationId = 2003
     private var overlayView: LinearLayout? = null
@@ -42,8 +44,18 @@ class MainActivity : FlutterActivity() {
                         val apiKey = call.argument<String>("apiKey")
                         val apiUrl = call.argument<String>("apiUrl")
                         val model = call.argument<String>("model")
-                        val intervalMs = call.argument<Long>("intervalMs")
-                        startAssistantService(apiKey, apiUrl, model, intervalMs)
+                        val intervalMs = when (val arg = call.argument<Any>("intervalMs")) {
+                            is Number -> arg.toLong()
+                            else -> 15000L
+                        }
+                        val proactiveRandomEnabled = call.argument<Boolean>("proactiveRandomEnabled")
+                        startAssistantService(
+                            apiKey,
+                            apiUrl,
+                            model,
+                            intervalMs,
+                            proactiveRandomEnabled
+                        )
                         result.success(true)
                     }
                     "stop" -> {
@@ -119,12 +131,21 @@ class MainActivity : FlutterActivity() {
             }
     }
 
-    private fun startAssistantService(apiKey: String?, apiUrl: String?, model: String?, intervalMs: Long?) {
+    private fun startAssistantService(
+        apiKey: String?,
+        apiUrl: String?,
+        model: String?,
+        intervalMs: Long?,
+        proactiveRandomEnabled: Boolean?
+    ) {
         val intent = Intent(this, AssistantForegroundService::class.java).apply {
             putExtra("API_KEY", apiKey)
             putExtra("API_URL", apiUrl)
             putExtra("MODEL", model)
             if (intervalMs != null) putExtra("INTERVAL_MS", intervalMs)
+            if (proactiveRandomEnabled != null) {
+                putExtra("PROACTIVE_RANDOM_ENABLED", proactiveRandomEnabled)
+            }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)
@@ -176,7 +197,11 @@ class MainActivity : FlutterActivity() {
             action = "SET_PROACTIVE_MODE"
             putExtra("ENABLED", enabled)
         }
-        startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 
     private fun openNotificationSettings() {
@@ -337,10 +362,26 @@ class MainActivity : FlutterActivity() {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setDefaults(android.app.Notification.DEFAULT_ALL)
+                .setSound(getDarSoundUri())
                 .setTimeoutAfter(6000)
                 .build()
             manager?.notify(wakeEventNotificationId, wakeNotification)
         }
+    }
+
+    private fun getDarSoundUri(): Uri {
+        val resId = resources.getIdentifier("dar", "raw", packageName)
+        if (resId != 0) {
+            return Uri.parse("android.resource://$packageName/$resId")
+        }
+        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    }
+
+    private fun getDarAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
     }
 
     private fun ensureNotificationChannels() {
@@ -355,7 +396,9 @@ class MainActivity : FlutterActivity() {
                 wakeEventChannelId,
                 "Wake Events",
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                setSound(getDarSoundUri(), getDarAudioAttributes())
+            }
             manager?.createNotificationChannel(assistantChannel)
             manager?.createNotificationChannel(wakeEventChannel)
         }
