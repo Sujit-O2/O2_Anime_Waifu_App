@@ -34,12 +34,13 @@ class SpeechService {
   String? _currentPath;
   bool _hadVoiceSignal = false;
 
-  static const Duration _maxListenDuration = Duration(seconds: 20);
-  static const Duration _silenceStopAfter = Duration(seconds: 3);
+  static const Duration _maxListenDuration = Duration(seconds: 12);
+  static const Duration _silenceStopAfter = Duration(milliseconds: 1400);
   static const Duration _minListenBeforeSilenceCheck =
-      Duration(milliseconds: 900);
-  static const double _voiceThresholdDb = -45.0;
-  static const Duration _transcriptionTimeout = Duration(seconds: 25);
+      Duration(milliseconds: 450);
+  static const Duration _noSpeechAbortAfter = Duration(seconds: 5);
+  static const double _voiceThresholdDb = -42.0;
+  static const Duration _transcriptionTimeout = Duration(seconds: 10);
   static const int _minUsefulAudioBytes = 2048;
 
   String get _effectiveApiKey {
@@ -134,7 +135,7 @@ class SpeechService {
 
       _amplitudeSub?.cancel();
       _amplitudeSub = _recorder
-          .onAmplitudeChanged(const Duration(milliseconds: 200))
+          .onAmplitudeChanged(const Duration(milliseconds: 120))
           .listen((amp) {
         if (amp.current > _voiceThresholdDb) {
           _hadVoiceSignal = true;
@@ -144,15 +145,20 @@ class SpeechService {
 
       _silenceTimer?.cancel();
       _silenceTimer =
-          Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+          Timer.periodic(const Duration(milliseconds: 180), (timer) async {
         if (!listening || _stopping) return;
         final startedAt = _startAt ?? DateTime.now();
-        if (DateTime.now().difference(startedAt) <
-            _minListenBeforeSilenceCheck) {
+        final now = DateTime.now();
+        final elapsed = now.difference(startedAt);
+        if (elapsed < _minListenBeforeSilenceCheck) {
+          return;
+        }
+        if (!_hadVoiceSignal && elapsed >= _noSpeechAbortAfter) {
+          await stopListening();
           return;
         }
         final lastVoice = _lastVoiceAt ?? startedAt;
-        if (DateTime.now().difference(lastVoice) >= _silenceStopAfter) {
+        if (now.difference(lastVoice) >= _silenceStopAfter) {
           await stopListening();
         }
       });

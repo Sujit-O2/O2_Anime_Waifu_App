@@ -1407,8 +1407,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       } catch (_) {}
 
       await _showBackgroundListeningNotification(
-        status: "Listening...",
+        status: "Wake word detected",
         transcript: wakeName,
+        pulse: true,
       );
 
       // Background flow:

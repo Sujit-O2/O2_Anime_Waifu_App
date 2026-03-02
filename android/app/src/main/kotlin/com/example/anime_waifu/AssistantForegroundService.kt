@@ -39,7 +39,7 @@ import org.json.JSONObject
 class AssistantForegroundService : Service() {
     companion object {
         private const val CHANNEL_ID = "assistant_mode_channel_silent_v3"
-        private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v3"
+        private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v4"
         private const val NOTIFICATION_ID = 2002
         private const val WAKE_EVENT_NOTIFICATION_ID = 2003
         private const val TAG = "AssistantService"
@@ -78,13 +78,13 @@ class AssistantForegroundService : Service() {
         "darling"
     )
     private val wakeWindowMs = 9000L
-    private val wakeCaptureDurationMs = 1600L
-    private val wakeCapturePauseMs = 220L
-    private val wakeCaptureFastPauseMs = 90L
+    private val wakeCaptureDurationMs = 1000L
+    private val wakeCapturePauseMs = 140L
+    private val wakeCaptureFastPauseMs = 60L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
     private val wakeTranscriptionModel = "whisper-large-v3-turbo"
     private val wakeTranscriptionLanguage = "en"
-    private val minWakeAudioBytes = 2048L
+    private val minWakeAudioBytes = 1536L
     private val proactiveRandomIntervalsMs = longArrayOf(
         10 * 60 * 1000L,
         30 * 60 * 1000L,
@@ -491,7 +491,7 @@ class AssistantForegroundService : Service() {
             .setContentIntent(pendingIntent)
             .setColor(0xFFFF5252.toInt())
             .setColorized(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOnlyAlertOnce(false)
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -745,8 +745,8 @@ class AssistantForegroundService : Service() {
             requestMethod = "POST"
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            connectTimeout = 8000
-            readTimeout = 12000
+            connectTimeout = 3500
+            readTimeout = 5500
             doOutput = true
         }
 
@@ -841,7 +841,7 @@ class AssistantForegroundService : Service() {
 
         waitingForCommand = true
         wakeWindowOpenUntilMs = System.currentTimeMillis() + wakeWindowMs
-        showWakeAlert("Wake word detected. Speak your command now.", pulse = false)
+        showWakeAlert("Wake word detected. Speak your command now.", pulse = true)
     }
 
     private fun handleVoiceCommand(command: String) {

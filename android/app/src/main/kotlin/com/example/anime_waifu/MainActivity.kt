@@ -30,7 +30,7 @@ class MainActivity : FlutterActivity() {
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"
-    private val wakeEventChannelId = "assistant_wake_event_channel_alert_v3"
+    private val wakeEventChannelId = "assistant_wake_event_channel_alert_v4"
     private val assistantNotificationId = 2002
     private val wakeEventNotificationId = 2003
     private var overlayView: LinearLayout? = null
