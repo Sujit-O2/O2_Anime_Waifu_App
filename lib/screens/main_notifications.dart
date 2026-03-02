@@ -41,7 +41,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                       children: [
                         ClipOval(
                           child: Image.asset(
-                            'z12.jpg',
+                            'assets/img/z12.jpg',
                             width: 72,
                             height: 72,
                             fit: BoxFit.cover,
@@ -141,9 +141,10 @@ extension _MainNotificationsExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'bll.jpg',
+              'assets/gif/notification.gif',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
+              filterQuality: FilterQuality.low,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
             Container(
@@ -234,7 +235,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
     if (envFolder.isNotEmpty) {
       return envFolder.endsWith('/') ? envFolder : '$envFolder/';
     }
-    return 'o2/';
+    return 'darlingeps/o2/';
   }
 
   List<_EpisodeVideoItem> _buildZeroTwoEpisodes() {
@@ -287,8 +288,14 @@ extension _MainNotificationsExtension on _ChatHomePageState {
     final items = <_EpisodeVideoItem>[];
     for (int i = 0; i < publicIds.length; i++) {
       final publicId = publicIds[i];
+      final episode = _extractEpisodeNumberFromId(publicId);
+      final part = _extractPartNumberFromId(publicId);
+      final baseTitle = episode != null
+          ? 'Episode ${episode.toString().padLeft(2, '0')}'
+          : 'Episode ${(i + 1).toString().padLeft(2, '0')}';
+      final title = part != null ? '$baseTitle - Part $part' : baseTitle;
       items.add(_EpisodeVideoItem(
-        title: 'Episode ${(i + 1).toString().padLeft(2, '0')}',
+        title: title,
         publicId: publicId,
         urls: _buildCloudinaryCandidateUrls(
           cloudName: cloudName,
@@ -297,6 +304,32 @@ extension _MainNotificationsExtension on _ChatHomePageState {
       ));
     }
     return items;
+  }
+
+  int? _extractEpisodeNumberFromId(String publicId) {
+    final match = RegExp(r'[_-]E(\d{1,2})(?:[_-]|$)', caseSensitive: false)
+            .firstMatch(publicId) ??
+        RegExp(r'episode[_-]?(\d{1,2})', caseSensitive: false)
+            .firstMatch(publicId);
+    if (match == null) return null;
+    return int.tryParse(match.group(1) ?? '');
+  }
+
+  int? _extractPartNumberFromId(String publicId) {
+    final patterns = <RegExp>[
+      RegExp(r'[_\-\s]part[_\-\s]?(\d{1,2})(?:[_\-\s]|$)',
+          caseSensitive: false),
+      RegExp(r'[_\-\s]pt[_\-\s]?(\d{1,2})(?:[_\-\s]|$)', caseSensitive: false),
+      RegExp(r'[_\-\s]p(\d{1,2})(?:[_\-\s]|$)', caseSensitive: false),
+    ];
+    for (final pattern in patterns) {
+      final match = pattern.firstMatch(publicId);
+      if (match != null) {
+        final value = int.tryParse(match.group(1) ?? '');
+        if (value != null && value > 0) return value;
+      }
+    }
+    return null;
   }
 
   List<String> _buildCloudinaryCandidateUrls({
@@ -371,6 +404,7 @@ class _ZeroTwoEpisodesPlayer extends StatefulWidget {
 
 class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
   VideoPlayerController? _controller;
+  VoidCallback? _controllerListener;
   List<_EpisodeVideoItem> _episodes = const [];
   int _selectedIndex = 0;
   bool _episodesLoading = true;
@@ -378,6 +412,9 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
   bool _loading = false;
   String? _error;
   String? _activeVideoUrl;
+  bool _endHandled = false;
+  bool _autoAdvancing = false;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -391,8 +428,140 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _detachController(disposeController: true);
     super.dispose();
+  }
+
+  void _attachController(VideoPlayerController controller) {
+    _detachController(disposeController: false);
+    _controller = controller;
+    _controllerListener = () {
+      if (!mounted) return;
+      _handleControllerTick();
+      setState(() {});
+    };
+    controller.addListener(_controllerListener!);
+  }
+
+  void _detachController({required bool disposeController}) {
+    final existing = _controller;
+    final listener = _controllerListener;
+    if (existing != null && listener != null) {
+      existing.removeListener(listener);
+    }
+    _controllerListener = null;
+    _controller = null;
+    if (disposeController && existing != null) {
+      unawaited(existing.dispose());
+    }
+  }
+
+  bool _isAtEnd(VideoPlayerController controller) {
+    if (!controller.value.isInitialized) return false;
+    final duration = controller.value.duration;
+    if (duration <= Duration.zero) return false;
+    return controller.value.position >=
+        duration - const Duration(milliseconds: 300);
+  }
+
+  int? _extractSeasonNumber(String publicId) {
+    final match = RegExp(r'[_-]S(\d{1,2})[_-]', caseSensitive: false)
+        .firstMatch(publicId);
+    return match == null ? null : int.tryParse(match.group(1) ?? '');
+  }
+
+  int? _extractPartNumber(String publicId) {
+    final patterns = <RegExp>[
+      RegExp(r'[_\-\s]part[_\-\s]?(\d{1,2})(?:[_\-\s]|$)',
+          caseSensitive: false),
+      RegExp(r'[_\-\s]pt[_\-\s]?(\d{1,2})(?:[_\-\s]|$)', caseSensitive: false),
+      RegExp(r'[_\-\s]p(\d{1,2})(?:[_\-\s]|$)', caseSensitive: false),
+    ];
+    for (final pattern in patterns) {
+      final match = pattern.firstMatch(publicId);
+      if (match != null) {
+        final value = int.tryParse(match.group(1) ?? '');
+        if (value != null && value > 0) return value;
+      }
+    }
+    return null;
+  }
+
+  String _buildDisplayTitle({
+    required String publicId,
+    required int fallbackIndex,
+  }) {
+    final season = _extractSeasonNumber(publicId);
+    final episode = _extractEpisodeNumber(publicId);
+    final part = _extractPartNumber(publicId);
+
+    final base = (episode != null)
+        ? 'Episode ${episode.toString().padLeft(2, '0')}'
+        : 'Episode ${fallbackIndex.toString().padLeft(2, '0')}';
+    final seasonPrefix = (season != null && season > 0)
+        ? 'S${season.toString().padLeft(2, '0')} '
+        : '';
+    final partSuffix = (part != null) ? ' - Part $part' : '';
+    return '$seasonPrefix$base$partSuffix'.trim();
+  }
+
+  void _handleControllerTick() {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (_loading || _episodesLoading) return;
+
+    if (!_isAtEnd(controller)) {
+      _endHandled = false;
+      return;
+    }
+
+    if (_endHandled || _autoAdvancing) return;
+    _endHandled = true;
+    unawaited(_playNextEpisode(autoTriggered: true));
+  }
+
+  String _fmtTime(Duration value) {
+    final safe = value < Duration.zero ? Duration.zero : value;
+    final h = safe.inHours;
+    final m = (safe.inMinutes % 60).toString().padLeft(2, '0');
+    final s = (safe.inSeconds % 60).toString().padLeft(2, '0');
+    if (h > 0) {
+      return '$h:$m:$s';
+    }
+    return '${safe.inMinutes.toString().padLeft(2, '0')}:$s';
+  }
+
+  Duration _safePosition(VideoPlayerController controller) {
+    final p = controller.value.position;
+    final d = controller.value.duration;
+    if (d > Duration.zero && p > d) return d;
+    if (p < Duration.zero) return Duration.zero;
+    return p;
+  }
+
+  Future<void> _seekBy(Duration offset) async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    final duration = controller.value.duration;
+    var target = controller.value.position + offset;
+    if (target < Duration.zero) target = Duration.zero;
+    if (duration > Duration.zero && target > duration) target = duration;
+    await controller.seekTo(target);
+  }
+
+  Future<void> _togglePlayPause() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (_isAtEnd(controller)) {
+      await controller.seekTo(Duration.zero);
+      await controller.play();
+      return;
+    }
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
   }
 
   Future<void> _prepareEpisodeSource() async {
@@ -482,15 +651,16 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
       if (normalizedFolder.isNotEmpty &&
           assetFolder != normalizedFolder &&
           !assetFolder.startsWith('$normalizedFolder/') &&
+          !assetFolder.endsWith('/$normalizedFolder') &&
           !publicId.startsWith('$normalizedFolder/')) {
         continue;
       }
 
       final secureUrl = (resource['secure_url'] ?? '').toString().trim();
-      final episodeNumber = _extractEpisodeNumber(publicId);
-      final title = episodeNumber != null
-          ? 'Episode ${episodeNumber.toString().padLeft(2, '0')}'
-          : 'Episode ${(episodes.length + 1).toString().padLeft(2, '0')}';
+      final title = _buildDisplayTitle(
+        publicId: publicId,
+        fallbackIndex: episodes.length + 1,
+      );
       final urls = <String>[];
       urls.addAll(_buildCloudinaryCandidateUrls(
         cloudName: widget.cloudName,
@@ -509,9 +679,18 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     }
 
     episodes.sort((a, b) {
+      final aSeason = _extractSeasonNumber(a.publicId) ?? 1;
+      final bSeason = _extractSeasonNumber(b.publicId) ?? 1;
+      if (aSeason != bSeason) return aSeason.compareTo(bSeason);
+
       final aNum = _extractEpisodeNumber(a.publicId) ?? 9999;
       final bNum = _extractEpisodeNumber(b.publicId) ?? 9999;
       if (aNum != bNum) return aNum.compareTo(bNum);
+
+      final aPart = _extractPartNumber(a.publicId) ?? 0;
+      final bPart = _extractPartNumber(b.publicId) ?? 0;
+      if (aPart != bPart) return aPart.compareTo(bPart);
+
       return a.publicId.compareTo(b.publicId);
     });
     return episodes;
@@ -540,8 +719,10 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     ];
   }
 
-  Future<void> _loadEpisode(int index) async {
+  Future<void> _loadEpisode(int index, {bool autoplay = true}) async {
     if (index < 0 || index >= _episodes.length) return;
+    final generation = ++_loadGeneration;
+
     setState(() {
       _selectedIndex = index;
       _loading = true;
@@ -549,7 +730,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     });
 
     final previous = _controller;
-    _controller = null;
+    _detachController(disposeController: false);
     _activeVideoUrl = null;
     await previous?.dispose();
 
@@ -567,7 +748,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
         await c.dispose();
       }
     }
-    if (!mounted) {
+    if (!mounted || generation != _loadGeneration) {
       await workingController?.dispose();
       return;
     }
@@ -579,14 +760,44 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
       });
       return;
     }
-    workingController.setVolume(1.0);
-    workingController.setLooping(false);
-    await workingController.play();
+
+    await workingController.setVolume(1.0);
+    await workingController.setLooping(false);
+    if (autoplay) {
+      await workingController.play();
+    } else {
+      await workingController.pause();
+    }
+    _endHandled = false;
+    _attachController(workingController);
     setState(() {
-      _controller = workingController;
       _activeVideoUrl = workingUrl;
       _loading = false;
     });
+  }
+
+  Future<void> _playPreviousEpisode() async {
+    final prev = _selectedIndex - 1;
+    if (prev < 0) return;
+    await _loadEpisode(prev, autoplay: true);
+  }
+
+  Future<void> _playNextEpisode({bool autoTriggered = false}) async {
+    if (_episodes.isEmpty) return;
+    final next = _selectedIndex + 1;
+    if (next >= _episodes.length) return;
+
+    if (autoTriggered) {
+      if (_autoAdvancing) return;
+      _autoAdvancing = true;
+    }
+    try {
+      await _loadEpisode(next, autoplay: true);
+    } finally {
+      if (autoTriggered) {
+        _autoAdvancing = false;
+      }
+    }
   }
 
   Future<void> _openLandscapePlayer() async {
@@ -628,6 +839,12 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
+    final hasVideo = controller != null && controller.value.isInitialized;
+    final isPlaying = hasVideo && controller.value.isPlaying;
+    final isEnded = hasVideo ? _isAtEnd(controller) : false;
+    final position = hasVideo ? _safePosition(controller) : Duration.zero;
+    final duration =
+        hasVideo ? controller.value.duration : const Duration(minutes: 24);
     return SafeArea(
       child: Column(
         children: [
@@ -671,7 +888,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                         VideoPlayer(controller)
                       else
                         Image.asset(
-                          'bll.jpg',
+                          'assets/img/bll.jpg',
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
@@ -702,37 +919,45 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
             child: Row(
               children: [
                 IconButton(
-                  onPressed:
-                      (controller != null && controller.value.isInitialized)
-                          ? () async {
-                              if (controller.value.isPlaying) {
-                                await controller.pause();
-                              } else {
-                                await controller.play();
-                              }
-                              if (mounted) setState(() {});
-                            }
-                          : null,
+                  onPressed: hasVideo ? _togglePlayPause : null,
                   icon: Icon(
-                    (controller != null && controller.value.isPlaying)
-                        ? Icons.pause_circle_filled
-                        : Icons.play_circle_fill,
+                    isEnded
+                        ? Icons.replay_circle_filled
+                        : (isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_fill),
                     color: Colors.white,
                     size: 30,
                   ),
                 ),
                 IconButton(
-                  onPressed:
-                      (controller != null && controller.value.isInitialized)
-                          ? () => controller.seekTo(Duration.zero)
-                          : null,
-                  icon: const Icon(Icons.replay, color: Colors.white70),
+                  onPressed: hasVideo
+                      ? () => _seekBy(const Duration(seconds: -10))
+                      : null,
+                  icon: const Icon(Icons.replay_10, color: Colors.white70),
                 ),
                 IconButton(
-                  onPressed:
-                      (controller != null && controller.value.isInitialized)
-                          ? _openLandscapePlayer
-                          : null,
+                  onPressed: hasVideo && _selectedIndex > 0
+                      ? _playPreviousEpisode
+                      : null,
+                  icon: const Icon(Icons.skip_previous_rounded,
+                      color: Colors.white70),
+                ),
+                IconButton(
+                  onPressed: hasVideo
+                      ? () => _seekBy(const Duration(seconds: 10))
+                      : null,
+                  icon: const Icon(Icons.forward_10, color: Colors.white70),
+                ),
+                IconButton(
+                  onPressed: hasVideo && _selectedIndex < _episodes.length - 1
+                      ? () => _playNextEpisode(autoTriggered: false)
+                      : null,
+                  icon: const Icon(Icons.skip_next_rounded,
+                      color: Colors.white70),
+                ),
+                IconButton(
+                  onPressed: hasVideo ? _openLandscapePlayer : null,
                   icon: const Icon(Icons.fullscreen, color: Colors.white70),
                 ),
                 Expanded(
@@ -753,14 +978,38 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
           if (controller != null && controller.value.isInitialized)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: VideoProgressIndicator(
-                controller,
-                allowScrubbing: true,
-                colors: VideoProgressColors(
-                  playedColor: Theme.of(context).primaryColor,
-                  bufferedColor: Colors.white24,
-                  backgroundColor: Colors.white10,
-                ),
+              child: Column(
+                children: [
+                  VideoProgressIndicator(
+                    controller,
+                    allowScrubbing: true,
+                    colors: VideoProgressColors(
+                      playedColor: Theme.of(context).primaryColor,
+                      bufferedColor: Colors.white24,
+                      backgroundColor: Colors.white10,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        _fmtTime(position),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        _fmtTime(duration),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           Padding(
@@ -863,8 +1112,15 @@ class _LandscapeEpisodePlayerPage extends StatefulWidget {
 class _LandscapeEpisodePlayerPageState
     extends State<_LandscapeEpisodePlayerPage> {
   VideoPlayerController? _controller;
+  VoidCallback? _controllerListener;
   bool _loading = true;
   String? _error;
+  Timer? _controlsHideTimer;
+  bool _showControls = true;
+  bool _isScrubbing = false;
+  double _volumeLevel = 1.0;
+  double _brightnessLevel = 1.0;
+  static const Duration _controlsAutoHideDelay = Duration(seconds: 2);
 
   @override
   void initState() {
@@ -894,7 +1150,7 @@ class _LandscapeEpisodePlayerPageState
     try {
       await controller.initialize();
       await controller.setLooping(false);
-      await controller.setVolume(1.0);
+      await controller.setVolume(_volumeLevel);
       if (widget.startAt > Duration.zero &&
           widget.startAt < controller.value.duration) {
         await controller.seekTo(widget.startAt);
@@ -904,10 +1160,11 @@ class _LandscapeEpisodePlayerPageState
         await controller.dispose();
         return;
       }
+      _attachController(controller);
       setState(() {
-        _controller = controller;
         _loading = false;
       });
+      _showControlsTemporarily();
     } catch (_) {
       await controller.dispose();
       if (!mounted) return;
@@ -915,10 +1172,12 @@ class _LandscapeEpisodePlayerPageState
         _loading = false;
         _error = 'Could not play this video in landscape.';
       });
+      _cancelControlsHideTimer();
     }
   }
 
   Future<void> _close() async {
+    _cancelControlsHideTimer();
     final pos = _controller?.value.position ?? widget.startAt;
     await _restorePortraitMode();
     if (!mounted) return;
@@ -927,16 +1186,208 @@ class _LandscapeEpisodePlayerPageState
 
   @override
   void dispose() {
-    final controller = _controller;
-    _controller = null;
+    _cancelControlsHideTimer();
+    _detachController(disposeController: true);
     unawaited(_restorePortraitMode());
-    controller?.dispose();
     super.dispose();
+  }
+
+  void _cancelControlsHideTimer() {
+    _controlsHideTimer?.cancel();
+    _controlsHideTimer = null;
+  }
+
+  void _showControlsTemporarily() {
+    if (!mounted) return;
+    if (!_showControls) {
+      setState(() {
+        _showControls = true;
+      });
+    }
+    _cancelControlsHideTimer();
+    if (_loading || _error != null || _isScrubbing) return;
+    _controlsHideTimer = Timer(_controlsAutoHideDelay, () {
+      if (!mounted || _loading || _error != null || _isScrubbing) return;
+      setState(() {
+        _showControls = false;
+      });
+    });
+  }
+
+  void _toggleControlsVisibility() {
+    if (_showControls) {
+      _cancelControlsHideTimer();
+      setState(() {
+        _showControls = false;
+      });
+    } else {
+      _showControlsTemporarily();
+    }
+  }
+
+  void _onScrubStart() {
+    _isScrubbing = true;
+    if (!_showControls) {
+      setState(() {
+        _showControls = true;
+      });
+    }
+    _cancelControlsHideTimer();
+  }
+
+  void _onScrubEnd() {
+    _isScrubbing = false;
+    _showControlsTemporarily();
+  }
+
+  void _attachController(VideoPlayerController controller) {
+    _detachController(disposeController: false);
+    _controller = controller;
+    _controllerListener = () {
+      if (!mounted) return;
+      setState(() {});
+    };
+    controller.addListener(_controllerListener!);
+  }
+
+  void _detachController({required bool disposeController}) {
+    final existing = _controller;
+    final listener = _controllerListener;
+    if (existing != null && listener != null) {
+      existing.removeListener(listener);
+    }
+    _controller = null;
+    _controllerListener = null;
+    if (disposeController && existing != null) {
+      unawaited(existing.dispose());
+    }
+  }
+
+  bool _isAtEnd(VideoPlayerController controller) {
+    if (!controller.value.isInitialized) return false;
+    final duration = controller.value.duration;
+    if (duration <= Duration.zero) return false;
+    return controller.value.position >=
+        duration - const Duration(milliseconds: 300);
+  }
+
+  String _fmtTime(Duration value) {
+    final safe = value < Duration.zero ? Duration.zero : value;
+    final h = safe.inHours;
+    final m = (safe.inMinutes % 60).toString().padLeft(2, '0');
+    final s = (safe.inSeconds % 60).toString().padLeft(2, '0');
+    if (h > 0) {
+      return '$h:$m:$s';
+    }
+    return '${safe.inMinutes.toString().padLeft(2, '0')}:$s';
+  }
+
+  Duration _safePosition(VideoPlayerController controller) {
+    final p = controller.value.position;
+    final d = controller.value.duration;
+    if (d > Duration.zero && p > d) return d;
+    if (p < Duration.zero) return Duration.zero;
+    return p;
+  }
+
+  Future<void> _seekBy(Duration offset) async {
+    _showControlsTemporarily();
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    final duration = controller.value.duration;
+    var target = controller.value.position + offset;
+    if (target < Duration.zero) target = Duration.zero;
+    if (duration > Duration.zero && target > duration) target = duration;
+    await controller.seekTo(target);
+  }
+
+  Future<void> _togglePlayPause() async {
+    _showControlsTemporarily();
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (_isAtEnd(controller)) {
+      await controller.seekTo(Duration.zero);
+      await controller.play();
+      return;
+    }
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
+  }
+
+  Future<void> _setVolume(double value) async {
+    final next = value.clamp(0.0, 1.0).toDouble();
+    if (mounted) {
+      setState(() {
+        _volumeLevel = next;
+      });
+    } else {
+      _volumeLevel = next;
+    }
+    final controller = _controller;
+    if (controller != null && controller.value.isInitialized) {
+      await controller.setVolume(next);
+    }
+    _showControlsTemporarily();
+  }
+
+  void _setBrightness(double value) {
+    final next = value.clamp(0.25, 1.0).toDouble();
+    if (mounted) {
+      setState(() {
+        _brightnessLevel = next;
+      });
+    } else {
+      _brightnessLevel = next;
+    }
+    _showControlsTemporarily();
+  }
+
+  Widget _buildControlSlider({
+    required IconData icon,
+    required double value,
+    required double min,
+    required double max,
+    required Color activeColor,
+    required ValueChanged<double> onChanged,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white70, size: 16),
+        Expanded(
+          child: SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 2.6,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 11),
+              activeTrackColor: activeColor,
+              inactiveTrackColor: Colors.white24,
+              thumbColor: activeColor,
+              overlayColor: activeColor.withOpacity(0.24),
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
+    final hasVideo = controller != null && controller.value.isInitialized;
+    final isPlaying = hasVideo && controller.value.isPlaying;
+    final isEnded = hasVideo ? _isAtEnd(controller) : false;
+    final position = hasVideo ? _safePosition(controller) : Duration.zero;
+    final duration =
+        hasVideo ? controller.value.duration : const Duration(minutes: 24);
     return WillPopScope(
       onWillPop: () async {
         await _close();
@@ -958,6 +1409,22 @@ class _LandscapeEpisodePlayerPageState
                     )
                   : Container(color: Colors.black),
             ),
+            if (_brightnessLevel < 1.0)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(
+                    color: Colors.black
+                        .withOpacity((1.0 - _brightnessLevel) * 0.72),
+                  ),
+                ),
+              ),
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _toggleControlsVisibility,
+                child: const SizedBox.expand(),
+              ),
+            ),
             if (_loading)
               const Center(
                 child: CircularProgressIndicator(color: Colors.redAccent),
@@ -970,91 +1437,142 @@ class _LandscapeEpisodePlayerPageState
                       GoogleFonts.outfit(color: Colors.white70, fontSize: 13),
                 ),
               ),
-            Positioned(
-              top: 16,
-              left: 16,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: _close,
-                    icon: const Icon(Icons.close, color: Colors.white),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    widget.title,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (controller != null && controller.value.isInitialized)
-              Positioned(
-                left: 14,
-                right: 14,
-                bottom: 18,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    color: Colors.black.withOpacity(0.45),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        VideoProgressIndicator(
-                          controller,
-                          allowScrubbing: true,
-                          colors: const VideoProgressColors(
-                            playedColor: Colors.redAccent,
-                            bufferedColor: Colors.white30,
-                            backgroundColor: Colors.white12,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: AnimatedOpacity(
+                  opacity: _showControls ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 16,
+                        left: 16,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              onPressed: () async {
-                                if (controller.value.isPlaying) {
-                                  await controller.pause();
-                                } else {
-                                  await controller.play();
-                                }
-                                if (mounted) setState(() {});
-                              },
-                              icon: Icon(
-                                controller.value.isPlaying
-                                    ? Icons.pause_circle_filled
-                                    : Icons.play_circle_fill,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => controller.seekTo(Duration.zero),
+                              onPressed: _close,
                               icon:
-                                  const Icon(Icons.replay, color: Colors.white),
+                                  const Icon(Icons.close, color: Colors.white),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 4),
                             Text(
-                              '${controller.value.position.inMinutes.toString().padLeft(2, '0')}:${(controller.value.position.inSeconds % 60).toString().padLeft(2, '0')}',
+                              widget.title,
                               style: GoogleFonts.outfit(
                                 color: Colors.white70,
-                                fontSize: 11,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      if (hasVideo)
+                        Positioned(
+                          left: 14,
+                          right: 14,
+                          bottom: 18,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              color: Colors.black.withOpacity(0.45),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Listener(
+                                    onPointerDown: (_) => _onScrubStart(),
+                                    onPointerUp: (_) => _onScrubEnd(),
+                                    onPointerCancel: (_) => _onScrubEnd(),
+                                    child: VideoProgressIndicator(
+                                      controller,
+                                      allowScrubbing: true,
+                                      colors: const VideoProgressColors(
+                                        playedColor: Colors.redAccent,
+                                        bufferedColor: Colors.white30,
+                                        backgroundColor: Colors.white12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: _togglePlayPause,
+                                        icon: Icon(
+                                          isEnded
+                                              ? Icons.replay_circle_filled
+                                              : (isPlaying
+                                                  ? Icons.pause_circle_filled
+                                                  : Icons.play_circle_fill),
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => _seekBy(
+                                            const Duration(seconds: -10)),
+                                        icon: const Icon(Icons.replay_10,
+                                            color: Colors.white),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => _seekBy(
+                                            const Duration(seconds: 10)),
+                                        icon: const Icon(Icons.forward_10,
+                                            color: Colors.white),
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        '${_fmtTime(position)} / ${_fmtTime(duration)}',
+                                        style: GoogleFonts.outfit(
+                                          color: Colors.white70,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildControlSlider(
+                                          icon: Icons.brightness_6_outlined,
+                                          value: _brightnessLevel,
+                                          min: 0.25,
+                                          max: 1.0,
+                                          activeColor: Colors.amberAccent,
+                                          onChanged: _setBrightness,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildControlSlider(
+                                          icon: _volumeLevel <= 0.01
+                                              ? Icons.volume_off_rounded
+                                              : Icons.volume_up_rounded,
+                                          value: _volumeLevel,
+                                          min: 0.0,
+                                          max: 1.0,
+                                          activeColor: Colors.cyanAccent,
+                                          onChanged: (value) {
+                                            unawaited(_setVolume(value));
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

@@ -3,13 +3,14 @@ package com.example.anime_waifu
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
@@ -27,8 +28,9 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val channelName = "anime_waifu/assistant_mode"
-    private val assistantChannelId = "assistant_mode_channel"
-    private val wakeEventChannelId = "assistant_wake_event_channel_dar"
+    private val assistantChannelId = "assistant_mode_channel_silent_v3"
+    private val assistantStatusChannelId = "assistant_status_channel_v2"
+    private val wakeEventChannelId = "assistant_wake_event_channel_alert_v3"
     private val assistantNotificationId = 2002
     private val wakeEventNotificationId = 2003
     private var overlayView: LinearLayout? = null
@@ -125,6 +127,11 @@ class MainActivity : FlutterActivity() {
                     "setProactiveMode" -> {
                         val enabled = call.argument<Boolean>("enabled") ?: false
                         setProactiveMode(enabled)
+                        result.success(true)
+                    }
+                    "setWakeMode" -> {
+                        val enabled = call.argument<Boolean>("enabled") ?: false
+                        setWakeMode(enabled)
                         result.success(true)
                     }
                     "openAppByPackage" -> {
@@ -554,6 +561,18 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun setWakeMode(enabled: Boolean) {
+        val intent = Intent(this, AssistantForegroundService::class.java).apply {
+            action = "SET_WAKE_MODE"
+            putExtra("ENABLED", enabled)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
     private fun openNotificationSettings() {
         val intent = Intent().apply {
             action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
@@ -669,13 +688,19 @@ class MainActivity : FlutterActivity() {
         if (!canPostNotifications()) return
         ensureNotificationChannels()
         val manager = getSystemService(NotificationManager::class.java)
-        val notification = NotificationCompat.Builder(this, assistantChannelId)
-            .setContentTitle("Zero Two Assistant")
+        val openPendingIntent = buildLaunchPendingIntent(assistantNotificationId)
+        val notification = NotificationCompat.Builder(this, assistantStatusChannelId)
+            .setContentTitle("O2-WAIFU Assistant")
             .setContentText("Wake word is active in background")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSubText("Background status")
+            .setSmallIcon(R.drawable.ic_stat_waifu)
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.logi))
+            .setContentIntent(openPendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
         manager?.notify(assistantNotificationId, notification)
     }
@@ -684,6 +709,8 @@ class MainActivity : FlutterActivity() {
         if (!canPostNotifications()) return
         ensureNotificationChannels()
         val manager = getSystemService(NotificationManager::class.java)
+        val openPendingIntent = buildLaunchPendingIntent(wakeEventNotificationId)
+        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
 
         val body = if (transcript.isBlank()) {
             status
@@ -691,14 +718,20 @@ class MainActivity : FlutterActivity() {
             "$status\n$transcript"
         }
 
-        val mainNotification = NotificationCompat.Builder(this, assistantChannelId)
+        val mainNotification = NotificationCompat.Builder(this, assistantStatusChannelId)
             .setContentTitle("Zero Two Assistant")
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_waifu)
+            .setLargeIcon(largeIcon)
+            .setSubText("Live status")
+            .setContentIntent(openPendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
 
         manager?.notify(assistantNotificationId, mainNotification)
@@ -708,30 +741,21 @@ class MainActivity : FlutterActivity() {
                 .setContentTitle(if (status.isNotBlank()) status else "Wake word detected")
                 .setContentText(if (transcript.isNotBlank()) transcript else "Zero Two is listening...")
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_stat_waifu)
+                .setLargeIcon(largeIcon)
+                .setSubText("Tap to open O2-WAIFU")
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setDefaults(android.app.Notification.DEFAULT_ALL)
-                .setSound(getDarSoundUri())
-                .setTimeoutAfter(6000)
+                .setOnlyAlertOnce(false)
+                .setContentIntent(openPendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setTimeoutAfter(15000)
                 .build()
-            manager?.notify(wakeEventNotificationId, wakeNotification)
+            val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+            manager?.notify(uniqueId, wakeNotification)
         }
-    }
-
-    private fun getDarSoundUri(): Uri {
-        val resId = resources.getIdentifier("dar", "raw", packageName)
-        if (resId != 0) {
-            return Uri.parse("android.resource://$packageName/$resId")
-        }
-        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    }
-
-    private fun getDarAudioAttributes(): AudioAttributes {
-        return AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
     }
 
     private fun ensureNotificationChannels() {
@@ -741,17 +765,58 @@ class MainActivity : FlutterActivity() {
                 assistantChannelId,
                 "Assistant Mode",
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
+            val assistantStatusChannel = NotificationChannel(
+                assistantStatusChannelId,
+                "Assistant Status",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+                vibrationPattern = longArrayOf(0L)
+            }
             val wakeEventChannel = NotificationChannel(
                 wakeEventChannelId,
-                "Wake Events",
+                "Wake Events (Alert)",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                setSound(getDarSoundUri(), getDarAudioAttributes())
+                setSound(notificationSoundUri(), notificationAudioAttributes())
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
             }
             manager?.createNotificationChannel(assistantChannel)
+            manager?.createNotificationChannel(assistantStatusChannel)
             manager?.createNotificationChannel(wakeEventChannel)
         }
+    }
+
+    private fun buildLaunchPendingIntent(requestCode: Int): PendingIntent? {
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName) ?: return null
+        launchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+        )
+        return PendingIntent.getActivity(
+            this,
+            requestCode,
+            launchIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun notificationSoundUri(): Uri {
+        return Uri.parse("android.resource://$packageName/${R.raw.dar}")
+    }
+
+    private fun notificationAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
     }
 
     override fun onDestroy() {

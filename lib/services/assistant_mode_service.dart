@@ -105,6 +105,10 @@ class AssistantModeService {
     await _invoke('setProactiveMode', {'enabled': enabled});
   }
 
+  Future<void> setWakeMode(bool enabled) async {
+    await _invoke('setWakeMode', {'enabled': enabled});
+  }
+
   Future<void> openNotificationSettings() async {
     await _invoke('openNotificationSettings');
   }

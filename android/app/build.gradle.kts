@@ -13,7 +13,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        // Required by flutter_local_notifications for Java 8 features on older Androids
+        // Desugaring support for Java APIs on older Android versions
         isCoreLibraryDesugaringEnabled = true
     }
 

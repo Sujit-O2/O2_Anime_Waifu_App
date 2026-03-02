@@ -24,6 +24,7 @@ class SpeechService {
   String _apiKeyOverride = "";
   String _transcriptionModelOverride = "";
   String _transcriptionUrlOverride = "";
+  String _transcriptionLanguageOverride = "";
 
   StreamSubscription<Amplitude>? _amplitudeSub;
   Timer? _silenceTimer;
@@ -31,6 +32,7 @@ class SpeechService {
   DateTime? _lastVoiceAt;
   DateTime? _startAt;
   String? _currentPath;
+  bool _hadVoiceSignal = false;
 
   static const Duration _maxListenDuration = Duration(seconds: 20);
   static const Duration _silenceStopAfter = Duration(seconds: 2);
@@ -59,10 +61,18 @@ class SpeechService {
     return "https://api.groq.com/openai/v1/audio/transcriptions";
   }
 
+  String get _effectiveTranscriptionLanguage {
+    if (_transcriptionLanguageOverride.trim().isNotEmpty) {
+      return _transcriptionLanguageOverride.trim();
+    }
+    return "en";
+  }
+
   void configure({
     String? apiKeyOverride,
     String? transcriptionModelOverride,
     String? transcriptionUrlOverride,
+    String? transcriptionLanguageOverride,
   }) {
     if (apiKeyOverride != null) _apiKeyOverride = apiKeyOverride;
     if (transcriptionModelOverride != null) {
@@ -70,6 +80,9 @@ class SpeechService {
     }
     if (transcriptionUrlOverride != null) {
       _transcriptionUrlOverride = transcriptionUrlOverride;
+    }
+    if (transcriptionLanguageOverride != null) {
+      _transcriptionLanguageOverride = transcriptionLanguageOverride;
     }
   }
 
@@ -116,6 +129,7 @@ class SpeechService {
       _starting = false;
       _startAt = DateTime.now();
       _lastVoiceAt = _startAt;
+      _hadVoiceSignal = false;
       if (onStatus != null) onStatus!("listening");
 
       _amplitudeSub?.cancel();
@@ -123,6 +137,7 @@ class SpeechService {
           .onAmplitudeChanged(const Duration(milliseconds: 200))
           .listen((amp) {
         if (amp.current > _voiceThresholdDb) {
+          _hadVoiceSignal = true;
           _lastVoiceAt = DateTime.now();
         }
       });
@@ -184,9 +199,22 @@ class SpeechService {
     _currentPath = null;
     _startAt = null;
     _lastVoiceAt = null;
+    final hadVoiceSignal = _hadVoiceSignal;
+    _hadVoiceSignal = false;
 
     if (targetPath == null || targetPath.isEmpty) {
       if (onResult != null) onResult!("", true);
+      return;
+    }
+
+    if (!hadVoiceSignal) {
+      if (onResult != null) onResult!("", true);
+      try {
+        final f = File(targetPath);
+        if (await f.exists()) {
+          await f.delete();
+        }
+      } catch (_) {}
       return;
     }
 
@@ -232,6 +260,7 @@ class SpeechService {
     _currentPath = null;
     _startAt = null;
     _lastVoiceAt = null;
+    _hadVoiceSignal = false;
     if (pendingPath != null) {
       try {
         final f = File(pendingPath);
@@ -274,13 +303,15 @@ class SpeechService {
       final request = http.MultipartRequest("POST", uri);
       request.headers["Authorization"] = "Bearer $key";
       request.fields["model"] = _effectiveTranscriptionModel;
+      request.fields["language"] = _effectiveTranscriptionLanguage;
       request.files.add(await http.MultipartFile.fromPath("file", path));
 
       final streamed = await request.send().timeout(_transcriptionTimeout);
       final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode != 200) {
-        debugPrint("Transcription API error: ${response.statusCode} - ${response.body}");
+        debugPrint(
+            "Transcription API error: ${response.statusCode} - ${response.body}");
         if (onError != null) {
           onError!("transcription_failed: ${response.statusCode}");
         }

@@ -25,7 +25,7 @@ class _VisualEffectsOverlayState extends State<VisualEffectsOverlay>
   void initState() {
     super.initState();
     _effectController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+        AnimationController(vsync: this, duration: const Duration(seconds: 4))
           ..repeat();
   }
 
@@ -103,24 +103,23 @@ class _CinemaPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
-    final random = math.Random();
-
     final grainIntensity = AppThemes.getGrainIntensity(mode);
     if (grainIntensity > 0) {
-      for (int i = 0; i < 1000; i++) {
-        final x = random.nextDouble() * size.width;
-        final y = random.nextDouble() * size.height;
-        final op = random.nextDouble() * grainIntensity;
+      const grainSamples = 220;
+      for (int i = 0; i < grainSamples; i++) {
+        final x = ((i * 57) % 997) / 997 * size.width;
+        final y = ((i * 131) % 991) / 991 * size.height;
+        final op = (((i * 37) % 100) / 100) * grainIntensity * 0.55;
         paint.color = Colors.white.withOpacity(op);
-        canvas.drawCircle(Offset(x, y), 0.5, paint);
+        canvas.drawRect(Rect.fromLTWH(x, y, 1, 1), paint);
       }
     }
 
     if (AppThemes.hasScanlines(mode)) {
       paint.color = Colors.black.withOpacity(0.05);
       paint.strokeWidth = 1.0;
-      final scroll = animation * 8.0;
-      for (double y = scroll; y < size.height; y += 4.0) {
+      final scroll = animation * 6.0;
+      for (double y = scroll; y < size.height; y += 6.0) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
       }
     }

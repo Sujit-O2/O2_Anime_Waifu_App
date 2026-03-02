@@ -8,21 +8,21 @@ extension _MainDrawerExtension on _ChatHomePageState {
 
     const labels = [
       'Chat',
+      'Notification',
+      'Videos',
+      'Setting',
       'Themes',
       'Dev Config',
-      'Notifications',
-      'Videos',
-      'Settings',
       'Debug',
       'About',
     ];
     const icons = [
       Icons.chat_bubble_outline,
-      Icons.palette_outlined,
-      Icons.terminal,
       Icons.notifications_outlined,
       Icons.videocam_outlined,
       Icons.settings_outlined,
+      Icons.palette_outlined,
+      Icons.terminal,
       Icons.bug_report_outlined,
       Icons.info_outline,
     ];
@@ -45,11 +45,12 @@ extension _MainDrawerExtension on _ChatHomePageState {
             Positioned.fill(
               top: 200,
               child: Opacity(
-                opacity: 0.36,
+                opacity: 0.48,
                 child: Image.asset(
-                  'bll2.jpg',
+                  'assets/gif/sidebar_bg.gif',
                   fit: BoxFit.cover,
                   alignment: Alignment.topCenter,
+                  filterQuality: FilterQuality.low,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
@@ -85,14 +86,13 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: primary.withOpacity(0.2),
-                            border:
-                                Border.all(color: primary.withOpacity(0.5)),
+                            border: Border.all(color: primary.withOpacity(0.5)),
                           ),
                           child: ClipOval(
                             child: Image(
                               image: _imageProviderFor(
                                 assetPath: _appIconImageAsset,
-                                customPath: null,
+                                customPath: _effectiveAppIconCustomPath,
                               ),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Icon(
@@ -181,7 +181,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                         : FontWeight.w400,
                                   ),
                                 ),
-                                if (i == 3 && _notifHistory.isNotEmpty) ...[
+                                if (i == 1 && _notifHistory.isNotEmpty) ...[
                                   const Spacer(),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -253,13 +253,11 @@ extension _MainDrawerExtension on _ChatHomePageState {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image(
-              image: _imageProviderFor(
-                assetPath: _chatImageAsset,
-                customPath: _effectiveChatCustomPath,
-              ),
+            Image.asset(
+              'assets/gif/sidebar_top.gif',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
+              filterQuality: FilterQuality.low,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
             Container(

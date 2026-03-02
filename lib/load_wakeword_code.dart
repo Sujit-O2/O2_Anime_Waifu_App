@@ -20,26 +20,10 @@ class WakeWordService {
   static const String _zeroTwoKeyword = "Zero-two_en_android_v4_0_0.ppn";
   static const String _darlingKeyword = "Darling_en_android_v4_0_0.ppn";
 
-  // Prefer grouped keyword initialization first, then fill any missing
-  // keywords with individual managers.
+  // Try paired keywords first so both wake phrases are supported.
   static const List<List<String>> _keywordSetCandidates = [
-    // Prefer trying all three together first.
     [
       "assets/wakeword/$_babyGirlKeyword",
-      "assets/wakeword/$_zeroTwoKeyword",
-      "assets/wakeword/$_darlingKeyword",
-    ],
-    // If loading all three at once fails (for example mixed model versions),
-    // try pair combinations first.
-    [
-      "assets/wakeword/$_babyGirlKeyword",
-      "assets/wakeword/$_zeroTwoKeyword",
-    ],
-    [
-      "assets/wakeword/$_babyGirlKeyword",
-      "assets/wakeword/$_darlingKeyword",
-    ],
-    [
       "assets/wakeword/$_zeroTwoKeyword",
       "assets/wakeword/$_darlingKeyword",
     ],

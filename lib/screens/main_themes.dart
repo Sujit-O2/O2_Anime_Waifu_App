@@ -169,7 +169,7 @@ extension _MainThemesExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'bg2.png',
+              'assets/img/bg2.png',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -218,63 +218,53 @@ extension _MainThemesExtension on _ChatHomePageState {
 
   List<_ThemeTier> _buildThemeTiers() => [
         _ThemeTier(
-            '⚡  ICONIC',
-            [
-              AppThemeMode.bloodMoon,
-              AppThemeMode.voidMatrix,
-              AppThemeMode.angelFall,
-              AppThemeMode.titanSoul,
-              AppThemeMode.cosmicRift
-            ],
-            const Color(0xFFFF1744)),
-        _ThemeTier(
-            '💎  ULTRA-PREMIUM',
+            'ULTRA-PREMIUM',
             [
               AppThemeMode.neonSerpent,
               AppThemeMode.chromaStorm,
               AppThemeMode.goldenRuler,
               AppThemeMode.frozenDivine,
-              AppThemeMode.infernoGod
+              AppThemeMode.infernoGod,
             ],
             const Color(0xFFFFD700)),
         _ThemeTier(
-            '🗡️  ANIME LEGENDS',
+            'ANIME LEGENDS',
             [
               AppThemeMode.shadowBlade,
               AppThemeMode.pinkChaos,
               AppThemeMode.abyssWatcher,
               AppThemeMode.solarFlare,
-              AppThemeMode.demonSlayer
+              AppThemeMode.demonSlayer,
             ],
             const Color(0xFFFF4081)),
         _ThemeTier(
-            '🥀  LUXURY & FASHION',
+            'LUXURY & FASHION',
             [
               AppThemeMode.midnightSilk,
               AppThemeMode.obsidianRose,
               AppThemeMode.onyxEmerald,
               AppThemeMode.velvetCrown,
-              AppThemeMode.platinumDawn
+              AppThemeMode.platinumDawn,
             ],
             const Color(0xFFCE93D8)),
         _ThemeTier(
-            '🛸  SCI-FI',
+            'SCI-FI',
             [
               AppThemeMode.hypergate,
               AppThemeMode.xenoCore,
               AppThemeMode.dataStream,
               AppThemeMode.gravityBend,
-              AppThemeMode.quartzPulse
+              AppThemeMode.quartzPulse,
             ],
             const Color(0xFF40C4FF)),
         _ThemeTier(
-            '🌿  NATURE',
+            'NATURE',
             [
               AppThemeMode.midnightForest,
               AppThemeMode.volcanicSea,
               AppThemeMode.stormDesert,
               AppThemeMode.sakuraNight,
-              AppThemeMode.arcticSoul
+              AppThemeMode.arcticSoul,
             ],
             const Color(0xFF81C784)),
       ];

@@ -81,7 +81,7 @@ extension _MainDevConfigExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'z12.jpg',
+              'assets/img/z12.jpg',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -156,3 +156,4 @@ extension _MainDevConfigExtension on _ChatHomePageState {
     );
   }
 }
+

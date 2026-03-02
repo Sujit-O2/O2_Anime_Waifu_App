@@ -41,7 +41,8 @@ class Particle {
       case ParticleType.embers:
         targetVy = -speed * 2.0; // Rising
         targetVx = math.cos(theta) * speed * 0.8; // Swaying
-        opacity = 0.3 + 0.5 * math.Random().nextDouble(); // Flickering
+        opacity =
+            0.35 + 0.25 * (0.5 + 0.5 * math.sin(theta * 4.0)); // Flickering
         break;
       case ParticleType.stars:
         targetVx = 0;
@@ -236,7 +237,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
             if (_lastMode == null || _lastMode != mode || particles.isEmpty) {
               _lastMode = mode;
               particles = List.generate(
-                60,
+                32,
                 (_) => Particle(
                     Size(constraints.maxWidth, constraints.maxHeight), pType),
               );

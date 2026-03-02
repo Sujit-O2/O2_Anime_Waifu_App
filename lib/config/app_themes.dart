@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ============================================================
@@ -1072,8 +1072,13 @@ class AppThemes {
       /// AppBar: Solid volcanic bar
       case AppThemeMode.infernoGod:
         return ThemeStyle(
-          font: (s, c) => GoogleFonts.bebasNeue(
-              fontSize: s * 1.1, color: c, letterSpacing: 1.5),
+          font: (s, c) => GoogleFonts.notoSans(
+            fontSize: s,
+            color: c,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.15,
+            height: 1.3,
+          ),
           bubbleStyle: BubbleStyle.solid,
           inputStyle: InputStyle.squareNeon,
           animStyle: AnimStyle.press,

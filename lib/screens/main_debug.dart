@@ -170,9 +170,10 @@ extension _MainDebugExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'bll2.jpg',
+              'assets/gif/debug_area.gif',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
+              filterQuality: FilterQuality.low,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
             Container(

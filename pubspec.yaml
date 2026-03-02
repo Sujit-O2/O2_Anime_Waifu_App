@@ -1,7 +1,7 @@
 name: anime_waifu
 description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
 publish_to: "none"
-version: 1.0.0+1
+version: 2.0.0+2
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -12,19 +12,17 @@ dependencies:
 
   flutter_dotenv: ^6.0.0
   http: ^1.2.0
-  speech_to_text: ^7.3.0
   flutter_tts: ^4.2.3
   shared_preferences: ^2.2.2
-  avatar_glow: ^3.0.1
   audioplayers: ^6.0.0
   porcupine_flutter: ^4.0.0
   record: ^6.0.0
   path_provider: ^2.1.5
   permission_handler: ^12.0.1
-  flutter_local_notifications: ^20.1.0
-  google_fonts: ^8.0.2
   image_picker: ^1.1.2
+  google_fonts: ^8.0.2
   video_player: ^2.9.2
+  url_launcher: ^6.3.1
  # This is a dependency of porcupine_flutter, might be implicitly added
   # ... other packages
 
@@ -41,18 +39,13 @@ flutter:
   # Keep wake-word models under assets/wakeword for stable release loading.
   assets:
     - assets/
+    - assets/img/
+    - assets/gif/
     - assets/wakeword/
     - .env
-    - bg.png
-    - bg2.png
-    - bll.jpg
-    - z2s.jpg
-    - z12.jpg
-    - bll2.jpg
-    - logi.png
 
 # Launcher icon config
 flutter_icons:
   android: true
   ios: true
-  image_path: "ic_launcher.png"
+  image_path: "assets/img/logi.png"

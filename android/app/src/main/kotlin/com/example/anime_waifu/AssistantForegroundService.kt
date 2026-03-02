@@ -8,33 +8,41 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import org.json.JSONObject
-import org.json.JSONArray
+import androidx.core.content.ContextCompat
 import java.io.BufferedReader
+import java.io.DataOutputStream
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Locale
 import java.util.Random
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import org.json.JSONArray
+import org.json.JSONObject
 
 class AssistantForegroundService : Service() {
     companion object {
-        private const val CHANNEL_ID = "assistant_mode_channel"
-        private const val MESSAGE_CHANNEL_ID = "assistant_wake_event_channel_dar"
+        private const val CHANNEL_ID = "assistant_mode_channel_silent_v3"
+        private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v3"
         private const val NOTIFICATION_ID = 2002
         private const val TAG = "AssistantService"
+        private const val BACKGROUND_WAKE_ALLOWED = true
         @Volatile
         var isRunning: Boolean = false
             private set
@@ -49,8 +57,32 @@ class AssistantForegroundService : Service() {
     private var isGenerating = false
     private var proactiveEnabled = true
     private var proactiveRandomEnabled = false
+    private var wakeModeEnabled = false
     private lateinit var prefs: SharedPreferences
     private lateinit var flutterPrefs: SharedPreferences
+    private val queueLock = Any()
+    private var wakeRecorder: MediaRecorder? = null
+    private var wakeAudioFile: File? = null
+    @Volatile
+    private var wakeCaptureInProgress = false
+    private var wakeLoopRunning = false
+    private var waitingForCommand = false
+    private var wakeWindowOpenUntilMs = 0L
+    private var commandGenerating = false
+    private val wakePhrases = listOf(
+        "zero two",
+        "zerotwo",
+        "baby girl",
+        "babygirl",
+        "darling"
+    )
+    private val wakeWindowMs = 9000L
+    private val wakeCaptureDurationMs = 2800L
+    private val wakeCapturePauseMs = 500L
+    private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
+    private val wakeTranscriptionModel = "whisper-large-v3-turbo"
+    private val wakeTranscriptionLanguage = "en"
+    private val minWakeAudioBytes = 2048L
     private val proactiveRandomIntervalsMs = longArrayOf(
         10 * 60 * 1000L,
         30 * 60 * 1000L,
@@ -58,6 +90,14 @@ class AssistantForegroundService : Service() {
         2 * 60 * 60 * 1000L,
         5 * 60 * 60 * 1000L
     )
+    private val wakeCaptureRunnable = object : Runnable {
+        override fun run() {
+            if (!isRunning || !wakeModeEnabled || !hasMicPermission()) {
+                return
+            }
+            startWakeCaptureSnippet()
+        }
+    }
 
     private val proactiveRunnable = object : Runnable {
         override fun run() {
@@ -75,7 +115,6 @@ class AssistantForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Toast.makeText(this, "Zero Two Service Active ❤️", Toast.LENGTH_SHORT).show()
         prefs = getSharedPreferences("assistant_prefs", Context.MODE_PRIVATE)
         flutterPrefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         loadConfig()
@@ -95,7 +134,8 @@ class AssistantForegroundService : Service() {
         }
         proactiveEnabled = prefs.getBoolean("proactive_enabled", true)
         proactiveRandomEnabled = prefs.getBoolean("proactive_random_enabled", false)
-        Log.d(TAG, "Config loaded: API_KEY=${!apiKey.isNullOrEmpty()}, proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled")
+        wakeModeEnabled = prefs.getBoolean("wake_mode_enabled", false) && BACKGROUND_WAKE_ALLOWED
+        Log.d(TAG, "Config loaded: API_KEY=${!apiKey.isNullOrEmpty()}, proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled, wakeModeEnabled=$wakeModeEnabled")
     }
 
     private fun saveConfig() {
@@ -106,19 +146,24 @@ class AssistantForegroundService : Service() {
             putLong("interval_ms", intervalMs)
             putBoolean("proactive_enabled", proactiveEnabled)
             putBoolean("proactive_random_enabled", proactiveRandomEnabled)
+            putBoolean("wake_mode_enabled", wakeModeEnabled)
             apply()
         }
-        Log.d(TAG, "Config saved: proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled")
+        Log.d(TAG, "Config saved: proactiveEnabled=$proactiveEnabled, proactiveRandomEnabled=$proactiveRandomEnabled, wakeModeEnabled=$wakeModeEnabled")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val forceBackgroundWake = intent?.getBooleanExtra("FORCE_BACKGROUND_WAKE", false) ?: false
         val action = intent?.action
         if (action == "SET_PROACTIVE_MODE") {
             // Ensure service is promoted and marked running even when this action
             // is the first entry-point (e.g. process/service recreation).
             if (!isRunning) {
-                val notification = buildNotification()
-                startForeground(NOTIFICATION_ID, notification)
+                if (!ensureForegroundStarted()) {
+                    Log.e(TAG, "SET_PROACTIVE_MODE: foreground start denied")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 isRunning = true
             }
 
@@ -134,6 +179,23 @@ class AssistantForegroundService : Service() {
             } else {
                 handler.removeCallbacks(proactiveRunnable)
             }
+            applyWakeRecognizerState()
+            return START_STICKY
+        }
+
+        if (action == "SET_WAKE_MODE") {
+            if (!isRunning) {
+                if (!ensureForegroundStarted()) {
+                    Log.e(TAG, "SET_WAKE_MODE: foreground start denied")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                isRunning = true
+            }
+            wakeModeEnabled = intent.getBooleanExtra("ENABLED", false)
+            wakeModeEnabled = wakeModeEnabled && BACKGROUND_WAKE_ALLOWED
+            saveConfig()
+            applyWakeRecognizerState()
             return START_STICKY
         }
 
@@ -151,8 +213,17 @@ class AssistantForegroundService : Service() {
             loadConfig()
         }
 
-        val notification = buildNotification()
-        startForeground(NOTIFICATION_ID, notification)
+        val shouldResyncFromFlutterPrefs =
+            forceBackgroundWake || (intent == null) || (action == null && newApiKey == null)
+        if (shouldResyncFromFlutterPrefs) {
+            syncBackgroundWakeFromFlutterPrefs()
+        }
+
+        if (!ensureForegroundStarted()) {
+            Log.e(TAG, "onStartCommand: foreground start denied")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         
         // Always update isRunning and ensure timer is active when starting with new config
         if (!isRunning) {
@@ -167,13 +238,43 @@ class AssistantForegroundService : Service() {
             val delayMs = getNextDelayMs()
             handler.postDelayed(proactiveRunnable, delayMs)
         }
+        applyWakeRecognizerState()
         
         return START_STICKY
+    }
+
+    private fun ensureForegroundStarted(requireMicrophone: Boolean = false): Boolean {
+        val notification = buildNotification()
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val fgsType = if (requireMicrophone) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC or
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                } else {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                }
+                startForeground(NOTIFICATION_ID, notification, fgsType)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            true
+        } catch (e: SecurityException) {
+            Log.e(TAG, "startForeground SecurityException: ${e.message}")
+            false
+        } catch (e: RuntimeException) {
+            // Handles ForegroundServiceStartNotAllowedException on newer Android.
+            Log.e(TAG, "startForeground RuntimeException: ${e.message}")
+            false
+        } catch (t: Throwable) {
+            Log.e(TAG, "startForeground failed: ${t.message}")
+            false
+        }
     }
 
     override fun onDestroy() {
         isRunning = false
         handler.removeCallbacks(proactiveRunnable)
+        stopWakeCaptureLoop()
         executor.shutdown()
         super.onDestroy()
     }
@@ -181,36 +282,72 @@ class AssistantForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        syncBackgroundWakeFromFlutterPrefs()
+        applyWakeRecognizerState()
+
         // This is called when the app is swiped away from recent tasks.
         // We restart the service to ensure it keeps running.
         val restartServiceIntent = Intent(applicationContext, this.javaClass)
         restartServiceIntent.setPackage(packageName)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(restartServiceIntent)
-        } else {
-            startService(restartServiceIntent)
+        restartServiceIntent.putExtra("FORCE_BACKGROUND_WAKE", true)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(restartServiceIntent)
+            } else {
+                startService(restartServiceIntent)
+            }
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "Restart service onTaskRemoved blocked: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w(TAG, "Restart service onTaskRemoved failed: ${t.message}")
         }
         super.onTaskRemoved(rootIntent)
     }
 
+    private fun syncBackgroundWakeFromFlutterPrefs() {
+        try {
+            val assistantEnabled = flutterPrefs.getBoolean("flutter.assistant_mode_enabled", true)
+            val wakeWordEnabled = flutterPrefs.getBoolean("flutter.wake_word_enabled", true)
+            val proactiveUserEnabled = flutterPrefs.getBoolean("flutter.proactive_enabled", true)
+            proactiveRandomEnabled = flutterPrefs.getBoolean(
+                "flutter.proactive_random_enabled",
+                proactiveRandomEnabled
+            )
+            val shouldEnableWake = assistantEnabled &&
+                wakeWordEnabled &&
+                hasMicPermission() &&
+                BACKGROUND_WAKE_ALLOWED
+
+            wakeModeEnabled = shouldEnableWake
+            proactiveEnabled = assistantEnabled && proactiveUserEnabled
+            saveConfig()
+            Log.d(
+                TAG,
+                "syncBackgroundWakeFromFlutterPrefs: assistant=$assistantEnabled, proactive=$proactiveEnabled, wakeWord=$wakeWordEnabled, mic=${hasMicPermission()}, wakeModeEnabled=$wakeModeEnabled"
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "syncBackgroundWakeFromFlutterPrefs failed: ${e.message}")
+        }
+    }
+
     private fun buildNotification(): Notification {
-        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, launchIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val pendingIntent = buildLaunchPendingIntent(0)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Zero Two Mode Alpha")
-            .setContentText("Watching over you... ❤️")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("Zero Two Assistant")
+            .setContentText("Watching over you in background")
+            .setSubText("Background service")
+            .setSmallIcon(R.drawable.ic_stat_waifu)
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.logi))
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setColor(0xFFFF5252.toInt())
-            .setPriority(NotificationCompat.PRIORITY_MIN) // Use MIN/LOW for the persistent icon to stay quiet
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
     }
-
     private fun getNextDelayMs(): Long {
         if (proactiveRandomEnabled) {
             return proactiveRandomIntervalsMs[Random().nextInt(proactiveRandomIntervalsMs.size)]
@@ -218,23 +355,7 @@ class AssistantForegroundService : Service() {
         return if (intervalMs > 0) intervalMs else 15000L
     }
 
-    private fun getDarSoundUri(): Uri {
-        val resId = resources.getIdentifier("dar", "raw", packageName)
-        if (resId != 0) {
-            return Uri.parse("android.resource://$packageName/$resId")
-        }
-        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    }
-
-    private fun getDarAudioAttributes(): AudioAttributes {
-        return AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-    }
-
     private fun fetchAndShowProactiveMessage() {
-        handler.post { Toast.makeText(this, "Checking in on you... ❤️", Toast.LENGTH_SHORT).show() }
         val key = apiKey
         val urlStr = apiUrl
         if (key.isNullOrEmpty() || urlStr.isNullOrEmpty()) {
@@ -309,29 +430,40 @@ class AssistantForegroundService : Service() {
     private fun showProactiveAlert(content: String) {
         persistProactiveMessage(content)
         val manager = getSystemService(NotificationManager::class.java)
-        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-        // Use a unique request code to ensure the intent is fresh
-        val pendingIntent = PendingIntent.getActivity(
-            this, Random().nextInt(), launchIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val pendingIntent = buildLaunchPendingIntent(Random().nextInt())
+        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("Zero Two ❤️")
+            .setContentTitle("Zero Two Check-in")
             .setContentText(content)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setAutoCancel(true) // Dismissible
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .setBigContentTitle("Zero Two Check-in")
+                    .bigText(content)
+                    .setSummaryText("Tap to open O2-WAIFU")
+            )
+            .setSmallIcon(R.drawable.ic_stat_waifu)
+            .setLargeIcon(largeIcon)
+            .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setColor(0xFFFF5252.toInt())
+            .setColorized(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(Notification.DEFAULT_ALL)
-            .setSound(getDarSoundUri())
+            .setOnlyAlertOnce(false)
+            .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setTimeoutAfter(25000)
+            .addAction(
+                android.R.drawable.ic_menu_view,
+                "Open App",
+                pendingIntent
+            )
             .build()
         val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         manager?.notify(uniqueId, notification)
     }
+
     private fun pickFallbackMessage(): String {
         val options = listOf(
             "Hey darling, what are you doing now?",
@@ -343,37 +475,403 @@ class AssistantForegroundService : Service() {
     }
 
     private fun persistProactiveMessage(content: String) {
-        try {
-            val flutterPendingKey = "flutter.pending_proactive_messages"
-            val raw = flutterPrefs.getString(
-                flutterPendingKey,
-                prefs.getString("pending_proactive_messages", "[]") ?: "[]"
-            ) ?: "[]"
-            val list = JSONArray(raw)
-            list.put(
-                JSONObject().apply {
-                    put("role", "assistant")
-                    put("content", content)
-                }
-            )
+        persistChatMessage("assistant", content)
+    }
 
-            val maxItems = 50
-            val trimmed = if (list.length() > maxItems) {
-                JSONArray().apply {
-                    val start = list.length() - maxItems
-                    for (i in start until list.length()) {
-                        put(list.get(i))
+    private fun persistChatMessage(role: String, content: String) {
+        try {
+            synchronized(queueLock) {
+                val flutterPendingKey = "flutter.pending_proactive_messages"
+                val legacyKey = "pending_proactive_messages"
+                val rawFlutter = flutterPrefs.getString(flutterPendingKey, "[]") ?: "[]"
+                val rawLegacy = prefs.getString(legacyKey, "[]") ?: "[]"
+
+                val flutterList = try {
+                    JSONArray(rawFlutter)
+                } catch (_: Exception) {
+                    JSONArray()
+                }
+                val legacyList = try {
+                    JSONArray(rawLegacy)
+                } catch (_: Exception) {
+                    JSONArray()
+                }
+                val list = if (flutterList.length() >= legacyList.length()) {
+                    flutterList
+                } else {
+                    legacyList
+                }
+
+                list.put(
+                    JSONObject().apply {
+                        put("role", role)
+                        put("content", content)
+                    }
+                )
+
+                val maxItems = 50
+                val trimmed = if (list.length() > maxItems) {
+                    JSONArray().apply {
+                        val start = list.length() - maxItems
+                        for (i in start until list.length()) {
+                            put(list.get(i))
+                        }
+                    }
+                } else {
+                    list
+                }
+
+                // Keep both storages in sync for backward compatibility.
+                val encoded = trimmed.toString()
+                prefs.edit().putString(legacyKey, encoded).commit()
+                flutterPrefs.edit().putString(flutterPendingKey, encoded).commit()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to persist chat message: ${e.message}")
+        }
+    }
+
+    private fun hasMicPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startWakeCaptureLoop() {
+        if (!isRunning) return
+        if (!hasMicPermission()) {
+            Log.w(TAG, "Mic permission missing - wake loop not started")
+            return
+        }
+        if (wakeLoopRunning) return
+        wakeLoopRunning = true
+        handler.removeCallbacks(wakeCaptureRunnable)
+        handler.post(wakeCaptureRunnable)
+    }
+
+    private fun applyWakeRecognizerState() {
+        if (!isRunning) {
+            stopWakeCaptureLoop()
+            return
+        }
+        if (wakeModeEnabled) {
+            if (!ensureForegroundStarted(requireMicrophone = true)) {
+                Log.w(TAG, "Microphone foreground escalation blocked; disabling wake mode")
+                wakeModeEnabled = false
+                saveConfig()
+                stopWakeCaptureLoop()
+                return
+            }
+            startWakeCaptureLoop()
+        } else {
+            stopWakeCaptureLoop()
+        }
+    }
+
+    private fun stopWakeCaptureLoop() {
+        wakeLoopRunning = false
+        handler.removeCallbacks(wakeCaptureRunnable)
+        wakeCaptureInProgress = false
+        stopWakeRecorderSafely()
+        try {
+            wakeAudioFile?.delete()
+        } catch (_: Exception) {}
+        wakeAudioFile = null
+        waitingForCommand = false
+        wakeWindowOpenUntilMs = 0L
+    }
+
+    private fun startWakeCaptureSnippet() {
+        if (wakeCaptureInProgress) {
+            scheduleNextWakeCapture(300L)
+            return
+        }
+        if (!isRunning || !wakeModeEnabled || !hasMicPermission()) {
+            return
+        }
+
+        val tmp = try {
+            File.createTempFile("wake_", ".m4a", cacheDir)
+        } catch (e: Exception) {
+            Log.e(TAG, "Wake temp file create error: ${e.message}")
+            scheduleNextWakeCapture(1500L)
+            return
+        }
+
+        val recorder = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(this)
+            } else {
+                MediaRecorder()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "MediaRecorder init error: ${e.message}")
+            tmp.delete()
+            scheduleNextWakeCapture(1500L)
+            return
+        }
+
+        try {
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            recorder.setAudioSamplingRate(16000)
+            recorder.setAudioChannels(1)
+            recorder.setAudioEncodingBitRate(64000)
+            recorder.setOutputFile(tmp.absolutePath)
+            recorder.prepare()
+            recorder.start()
+        } catch (e: Exception) {
+            Log.e(TAG, "Wake recorder start error: ${e.message}")
+            try {
+                recorder.release()
+            } catch (_: Exception) {}
+            tmp.delete()
+            scheduleNextWakeCapture(1500L)
+            return
+        }
+
+        wakeCaptureInProgress = true
+        wakeRecorder = recorder
+        wakeAudioFile = tmp
+        handler.postDelayed({ stopWakeCaptureAndProcess() }, wakeCaptureDurationMs)
+    }
+
+    private fun stopWakeCaptureAndProcess() {
+        val file = wakeAudioFile
+        stopWakeRecorderSafely()
+        wakeAudioFile = null
+
+        if (file == null || !file.exists()) {
+            wakeCaptureInProgress = false
+            scheduleNextWakeCapture(wakeCapturePauseMs)
+            return
+        }
+
+        executor.execute {
+            try {
+                if (file.length() >= minWakeAudioBytes) {
+                    val heard = transcribeWakeAudio(file)
+                    if (heard.isNotBlank()) {
+                        handleRecognizedText(heard)
                     }
                 }
-            } else {
-                list
+            } catch (e: Exception) {
+                Log.e(TAG, "Wake capture process error: ${e.message}")
+            } finally {
+                try {
+                    file.delete()
+                } catch (_: Exception) {}
+                wakeCaptureInProgress = false
+                scheduleNextWakeCapture(wakeCapturePauseMs)
+            }
+        }
+    }
+
+    private fun stopWakeRecorderSafely() {
+        val recorder = wakeRecorder ?: return
+        wakeRecorder = null
+        try {
+            recorder.stop()
+        } catch (_: Exception) {}
+        try {
+            recorder.reset()
+        } catch (_: Exception) {}
+        try {
+            recorder.release()
+        } catch (_: Exception) {}
+    }
+
+    private fun scheduleNextWakeCapture(delayMs: Long) {
+        if (!wakeLoopRunning || !isRunning || !wakeModeEnabled) return
+        handler.removeCallbacks(wakeCaptureRunnable)
+        handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(180L))
+    }
+
+    private fun transcribeWakeAudio(file: File): String {
+        val key = apiKey
+        if (key.isNullOrBlank()) return ""
+
+        val boundary = "----ZeroTwoBoundary${System.currentTimeMillis()}"
+        val conn = (URL(wakeTranscriptionUrl).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            setRequestProperty("Authorization", "Bearer $key")
+            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            connectTimeout = 15000
+            readTimeout = 20000
+            doOutput = true
+        }
+
+        DataOutputStream(conn.outputStream).use { out ->
+            fun writeText(value: String) {
+                out.write(value.toByteArray(Charsets.UTF_8))
             }
 
-            // Keep both storages in sync for backward compatibility.
-            prefs.edit().putString("pending_proactive_messages", trimmed.toString()).apply()
-            flutterPrefs.edit().putString(flutterPendingKey, trimmed.toString()).apply()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to persist proactive message: ${e.message}")
+            writeText("--$boundary\r\n")
+            writeText("Content-Disposition: form-data; name=\"model\"\r\n\r\n")
+            writeText("$wakeTranscriptionModel\r\n")
+
+            writeText("--$boundary\r\n")
+            writeText("Content-Disposition: form-data; name=\"language\"\r\n\r\n")
+            writeText("$wakeTranscriptionLanguage\r\n")
+
+            writeText("--$boundary\r\n")
+            writeText("Content-Disposition: form-data; name=\"file\"; filename=\"${file.name}\"\r\n")
+            writeText("Content-Type: audio/mp4\r\n\r\n")
+
+            FileInputStream(file).use { input ->
+                input.copyTo(out)
+            }
+
+            writeText("\r\n--$boundary--\r\n")
+            out.flush()
+        }
+
+        val code = conn.responseCode
+        val responseBody = if (code in 200..299) {
+            BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        } else {
+            BufferedReader(InputStreamReader(conn.errorStream ?: conn.inputStream)).use { it.readText() }
+        }
+
+        if (code != 200) {
+            Log.e(TAG, "Wake transcription failed: $code $responseBody")
+            return ""
+        }
+
+        return try {
+            JSONObject(responseBody).optString("text", "").trim()
+        } catch (_: Exception) {
+            ""
+        }
+    }
+
+    private fun normalizeSpeechText(text: String): String {
+        return text
+            .lowercase(Locale.getDefault())
+            .replace(Regex("[^a-z0-9\\s]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
+
+    private fun containsWakePhrase(normalizedText: String): Boolean {
+        if (normalizedText.isBlank()) return false
+        return wakePhrases.any { normalizedText.contains(it) }
+    }
+
+    private fun stripWakePhrases(normalizedText: String): String {
+        var stripped = normalizedText
+        for (phrase in wakePhrases) {
+            stripped = stripped.replace(phrase, " ")
+        }
+        return stripped.replace(Regex("\\s+"), " ").trim()
+    }
+
+    private fun handleRecognizedText(rawText: String) {
+        val normalized = normalizeSpeechText(rawText)
+        if (normalized.isBlank()) return
+
+        if (waitingForCommand && System.currentTimeMillis() > wakeWindowOpenUntilMs) {
+            waitingForCommand = false
+        }
+
+        if (waitingForCommand) {
+            waitingForCommand = false
+            handleVoiceCommand(normalized)
+            return
+        }
+
+        if (!containsWakePhrase(normalized)) {
+            return
+        }
+
+        val inlineCommand = stripWakePhrases(normalized)
+        if (inlineCommand.isNotBlank()) {
+            handleVoiceCommand(inlineCommand)
+            return
+        }
+
+        waitingForCommand = true
+        wakeWindowOpenUntilMs = System.currentTimeMillis() + wakeWindowMs
+        showProactiveAlert("Wake word detected. Speak what you want to say.")
+    }
+
+    private fun handleVoiceCommand(command: String) {
+        val cleaned = command.trim()
+        if (cleaned.isBlank()) return
+        persistChatMessage("user", cleaned)
+        fetchAndRespondToVoiceCommand(cleaned)
+    }
+
+    private fun fetchAndRespondToVoiceCommand(command: String) {
+        if (commandGenerating) return
+
+        val key = apiKey
+        val urlStr = apiUrl
+        if (key.isNullOrEmpty() || urlStr.isNullOrEmpty()) {
+            Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
+            showProactiveAlert("I need API setup to answer you.")
+            return
+        }
+
+        commandGenerating = true
+        executor.execute {
+            try {
+                val url = URL(urlStr)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Authorization", "Bearer $key")
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.doOutput = true
+
+                val payload = JSONObject().apply {
+                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
+                    val messages = JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("role", "system")
+                            put("content", "You are Zero Two. Keep answers short, clear, and caring.")
+                        })
+                        put(JSONObject().apply {
+                            put("role", "user")
+                            put("content", command)
+                        })
+                    }
+                    put("messages", messages)
+                }
+
+                OutputStreamWriter(conn.outputStream).use { it.write(payload.toString()) }
+                val code = conn.responseCode
+                val body = if (code in 200..299) {
+                    BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+                } else {
+                    BufferedReader(InputStreamReader(conn.errorStream ?: conn.inputStream)).use { it.readText() }
+                }
+
+                val reply = if (code == 200) {
+                    JSONObject(body)
+                        .getJSONArray("choices")
+                        .getJSONObject(0)
+                        .getJSONObject("message")
+                        .getString("content")
+                        .trim()
+                } else {
+                    Log.e(TAG, "Voice command API failed: $code $body")
+                    "I could not reach the server right now."
+                }
+
+                persistChatMessage("assistant", reply)
+                showProactiveAlert(reply)
+            } catch (e: Exception) {
+                Log.e(TAG, "Voice command error: ${e.message}")
+                val fallback = "I had trouble processing that. Try again."
+                persistChatMessage("assistant", fallback)
+                showProactiveAlert(fallback)
+            } finally {
+                commandGenerating = false
+            }
         }
     }
 
@@ -383,7 +881,7 @@ class AssistantForegroundService : Service() {
             .setContentTitle("Zero Two")
             .setContentText(content)
             .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_waifu)
             .setOngoing(true)
             .setColor(0xFFFF5252.toInt())
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -394,29 +892,57 @@ class AssistantForegroundService : Service() {
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java) ?: return
-            
-            // Channel for the persistent service icon
+
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Assistant Mode",
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
             manager.createNotificationChannel(serviceChannel)
 
-            // Channel for the 'WhatsApp style' pop-ups
             val messageChannel = NotificationChannel(
                 MESSAGE_CHANNEL_ID,
-                "Wake Events",
+                "Background Messages",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Caring messages from Zero Two"
+                description = "Check-ins and wake notifications from Zero Two"
                 enableLights(true)
                 lightColor = android.graphics.Color.RED
                 enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-                setSound(getDarSoundUri(), getDarAudioAttributes())
+                setSound(notificationSoundUri(), notificationAudioAttributes())
             }
             manager.createNotificationChannel(messageChannel)
         }
+    }
+
+    private fun buildLaunchPendingIntent(requestCode: Int): PendingIntent? {
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName) ?: return null
+        launchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
+        )
+        return PendingIntent.getActivity(
+            this,
+            requestCode,
+            launchIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun notificationSoundUri(): Uri {
+        return Uri.parse("android.resource://$packageName/${R.raw.dar}")
+    }
+
+    private fun notificationAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
     }
 }

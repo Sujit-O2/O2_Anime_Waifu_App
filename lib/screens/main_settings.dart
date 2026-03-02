@@ -360,7 +360,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'bg.png',
+              'assets/img/bg.png',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -451,7 +451,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
               _packPreview(
                 label: 'App Icon',
                 asset: _appIconImageAsset,
-                customPath: null,
+                customPath: _effectiveAppIconCustomPath,
               ),
               const SizedBox(width: 10),
               _packPreview(
@@ -523,9 +523,29 @@ extension _MainSettingsExtension on _ChatHomePageState {
                 onTap: _useCodeChatImage,
               ),
               _imageActionBtn(
-                label: 'System Chat Image',
+                label: 'Code App Logo',
+                icon: Icons.apps_outlined,
+                onTap: _useCodeAppLogo,
+              ),
+              _imageActionBtn(
+                label: 'Bundled Chat',
                 icon: Icons.image_search_outlined,
-                onTap: () => _pickCustomImage(forChatImage: true),
+                onTap: () => _showBundledImagePicker(forChatImage: true),
+              ),
+              _imageActionBtn(
+                label: 'Bundled Logo',
+                icon: Icons.collections_outlined,
+                onTap: () => _showBundledImagePicker(forChatImage: false),
+              ),
+              _imageActionBtn(
+                label: 'Gallery Chat',
+                icon: Icons.photo_library_outlined,
+                onTap: () => _pickImageFromGallery(forChatImage: true),
+              ),
+              _imageActionBtn(
+                label: 'Gallery Logo',
+                icon: Icons.add_photo_alternate_outlined,
+                onTap: () => _pickImageFromGallery(forChatImage: false),
               ),
               _imageActionBtn(
                 label: 'Reset',
