@@ -35,10 +35,10 @@ class SpeechService {
   bool _hadVoiceSignal = false;
 
   static const Duration _maxListenDuration = Duration(seconds: 20);
-  static const Duration _silenceStopAfter = Duration(seconds: 2);
+  static const Duration _silenceStopAfter = Duration(seconds: 3);
   static const Duration _minListenBeforeSilenceCheck =
       Duration(milliseconds: 900);
-  static const double _voiceThresholdDb = -38.0;
+  static const double _voiceThresholdDb = -45.0;
   static const Duration _transcriptionTimeout = Duration(seconds: 25);
   static const int _minUsefulAudioBytes = 2048;
 

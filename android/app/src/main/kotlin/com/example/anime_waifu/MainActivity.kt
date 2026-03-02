@@ -753,8 +753,7 @@ class MainActivity : FlutterActivity() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setTimeoutAfter(15000)
                 .build()
-            val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-            manager?.notify(uniqueId, wakeNotification)
+            manager?.notify(wakeEventNotificationId, wakeNotification)
         }
     }
 

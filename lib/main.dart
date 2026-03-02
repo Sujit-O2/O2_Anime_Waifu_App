@@ -1409,7 +1409,6 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       await _showBackgroundListeningNotification(
         status: "Listening...",
         transcript: wakeName,
-        pulse: true,
       );
 
       // Background flow:
@@ -1438,7 +1437,6 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           await _showBackgroundListeningNotification(
             status: "Wake word detected",
             transcript: "Open O2-WAIFU to talk",
-            pulse: true,
           );
           _suspendWakeWord = false;
           await _ensureWakeWordActive();

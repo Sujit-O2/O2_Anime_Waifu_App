@@ -23,12 +23,13 @@ class TtsService {
   int _activeSessionId = 0;
   int _playerSessionId = 0;
   int _fallbackSessionId = 0;
+  Timer? _completionGuard;
 
   static const Duration _ttsRequestTimeout = Duration(seconds: 18);
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
+    return dotenv.env['GROQ_API_KEY_VOICE'] ?? dotenv.env['API_KEY'] ?? "";
   }
 
   String get _effectiveVoice {
@@ -67,8 +68,24 @@ class TtsService {
 
   void _notifyComplete(int sessionId) {
     if (sessionId == 0 || sessionId != _activeSessionId) return;
+    _completionGuard?.cancel();
+    _completionGuard = null;
     _activeSessionId = 0;
+    _playerSessionId = 0;
+    _fallbackSessionId = 0;
     onComplete?.call();
+  }
+
+  void _startCompletionGuard(int sessionId, String text) {
+    _completionGuard?.cancel();
+    final estimatedSeconds = (text.length / 14).ceil();
+    final boundedSeconds = estimatedSeconds < 6
+        ? 6
+        : (estimatedSeconds > 28 ? 28 : estimatedSeconds);
+    _completionGuard = Timer(
+      Duration(seconds: boundedSeconds),
+      () => _notifyComplete(sessionId),
+    );
   }
 
   /// Calls Groq TTS API and returns audio bytes
@@ -123,6 +140,7 @@ class TtsService {
 
     final sessionId = ++_sessionCounter;
     _activeSessionId = sessionId;
+    _startCompletionGuard(sessionId, cleanText);
     onStart?.call();
 
     try {
@@ -153,7 +171,7 @@ class TtsService {
       await _flutterTts.setLanguage("en-US");
       await _flutterTts.setPitch(1.0);
       await _flutterTts.setSpeechRate(0.47);
-      
+
       final result = await _flutterTts.speak(text);
       if (result != 1) {
         debugPrint("Fallback TTS speak returned: $result");
@@ -168,22 +186,24 @@ class TtsService {
   /// Stop all audio playback and cleanup
   Future<void> stop() async {
     final previous = _activeSessionId;
+    _completionGuard?.cancel();
+    _completionGuard = null;
     _activeSessionId = 0;
     _playerSessionId = 0;
     _fallbackSessionId = 0;
-    
+
     try {
       await _player.stop();
     } catch (e) {
       debugPrint("TTS player stop error: $e");
     }
-    
+
     try {
       await _flutterTts.stop();
     } catch (e) {
       debugPrint("FlutterTTS stop error: $e");
     }
-    
+
     if (previous != 0) {
       onComplete?.call();
     }

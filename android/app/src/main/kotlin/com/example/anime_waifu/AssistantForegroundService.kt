@@ -41,6 +41,7 @@ class AssistantForegroundService : Service() {
         private const val CHANNEL_ID = "assistant_mode_channel_silent_v3"
         private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v3"
         private const val NOTIFICATION_ID = 2002
+        private const val WAKE_EVENT_NOTIFICATION_ID = 2003
         private const val TAG = "AssistantService"
         private const val BACKGROUND_WAKE_ALLOWED = true
         @Volatile
@@ -77,8 +78,9 @@ class AssistantForegroundService : Service() {
         "darling"
     )
     private val wakeWindowMs = 9000L
-    private val wakeCaptureDurationMs = 2800L
-    private val wakeCapturePauseMs = 500L
+    private val wakeCaptureDurationMs = 1600L
+    private val wakeCapturePauseMs = 220L
+    private val wakeCaptureFastPauseMs = 90L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
     private val wakeTranscriptionModel = "whisper-large-v3-turbo"
     private val wakeTranscriptionLanguage = "en"
@@ -408,26 +410,26 @@ class AssistantForegroundService : Service() {
                         .trim()
 
                     Log.d(TAG, "Successfully fetched message: $content")
-                    showProactiveAlert(content)
+                    showCheckInAlert(content)
                 } else {
                     val errorReader = BufferedReader(InputStreamReader(conn.errorStream ?: conn.inputStream))
                     val errorResponse = errorReader.use { it.readText() }
                     Log.e(TAG, "API Error Response: $errorResponse")
                     
                     // Fallback message if API fails so user knows service is alive
-                    showProactiveAlert(pickFallbackMessage())
+                    showCheckInAlert(pickFallbackMessage())
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching proactive message: ${e.message}")
                 e.printStackTrace()
-                showProactiveAlert(pickFallbackMessage())
+                showCheckInAlert(pickFallbackMessage())
             } finally {
                 isGenerating = false
             }
         }
     }
 
-    private fun showProactiveAlert(content: String) {
+    private fun showCheckInAlert(content: String) {
         persistProactiveMessage(content)
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(Random().nextInt())
@@ -462,6 +464,47 @@ class AssistantForegroundService : Service() {
             .build()
         val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         manager?.notify(uniqueId, notification)
+    }
+
+    private fun showWakeAlert(content: String, pulse: Boolean) {
+        if (!pulse) {
+            updateNotification(content)
+            return
+        }
+
+        val manager = getSystemService(NotificationManager::class.java)
+        val pendingIntent = buildLaunchPendingIntent(WAKE_EVENT_NOTIFICATION_ID)
+        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
+
+        val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
+            .setContentTitle("Zero Two Assistant")
+            .setContentText(content)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .setBigContentTitle("Zero Two Assistant")
+                    .bigText(content)
+                    .setSummaryText("Tap to open O2-WAIFU")
+            )
+            .setSmallIcon(R.drawable.ic_stat_waifu)
+            .setLargeIcon(largeIcon)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setColor(0xFFFF5252.toInt())
+            .setColorized(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setOnlyAlertOnce(false)
+            .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setTimeoutAfter(14000)
+            .addAction(
+                android.R.drawable.ic_menu_view,
+                "Open App",
+                pendingIntent
+            )
+            .build()
+
+        manager?.notify(WAKE_EVENT_NOTIFICATION_ID, notification)
     }
 
     private fun pickFallbackMessage(): String {
@@ -645,7 +688,7 @@ class AssistantForegroundService : Service() {
 
         if (file == null || !file.exists()) {
             wakeCaptureInProgress = false
-            scheduleNextWakeCapture(wakeCapturePauseMs)
+            scheduleNextWakeCapture(nextWakeCaptureDelayMs())
             return
         }
 
@@ -664,7 +707,7 @@ class AssistantForegroundService : Service() {
                     file.delete()
                 } catch (_: Exception) {}
                 wakeCaptureInProgress = false
-                scheduleNextWakeCapture(wakeCapturePauseMs)
+                scheduleNextWakeCapture(nextWakeCaptureDelayMs())
             }
         }
     }
@@ -686,7 +729,11 @@ class AssistantForegroundService : Service() {
     private fun scheduleNextWakeCapture(delayMs: Long) {
         if (!wakeLoopRunning || !isRunning || !wakeModeEnabled) return
         handler.removeCallbacks(wakeCaptureRunnable)
-        handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(180L))
+        handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(80L))
+    }
+
+    private fun nextWakeCaptureDelayMs(): Long {
+        return if (waitingForCommand) wakeCaptureFastPauseMs else wakeCapturePauseMs
     }
 
     private fun transcribeWakeAudio(file: File): String {
@@ -698,8 +745,8 @@ class AssistantForegroundService : Service() {
             requestMethod = "POST"
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            connectTimeout = 15000
-            readTimeout = 20000
+            connectTimeout = 8000
+            readTimeout = 12000
             doOutput = true
         }
 
@@ -794,7 +841,7 @@ class AssistantForegroundService : Service() {
 
         waitingForCommand = true
         wakeWindowOpenUntilMs = System.currentTimeMillis() + wakeWindowMs
-        showProactiveAlert("Wake word detected. Speak what you want to say.")
+        showWakeAlert("Wake word detected. Speak your command now.", pulse = false)
     }
 
     private fun handleVoiceCommand(command: String) {
@@ -811,7 +858,7 @@ class AssistantForegroundService : Service() {
         val urlStr = apiUrl
         if (key.isNullOrEmpty() || urlStr.isNullOrEmpty()) {
             Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
-            showProactiveAlert("I need API setup to answer you.")
+            showWakeAlert("I need API setup to answer you.", pulse = true)
             return
         }
 
@@ -863,12 +910,12 @@ class AssistantForegroundService : Service() {
                 }
 
                 persistChatMessage("assistant", reply)
-                showProactiveAlert(reply)
+                showWakeAlert(reply, pulse = true)
             } catch (e: Exception) {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
-                showProactiveAlert(fallback)
+                showWakeAlert(fallback, pulse = true)
             } finally {
                 commandGenerating = false
             }
@@ -908,7 +955,7 @@ class AssistantForegroundService : Service() {
                 "Background Messages",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Check-ins and wake notifications from Zero Two"
+                description = "Check-ins and wake replies from Zero Two"
                 enableLights(true)
                 lightColor = android.graphics.Color.RED
                 enableVibration(true)
