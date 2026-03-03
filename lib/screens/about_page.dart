@@ -16,7 +16,7 @@ extension _AboutPageExtension on _ChatHomePageState {
         Positioned.fill(
           child: ClipRect(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
               child: Container(
                 color: Colors.black.withOpacity(0.12),
               ),
@@ -30,18 +30,16 @@ extension _AboutPageExtension on _ChatHomePageState {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.34),
-                  Colors.black.withOpacity(0.56),
-                  Colors.black.withOpacity(0.74),
+                  Colors.black.withOpacity(0.20),
+                  Colors.black.withOpacity(0.35),
+                  Colors.black.withOpacity(0.50),
                 ],
               ),
             ),
           ),
         ),
         const Positioned.fill(
-          child: IgnorePointer(
-            child: _AboutLightDropLayer(),
-          ),
+          child: _AboutFireflyLayer(),
         ),
         SafeArea(
           child: Column(
@@ -59,7 +57,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.24),
@@ -87,97 +85,36 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     const SizedBox(height: 12),
                                     _buildStatusGrid(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('ABOUT O2-WAIFU'),
-                                    const SizedBox(height: 12),
-                                    _buildInfoCard(
-                                      'O2-WAIFU is a state-aware voice companion app. '
-                                      'It supports wake-word entry, typed chat, spoken replies, '
-                                      'background check-ins, and local memory persistence.',
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildBullet(
-                                      'One-shot idle behavior on chat screen until next real user message.',
-                                    ),
-                                    _buildBullet(
-                                      'Foreground check-ins outside chat and background check-ins via Android service.',
-                                    ),
-                                    _buildBullet(
-                                      'Notification messages are persisted and drained back into chat history on resume.',
-                                    ),
-                                    _buildBullet(
-                                      'Cloudinary episode player with landscape playback and dynamic source loading.',
-                                    ),
-                                    const SizedBox(height: 28),
                                     _buildSectionTitle('PROJECT INFO'),
                                     const SizedBox(height: 12),
                                     _buildProjectInfoCard(),
                                     const SizedBox(height: 28),
                                     _buildSectionTitle('FEATURE SNAPSHOT'),
                                     const SizedBox(height: 12),
-                                    _buildFeatureSnapshot(),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const FeaturesPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: _buildFeatureSnapshot(),
+                                    ),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle(
-                                        'FEATURE COVERAGE GRAPH'),
+                                    _buildSectionTitle('FEATURE COVERAGE'),
                                     const SizedBox(height: 12),
                                     _buildFeatureCoverageGraph(),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('FULL FEATURE LIST'),
-                                    const SizedBox(height: 12),
-                                    _buildFeatureCatalog(),
                                     const SizedBox(height: 28),
                                     _buildSectionTitle('RUNTIME GRAPH'),
                                     const SizedBox(height: 12),
                                     _buildRuntimeGraph(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('ANIMATED SIGNAL FLOW'),
+                                    _buildSectionTitle('SIGNAL FLOW'),
                                     const SizedBox(height: 12),
                                     _buildSignalFlowGraph(),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('BACKGROUND LOGIC'),
-                                    const SizedBox(height: 12),
-                                    _buildInfoCard(
-                                      'When app is in background and assistant mode is enabled, '
-                                      'the foreground service continues scheduled check-ins. '
-                                      'Wake-word remains active if microphone permission is available. '
-                                      'In background, wake detection sends a notification and keeps wake engine active '
-                                      'instead of starting a full STT session outside the foreground UI.',
-                                    ),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('VIDEO DELIVERY'),
-                                    const SizedBox(height: 12),
-                                    _buildInfoCard(
-                                      'Episode playback can resolve from Cloudinary Admin API using your cloud name, '
-                                      'API key, API secret, and video folder. Source URLs are normalized to transformed '
-                                      'MP4 candidates for stable ExoPlayer playback.',
-                                    ),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('DEV REFERENCE'),
-                                    const SizedBox(height: 12),
-                                    _buildPathTile('lib/main.dart',
-                                        'App lifecycle, chat, wake/STT/TTS orchestration'),
-                                    _buildPathTile(
-                                        'lib/load_wakeword_code.dart',
-                                        'Wake-word service manager (Porcupine)'),
-                                    _buildPathTile(
-                                        'lib/screens/main_notifications.dart',
-                                        'Notifications page and video player'),
-                                    _buildPathTile(
-                                        'lib/services/assistant_mode_service.dart',
-                                        'Android method channel bridge'),
-                                    _buildPathTile(
-                                        'android/app/src/main/kotlin/com/example/anime_waifu/AssistantForegroundService.kt',
-                                        'Background proactive service and notifications'),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('BUILD INFO'),
-                                    const SizedBox(height: 12),
-                                    _buildInfoCard(
-                                      'Idle Timer: ${_idleTimerEnabled ? 'Enabled' : 'Disabled'} '
-                                      '(${_formatCheckInDuration(_idleDurationSeconds)})\n'
-                                      'Check-in Mode: ${_proactiveRandomEnabled ? 'Random' : 'Manual'} '
-                                      '(${_formatCheckInDuration(_proactiveIntervalSeconds)})\n'
-                                      'Assistant Mode: ${_assistantModeEnabled ? 'Enabled' : 'Disabled'}\n'
-                                      'API Status: $_apiKeyStatus',
-                                    ),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -318,59 +255,6 @@ extension _AboutPageExtension on _ChatHomePageState {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.10),
-            Colors.white.withOpacity(0.04),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.16)),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.outfit(
-          color: Colors.white.withOpacity(0.86),
-          fontSize: 13,
-          height: 1.55,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBullet(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 7),
-            child: Icon(Icons.circle, color: Colors.white38, size: 7),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.outfit(
-                color: Colors.white70,
-                fontSize: 12.5,
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -788,212 +672,202 @@ extension _AboutPageExtension on _ChatHomePageState {
 
   Widget _buildSignalFlowGraph() {
     final flows = _aboutSignalFlows();
-    return AnimatedBuilder(
-      animation: _floatController,
-      builder: (_, __) {
-        final t = _floatController.value;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Column(
-            children: [
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _flowNode('WAKE', Icons.hearing, Colors.pinkAccent,
-                      _flowPulse(t, 0.05)),
-                  _flowArrow(_flowPulse(t, 0.15)),
-                  _flowNode(
-                      'STT', Icons.mic, Colors.cyanAccent, _flowPulse(t, 0.25)),
-                  _flowArrow(_flowPulse(t, 0.35)),
-                  _flowNode('LLM', Icons.cloud_outlined, Colors.greenAccent,
-                      _flowPulse(t, 0.45)),
-                  _flowArrow(_flowPulse(t, 0.55)),
-                  _flowNode('TTS', Icons.volume_up_outlined,
-                      Colors.orangeAccent, _flowPulse(t, 0.65)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              for (int i = 0; i < flows.length; i++)
-                _buildFeatureSignalTrack(
-                  flow: flows[i],
-                  index: i,
-                  progress: ((t + ((i * 0.071) % 1.0)) % 1.0).toDouble(),
-                  pulse: _flowPulse(t, (i * 0.071) % 1.0),
-                ),
-              const SizedBox(height: 10),
-              Text(
-                '20 animated lanes: full runtime coverage from wake, input, memory, notifications, media, and diagnostics.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  color: Colors.white54,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  Widget _buildFeatureSignalTrack({
-    required _AboutSignalFlow flow,
-    required int index,
-    required double progress,
-    required double pulse,
-  }) {
-    final borderOpacity = 0.14 + (pulse * 0.26);
+    // Group flows logically for the tree
+    final inputFlows = flows.sublist(0, 4);
+    final brainFlows = flows.sublist(4, 9);
+    final coreFlows = flows.sublist(9, 15);
+    final uiFlows = flows.sublist(15, 20);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 7),
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: flow.color.withOpacity(borderOpacity)),
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Solve pixel overflow on narrow screens
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _flowNode('WAKE', Icons.hearing, Colors.pinkAccent, 0.5),
+                _flowArrow(0.5),
+                _flowNode('STT', Icons.mic, Colors.cyanAccent, 0.5),
+                _flowArrow(0.5),
+                _flowNode('LLM', Icons.cloud_outlined, Colors.greenAccent, 0.5),
+                _flowArrow(0.5),
+                _flowNode(
+                    'TTS', Icons.volume_up_outlined, Colors.orangeAccent, 0.5),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Tree Root
           Row(
             children: [
+              const Icon(Icons.hub_rounded, color: Colors.blueAccent, size: 16),
+              const SizedBox(width: 8),
               Text(
-                '${(index + 1).toString().padLeft(2, '0')}.',
+                'RUNTIME SIGNAL ARCHITECTURE',
                 style: GoogleFonts.outfit(
-                  color: flow.color.withOpacity(0.90),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  flow.title,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white.withOpacity(0.90),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Text(
-                flow.tag,
-                style: GoogleFonts.outfit(
-                  color: flow.color.withOpacity(0.86),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.7,
+                  color: Colors.blueAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            flow.detail,
-            style: GoogleFonts.outfit(
-              color: Colors.white54,
-              fontSize: 10,
-              height: 1.3,
+          const SizedBox(height: 10),
+          _buildFlowGroup(
+              'Input & Sensory Processing', Colors.cyanAccent, inputFlows),
+          _buildFlowGroup(
+              'Neural & Cognitive Routing', Colors.greenAccent, brainFlows),
+          _buildFlowGroup(
+              'Core Services & State Memory', Colors.purpleAccent, coreFlows),
+          _buildFlowGroup(
+              'UI, Media & Presentation', Colors.orangeAccent, uiFlows,
+              isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowGroup(
+      String title, Color color, List<_AboutSignalFlow> flows,
+      {bool isLast = false}) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 22,
+            child: Column(
+              children: [
+                Container(width: 1, height: 18, color: Colors.white24),
+                Container(width: 14, height: 1, color: Colors.white24),
+                if (!isLast)
+                  Expanded(child: Container(width: 1, color: Colors.white24))
+                else
+                  const SizedBox.shrink(),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
-          _buildFeatureSignalBar(
-            color: flow.color,
-            progress: progress,
-            pulse: pulse,
+          const SizedBox(width: 6),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: color,
+                            boxShadow: [
+                              BoxShadow(
+                                  color: color.withOpacity(0.5), blurRadius: 6)
+                            ]),
+                      ),
+                      const SizedBox(width: 7),
+                      Text(title,
+                          style: GoogleFonts.outfit(
+                              color: color,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (int i = 0; i < flows.length; i++)
+                          _buildFlowLeaf(flows[i],
+                              isLast: i == flows.length - 1),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureSignalBar({
-    required Color color,
-    required double progress,
-    required double pulse,
-  }) {
-    const headWidth = 52.0;
-    const barHeight = 7.0;
-    final clampedProgress = progress.clamp(0.0, 1.0).toDouble();
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        final travel = math.max(0.0, constraints.maxWidth - headWidth);
-        final rawX = travel * clampedProgress;
-        final snappedX = _snapToDevicePixel(rawX);
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: SizedBox(
-            height: barHeight,
-            child: Stack(
+  Widget _buildFlowLeaf(_AboutSignalFlow flow, {bool isLast = false}) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 20,
+            child: Column(
               children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.white10,
-                          color.withOpacity(0.15),
-                          Colors.white10,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: snappedX,
-                  child: Container(
-                    width: headWidth,
-                    height: barHeight,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          color.withOpacity(0.96),
-                          color.withOpacity(0.66),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withOpacity(0.44 + (pulse * 0.34)),
-                          blurRadius: 10 + (pulse * 8),
-                          spreadRadius: 0.5 + pulse,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                Container(width: 1, height: 16, color: Colors.white24),
+                Container(width: 10, height: 1, color: Colors.white24),
+                if (!isLast)
+                  Expanded(child: Container(width: 1, color: Colors.white24))
+                else
+                  const SizedBox(height: 8),
               ],
             ),
           ),
-        );
-      },
+          const SizedBox(width: 6),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    Expanded(
+                      child: Text(flow.title,
+                          style: GoogleFonts.outfit(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: flow.color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: flow.color.withOpacity(0.4)),
+                      ),
+                      child: Text(flow.tag,
+                          style: GoogleFonts.outfit(
+                              color: flow.color.withOpacity(0.9),
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                  ]),
+                  const SizedBox(height: 3),
+                  Text(flow.detail,
+                      style: GoogleFonts.outfit(
+                          color: Colors.white54, fontSize: 10, height: 1.3)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  double _snapToDevicePixel(double value) {
-    final dpr = MediaQuery.of(context).devicePixelRatio;
-    if (dpr <= 0) return value;
-    return (value * dpr).roundToDouble() / dpr;
-  }
-
-  double _flowPulse(double progress, double center) {
-    final distance = (progress - center).abs();
-    final wrappedDistance = math.min(distance, 1 - distance);
-    final normalized =
-        (1 - (wrappedDistance / 0.20)).clamp(0.0, 1.0).toDouble();
-    return Curves.easeOut.transform(normalized);
   }
 
   Widget _flowNode(String label, IconData icon, Color color, double pulse) {
@@ -1170,103 +1044,6 @@ extension _AboutPageExtension on _ChatHomePageState {
       ),
     ];
   }
-
-  Widget _buildPathTile(String path, String desc) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.10),
-            Colors.white.withOpacity(0.03),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.16)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            path,
-            softWrap: true,
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            desc,
-            style: GoogleFonts.outfit(
-              color: Colors.white54,
-              fontSize: 11,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCatalog() {
-    final sections = _aboutFeatureSections();
-    return Column(
-      children: [
-        for (int i = 0; i < sections.length; i++)
-          _AboutStaggerReveal(
-            delayMs: i * 70,
-            child: _buildFeatureGroup(sections[i].title, sections[i].items),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildFeatureGroup(String title, List<String> items) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.10),
-            Colors.white.withOpacity(0.03),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.16)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          for (final item in items) _buildBullet(item),
-        ],
-      ),
-    );
-  }
-}
-
-class _AboutFeatureSection {
-  final String title;
-  final List<String> items;
-
-  const _AboutFeatureSection(this.title, this.items);
 }
 
 class _AboutSignalFlow {
@@ -1283,148 +1060,155 @@ class _AboutSignalFlow {
   });
 }
 
-class _AboutStaggerReveal extends StatefulWidget {
-  final Widget child;
-  final int delayMs;
+class _Firefly {
+  double x;
+  double y;
+  double vx;
+  double vy;
+  double size;
+  double alphaBase;
+  Color color;
 
-  const _AboutStaggerReveal({
-    required this.child,
-    this.delayMs = 0,
+  _Firefly({
+    required this.x,
+    required this.y,
+    required this.vx,
+    required this.vy,
+    required this.size,
+    required this.alphaBase,
+    required this.color,
   });
-
-  @override
-  State<_AboutStaggerReveal> createState() => _AboutStaggerRevealState();
 }
 
-class _AboutStaggerRevealState extends State<_AboutStaggerReveal>
+class _AboutFireflyLayer extends StatefulWidget {
+  const _AboutFireflyLayer();
+
+  @override
+  State<_AboutFireflyLayer> createState() => _AboutFireflyLayerState();
+}
+
+class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _opacity;
-  late final Animation<Offset> _slide;
+  final List<_Firefly> _fireflies = [];
+  Offset? _touchPos;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 520),
-    );
-    _opacity = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-    Future<void>.delayed(Duration(milliseconds: widget.delayMs), () {
-      if (mounted) {
-        _controller.forward();
+      duration: const Duration(seconds: 10),
+    )
+      ..addListener(_updateParticles)
+      ..repeat();
+  }
+
+  void _initParticles(Size size) {
+    if (_fireflies.isNotEmpty) return;
+    final random = math.Random();
+    const colors = [
+      Colors.amberAccent,
+      Colors.orangeAccent,
+      Colors.deepOrangeAccent
+    ];
+    for (int i = 0; i < 40; i++) {
+      _fireflies.add(_Firefly(
+        x: random.nextDouble() * size.width,
+        y: random.nextDouble() * size.height,
+        vx: (random.nextDouble() - 0.5) * 0.5,
+        vy: -0.2 - random.nextDouble() * 0.8,
+        size: 1.5 + random.nextDouble() * 2.5,
+        alphaBase: 0.2 + random.nextDouble() * 0.6,
+        color: colors[random.nextInt(colors.length)],
+      ));
+    }
+  }
+
+  void _updateParticles() {
+    if (_fireflies.isEmpty) return;
+    final size = MediaQuery.of(context).size;
+
+    for (final f in _fireflies) {
+      // Normal drift
+      f.x += f.vx;
+      f.y += f.vy;
+
+      // Interaction
+      if (_touchPos != null) {
+        final dx = f.x - _touchPos!.dx;
+        final dy = f.y - _touchPos!.dy;
+        final dist = math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          final force = (120 - dist) / 120;
+          f.x += (dx / dist) * force * 5.0;
+          f.y += (dy / dist) * force * 5.0;
+        }
       }
-    });
-  }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+      // Sine wobble
+      f.x += math.sin(f.y * 0.02) * 0.3;
 
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: SlideTransition(
-        position: _slide,
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class _AboutLightDropLayer extends StatefulWidget {
-  const _AboutLightDropLayer();
-
-  @override
-  State<_AboutLightDropLayer> createState() => _AboutLightDropLayerState();
-}
-
-class _AboutLightDropLayerState extends State<_AboutLightDropLayer>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 9),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (_, __) => CustomPaint(
-        painter: _AboutLightDropPainter(t: _controller.value),
-      ),
-    );
-  }
-}
-
-class _AboutLightDropPainter extends CustomPainter {
-  final double t;
-  const _AboutLightDropPainter({required this.t});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.5);
-    final core = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    const drops = 18;
-    for (int i = 0; i < drops; i++) {
-      final phase = ((i * 37) % 100) / 100.0;
-      final xBase = size.width * (((i * 53) % 100) / 100.0);
-      final x = (xBase + math.sin((t * math.pi * 2) + i) * 14)
-          .clamp(8.0, size.width - 8.0);
-      final y = ((t + phase) * (size.height + 220)) % (size.height + 220) - 120;
-      final length = 28.0 + ((i * 19) % 22);
-      final alpha = 0.16 + (((i * 29) % 70) / 320.0);
-      final width = 1.6 + ((i % 3) * 0.65);
-
-      glow
-        ..strokeWidth = width * 3.1
-        ..color = Colors.cyanAccent.withOpacity(alpha * 0.85);
-      core
-        ..strokeWidth = width
-        ..color = Colors.white.withOpacity(alpha);
-
-      final p1 = Offset(x, y);
-      final p2 = Offset(x, y + length);
-      canvas.drawLine(p1, p2, glow);
-      canvas.drawLine(p1, p2, core);
+      // Wrap around
+      if (f.y < -10) f.y = size.height + 10;
+      if (f.x < -10) f.x = size.width + 10;
+      if (f.x > size.width + 10) f.x = -10;
     }
   }
 
   @override
-  bool shouldRepaint(covariant _AboutLightDropPainter oldDelegate) {
-    return oldDelegate.t != t;
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _initParticles(Size(constraints.maxWidth, constraints.maxHeight));
+        return GestureDetector(
+          onPanUpdate: (d) => _touchPos = d.localPosition,
+          onPanEnd: (_) => _touchPos = null,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (_, __) => CustomPaint(
+              painter: _AboutFireflyPainter(
+                  t: _controller.value, fireflies: _fireflies),
+              size: Size.infinite,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AboutFireflyPainter extends CustomPainter {
+  final double t;
+  final List<_Firefly> fireflies;
+  const _AboutFireflyPainter({required this.t, required this.fireflies});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = Paint()
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+    final core = Paint()..style = PaintingStyle.fill;
+
+    for (final f in fireflies) {
+      // Twinkle effect
+      final twinkle = 0.5 + 0.5 * math.sin((t * math.pi * 20) + (f.x + f.y));
+      final alpha = (f.alphaBase * twinkle).clamp(0.0, 1.0);
+
+      glow.color = f.color.withOpacity(alpha * 0.6);
+      core.color = Colors.white.withOpacity(alpha);
+
+      canvas.drawCircle(Offset(f.x, f.y), f.size * 2, glow);
+      canvas.drawCircle(Offset(f.x, f.y), f.size, core);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AboutFireflyPainter oldDelegate) => true;
 }
