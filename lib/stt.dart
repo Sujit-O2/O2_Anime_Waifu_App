@@ -34,18 +34,18 @@ class SpeechService {
   String? _currentPath;
   bool _hadVoiceSignal = false;
 
-  static const Duration _maxListenDuration = Duration(seconds: 12);
-  static const Duration _silenceStopAfter = Duration(milliseconds: 1400);
+  static const Duration _maxListenDuration = Duration(seconds: 9);
+  static const Duration _silenceStopAfter = Duration(milliseconds: 900);
   static const Duration _minListenBeforeSilenceCheck =
-      Duration(milliseconds: 450);
-  static const Duration _noSpeechAbortAfter = Duration(seconds: 5);
-  static const double _voiceThresholdDb = -42.0;
-  static const Duration _transcriptionTimeout = Duration(seconds: 10);
+      Duration(milliseconds: 300);
+  static const Duration _noSpeechAbortAfter = Duration(milliseconds: 2800);
+  static const double _voiceThresholdDb = -47.0;
+  static const Duration _transcriptionTimeout = Duration(seconds: 9);
   static const int _minUsefulAudioBytes = 2048;
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['API_KEY'] ?? "";
+    return dotenv.env['API_KEY'] ?? (dotenv.env['GROQ_API_KEY_VOICE'] ?? "");
   }
 
   String get _effectiveTranscriptionModel {
@@ -110,21 +110,38 @@ class SpeechService {
         return false;
       }
 
-      final fileName = "stt_${DateTime.now().millisecondsSinceEpoch}.wav";
-      final filePath = "${dir.path}${Platform.pathSeparator}$fileName";
-      _currentPath = filePath;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final m4aPath = "${dir.path}${Platform.pathSeparator}stt_$ts.m4a";
+      final wavPath = "${dir.path}${Platform.pathSeparator}stt_$ts.wav";
+      var activePath = m4aPath;
 
-      await _recorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.wav,
-          sampleRate: 16000,
-          numChannels: 1,
-          bitRate: 96000,
-          echoCancel: true,
-          noiseSuppress: true,
-        ),
-        path: filePath,
-      );
+      try {
+        await _recorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            sampleRate: 16000,
+            numChannels: 1,
+            bitRate: 64000,
+            echoCancel: true,
+            noiseSuppress: true,
+          ),
+          path: m4aPath,
+        );
+      } catch (_) {
+        activePath = wavPath;
+        await _recorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.wav,
+            sampleRate: 16000,
+            numChannels: 1,
+            bitRate: 96000,
+            echoCancel: true,
+            noiseSuppress: true,
+          ),
+          path: wavPath,
+        );
+      }
+      _currentPath = activePath;
 
       listening = true;
       _starting = false;
