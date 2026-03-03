@@ -33,6 +33,110 @@ extension _MainNotificationsExtension on _ChatHomePageState {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
             child: _buildNotificationsHero(),
           ),
+          // ── Stats strip + Quick Actions ─────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                _notifStatChip(
+                  Icons.notifications_rounded,
+                  '${_notifHistory.length}',
+                  'Total',
+                  Colors.pinkAccent,
+                ),
+                const SizedBox(width: 8),
+                _notifStatChip(
+                  Icons.today_rounded,
+                  '${_notifHistory.where((m) {
+                    try {
+                      final ts = m['ts'] ?? '';
+                      final d = DateTime.parse(ts);
+                      final now = DateTime.now();
+                      return d.year == now.year &&
+                          d.month == now.month &&
+                          d.day == now.day;
+                    } catch (_) {
+                      return false;
+                    }
+                  }).length}',
+                  'Today',
+                  Colors.cyanAccent,
+                ),
+                const SizedBox(width: 8),
+                _notifStatChip(
+                  Icons.mark_chat_unread_rounded,
+                  '${_notifHistory.length}',
+                  'Unread',
+                  Colors.orangeAccent,
+                ),
+                const Spacer(),
+                // Quick Test Notification button
+                GestureDetector(
+                  onTap: () {
+                    final testMessages = [
+                      'Miss me, honey? 💕',
+                      'Darling, come back to me~',
+                      'I\'m waiting for you~ 🌸',
+                      'Don\'t forget about me, okay? 😤',
+                    ];
+                    final msg = testMessages[
+                        DateTime.now().millisecond % testMessages.length];
+                    updateState(() {
+                      _notifHistory.insert(0, {
+                        'msg': msg,
+                        'ts': DateTime.now().toIso8601String(),
+                      });
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(children: [
+                          const Icon(Icons.notifications_active,
+                              color: Colors.pinkAccent, size: 16),
+                          const SizedBox(width: 8),
+                          Text('Test notification added!',
+                              style: GoogleFonts.outfit(fontSize: 12)),
+                        ]),
+                        backgroundColor: Colors.black87,
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.pinkAccent.withOpacity(0.3),
+                          Colors.purpleAccent.withOpacity(0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border:
+                          Border.all(color: Colors.pinkAccent.withOpacity(0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bolt_rounded,
+                            color: Colors.pinkAccent, size: 14),
+                        const SizedBox(width: 4),
+                        Text('Quick Test',
+                            style: GoogleFonts.outfit(
+                                color: Colors.pinkAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           Expanded(
             child: _notifHistory.isEmpty
                 ? Center(
@@ -127,6 +231,32 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                     },
                   ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _notifStatChip(
+      IconData icon, String count, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 12),
+          const SizedBox(width: 4),
+          Text(count,
+              style: GoogleFonts.outfit(
+                  color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+          const SizedBox(width: 3),
+          Text(label,
+              style: GoogleFonts.outfit(
+                  color: color.withOpacity(0.7), fontSize: 10)),
         ],
       ),
     );
@@ -808,11 +938,55 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     final activeUrl =
         _activeVideoUrl ?? (item.urls.isNotEmpty ? item.urls.first : null);
     if (activeUrl == null || activeUrl.isEmpty) return;
+
     final startAt = (controller != null && controller.value.isInitialized)
         ? controller.value.position
         : Duration.zero;
     final wasPlaying = controller?.value.isPlaying ?? true;
     await controller?.pause();
+
+    Future<void> openFullscreen(int index, Duration startPosition) async {
+      if (index < 0 || index >= _episodes.length) return;
+      final currentItem = _episodes[index];
+      final u = currentItem.urls.isNotEmpty ? currentItem.urls.first : null;
+      if (u == null || u.isEmpty) return;
+
+      final returnedPosition =
+          await navigator.pushReplacement<Duration, Duration>(
+        MaterialPageRoute(
+          builder: (_) => _LandscapeEpisodePlayerPage(
+            title: currentItem.title,
+            videoUrl: u,
+            startAt: startPosition,
+            onNext: index < _episodes.length - 1
+                ? () {
+                    _loadEpisode(index + 1, autoplay: true);
+                    openFullscreen(index + 1, Duration.zero);
+                  }
+                : null,
+            onPrevious: index > 0
+                ? () {
+                    _loadEpisode(index - 1, autoplay: true);
+                    openFullscreen(index - 1, Duration.zero);
+                  }
+                : null,
+          ),
+        ),
+      );
+
+      if (!mounted ||
+          _controller == null ||
+          !_controller!.value.isInitialized) {
+        return;
+      }
+      if (returnedPosition != null) {
+        await _controller!.seekTo(returnedPosition);
+      }
+      if (wasPlaying) {
+        await _controller!.play();
+      }
+      setState(() {});
+    }
 
     final returnedPosition = await navigator.push<Duration>(
       MaterialPageRoute(
@@ -820,6 +994,18 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
           title: item.title,
           videoUrl: activeUrl,
           startAt: startAt,
+          onNext: _selectedIndex < _episodes.length - 1
+              ? () {
+                  _loadEpisode(_selectedIndex + 1, autoplay: true);
+                  openFullscreen(_selectedIndex + 1, Duration.zero);
+                }
+              : null,
+          onPrevious: _selectedIndex > 0
+              ? () {
+                  _loadEpisode(_selectedIndex - 1, autoplay: true);
+                  openFullscreen(_selectedIndex - 1, Duration.zero);
+                }
+              : null,
         ),
       ),
     );
@@ -977,38 +1163,101 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
           ),
           if (controller != null && controller.value.isInitialized)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Column(
                 children: [
-                  VideoProgressIndicator(
-                    controller,
-                    allowScrubbing: true,
-                    colors: VideoProgressColors(
-                      playedColor: Theme.of(context).primaryColor,
-                      bufferedColor: Colors.white24,
-                      backgroundColor: Colors.white10,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         _fmtTime(position),
                         style: GoogleFonts.outfit(
-                          color: Colors.white70,
+                          color: Theme.of(context).primaryColor,
                           fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(context).primaryColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          '${_controller?.value.playbackSpeed == 1.0 ? "1×" : "${_controller?.value.playbackSpeed.toStringAsFixed(2)}×"}',
+                          style: GoogleFonts.outfit(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                       Text(
-                        _fmtTime(duration),
+                        '-${_fmtTime(duration - position)}  / ${_fmtTime(duration)}',
                         style: GoogleFonts.outfit(
-                          color: Colors.white70,
-                          fontSize: 11,
+                          color: Colors.white38,
+                          fontSize: 10,
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 2),
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 4,
+                      thumbShape:
+                          const RoundSliderThumbShape(enabledThumbRadius: 7),
+                      overlayShape:
+                          const RoundSliderOverlayShape(overlayRadius: 16),
+                      activeTrackColor: Theme.of(context).primaryColor,
+                      inactiveTrackColor: Colors.white12,
+                      thumbColor: Colors.white,
+                      overlayColor:
+                          Theme.of(context).primaryColor.withOpacity(0.2),
+                      valueIndicatorShape:
+                          const PaddleSliderValueIndicatorShape(),
+                      valueIndicatorColor: Theme.of(context).primaryColor,
+                      valueIndicatorTextStyle: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700),
+                      showValueIndicator: ShowValueIndicator.onlyForDiscrete,
+                    ),
+                    child: Slider(
+                      value: duration.inMilliseconds > 0
+                          ? (position.inMilliseconds / duration.inMilliseconds)
+                              .clamp(0.0, 1.0)
+                          : 0.0,
+                      onChanged: (v) {
+                        final target = Duration(
+                            milliseconds:
+                                (v * duration.inMilliseconds).round());
+                        controller.seekTo(target);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 0),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: duration.inMilliseconds > 0 &&
+                              controller.value.buffered.isNotEmpty
+                          ? (controller.value.buffered.last.end.inMilliseconds /
+                                  duration.inMilliseconds)
+                              .clamp(0.0, 1.0)
+                          : 0.0,
+                      backgroundColor: Colors.white.withOpacity(0.06),
+                      color: Colors.white24,
+                      minHeight: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
@@ -1097,11 +1346,15 @@ class _LandscapeEpisodePlayerPage extends StatefulWidget {
   final String title;
   final String videoUrl;
   final Duration startAt;
+  final VoidCallback? onNext;
+  final VoidCallback? onPrevious;
 
   const _LandscapeEpisodePlayerPage({
     required this.title,
     required this.videoUrl,
     required this.startAt,
+    this.onNext,
+    this.onPrevious,
   });
 
   @override
@@ -1121,6 +1374,24 @@ class _LandscapeEpisodePlayerPageState
   double _volumeLevel = 1.0;
   double _brightnessLevel = 1.0;
   static const Duration _controlsAutoHideDelay = Duration(seconds: 2);
+
+  double _playbackSpeed = 1.0;
+  bool _isLocked = false;
+
+  // Gesture State
+  double _panStartX = 0.0;
+  double _panStartY = 0.0;
+  bool _isPanning = false;
+  bool _isVerticalPan = false;
+  bool _isHorizontalPan = false;
+  double _panStartVolume = 1.0;
+  double _panStartBrightness = 1.0;
+  Duration _panStartPosition = Duration.zero;
+
+  // Visual Feedback
+  IconData? _feedbackIcon;
+  String? _feedbackText;
+  Timer? _feedbackTimer;
 
   @override
   void initState() {
@@ -1187,9 +1458,31 @@ class _LandscapeEpisodePlayerPageState
   @override
   void dispose() {
     _cancelControlsHideTimer();
+    _cancelFeedbackTimer();
     _detachController(disposeController: true);
     unawaited(_restorePortraitMode());
     super.dispose();
+  }
+
+  void _cancelFeedbackTimer() {
+    _feedbackTimer?.cancel();
+    _feedbackTimer = null;
+  }
+
+  void _showFeedback(IconData icon, String text) {
+    if (!mounted) return;
+    setState(() {
+      _feedbackIcon = icon;
+      _feedbackText = text;
+    });
+    _cancelFeedbackTimer();
+    _feedbackTimer = Timer(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      setState(() {
+        _feedbackIcon = null;
+        _feedbackText = null;
+      });
+    });
   }
 
   void _cancelControlsHideTimer() {
@@ -1246,6 +1539,16 @@ class _LandscapeEpisodePlayerPageState
     _controllerListener = () {
       if (!mounted) return;
       setState(() {});
+
+      // Auto-play next episode on completion
+      if (_controller != null && _controller!.value.isInitialized) {
+        if (_controller!.value.position >= _controller!.value.duration &&
+            _controller!.value.duration > Duration.zero) {
+          if (widget.onNext != null) {
+            widget.onNext!();
+          }
+        }
+      }
     };
     controller.addListener(_controllerListener!);
   }
@@ -1334,7 +1637,7 @@ class _LandscapeEpisodePlayerPageState
   }
 
   void _setBrightness(double value) {
-    final next = value.clamp(0.25, 1.0).toDouble();
+    final next = value.clamp(0.10, 1.0).toDouble();
     if (mounted) {
       setState(() {
         _brightnessLevel = next;
@@ -1345,38 +1648,121 @@ class _LandscapeEpisodePlayerPageState
     _showControlsTemporarily();
   }
 
-  Widget _buildControlSlider({
-    required IconData icon,
-    required double value,
-    required double min,
-    required double max,
-    required Color activeColor,
-    required ValueChanged<double> onChanged,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white70, size: 16),
-        Expanded(
-          child: SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 2.6,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 11),
-              activeTrackColor: activeColor,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: activeColor,
-              overlayColor: activeColor.withOpacity(0.24),
-            ),
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
+  Future<void> _cyclePlaybackSpeed() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    double nextSpeed = 1.0;
+    if (_playbackSpeed == 1.0) {
+      nextSpeed = 1.25;
+    } else if (_playbackSpeed == 1.25) {
+      nextSpeed = 1.5;
+    } else if (_playbackSpeed == 1.5) {
+      nextSpeed = 2.0;
+    } else {
+      nextSpeed = 1.0;
+    }
+
+    await controller.setPlaybackSpeed(nextSpeed);
+    setState(() {
+      _playbackSpeed = nextSpeed;
+    });
+    _showControlsTemporarily();
+  }
+
+  void _toggleLock() {
+    setState(() {
+      _isLocked = !_isLocked;
+      if (_isLocked) {
+        _showControls = false;
+      } else {
+        _showControlsTemporarily();
+      }
+    });
+  }
+
+  void _handlePanStart(DragStartDetails details) {
+    _panStartX = details.globalPosition.dx;
+    _panStartY = details.globalPosition.dy;
+    _isPanning = true;
+    _isVerticalPan = false;
+    _isHorizontalPan = false;
+
+    _panStartVolume = _volumeLevel;
+    _panStartBrightness = _brightnessLevel;
+    if (_controller != null && _controller!.value.isInitialized) {
+      _panStartPosition = _controller!.value.position;
+    } else {
+      _panStartPosition = Duration.zero;
+    }
+  }
+
+  void _handlePanUpdate(
+      DragUpdateDetails details, double screenWidth, double screenHeight) {
+    if (!_isPanning) return;
+
+    final dx = details.globalPosition.dx - _panStartX;
+    final dy = details.globalPosition.dy - _panStartY;
+
+    if (!_isVerticalPan && !_isHorizontalPan) {
+      if (dx.abs() > 10) {
+        _isHorizontalPan = true;
+      } else if (dy.abs() > 10) {
+        _isVerticalPan = true;
+      } else {
+        return;
+      }
+    }
+
+    if (_isHorizontalPan) {
+      final controller = _controller;
+      if (controller == null || !controller.value.isInitialized) return;
+
+      // Horizontal swipe to seek. Swipe across half the screen = 60 seconds
+      final seekRatio = dx / (screenWidth / 2);
+      final offsetMs = (seekRatio * 60000).toInt();
+      final target = _panStartPosition + Duration(milliseconds: offsetMs);
+      final clampedTarget = Duration(
+        milliseconds: target.inMilliseconds
+            .clamp(0, controller.value.duration.inMilliseconds),
+      );
+
+      controller.seekTo(clampedTarget);
+
+      final sign = dx > 0 ? '+' : '';
+      final secondsStr = (offsetMs / 1000).toStringAsFixed(0);
+      _showFeedback(
+          dx > 0 ? Icons.fast_forward_rounded : Icons.fast_rewind_rounded,
+          '[$sign${secondsStr}s] ${_fmtTime(clampedTarget)}');
+    } else if (_isVerticalPan) {
+      // Swipe up reduces Y, so we subtract dy for positive increase
+      final delta = -(dy / (screenHeight / 2));
+
+      if (_panStartX > screenWidth / 2) {
+        // Right side: Volume
+        final newVolume = (_panStartVolume + delta).clamp(0.0, 1.0);
+        _setVolume(newVolume);
+
+        final pct = (newVolume * 100).toInt();
+        final icon = newVolume == 0
+            ? Icons.volume_off
+            : (newVolume > 0.5 ? Icons.volume_up : Icons.volume_down);
+        _showFeedback(icon, 'Vol $pct%');
+      } else {
+        // Left side: Brightness
+        final newBrightness = (_panStartBrightness + delta).clamp(0.1, 1.0);
+        _setBrightness(newBrightness);
+
+        final pct = (newBrightness * 100).toInt();
+        _showFeedback(Icons.brightness_6, 'Bright $pct%');
+      }
+    }
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    _isPanning = false;
+    _isVerticalPan = false;
+    _isHorizontalPan = false;
   }
 
   @override
@@ -1421,10 +1807,54 @@ class _LandscapeEpisodePlayerPageState
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _toggleControlsVisibility,
+                onTap: _isLocked
+                    ? _showControlsTemporarily
+                    : _toggleControlsVisibility,
+                onHorizontalDragStart: _isLocked ? null : _handlePanStart,
+                onHorizontalDragUpdate: _isLocked
+                    ? null
+                    : (d) => _handlePanUpdate(
+                        d,
+                        MediaQuery.of(context).size.width,
+                        MediaQuery.of(context).size.height),
+                onHorizontalDragEnd: _isLocked ? null : _handlePanEnd,
+                onVerticalDragStart: _isLocked ? null : _handlePanStart,
+                onVerticalDragUpdate: _isLocked
+                    ? null
+                    : (d) => _handlePanUpdate(
+                        d,
+                        MediaQuery.of(context).size.width,
+                        MediaQuery.of(context).size.height),
+                onVerticalDragEnd: _isLocked ? null : _handlePanEnd,
                 child: const SizedBox.expand(),
               ),
             ),
+            if (_feedbackIcon != null && _feedbackText != null)
+              Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.75),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_feedbackIcon, color: Colors.white, size: 48),
+                      const SizedBox(height: 8),
+                      Text(
+                        _feedbackText!,
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             if (_loading)
               const Center(
                 child: CircularProgressIndicator(color: Colors.redAccent),
@@ -1445,30 +1875,31 @@ class _LandscapeEpisodePlayerPageState
                   duration: const Duration(milliseconds: 180),
                   child: Stack(
                     children: [
-                      Positioned(
-                        top: 16,
-                        left: 16,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: _close,
-                              icon:
-                                  const Icon(Icons.close, color: Colors.white),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.title,
-                              style: GoogleFonts.outfit(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                      if (!_isLocked)
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: _close,
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.title,
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      if (hasVideo)
+                      if (hasVideo && !_isLocked)
                         Positioned(
                           left: 14,
                           right: 14,
@@ -1500,16 +1931,20 @@ class _LandscapeEpisodePlayerPageState
                                   Row(
                                     children: [
                                       IconButton(
-                                        onPressed: _togglePlayPause,
-                                        icon: Icon(
-                                          isEnded
-                                              ? Icons.replay_circle_filled
-                                              : (isPlaying
-                                                  ? Icons.pause_circle_filled
-                                                  : Icons.play_circle_fill),
-                                          color: Colors.white,
-                                          size: 28,
-                                        ),
+                                        onPressed: _toggleLock,
+                                        icon: const Icon(
+                                            Icons.lock_open_rounded,
+                                            color: Colors.white70,
+                                            size: 22),
+                                      ),
+                                      const Spacer(),
+                                      IconButton(
+                                        onPressed: widget.onPrevious,
+                                        icon: Icon(Icons.skip_previous_rounded,
+                                            color: widget.onPrevious != null
+                                                ? Colors.white
+                                                : Colors.white24,
+                                            size: 28),
                                       ),
                                       IconButton(
                                         onPressed: () => _seekBy(
@@ -1518,12 +1953,48 @@ class _LandscapeEpisodePlayerPageState
                                             color: Colors.white),
                                       ),
                                       IconButton(
+                                        onPressed: _togglePlayPause,
+                                        icon: Icon(
+                                          isEnded
+                                              ? Icons.replay_circle_filled
+                                              : (isPlaying
+                                                  ? Icons.pause_circle_filled
+                                                  : Icons.play_circle_fill),
+                                          color: Colors.white,
+                                          size: 32,
+                                        ),
+                                      ),
+                                      IconButton(
                                         onPressed: () => _seekBy(
                                             const Duration(seconds: 10)),
                                         icon: const Icon(Icons.forward_10,
                                             color: Colors.white),
                                       ),
+                                      IconButton(
+                                        onPressed: widget.onNext,
+                                        icon: Icon(Icons.skip_next_rounded,
+                                            color: widget.onNext != null
+                                                ? Colors.white
+                                                : Colors.white24,
+                                            size: 28),
+                                      ),
                                       const Spacer(),
+                                      TextButton(
+                                        onPressed: _cyclePlaybackSpeed,
+                                        style: TextButton.styleFrom(
+                                          minimumSize: Size.zero,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                        ),
+                                        child: Text(
+                                          '${_playbackSpeed}x',
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                       Text(
                                         '${_fmtTime(position)} / ${_fmtTime(duration)}',
                                         style: GoogleFonts.outfit(
@@ -1533,38 +2004,26 @@ class _LandscapeEpisodePlayerPageState
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildControlSlider(
-                                          icon: Icons.brightness_6_outlined,
-                                          value: _brightnessLevel,
-                                          min: 0.25,
-                                          max: 1.0,
-                                          activeColor: Colors.amberAccent,
-                                          onChanged: _setBrightness,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _buildControlSlider(
-                                          icon: _volumeLevel <= 0.01
-                                              ? Icons.volume_off_rounded
-                                              : Icons.volume_up_rounded,
-                                          value: _volumeLevel,
-                                          min: 0.0,
-                                          max: 1.0,
-                                          activeColor: Colors.cyanAccent,
-                                          onChanged: (value) {
-                                            unawaited(_setVolume(value));
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
+                            ),
+                          ),
+                        ),
+                      if (hasVideo && _isLocked)
+                        Positioned(
+                          bottom: 30,
+                          right: 40,
+                          child: InkWell(
+                            onTap: _toggleLock,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white30),
+                              ),
+                              child: const Icon(Icons.lock_rounded,
+                                  color: Colors.white, size: 28),
                             ),
                           ),
                         ),

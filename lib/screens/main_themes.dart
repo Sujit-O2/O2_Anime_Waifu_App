@@ -19,11 +19,150 @@ extension _MainThemesExtension on _ChatHomePageState {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: _buildThemesHero(),
           ),
+          // ── Quick controls strip ─────────────────────────────────────────
+          ValueListenableBuilder<AppThemeMode>(
+            valueListenable: themeNotifier,
+            builder: (ctx, currentMode, _) {
+              final td = AppThemes.getTheme(currentMode);
+              final name = AppThemes.getThemeName(currentMode);
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                child: Row(
+                  children: [
+                    // Current theme badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: td.primaryColor.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: td.primaryColor.withOpacity(0.45)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: td.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            name,
+                            style: GoogleFonts.outfit(
+                              color: td.primaryColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Lite Mode chip
+                    GestureDetector(
+                      onTap: _toggleLiteMode,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _liteModeEnabled
+                              ? Colors.greenAccent.withOpacity(0.18)
+                              : Colors.white.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: _liteModeEnabled
+                                  ? Colors.greenAccent.withOpacity(0.45)
+                                  : Colors.white12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _liteModeEnabled
+                                  ? Icons.speed_rounded
+                                  : Icons.auto_awesome,
+                              color: _liteModeEnabled
+                                  ? Colors.greenAccent
+                                  : Colors.white38,
+                              size: 12,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              _liteModeEnabled ? 'Lite' : 'Full FX',
+                              style: GoogleFonts.outfit(
+                                color: _liteModeEnabled
+                                    ? Colors.greenAccent
+                                    : Colors.white38,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Randomize button
+                    GestureDetector(
+                      onTap: () async {
+                        final all = AppThemeMode.values;
+                        final next =
+                            all[DateTime.now().millisecond % all.length];
+                        themeNotifier.value = next;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt('app_theme_index',
+                            AppThemeMode.values.indexOf(next));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.purpleAccent.withOpacity(0.25),
+                              Colors.pinkAccent.withOpacity(0.15),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.purpleAccent.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.shuffle_rounded,
+                                color: Colors.purpleAccent, size: 13),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Randomize',
+                              style: GoogleFonts.outfit(
+                                color: Colors.purpleAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
           Expanded(
             child: ValueListenableBuilder<AppThemeMode>(
               valueListenable: themeNotifier,
               builder: (ctx, currentMode, _) {
                 final tiers = _buildThemeTiers();
+
                 return ListView.builder(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
