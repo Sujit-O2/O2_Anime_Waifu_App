@@ -208,6 +208,58 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     onChanged: (_) => _toggleAssistantMode(),
                     activeColor: Colors.redAccent,
                   ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.verified_user_rounded,
+                          color: Colors.lightGreenAccent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Grant Full Access',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                'Required for reliable background wake + popup mic',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white54,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              unawaited(_grantFullAccessForBackgroundWake()),
+                          child: Text(
+                            'Grant',
+                            style: GoogleFonts.outfit(
+                              color: Colors.lightGreenAccent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   _settingsTile(
                     icon: Icons.mic,
                     label: 'Auto Listen',
@@ -217,6 +269,99 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     value: _isAutoListening,
                     onChanged: (_) => _toggleAutoListen(),
                     activeColor: primary,
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.mic_external_on_rounded,
+                                color: Colors.white70, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'STT Engine',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              _sttEngineMode == 'android'
+                                  ? 'Android'
+                                  : 'Current',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white54,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'STT only. TTS is unchanged.',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white54,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: Text(
+                                'Current (Default)',
+                                style: GoogleFonts.outfit(
+                                  color: _sttEngineMode == 'current'
+                                      ? Colors.black
+                                      : Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              selected: _sttEngineMode == 'current',
+                              selectedColor: Colors.tealAccent,
+                              backgroundColor: Colors.white10,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  unawaited(_setSttEngineMode('current'));
+                                }
+                              },
+                            ),
+                            ChoiceChip(
+                              label: Text(
+                                'Android',
+                                style: GoogleFonts.outfit(
+                                  color: _sttEngineMode == 'android'
+                                      ? Colors.black
+                                      : Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              selected: _sttEngineMode == 'android',
+                              selectedColor: Colors.tealAccent,
+                              backgroundColor: Colors.white10,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  unawaited(_setSttEngineMode('android'));
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   _settingsTile(
                     icon: Icons.record_voice_over_outlined,

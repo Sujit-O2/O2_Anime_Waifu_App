@@ -103,9 +103,9 @@ class AssistantForegroundService : Service() {
         "babygirl",
         "darling"
     )
-    private val wakeWindowMs = 9000L
+    private val wakeWindowMs = 12000L
     private val wakeCaptureDurationMs = 900L
-    private val wakeCommandCaptureDurationMs = 1700L
+    private val wakeCommandCaptureDurationMs = 3000L
     private val wakeCapturePauseMs = 140L
     private val wakeCaptureFastPauseMs = 60L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -337,7 +337,15 @@ class AssistantForegroundService : Service() {
             syncBackgroundWakeFromFlutterPrefs()
         }
 
-        if (!ensureForegroundStarted()) {
+        val requestMicForeground = intent?.getBooleanExtra("REQUIRE_MICROPHONE", false) ?: false
+        val reserveMicForeground = requestMicForeground || shouldReserveMicForeground()
+        val foregroundStarted = if (reserveMicForeground) {
+            ensureForegroundStarted(requireMicrophone = true) || ensureForegroundStarted()
+        } else {
+            ensureForegroundStarted()
+        }
+
+        if (!foregroundStarted) {
             Log.e(TAG, "onStartCommand: foreground start denied")
             stopSelf()
             return START_NOT_STICKY
@@ -448,6 +456,13 @@ class AssistantForegroundService : Service() {
         } catch (e: Exception) {
             Log.w(TAG, "syncBackgroundWakeFromFlutterPrefs failed: ${e.message}")
         }
+    }
+
+    private fun shouldReserveMicForeground(): Boolean {
+        if (!BACKGROUND_WAKE_ALLOWED) return false
+        val assistantEnabled = flutterPrefs.getBoolean("flutter.assistant_mode_enabled", true)
+        val wakeWordEnabled = flutterPrefs.getBoolean("flutter.wake_word_enabled", true)
+        return assistantEnabled && wakeWordEnabled && hasMicPermission()
     }
 
     private fun buildNotification(): Notification {
@@ -596,12 +611,13 @@ class AssistantForegroundService : Service() {
             pulse
         }
         val popupEnabled = isWakePopupEnabled()
-        if (shouldPulse && popupEnabled) {
+        val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
+        if (shouldShowPopup) {
             val autoHideMs = if (
                 content.contains("speak your command", ignoreCase = true) ||
                     content.contains("wake word detected", ignoreCase = true)
             ) {
-                2600L
+                4200L
             } else {
                 4300L
             }
@@ -864,16 +880,19 @@ class AssistantForegroundService : Service() {
                 return
             }
             if (!ensureForegroundStarted(requireMicrophone = true)) {
-                Log.w(TAG, "Microphone foreground escalation blocked; disabling wake mode")
-                wakeModeEnabled = false
-                overlayListenSessionActive = false
-                saveConfig()
+                Log.w(TAG, "Microphone foreground escalation blocked; retrying wake state shortly")
                 stopWakeCaptureLoop()
+                handler.removeCallbacks(wakeCaptureRunnable)
+                handler.postDelayed({
+                    if (isRunning && (wakeModeEnabled || overlayListenSessionActive)) {
+                        applyWakeRecognizerState()
+                    }
+                }, 2500L)
                 return
             }
             startWakeCaptureLoop()
         } else {
-            ensureForegroundStarted(requireMicrophone = false)
+            ensureForegroundStarted(requireMicrophone = shouldReserveMicForeground())
             stopWakeCaptureLoop()
         }
     }

@@ -43,6 +43,7 @@ class MainActivity : FlutterActivity() {
                         val ttsApiKey = call.argument<String>("ttsApiKey")
                         val ttsModel = call.argument<String>("ttsModel")
                         val ttsVoice = call.argument<String>("ttsVoice")
+                        val requireMicrophone = call.argument<Boolean>("requireMicrophone")
                         val intervalMs = when (val arg = call.argument<Any>("intervalMs")) {
                             is Number -> arg.toLong()
                             else -> 15000L
@@ -56,6 +57,7 @@ class MainActivity : FlutterActivity() {
                             ttsApiKey,
                             ttsModel,
                             ttsVoice,
+                            requireMicrophone,
                             intervalMs,
                             proactiveRandomEnabled
                         )
@@ -221,6 +223,7 @@ class MainActivity : FlutterActivity() {
         ttsApiKey: String?,
         ttsModel: String?,
         ttsVoice: String?,
+        requireMicrophone: Boolean?,
         intervalMs: Long?,
         proactiveRandomEnabled: Boolean?
     ) {
@@ -232,6 +235,7 @@ class MainActivity : FlutterActivity() {
             putExtra("TTS_API_KEY", ttsApiKey)
             putExtra("TTS_MODEL", ttsModel)
             putExtra("TTS_VOICE", ttsVoice)
+            if (requireMicrophone != null) putExtra("REQUIRE_MICROPHONE", requireMicrophone)
             if (intervalMs != null) putExtra("INTERVAL_MS", intervalMs)
             if (proactiveRandomEnabled != null) {
                 putExtra("PROACTIVE_RANDOM_ENABLED", proactiveRandomEnabled)

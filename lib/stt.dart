@@ -34,11 +34,11 @@ class SpeechService {
   String? _currentPath;
   bool _hadVoiceSignal = false;
 
-  static const Duration _maxListenDuration = Duration(seconds: 9);
+  static const Duration _maxListenDuration = Duration(seconds: 12);
   static const Duration _silenceStopAfter = Duration(milliseconds: 900);
   static const Duration _minListenBeforeSilenceCheck =
       Duration(milliseconds: 300);
-  static const Duration _noSpeechAbortAfter = Duration(milliseconds: 2800);
+  static const Duration _noSpeechAbortAfter = Duration(milliseconds: 5800);
   static const double _voiceThresholdDb = -47.0;
   static const Duration _transcriptionTimeout = Duration(seconds: 9);
   static const int _minUsefulAudioBytes = 2048;
@@ -230,7 +230,20 @@ class SpeechService {
       return;
     }
 
-    if (!hadVoiceSignal) {
+    var fileLength = 0;
+    try {
+      final f = File(targetPath);
+      if (await f.exists()) {
+        fileLength = await f.length();
+      }
+    } catch (_) {}
+
+    // Amplitude callbacks can be unreliable on some devices/encoders.
+    // If we captured enough audio bytes, still attempt transcription.
+    final skipNoVoiceTranscription =
+        !hadVoiceSignal && fileLength < (_minUsefulAudioBytes * 4);
+
+    if (skipNoVoiceTranscription) {
       if (onResult != null) onResult!("", true);
       try {
         final f = File(targetPath);

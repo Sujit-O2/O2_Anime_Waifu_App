@@ -24,6 +24,7 @@ class AssistantModeService {
     String? ttsVoice,
     int? intervalMs,
     bool? proactiveRandomEnabled,
+    bool? requireMicrophone,
   }) async {
     await _invoke('start', {
       'apiKey': apiKey,
@@ -35,6 +36,7 @@ class AssistantModeService {
       'ttsVoice': ttsVoice,
       'intervalMs': intervalMs,
       'proactiveRandomEnabled': proactiveRandomEnabled,
+      'requireMicrophone': requireMicrophone,
     });
   }
 

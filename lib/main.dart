@@ -12,7 +12,7 @@ import 'package:anime_waifu/load_wakeword_code.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 import 'package:anime_waifu/services/open_app_service.dart';
-import 'package:anime_waifu/stt.dart';
+import 'package:anime_waifu/stt_selector.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
@@ -128,7 +128,7 @@ class _ChatHomePageState extends State<ChatHomePage>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   final List<ChatMessage> _messages = [];
   String _currentVoiceText = "";
-  final SpeechService _speechService = SpeechService();
+  final SelectableSpeechService _speechService = SelectableSpeechService();
   final TtsService _ttsService = TtsService();
   final ApiService _apiService = ApiService();
   final WakeWordService _wakeWordService = WakeWordService();
@@ -253,6 +253,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   String _responseLengthMode = 'Normal'; // 'Short', 'Normal', 'Detailed'
   String _chatTextSize = 'Medium'; // 'Small', 'Medium', 'Large'
   bool _autoScrollChat = true;
+  String _sttEngineMode = 'current';
 
   double get _chatFontSize {
     switch (_chatTextSize) {
@@ -282,6 +283,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   static const String _responseLengthPrefKey = 'response_length_mode_v1';
   static const String _chatTextSizePrefKey = 'chat_text_size_v1';
   static const String _autoScrollChatPrefKey = 'auto_scroll_chat_v1';
+  static const String _sttEngineModePrefKey = 'stt_engine_mode_v1';
   // ── Extra new settings ───────────────────────────────────────────────────
   bool _soundOnWake = true;
   bool _showChatHint = true;
@@ -718,13 +720,15 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   }
 
   Future<void> _onIdleTimeout() async {
-    if (!mounted ||
-        _isDisposed ||
-        !_idleTimerEnabled ||
-        _isBusy ||
-        !_isInForeground ||
-        _navIndex != 0) {
-      return; // ONLY trigger if on chat screen
+    if (!mounted || _isDisposed || !_idleTimerEnabled) {
+      return;
+    }
+
+    // Keep polling if we timed out during a transient state
+    // (not on chat, app not foreground, or currently busy).
+    if (_isBusy || !_isInForeground || _navIndex != 0) {
+      _startIdleTimer();
+      return;
     }
 
     if (_idleConsumedAtUserMessageCount == _userMessageCount) return;
@@ -766,8 +770,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       // Dart-side proactive generation (Check-in) ONLY if on OTHER screens.
       // Background notifications are handled by Native AssistantForegroundService.
       // Chat Screen idleness is handled by _onIdleTimeout.
-      if (_assistantModeEnabled &&
-          _proactiveEnabled &&
+      if (_proactiveEnabled &&
           _isInForeground &&
           _navIndex != 0 && // Only if NOT on chat screen
           !_isBusy) {
@@ -939,6 +942,35 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     }
   }
 
+  Future<bool> _ensureBatteryOptimizationBypass({
+    required bool requestIfNeeded,
+  }) async {
+    if (!Platform.isAndroid) return true;
+    try {
+      var ignoring =
+          await _assistantModeService.isIgnoringBatteryOptimizations();
+      if (!ignoring && requestIfNeeded) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Allow 'Unrestricted battery' for reliable background wake word.",
+              ),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+        await _assistantModeService.requestIgnoreBatteryOptimizations();
+        await Future.delayed(const Duration(milliseconds: 700));
+        ignoring = await _assistantModeService.isIgnoringBatteryOptimizations();
+      }
+      return ignoring;
+    } catch (e) {
+      debugPrint("Battery optimization check error: $e");
+      return false;
+    }
+  }
+
   void _appendMessage(ChatMessage message) {
     if (_isDisposed || !mounted) return;
 
@@ -993,6 +1025,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     final dualVoiceSecondary =
         prefs.getString(_dualVoiceSecondaryPrefKey) ?? "alloy";
     final liteModeEnabled = prefs.getBool(_liteModeEnabledPrefKey) ?? false;
+    final sttEngineRaw = prefs.getString(_sttEngineModePrefKey) ?? 'current';
+    final sttEngine = sttEngineRaw == 'android' ? 'android' : 'current';
     if (mounted) {
       setState(() {
         _wakeWordEnabledByUser = enabled;
@@ -1003,6 +1037,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         _dualVoiceEnabled = dualVoiceEnabled;
         _dualVoiceSecondary = dualVoiceSecondary;
         _liteModeEnabled = liteModeEnabled;
+        _sttEngineMode = sttEngine;
       });
     } else {
       _wakeWordEnabledByUser = enabled;
@@ -1013,13 +1048,17 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       _dualVoiceEnabled = dualVoiceEnabled;
       _dualVoiceSecondary = dualVoiceSecondary;
       _liteModeEnabled = liteModeEnabled;
+      _sttEngineMode = sttEngine;
     }
+    await _speechService.setMode(_sttEngineToMode(_sttEngineMode));
     _syncLiteModeRuntime();
     if (_idleTimerEnabled) {
       _startIdleTimer();
     } else {
       _idleTimer?.cancel();
     }
+    // Ensure proactive scheduler uses loaded saved values immediately.
+    _startProactiveTimer();
   }
 
   void _syncLiteModeRuntime() {
@@ -1032,6 +1071,43 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
     if (!_floatController.isAnimating) {
       _floatController.repeat();
+    }
+  }
+
+  SttEngineMode _sttEngineToMode(String mode) {
+    return mode == 'android' ? SttEngineMode.android : SttEngineMode.current;
+  }
+
+  Future<void> _setSttEngineMode(String mode) async {
+    final safeMode = mode == 'android' ? 'android' : 'current';
+    if (_sttEngineMode == safeMode) return;
+
+    if (_speechService.listening) {
+      await _speechService.cancel();
+    }
+    await _speechService.setMode(_sttEngineToMode(safeMode));
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sttEngineModePrefKey, safeMode);
+
+    if (mounted) {
+      setState(() => _sttEngineMode = safeMode);
+    } else {
+      _sttEngineMode = safeMode;
+    }
+
+    if (!_isAutoListening) {
+      _suspendWakeWord = false;
+      await _ensureWakeWordActive();
+    } else {
+      await _startContinuousListening();
+    }
+
+    if (mounted) {
+      final label = safeMode == 'android' ? 'Android STT' : 'Current STT';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$label selected (TTS unchanged)")),
+      );
     }
   }
 
@@ -1161,9 +1237,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     }
 
     if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached) {
-      _backgroundTransitionTimer =
-          Timer(const Duration(milliseconds: 1200), () {
+      _backgroundTransitionTimer = Timer(const Duration(milliseconds: 450), () {
         if (_isDisposed || _isInForeground) return;
         if (_assistantModeEnabled) {
           unawaited(_enterBackgroundAssistantMode());
@@ -1306,6 +1382,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         ttsVoice: _effectiveTtsVoice,
         intervalMs: _proactiveIntervalSeconds * 1000,
         proactiveRandomEnabled: _proactiveRandomEnabled,
+        requireMicrophone: Platform.isAndroid && _wakeWordEnabledByUser,
       );
       // App is outside foreground now: allow proactive notifications if enabled.
       await _assistantModeService.setProactiveMode(_proactiveEnabled);
@@ -1465,19 +1542,11 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         );
       }
 
-      if (Platform.isAndroid && !_wakePopupEnabled) {
-        await _assistantModeService.showListeningNotification(
-          status: "Wake word detected",
-          transcript: wakeName,
-          pulse: _soundOnWake,
-        );
-      } else {
-        await _showBackgroundListeningNotification(
-          status: "Wake word detected",
-          transcript: wakeName,
-          pulse: _soundOnWake,
-        );
-      }
+      await _showBackgroundListeningNotification(
+        status: "Wake word detected",
+        transcript: wakeName,
+        pulse: _soundOnWake,
+      );
 
       _suspendWakeWord = true;
       await _wakeWordService.stop();
@@ -1787,6 +1856,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         ttsVoice: _effectiveTtsVoice,
         intervalMs: _proactiveInterval.inMilliseconds,
         proactiveRandomEnabled: proactiveRandom,
+        requireMicrophone: Platform.isAndroid && _wakeWordEnabledByUser,
       );
       // App is in foreground during load: proactive OFF
       await _assistantModeService.setProactiveMode(false);
@@ -1807,6 +1877,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       _proactiveEnabled = proactive;
       _proactiveRandomEnabled = proactiveRandom;
     }
+    _startProactiveTimer();
 
     if (enabled) {
       await _initWakeWord();
@@ -1873,21 +1944,27 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     _scrollToBottom();
   }
 
-  void _handleTextInput() {
+  Future<void> _handleTextInput() async {
     final text = _textController.text.trim();
     if (text.isEmpty || _isBusy) return;
 
     _idleBlockedUntilUserMessage = false;
     _resetIdleTimer();
-    unawaited(_stopContinuousListening());
-    unawaited(_ttsService.stop());
+    _suspendWakeWord = true;
+
+    // Typed send should cancel any live mic session without producing a
+    // transcription callback that can queue a duplicate API request.
+    if (_speechService.listening) {
+      await _speechService.cancel();
+    }
+    await _ttsService.stop();
 
     _textController.clear();
     _currentVoiceText = "";
     _appendMessage(ChatMessage(role: "user", content: text));
 
     _scrollToBottom();
-    unawaited(_sendToApiAndReply(readOutReply: false));
+    await _sendToApiAndReply(readOutReply: false);
   }
 
   Future<void> _sendToApiAndReply({required bool readOutReply}) async {
@@ -1937,8 +2014,14 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       }
     } catch (e) {
       debugPrint("API Error: $e");
-      final errorMsg =
-          "CONNECTION_SYNC_ERROR: I'm having trouble reaching the neural cloud, Darling. Please check your link.";
+      final raw = e.toString().toLowerCase();
+      final errorMsg = raw.contains('401')
+          ? "CONNECTION_SYNC_ERROR: API key rejected (401). Check API key in .env / Dev Config."
+          : raw.contains('429')
+              ? "CONNECTION_SYNC_ERROR: Rate limit hit (429). Wait a bit and try again."
+              : raw.contains('timeout')
+                  ? "CONNECTION_SYNC_ERROR: Request timed out. Check internet and API latency."
+                  : "CONNECTION_SYNC_ERROR: I'm having trouble reaching the neural cloud, Darling. Please check your link.";
       _appendMessage(ChatMessage(role: "assistant", content: errorMsg));
     } finally {
       if (mounted) {
@@ -2058,6 +2141,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     setState(() => _idleTimerEnabled = next);
 
     if (next) {
+      // Explicitly re-arm idle flow when user turns timer back on.
+      _idleBlockedUntilUserMessage = false;
+      _idleConsumedAtUserMessageCount = -1;
       _startIdleTimer();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2084,6 +2170,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     } else {
       _idleDurationSeconds = seconds;
     }
+    // Changing interval should restart idle flow from now.
+    _idleBlockedUntilUserMessage = false;
+    _idleConsumedAtUserMessageCount = -1;
     _resetIdleTimer();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('idle_duration_seconds', seconds);
@@ -2121,6 +2210,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         ttsVoice: _effectiveTtsVoice,
         intervalMs: seconds * 1000,
         proactiveRandomEnabled: _proactiveRandomEnabled,
+        requireMicrophone: Platform.isAndroid && _wakeWordEnabledByUser,
       );
     }
   }
@@ -2158,6 +2248,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         ttsVoice: _effectiveTtsVoice,
         intervalMs: _proactiveIntervalSeconds * 1000,
         proactiveRandomEnabled: randomEnabled,
+        requireMicrophone: Platform.isAndroid && _wakeWordEnabledByUser,
       );
       await _assistantModeService
           .setProactiveMode(_proactiveEnabled && !_isInForeground);
@@ -2176,80 +2267,145 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     return "$seconds sec";
   }
 
+  Future<bool> _ensureBackgroundWakeAccess({
+    required bool requireOverlayForPopup,
+    required bool requestIfNeeded,
+  }) async {
+    final hasMic = await _ensureMicPermission(requestIfNeeded: requestIfNeeded);
+    if (!hasMic) return false;
+
+    var canNotifications = await _assistantModeService.canPostNotifications();
+    if (!canNotifications && requestIfNeeded) {
+      await _assistantModeService.requestNotificationPermission();
+      await Future.delayed(const Duration(milliseconds: 700));
+      canNotifications = await _assistantModeService.canPostNotifications();
+    }
+    if (!canNotifications) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Notification permission is required. Opening settings...",
+            ),
+          ),
+        );
+      }
+      await _assistantModeService.openNotificationSettings();
+      return false;
+    }
+
+    if (Platform.isAndroid && requireOverlayForPopup) {
+      var canOverlay = await _assistantModeService.canDrawOverlays();
+      if (!canOverlay && requestIfNeeded) {
+        await _assistantModeService.requestOverlayPermission();
+        await Future.delayed(const Duration(milliseconds: 700));
+        canOverlay = await _assistantModeService.canDrawOverlays();
+      }
+      if (!canOverlay) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Allow 'Display over other apps' for popup mic to work.",
+              ),
+            ),
+          );
+        }
+        return false;
+      }
+    }
+
+    final batteryAllowed = await _ensureBatteryOptimizationBypass(
+        requestIfNeeded: requestIfNeeded);
+    if (!batteryAllowed) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Set Battery to Unrestricted for reliable background wake word.",
+            ),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _refreshAssistantModeRuntime({required bool hasMic}) async {
+    final apiKey = _devApiKeyOverride.trim().isNotEmpty
+        ? _devApiKeyOverride.trim()
+        : (dotenv.env['API_KEY'] ?? "");
+    final apiUrl = _devApiUrlOverride.trim().isNotEmpty
+        ? _devApiUrlOverride.trim()
+        : "https://api.groq.com/openai/v1/chat/completions";
+    final model = _devModelOverride.trim().isNotEmpty
+        ? _devModelOverride.trim()
+        : "moonshotai/kimi-k2-instruct";
+
+    await _assistantModeService.start(
+      apiKey: apiKey,
+      apiUrl: apiUrl,
+      model: model,
+      systemPrompt: _zeroTwoSystemPrompt,
+      ttsApiKey: _effectiveTtsApiKey,
+      ttsModel: _effectiveTtsModel,
+      ttsVoice: _effectiveTtsVoice,
+      intervalMs: _proactiveIntervalSeconds * 1000,
+      proactiveRandomEnabled: _proactiveRandomEnabled,
+      requireMicrophone: Platform.isAndroid && hasMic,
+    );
+    await _assistantModeService
+        .setProactiveMode(_proactiveEnabled && !_isInForeground);
+    await _assistantModeService.setWakeMode(
+      _backgroundWakeEnabled &&
+          !_isInForeground &&
+          hasMic &&
+          _wakeWordEnabledByUser,
+    );
+  }
+
+  Future<void> _grantFullAccessForBackgroundWake() async {
+    final accessOk = await _ensureBackgroundWakeAccess(
+      requireOverlayForPopup: Platform.isAndroid && _wakePopupEnabled,
+      requestIfNeeded: true,
+    );
+    if (!accessOk) return;
+
+    final hasMic = await _ensureMicPermission(requestIfNeeded: false);
+    if (_assistantModeEnabled) {
+      await _refreshAssistantModeRuntime(hasMic: hasMic);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Full access ready. Background wake + popup mic active."),
+          ),
+        );
+      }
+      return;
+    }
+    await _toggleAssistantMode();
+  }
+
   Future<void> _toggleAssistantMode() async {
     final next = !_assistantModeEnabled;
 
     try {
       if (next) {
-        final hasMic = await _ensureMicPermission(requestIfNeeded: true);
-        final canNotifications =
-            await _assistantModeService.canPostNotifications();
-        if (!canNotifications) {
-          await _assistantModeService.requestNotificationPermission();
-          await Future.delayed(const Duration(milliseconds: 600));
-        }
-        final afterRequest = await _assistantModeService.canPostNotifications();
-        if (!afterRequest) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    "Notification permission is required. Opening settings..."),
-              ),
-            );
-          }
-          await _assistantModeService.openNotificationSettings();
-          return;
-        }
-        if (Platform.isAndroid && _wakePopupEnabled) {
-          final canOverlay = await _assistantModeService.canDrawOverlays();
-          if (!canOverlay) {
-            await _assistantModeService.requestOverlayPermission();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Allow 'Display over other apps' for assistant popup.",
-                  ),
-                ),
-              );
-            }
-          }
-        }
+        final accessOk = await _ensureBackgroundWakeAccess(
+          requireOverlayForPopup: Platform.isAndroid && _wakePopupEnabled,
+          requestIfNeeded: true,
+        );
+        if (!accessOk) return;
+        final hasMic = await _ensureMicPermission(requestIfNeeded: false);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('assistant_mode_enabled', true);
 
         // Pass API config to background service for persistence after swipe
-        final apiKey = _devApiKeyOverride.trim().isNotEmpty
-            ? _devApiKeyOverride.trim()
-            : (dotenv.env['API_KEY'] ?? "");
-        final apiUrl = _devApiUrlOverride.trim().isNotEmpty
-            ? _devApiUrlOverride.trim()
-            : "https://api.groq.com/openai/v1/chat/completions";
-        final model = _devModelOverride.trim().isNotEmpty
-            ? _devModelOverride.trim()
-            : "moonshotai/kimi-k2-instruct";
-
-        await _assistantModeService.start(
-          apiKey: apiKey,
-          apiUrl: apiUrl,
-          model: model,
-          systemPrompt: _zeroTwoSystemPrompt,
-          ttsApiKey: _effectiveTtsApiKey,
-          ttsModel: _effectiveTtsModel,
-          ttsVoice: _effectiveTtsVoice,
-          intervalMs: _proactiveIntervalSeconds * 1000,
-          proactiveRandomEnabled: _proactiveRandomEnabled,
-        );
-        // Sync the current proactive mode state
-        await _assistantModeService
-            .setProactiveMode(_proactiveEnabled && !_isInForeground);
-        await _assistantModeService.setWakeMode(
-          _backgroundWakeEnabled &&
-              !_isInForeground &&
-              hasMic &&
-              _wakeWordEnabledByUser,
-        );
+        await _refreshAssistantModeRuntime(hasMic: hasMic);
         await _ensureWakeWordActive();
         await _setBackgroundIdleNotification();
         await _showBackgroundListeningNotification(
@@ -2301,6 +2457,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
     if (!mounted) return;
     setState(() => _proactiveEnabled = next);
+    _startProactiveTimer();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -3616,7 +3773,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                 contentPadding: const EdgeInsets.symmetric(vertical: 11),
                 isDense: true,
               ),
-              onSubmitted: (_) => _handleTextInput(),
+              onSubmitted: (_) => unawaited(_handleTextInput()),
             ),
           ),
           const SizedBox(width: 8),
@@ -3635,7 +3792,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           ),
           const SizedBox(width: 8),
           actionCircle(
-            onTap: _handleTextInput,
+            onTap: () => unawaited(_handleTextInput()),
             icon: Icons.arrow_upward_rounded,
             colors: [
               primary.withOpacity(0.92),
