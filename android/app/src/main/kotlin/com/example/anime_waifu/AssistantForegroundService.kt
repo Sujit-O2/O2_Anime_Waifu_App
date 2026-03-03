@@ -39,6 +39,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class AssistantForegroundService : Service() {
+    private data class PendingCommand(
+        val text: String,
+        val speakReply: Boolean
+    )
+
     companion object {
         private const val CHANNEL_ID = "assistant_mode_channel_silent_v3"
         private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v4"
@@ -69,7 +74,7 @@ class AssistantForegroundService : Service() {
     private lateinit var prefs: SharedPreferences
     private lateinit var flutterPrefs: SharedPreferences
     private val queueLock = Any()
-    private val pendingVoiceCommands = ArrayDeque<String>()
+    private val pendingVoiceCommands = ArrayDeque<PendingCommand>()
     private var wakeRecorder: MediaRecorder? = null
     private var wakeAudioFile: File? = null
     @Volatile
@@ -252,7 +257,8 @@ class AssistantForegroundService : Service() {
                     showWakeAlert("Type a command to continue.", pulse = true)
                     return START_STICKY
                 }
-                handleVoiceCommand(overlayText)
+                // Typed popup input should stay text-only (no TTS playback).
+                handleVoiceCommand(overlayText, speakReply = false)
                 return START_STICKY
             }
 
@@ -582,8 +588,14 @@ class AssistantForegroundService : Service() {
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
+        val wakePrompt = isWakePrompt(content)
+        val shouldPulse = if (wakePrompt) {
+            pulse && isSoundOnWakeEnabled()
+        } else {
+            pulse
+        }
         val popupEnabled = isWakePopupEnabled()
-        if (pulse && popupEnabled) {
+        if (shouldPulse && popupEnabled) {
             val autoHideMs = if (
                 content.contains("speak your command", ignoreCase = true) ||
                     content.contains("wake word detected", ignoreCase = true)
@@ -601,7 +613,7 @@ class AssistantForegroundService : Service() {
         }
 
         val popupVisible = AssistantOverlayController.isShowing()
-        if (!pulse || popupVisible) {
+        if (!shouldPulse || popupVisible) {
             updateNotification(content)
             return
         }
@@ -609,7 +621,7 @@ class AssistantForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(WAKE_EVENT_NOTIFICATION_ID)
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-        val wakeChannel = if (isWakePrompt(content)) {
+        val wakeChannel = if (wakePrompt) {
             WAKE_VIBRATE_CHANNEL_ID
         } else {
             MESSAGE_CHANNEL_ID
@@ -648,6 +660,10 @@ class AssistantForegroundService : Service() {
 
     private fun isWakePopupEnabled(): Boolean {
         return flutterPrefs.getBoolean("flutter.wake_popup_enabled", true)
+    }
+
+    private fun isSoundOnWakeEnabled(): Boolean {
+        return flutterPrefs.getBoolean("flutter.sound_on_wake_v1", true)
     }
 
     private fun isWakePrompt(content: String): Boolean {
@@ -1090,7 +1106,7 @@ class AssistantForegroundService : Service() {
                 stopWakeCaptureLoop()
             }
             syncOverlayStatus("You", normalized, autoHideMs = 16000L)
-            handleVoiceCommand(normalized)
+            handleVoiceCommand(normalized, speakReply = true)
             return
         }
 
@@ -1101,7 +1117,7 @@ class AssistantForegroundService : Service() {
         val inlineCommand = stripWakePhrases(normalized)
         if (inlineCommand.isNotBlank()) {
             syncOverlayStatus("You", inlineCommand, autoHideMs = 16000L)
-            handleVoiceCommand(inlineCommand)
+            handleVoiceCommand(inlineCommand, speakReply = true)
             return
         }
 
@@ -1110,18 +1126,23 @@ class AssistantForegroundService : Service() {
         showWakeAlert("Wake word detected. Speak your command now.", pulse = true)
     }
 
-    private fun handleVoiceCommand(command: String) {
+    private fun handleVoiceCommand(command: String, speakReply: Boolean = true) {
         val cleaned = command.trim()
         if (cleaned.isBlank()) return
         syncOverlayStatus("You", cleaned, autoHideMs = 16000L)
         persistChatMessage("user", cleaned)
-        fetchAndRespondToVoiceCommand(cleaned)
+        fetchAndRespondToVoiceCommand(cleaned, speakReply)
     }
 
-    private fun fetchAndRespondToVoiceCommand(command: String) {
+    private fun fetchAndRespondToVoiceCommand(command: String, speakReply: Boolean) {
         if (commandGenerating) {
             synchronized(queueLock) {
-                pendingVoiceCommands.addLast(command)
+                pendingVoiceCommands.addLast(
+                    PendingCommand(
+                        text = command,
+                        speakReply = speakReply
+                    )
+                )
             }
             syncOverlayStatus(
                 "Queued",
@@ -1139,7 +1160,9 @@ class AssistantForegroundService : Service() {
             persistChatMessage("assistant", setupMissing)
             syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 14000L)
             showWakeAlert(setupMissing, pulse = true)
-            queueWakeReplySpeech(setupMissing)
+            if (speakReply) {
+                queueWakeReplySpeech(setupMissing)
+            }
             return
         }
 
@@ -1190,21 +1213,28 @@ class AssistantForegroundService : Service() {
                 persistChatMessage("assistant", finalReply)
                 syncOverlayStatus("Zero Two", finalReply, autoHideMs = 15000L)
                 showWakeAlert(finalReply, pulse = true)
-                queueWakeReplySpeech(finalReply)
+                if (speakReply) {
+                    queueWakeReplySpeech(finalReply)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
                 syncOverlayStatus("Zero Two", fallback, autoHideMs = 14000L)
                 showWakeAlert(fallback, pulse = true)
-                queueWakeReplySpeech(fallback)
+                if (speakReply) {
+                    queueWakeReplySpeech(fallback)
+                }
             } finally {
                 commandGenerating = false
                 val nextCommand = synchronized(queueLock) {
                     if (pendingVoiceCommands.isEmpty()) null else pendingVoiceCommands.removeFirst()
                 }
-                if (!nextCommand.isNullOrBlank()) {
-                    fetchAndRespondToVoiceCommand(nextCommand)
+                if (nextCommand != null && nextCommand.text.isNotBlank()) {
+                    fetchAndRespondToVoiceCommand(
+                        nextCommand.text,
+                        nextCommand.speakReply
+                    )
                 }
             }
         }
