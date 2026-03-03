@@ -1190,7 +1190,9 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                                   .withOpacity(0.3)),
                         ),
                         child: Text(
-                          _controller?.value.playbackSpeed == 1.0 ? "1×" : (_controller?.value.playbackSpeed.toStringAsFixed(2) ?? "1.00") + "×",
+                          _controller?.value.playbackSpeed == 1.0
+                              ? "1×"
+                              : "${_controller?.value.playbackSpeed.toStringAsFixed(2)}×",
                           style: GoogleFonts.outfit(
                             color: Theme.of(context).primaryColor,
                             fontSize: 10,
