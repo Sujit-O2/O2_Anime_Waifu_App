@@ -332,9 +332,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                         ? 'Plays a sound when wake word triggers'
                         : 'Silent wake activation',
                     value: _soundOnWake,
-                    onChanged: (v) {
-                      updateState(() => _soundOnWake = v);
-                    },
+                    onChanged: (_) => unawaited(_toggleSoundOnWake()),
                     activeColor: Colors.deepOrangeAccent,
                   ),
                   _settingsTile(
@@ -344,9 +342,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                         ? 'Shows a hint in the input box'
                         : 'Clean input field',
                     value: _showChatHint,
-                    onChanged: (v) {
-                      updateState(() => _showChatHint = v);
-                    },
+                    onChanged: (_) => unawaited(_toggleShowChatHint()),
                     activeColor: Colors.yellowAccent,
                   ),
                   // Wallpaper Brightness slider
@@ -384,8 +380,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           max: 1.0,
                           divisions: 20,
                           onChanged: (v) {
-                            updateState(() => _wallpaperBrightness = v);
+                            unawaited(
+                              _setWallpaperBrightness(v, persist: false),
+                            );
                           },
+                          onChangeEnd: (v) =>
+                              unawaited(_setWallpaperBrightness(v)),
                           activeColor: Colors.amberAccent,
                           inactiveColor: Colors.white12,
                         ),
