@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="assistant_popup_shortcut"
+        android:enabled="true"
+        android:icon="@drawable/ic_stat_waifu"
+        android:shortcutShortLabel="@string/shortcut_assistant_short_label"
+        android:shortcutLongLabel="@string/shortcut_assistant_long_label">
+        <intent
+            android:action="com.example.anime_waifu.ACTION_ASSISTANT_POPUP_SHORTCUT"
+            android:targetPackage="com.example.anime_waifu"
+            android:targetClass="com.example.anime_waifu.AssistantShortcutActivity" />
+    </shortcut>
+</shortcuts>
