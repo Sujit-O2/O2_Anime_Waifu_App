@@ -18,6 +18,10 @@ class AssistantModeService {
     String? apiKey,
     String? apiUrl,
     String? model,
+    String? systemPrompt,
+    String? ttsApiKey,
+    String? ttsModel,
+    String? ttsVoice,
     int? intervalMs,
     bool? proactiveRandomEnabled,
   }) async {
@@ -25,6 +29,10 @@ class AssistantModeService {
       'apiKey': apiKey,
       'apiUrl': apiUrl,
       'model': model,
+      'systemPrompt': systemPrompt,
+      'ttsApiKey': ttsApiKey,
+      'ttsModel': ttsModel,
+      'ttsVoice': ttsVoice,
       'intervalMs': intervalMs,
       'proactiveRandomEnabled': proactiveRandomEnabled,
     });

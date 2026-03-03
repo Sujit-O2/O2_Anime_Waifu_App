@@ -1,7 +1,8 @@
 part of '../main.dart';
 
 extension _MainDebugExtension on _ChatHomePageState {
-// —— Page: Debug ————————————————————————————————————————————————————————————————
+// ── Page: Debug ──────────────────────────────────────────────────────────────
+
   Widget _buildDebugPage() {
     return SafeArea(
       child: Column(
@@ -18,7 +19,7 @@ extension _MainDebugExtension on _ChatHomePageState {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Text('Component health status',
+            child: Text('All features — live status & quick tests',
                 style: GoogleFonts.outfit(color: Colors.white38, fontSize: 12)),
           ),
           Padding(
@@ -31,10 +32,14 @@ extension _MainDebugExtension on _ChatHomePageState {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── FEATURE STATUS ──────────────────────────────────────────
+                  _debugSectionLabel('FEATURE STATUS'),
+                  const SizedBox(height: 10),
+
                   _debugStatusCard(
                     label: 'Wake Word Engine',
                     status: _wakeWordActivationLimitHit
-                        ? 'Activation Limit Hit'
+                        ? 'Limit Hit'
                         : _wakeWordReady
                             ? 'Ready'
                             : _wakeInitInProgress
@@ -48,8 +53,10 @@ extension _MainDebugExtension on _ChatHomePageState {
                                 ? Colors.orangeAccent
                                 : Colors.grey,
                     icon: Icons.hearing,
-                    extra: 'Running: ${_wakeWordService.isRunning}',
+                    extra:
+                        'Enabled: $_wakeWordEnabledByUser | Running: ${_wakeWordService.isRunning}',
                   ),
+
                   _debugStatusCard(
                     label: 'STT (Microphone)',
                     status: _speechService.listening ? 'Listening' : 'Idle',
@@ -57,26 +64,30 @@ extension _MainDebugExtension on _ChatHomePageState {
                         ? Colors.greenAccent
                         : Colors.white54,
                     icon: Icons.mic,
-                    extra: 'Auto Listen: $_isAutoListening',
+                    extra:
+                        'Auto Listen: $_isAutoListening | Manual: $_isManualMicSession',
                   ),
+
                   _debugStatusCard(
                     label: 'TTS (Voice)',
                     status: _isSpeaking ? 'Speaking' : 'Idle',
                     color: _isSpeaking ? Colors.orangeAccent : Colors.white54,
                     icon: Icons.volume_up_outlined,
                     extra:
-                        'Voice: ${_devTtsVoiceOverride.isNotEmpty ? _devTtsVoiceOverride : "lulwa"}',
+                        'Voice: ${_devTtsVoiceOverride.isNotEmpty ? _devTtsVoiceOverride : "aisha"} | Dual: $_dualVoiceEnabled',
                   ),
+
                   _debugStatusCard(
-                    label: 'API',
+                    label: 'AI / API',
                     status: _apiKeyStatus,
                     color: _apiKeyStatus == 'Systems Online'
                         ? Colors.greenAccent
                         : Colors.redAccent,
                     icon: Icons.cloud_outlined,
                     extra:
-                        'Model: ${_devModelOverride.isNotEmpty ? _devModelOverride : "kimi-k2-instruct"}',
+                        'Model: ${_devModelOverride.isNotEmpty ? _devModelOverride : "kimi-k2-instruct"} | Busy: $_isBusy',
                   ),
+
                   _debugStatusCard(
                     label: 'Notifications',
                     status: _notificationsAllowed ? 'Allowed' : 'Blocked',
@@ -85,8 +96,9 @@ extension _MainDebugExtension on _ChatHomePageState {
                         : Colors.redAccent,
                     icon: Icons.notifications_active_outlined,
                     extra:
-                        'Permission status: ${_notificationsAllowed ? "Granted" : "Denied"}',
+                        'In-App: ${_showInAppNotif ? "Visible" : "Hidden"} | History: ${_notifHistory.length} items',
                   ),
+
                   _debugStatusCard(
                     label: 'Background Assistant',
                     status: _assistantModeEnabled ? 'Running' : 'Stopped',
@@ -95,16 +107,19 @@ extension _MainDebugExtension on _ChatHomePageState {
                         : Colors.white38,
                     icon: Icons.hearing_outlined,
                     extra:
-                        'Wife Mode: $_proactiveEnabled | Foreground: $_isInForeground',
+                        'Foreground: $_isInForeground | Wake BG: $_backgroundWakeEnabled',
                   ),
+
                   _debugStatusCard(
-                    label: 'Chat Memory',
-                    status:
-                        '${_messages.length} / ${_ChatHomePageState._maxConversationMessages} msgs',
-                    color: _messages.isEmpty ? Colors.grey : Colors.greenAccent,
-                    icon: Icons.chat_bubble_outline,
-                    extra: 'Notif history: ${_notifHistory.length} items',
+                    label: 'Wife Mode (Proactive)',
+                    status: _proactiveEnabled ? 'Active' : 'Disabled',
+                    color:
+                        _proactiveEnabled ? Colors.pinkAccent : Colors.white38,
+                    icon: Icons.favorite,
+                    extra:
+                        'Mode: ${_proactiveRandomEnabled ? "Random" : "Manual interval ${_proactiveIntervalSeconds}s"}',
                   ),
+
                   _debugStatusCard(
                     label: 'Idle Timer',
                     status:
@@ -114,41 +129,240 @@ extension _MainDebugExtension on _ChatHomePageState {
                         : Colors.white38,
                     icon: Icons.timer_outlined,
                     extra:
-                        'Idle: ${_idleDurationSeconds}s | Check-in: ${_proactiveIntervalSeconds}s',
+                        'Timeout: ${_idleDurationSeconds}s | Enabled: $_idleTimerEnabled | Blocked: $_idleBlockedUntilUserMessage',
                   ),
+
+                  _debugStatusCard(
+                    label: 'Dual Voice',
+                    status: _dualVoiceEnabled ? 'Enabled' : 'Disabled',
+                    color:
+                        _dualVoiceEnabled ? Colors.cyanAccent : Colors.white38,
+                    icon: Icons.record_voice_over_outlined,
+                    extra:
+                        'Secondary: $_dualVoiceSecondary | Turn: $_dualVoiceTurn',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Lite Mode',
+                    status: _liteModeEnabled ? 'On' : 'Off',
+                    color:
+                        _liteModeEnabled ? Colors.amberAccent : Colors.white38,
+                    icon: Icons.speed_outlined,
+                    extra: 'Reduces animations and background effects',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Image Pack',
+                    status: _imagePackLabel,
+                    color: Colors.purpleAccent,
+                    icon: Icons.image_outlined,
+                    extra:
+                        'Custom chat: ${_chatImageFromSystem ? "Yes" : "No"} | Custom icon: ${_appIconFromCustom ? "Yes" : "No"}',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Chat Memory',
+                    status:
+                        '${_messages.length} / ${_ChatHomePageState._maxConversationMessages} msgs',
+                    color: _messages.isEmpty ? Colors.grey : Colors.greenAccent,
+                    icon: Icons.chat_bubble_outline,
+                    extra:
+                        'User msgs: $_userMessageCount | Payload cap: ${_ChatHomePageState._maxPayloadMessages}',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Wake Word Suspend',
+                    status: _suspendWakeWord ? 'Suspended' : 'Running',
+                    color: _suspendWakeWord
+                        ? Colors.orangeAccent
+                        : Colors.greenAccent,
+                    icon: Icons.pause_circle_outline,
+                    extra:
+                        'Pending reply: $_pendingReplyDispatch | Needs voice: $_pendingReplyNeedsVoice',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'App Lifecycle',
+                    status: _appLifecycleState.name.toUpperCase(),
+                    color: _appLifecycleState == AppLifecycleState.resumed
+                        ? Colors.greenAccent
+                        : Colors.orangeAccent,
+                    icon: Icons.phone_android_outlined,
+                    extra: 'Nav tab index: $_navIndex',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'New Settings',
+                    status:
+                        'Timestamps: ${_showMessageTimestamps ? "On" : "Off"}',
+                    color: _showMessageTimestamps
+                        ? Colors.greenAccent
+                        : Colors.white38,
+                    icon: Icons.access_time_outlined,
+                    extra:
+                        'Haptic: ${_hapticFeedbackEnabled ? "On" : "Off"} | Auto-Scroll: ${_autoScrollChat ? "On" : "Off"}',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Response Length',
+                    status: _responseLengthMode,
+                    color: _responseLengthMode == 'Detailed'
+                        ? Colors.cyanAccent
+                        : _responseLengthMode == 'Short'
+                            ? Colors.amberAccent
+                            : Colors.white54,
+                    icon: Icons.short_text,
+                    extra:
+                        'Chat Text Size: $_chatTextSize | Mode wired into system prompt',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Dev Config Overrides',
+                    status: (_devApiKeyOverride.isNotEmpty ||
+                            _devModelOverride.isNotEmpty ||
+                            _devApiUrlOverride.isNotEmpty ||
+                            _devSystemQuery.isNotEmpty)
+                        ? 'Overrides Active'
+                        : 'Using Defaults',
+                    color: (_devApiKeyOverride.isNotEmpty ||
+                            _devModelOverride.isNotEmpty ||
+                            _devApiUrlOverride.isNotEmpty ||
+                            _devSystemQuery.isNotEmpty)
+                        ? Colors.orangeAccent
+                        : Colors.white38,
+                    icon: Icons.tune_rounded,
+                    extra:
+                        'TTS: ${_devTtsVoiceOverride.isNotEmpty ? _devTtsVoiceOverride : "default"} | Wake: ${_devWakeKeyOverride.isNotEmpty ? "Custom" : "Default"}',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Video Player',
+                    status: 'Available',
+                    color: Colors.tealAccent,
+                    icon: Icons.play_circle_outline,
+                    extra:
+                        'Episodes: ready | Landscape: supported | Speed cycle: enabled',
+                  ),
+
                   const SizedBox(height: 20),
-                  Text('ACTIONS',
-                      style: GoogleFonts.outfit(
-                          color: Colors.white38,
-                          fontSize: 11,
-                          letterSpacing: 2)),
+
+                  // ── ACTION BUTTONS ──────────────────────────────────────────
+                  _debugSectionLabel('TESTS & ACTIONS'),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      // Wake Word
                       _debugActionBtn('Test Wake', Icons.record_voice_over,
                           () => _testTriggerWakeWord()),
+                      _debugActionBtn(
+                          'Reinit Wake', Icons.refresh, () => _initWakeWord()),
+                      _debugActionBtn('Wake Debug', Icons.bug_report,
+                          () => Navigator.pushNamed(context, '/wake-debug')),
+
+                      // TTS
                       _debugActionBtn(
                           'Test TTS',
                           Icons.volume_up,
                           () => _speakAssistantText(
-                              "Hello Darling, systems online!")),
-                      _debugActionBtn('Test Wife Msg', Icons.favorite,
-                          () => _sendProactiveBackgroundNotification()),
+                              "Hello Darling, all systems online!")),
+                      _debugActionBtn('Stop TTS', Icons.volume_off,
+                          () => _ttsService.stop()),
+
+                      // API
                       _debugActionBtn('Check API', Icons.cloud_done_outlined,
                           () async {
                         _checkApiKey();
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('API Status: $_apiKeyStatus'),
+                              content: Text('API: $_apiKeyStatus'),
                               duration: const Duration(seconds: 2)));
                         }
                       }),
+
+                      // Notifications
+                      _debugActionBtn('Test Notif', Icons.notifications_active,
+                          () => _sendProactiveBackgroundNotification()),
                       _debugActionBtn(
-                          'Reinit Wake', Icons.refresh, () => _initWakeWord()),
-                      _debugActionBtn('Wake Debug', Icons.bug_report,
-                          () => Navigator.pushNamed(context, '/wake-debug')),
+                          'Show In-App Notif',
+                          Icons.announcement_outlined,
+                          () => _showInAppNotificationPopup(
+                              "Test in-app notification!")),
+                      _debugActionBtn(
+                          'Clear Notif History',
+                          Icons.delete_sweep_outlined,
+                          () => _clearNotifHistory()),
+
+                      // Idle / Proactive
+                      _debugActionBtn('Send Wife Msg', Icons.favorite,
+                          () => _sendProactiveBackgroundNotification()),
+                      _debugActionBtn(
+                          'Trigger Idle', Icons.timer, () => _onIdleTimeout()),
+
+                      // Memory
+                      _debugActionBtn('Clear Chat', Icons.delete_outline,
+                          () => _clearMemory()),
+
+                      // New Settings Quick Actions
+                      _debugActionBtn('Toggle Timestamps', Icons.access_time,
+                          () => _toggleShowTimestamps()),
+                      _debugActionBtn('Toggle Haptics', Icons.vibration,
+                          () => _toggleHapticFeedback()),
+                      _debugActionBtn(
+                          'Toggle Auto-Scroll',
+                          Icons.vertical_align_bottom,
+                          () => _toggleAutoScrollChat()),
+                      _debugActionBtn('Cycle Response Length', Icons.short_text,
+                          () {
+                        final modes = ['Normal', 'Short', 'Detailed'];
+                        final next = modes[
+                            (modes.indexOf(_responseLengthMode) + 1) %
+                                modes.length];
+                        _setResponseLength(next);
+                      }),
+                      _debugActionBtn('Cycle Text Size', Icons.text_fields, () {
+                        final sizes = ['Medium', 'Small', 'Large'];
+                        final next = sizes[
+                            (sizes.indexOf(_chatTextSize) + 1) % sizes.length];
+                        _setChatTextSize(next);
+                      }),
+                      _debugActionBtn('Quick Test Notif', Icons.bolt_rounded,
+                          () {
+                        updateState(() {
+                          _notifHistory.insert(0, {
+                            'msg': 'Debug test: System check-in complete! 💕',
+                            'ts': DateTime.now().toIso8601String(),
+                          });
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Test notification injected'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }),
+                      _debugActionBtn(
+                          'Reset Dev Config', Icons.settings_backup_restore,
+                          () {
+                        updateState(() {
+                          _devApiKeyOverride = '';
+                          _devModelOverride = '';
+                          _devApiUrlOverride = '';
+                          _devSystemQuery = '';
+                          _devTtsVoiceOverride = '';
+                          _devTtsApiKeyOverride = '';
+                          _devTtsModelOverride = '';
+                          _devWakeKeyOverride = '';
+                          _devMailJetApiOverride = '';
+                          _devMailJetSecOverride = '';
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Dev config reset to defaults'),
+                              duration: Duration(seconds: 2)),
+                        );
+                      }),
                     ],
                   ),
                 ],
@@ -160,12 +374,18 @@ extension _MainDebugExtension on _ChatHomePageState {
     );
   }
 
+  Widget _debugSectionLabel(String label) {
+    return Text(label,
+        style: GoogleFonts.outfit(
+            color: Colors.white38, fontSize: 11, letterSpacing: 2));
+  }
+
   Widget _buildDebugHero() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
         width: double.infinity,
-        height: 250,
+        height: 200,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -183,7 +403,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.65),
                   ],
                 ),
               ),
@@ -203,7 +423,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                     ),
                   ),
                   Text(
-                    'Realtime engine state and quick tests',
+                    '${_messages.length} msgs · ${_notifHistory.length} notifs · API: $_apiKeyStatus',
                     style: GoogleFonts.outfit(
                       color: Colors.white70,
                       fontSize: 11,

@@ -38,6 +38,16 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     activeColor: primary,
                   ),
                   _settingsTile(
+                    icon: Icons.speed_rounded,
+                    label: 'Lite Mode',
+                    subtitle: _liteModeEnabled
+                        ? 'Performance mode with reduced effects'
+                        : 'Full visual effects',
+                    value: _liteModeEnabled,
+                    onChanged: (_) => _toggleLiteMode(),
+                    activeColor: Colors.lightGreenAccent,
+                  ),
+                  _settingsTile(
                     icon: Icons.favorite,
                     label: 'Wife Mode',
                     subtitle: _proactiveEnabled
@@ -267,7 +277,265 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                   const SizedBox(height: 8),
                   _buildImagePackCard(),
+                  const SizedBox(height: 16),
+                  // ── NEW USER SETTINGS ─────────────────────────────────────
+                  Text('CHAT & DISPLAY',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  _settingsTile(
+                    icon: Icons.access_time_rounded,
+                    label: 'Message Timestamps',
+                    subtitle: _showMessageTimestamps
+                        ? 'Time shown on each message'
+                        : 'Timestamps hidden',
+                    value: _showMessageTimestamps,
+                    onChanged: (_) => _toggleShowTimestamps(),
+                    activeColor: Colors.tealAccent,
+                  ),
+                  _settingsTile(
+                    icon: Icons.vibration_rounded,
+                    label: 'Haptic Feedback',
+                    subtitle: _hapticFeedbackEnabled
+                        ? 'Vibrates on AI response & wake'
+                        : 'No vibration',
+                    value: _hapticFeedbackEnabled,
+                    onChanged: (_) => _toggleHapticFeedback(),
+                    activeColor: Colors.purpleAccent,
+                  ),
+                  _settingsTile(
+                    icon: Icons.picture_in_picture_alt_rounded,
+                    label: 'Wake Popup',
+                    subtitle: _wakePopupEnabled
+                        ? 'Shows popup on wake detection'
+                        : 'Popup off, notification only',
+                    value: _wakePopupEnabled,
+                    onChanged: (_) => _toggleWakePopupEnabled(),
+                    activeColor: Colors.cyanAccent,
+                  ),
+                  _settingsTile(
+                    icon: Icons.sync_alt_rounded,
+                    label: 'Auto-Scroll Chat',
+                    subtitle: _autoScrollChat
+                        ? 'Scrolls down when new message arrives'
+                        : 'Manual scroll',
+                    value: _autoScrollChat,
+                    onChanged: (_) => _toggleAutoScrollChat(),
+                    activeColor: Colors.blueAccent,
+                  ),
+                  _settingsTile(
+                    icon: Icons.music_note_rounded,
+                    label: 'Sound on Wake',
+                    subtitle: _soundOnWake
+                        ? 'Plays a sound when wake word triggers'
+                        : 'Silent wake activation',
+                    value: _soundOnWake,
+                    onChanged: (v) {
+                      updateState(() => _soundOnWake = v);
+                    },
+                    activeColor: Colors.deepOrangeAccent,
+                  ),
+                  _settingsTile(
+                    icon: Icons.lightbulb_outline_rounded,
+                    label: 'Show Chat Hint',
+                    subtitle: _showChatHint
+                        ? 'Shows a hint in the input box'
+                        : 'Clean input field',
+                    value: _showChatHint,
+                    onChanged: (v) {
+                      updateState(() => _showChatHint = v);
+                    },
+                    activeColor: Colors.yellowAccent,
+                  ),
+                  // Wallpaper Brightness slider
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.brightness_6_rounded,
+                                color: Colors.white54, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Wallpaper Brightness',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text(
+                                '${(_wallpaperBrightness * 100).toStringAsFixed(0)}%',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.amberAccent, fontSize: 11)),
+                          ],
+                        ),
+                        Slider(
+                          value: _wallpaperBrightness,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 20,
+                          onChanged: (v) {
+                            updateState(() => _wallpaperBrightness = v);
+                          },
+                          activeColor: Colors.amberAccent,
+                          inactiveColor: Colors.white12,
+                        ),
+                        Text(
+                          _wallpaperBrightness < 0.3
+                              ? 'Very dark overlay'
+                              : _wallpaperBrightness > 0.7
+                                  ? 'Bright background'
+                                  : 'Balanced overlay',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 20),
+
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.short_text_rounded,
+                                color: Colors.white54, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Response Length',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text(_responseLengthMode,
+                                style: GoogleFonts.outfit(
+                                    color: Colors.amberAccent, fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: ['Short', 'Normal', 'Detailed'].map((mode) {
+                            final sel = _responseLengthMode == mode;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () => _setResponseLength(mode),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 3),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: sel
+                                        ? Colors.amberAccent.withOpacity(0.2)
+                                        : Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: sel
+                                            ? Colors.amberAccent
+                                            : Colors.white12),
+                                  ),
+                                  child: Text(mode,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.outfit(
+                                          color: sel
+                                              ? Colors.amberAccent
+                                              : Colors.white54,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Chat Text Size chooser
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.format_size_rounded,
+                                color: Colors.white54, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Chat Text Size',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text('${_chatFontSize.toStringAsFixed(0)}px',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.cyanAccent, fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: ['Small', 'Medium', 'Large'].map((sz) {
+                            final sel = _chatTextSize == sz;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () => _setChatTextSize(sz),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 3),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: sel
+                                        ? Colors.cyanAccent.withOpacity(0.15)
+                                        : Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: sel
+                                            ? Colors.cyanAccent
+                                            : Colors.white12),
+                                  ),
+                                  child: Text(sz,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.outfit(
+                                          color: sel
+                                              ? Colors.cyanAccent
+                                              : Colors.white54,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
                   Text('DATA',
                       style: GoogleFonts.outfit(
                           color: Colors.white38,
@@ -462,81 +730,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
-                'Launcher Icon: $_launcherIconLabel',
-                style: GoogleFonts.outfit(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              ChoiceChip(
-                label: Text(
-                  'Old',
-                  style: GoogleFonts.outfit(
-                    color: !_useNewLauncherIcon ? Colors.black : Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                selected: !_useNewLauncherIcon,
-                selectedColor: Colors.redAccent,
-                backgroundColor: Colors.white10,
-                onSelected: (selected) {
-                  if (selected) {
-                    _setLauncherIconVariant(false);
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-              ChoiceChip(
-                label: Text(
-                  'New',
-                  style: GoogleFonts.outfit(
-                    color: _useNewLauncherIcon ? Colors.black : Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                selected: _useNewLauncherIcon,
-                selectedColor: Colors.redAccent,
-                backgroundColor: Colors.white10,
-                onSelected: (selected) {
-                  if (selected) {
-                    _setLauncherIconVariant(true);
-                  }
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _imageActionBtn(
-                label: 'Code Chat Image',
-                icon: Icons.layers_clear_outlined,
-                onTap: _useCodeChatImage,
-              ),
-              _imageActionBtn(
-                label: 'Code App Logo',
-                icon: Icons.apps_outlined,
-                onTap: _useCodeAppLogo,
-              ),
-              _imageActionBtn(
-                label: 'Bundled Chat',
-                icon: Icons.image_search_outlined,
-                onTap: () => _showBundledImagePicker(forChatImage: true),
-              ),
-              _imageActionBtn(
-                label: 'Bundled Logo',
-                icon: Icons.collections_outlined,
-                onTap: () => _showBundledImagePicker(forChatImage: false),
-              ),
               _imageActionBtn(
                 label: 'Gallery Chat',
                 icon: Icons.photo_library_outlined,
