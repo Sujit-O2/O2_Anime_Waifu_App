@@ -104,7 +104,8 @@ class AssistantForegroundService : Service() {
         "darling"
     )
     private val wakeWindowMs = 9000L
-    private val wakeCaptureDurationMs = 1000L
+    private val wakeCaptureDurationMs = 900L
+    private val wakeCommandCaptureDurationMs = 1700L
     private val wakeCapturePauseMs = 140L
     private val wakeCaptureFastPauseMs = 60L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -945,11 +946,13 @@ class AssistantForegroundService : Service() {
         wakeCaptureInProgress = true
         wakeRecorder = recorder
         wakeAudioFile = tmp
-        handler.postDelayed({ stopWakeCaptureAndProcess() }, wakeCaptureDurationMs)
+        val captureDurationMs = currentWakeCaptureDurationMs()
+        handler.postDelayed({ stopWakeCaptureAndProcess() }, captureDurationMs)
     }
 
     private fun stopWakeCaptureAndProcess() {
         val file = wakeAudioFile
+        val commandMode = waitingForCommand
         stopWakeRecorderSafely()
         wakeAudioFile = null
 
@@ -962,9 +965,15 @@ class AssistantForegroundService : Service() {
         executor.execute {
             try {
                 if (file.length() >= minWakeAudioBytes) {
-                    val heard = transcribeWakeAudio(file)
+                    val heard = transcribeWakeAudio(file, commandMode)
                     if (heard.isNotBlank()) {
                         handleRecognizedText(heard)
+                    } else if (commandMode) {
+                        syncOverlayStatus(
+                            "Listening",
+                            "Didn't catch that clearly. Speak again.",
+                            autoHideMs = 6000L
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -1004,17 +1013,32 @@ class AssistantForegroundService : Service() {
         return if (waitingForCommand) wakeCaptureFastPauseMs else wakeCapturePauseMs
     }
 
-    private fun transcribeWakeAudio(file: File): String {
+    private fun currentWakeCaptureDurationMs(): Long {
+        return if (waitingForCommand) wakeCommandCaptureDurationMs else wakeCaptureDurationMs
+    }
+
+    private fun transcribeWakeAudio(file: File, commandMode: Boolean): String {
         val key = apiKey
-        if (key.isNullOrBlank()) return ""
+        if (key.isNullOrBlank()) {
+            if (commandMode) {
+                syncOverlayStatus(
+                    "Setup needed",
+                    "Open app once and enable Background Assistant.",
+                    autoHideMs = 9000L
+                )
+            }
+            return ""
+        }
 
         val boundary = "----ZeroTwoBoundary${System.currentTimeMillis()}"
+        val connectMs = if (commandMode) 6000 else 3500
+        val readMs = if (commandMode) 9000 else 5500
         val conn = (URL(wakeTranscriptionUrl).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            connectTimeout = 3500
-            readTimeout = 5500
+            connectTimeout = connectMs
+            readTimeout = readMs
             doOutput = true
         }
 
@@ -1065,7 +1089,13 @@ class AssistantForegroundService : Service() {
     private fun normalizeSpeechText(text: String): String {
         return text
             .lowercase(Locale.getDefault())
-            .replace(Regex("[^a-z0-9\\s]"), " ")
+            .replace(Regex("[^\\p{L}\\p{N}\\s]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
+
+    private fun cleanSpokenCommand(text: String): String {
+        return text
             .replace(Regex("\\s+"), " ")
             .trim()
     }
@@ -1084,8 +1114,9 @@ class AssistantForegroundService : Service() {
     }
 
     private fun handleRecognizedText(rawText: String) {
+        val spokenCommand = cleanSpokenCommand(rawText)
         val normalized = normalizeSpeechText(rawText)
-        if (normalized.isBlank()) return
+        if (normalized.isBlank() && spokenCommand.isBlank()) return
 
         if (waitingForCommand && System.currentTimeMillis() > wakeWindowOpenUntilMs) {
             waitingForCommand = false
@@ -1101,12 +1132,13 @@ class AssistantForegroundService : Service() {
         }
 
         if (waitingForCommand) {
+            if (spokenCommand.isBlank()) return
             waitingForCommand = false
             if (overlayListenSessionActive && !wakeModeEnabled) {
                 stopWakeCaptureLoop()
             }
-            syncOverlayStatus("You", normalized, autoHideMs = 16000L)
-            handleVoiceCommand(normalized, speakReply = true)
+            syncOverlayStatus("You", spokenCommand, autoHideMs = 16000L)
+            handleVoiceCommand(spokenCommand, speakReply = true)
             return
         }
 
