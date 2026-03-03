@@ -1,5 +1,6 @@
 package com.example.anime_waifu
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,6 +13,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
@@ -40,6 +42,7 @@ class AssistantForegroundService : Service() {
     companion object {
         private const val CHANNEL_ID = "assistant_mode_channel_silent_v3"
         private const val MESSAGE_CHANNEL_ID = "assistant_background_alert_v4"
+        private const val WAKE_VIBRATE_CHANNEL_ID = "assistant_wake_vibrate_only_v1"
         private const val NOTIFICATION_ID = 2002
         private const val WAKE_EVENT_NOTIFICATION_ID = 2003
         private const val TAG = "AssistantService"
@@ -54,6 +57,10 @@ class AssistantForegroundService : Service() {
     private var apiKey: String? = null
     private var apiUrl: String? = null
     private var model: String? = null
+    private var systemPrompt: String? = null
+    private var ttsApiKey: String? = null
+    private var ttsModel: String? = null
+    private var ttsVoice: String? = null
     private var intervalMs: Long = 10000 // Default 10s for testing
     private var isGenerating = false
     private var proactiveEnabled = true
@@ -62,6 +69,7 @@ class AssistantForegroundService : Service() {
     private lateinit var prefs: SharedPreferences
     private lateinit var flutterPrefs: SharedPreferences
     private val queueLock = Any()
+    private val pendingVoiceCommands = ArrayDeque<String>()
     private var wakeRecorder: MediaRecorder? = null
     private var wakeAudioFile: File? = null
     @Volatile
@@ -69,7 +77,20 @@ class AssistantForegroundService : Service() {
     private var wakeLoopRunning = false
     private var waitingForCommand = false
     private var wakeWindowOpenUntilMs = 0L
+    private var overlayListenSessionActive = false
     private var commandGenerating = false
+    private var replyPlayer: MediaPlayer? = null
+    private val replyPlayerLock = Any()
+    @Volatile
+    private var resumeWakeAfterReply = false
+    private val openActionRegex = Regex(
+        "Action\\s*:\\s*open[\\s_-]*app",
+        setOf(RegexOption.IGNORE_CASE)
+    )
+    private val appLineRegex = Regex(
+        "^\\s*App\\s*:\\s*(.+?)\\s*$",
+        setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE)
+    )
     private val wakePhrases = listOf(
         "zero two",
         "zerotwo",
@@ -82,6 +103,7 @@ class AssistantForegroundService : Service() {
     private val wakeCapturePauseMs = 140L
     private val wakeCaptureFastPauseMs = 60L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
+    private val wakeTtsUrl = "https://api.groq.com/openai/v1/audio/speech"
     private val wakeTranscriptionModel = "whisper-large-v3-turbo"
     private val wakeTranscriptionLanguage = "en"
     private val minWakeAudioBytes = 1536L
@@ -94,7 +116,8 @@ class AssistantForegroundService : Service() {
     )
     private val wakeCaptureRunnable = object : Runnable {
         override fun run() {
-            if (!isRunning || !wakeModeEnabled || !hasMicPermission()) {
+            val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+            if (!isRunning || !listeningAllowed || !hasMicPermission()) {
                 return
             }
             startWakeCaptureSnippet()
@@ -127,6 +150,10 @@ class AssistantForegroundService : Service() {
     apiKey = prefs.getString("api_key", null)
         apiUrl = prefs.getString("api_url", null)
         model = prefs.getString("model", null)
+        systemPrompt = prefs.getString("system_prompt", null)
+        ttsApiKey = prefs.getString("tts_api_key", null)
+        ttsModel = prefs.getString("tts_model", null)
+        ttsVoice = prefs.getString("tts_voice", null)
         // Flutter SharedPreferences stores interval as Int, but we need Long.
         // Try Long first; fall back to Int if a ClassCastException occurs.
         intervalMs = try {
@@ -145,6 +172,10 @@ class AssistantForegroundService : Service() {
             putString("api_key", apiKey)
             putString("api_url", apiUrl)
             putString("model", model)
+            putString("system_prompt", systemPrompt)
+            putString("tts_api_key", ttsApiKey)
+            putString("tts_model", ttsModel)
+            putString("tts_voice", ttsVoice)
             putLong("interval_ms", intervalMs)
             putBoolean("proactive_enabled", proactiveEnabled)
             putBoolean("proactive_random_enabled", proactiveRandomEnabled)
@@ -201,11 +232,74 @@ class AssistantForegroundService : Service() {
             return START_STICKY
         }
 
+        if (action == "OVERLAY_SEND_TEXT" || action == "OVERLAY_LISTEN_NOW") {
+            if (!isRunning) {
+                loadConfig()
+                val needsMicForeground = action == "OVERLAY_LISTEN_NOW"
+                if (!ensureForegroundStarted(requireMicrophone = needsMicForeground)) {
+                    Log.e(TAG, "$action: foreground start denied")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                isRunning = true
+                handler.removeCallbacks(proactiveRunnable)
+                handler.postDelayed(proactiveRunnable, getNextDelayMs())
+            }
+
+            if (action == "OVERLAY_SEND_TEXT") {
+                val overlayText = intent?.getStringExtra("OVERLAY_TEXT")?.trim().orEmpty()
+                if (overlayText.isBlank()) {
+                    showWakeAlert("Type a command to continue.", pulse = true)
+                    return START_STICKY
+                }
+                handleVoiceCommand(overlayText)
+                return START_STICKY
+            }
+
+            // action == OVERLAY_LISTEN_NOW
+            if (!hasMicPermission()) {
+                showWakeAlert("Microphone permission is required.", pulse = true)
+                return START_STICKY
+            }
+            // Overlay mic should work even if persistent wake mode is disabled.
+            overlayListenSessionActive = !wakeModeEnabled
+            if (overlayListenSessionActive) {
+                if (!ensureForegroundStarted(requireMicrophone = true)) {
+                    showWakeAlert("Unable to activate microphone right now.", pulse = true)
+                    return START_STICKY
+                }
+                startWakeCaptureLoop()
+            } else {
+                applyWakeRecognizerState()
+            }
+            waitingForCommand = true
+            wakeWindowOpenUntilMs = System.currentTimeMillis() + wakeWindowMs
+            showWakeAlert("Speak your command now.", pulse = true)
+            scheduleNextWakeCapture(80L)
+            return START_STICKY
+        }
+
         val newApiKey = intent?.getStringExtra("API_KEY")
+        val hasSystemPrompt = intent?.hasExtra("SYSTEM_PROMPT") == true
+        val hasTtsApiKey = intent?.hasExtra("TTS_API_KEY") == true
+        val hasTtsModel = intent?.hasExtra("TTS_MODEL") == true
+        val hasTtsVoice = intent?.hasExtra("TTS_VOICE") == true
         if (newApiKey != null) {
             apiKey = newApiKey
             apiUrl = intent.getStringExtra("API_URL")
             model = intent.getStringExtra("MODEL")
+            if (hasSystemPrompt) {
+                systemPrompt = intent.getStringExtra("SYSTEM_PROMPT")
+            }
+            if (hasTtsApiKey) {
+                ttsApiKey = intent.getStringExtra("TTS_API_KEY")
+            }
+            if (hasTtsModel) {
+                ttsModel = intent.getStringExtra("TTS_MODEL")
+            }
+            if (hasTtsVoice) {
+                ttsVoice = intent.getStringExtra("TTS_VOICE")
+            }
             intervalMs = intent.getLongExtra("INTERVAL_MS", 10000L)
             if (intent.hasExtra("PROACTIVE_RANDOM_ENABLED")) {
                 proactiveRandomEnabled = intent.getBooleanExtra("PROACTIVE_RANDOM_ENABLED", false)
@@ -213,6 +307,21 @@ class AssistantForegroundService : Service() {
             saveConfig()
         } else {
             loadConfig()
+            if (hasSystemPrompt) {
+                systemPrompt = intent?.getStringExtra("SYSTEM_PROMPT")
+            }
+            if (hasTtsApiKey) {
+                ttsApiKey = intent?.getStringExtra("TTS_API_KEY")
+            }
+            if (hasTtsModel) {
+                ttsModel = intent?.getStringExtra("TTS_MODEL")
+            }
+            if (hasTtsVoice) {
+                ttsVoice = intent?.getStringExtra("TTS_VOICE")
+            }
+            if (hasSystemPrompt || hasTtsApiKey || hasTtsModel || hasTtsVoice) {
+                saveConfig()
+            }
         }
 
         val shouldResyncFromFlutterPrefs =
@@ -277,6 +386,8 @@ class AssistantForegroundService : Service() {
         isRunning = false
         handler.removeCallbacks(proactiveRunnable)
         stopWakeCaptureLoop()
+        stopReplyPlayback()
+        AssistantOverlayController.hide()
         executor.shutdown()
         super.onDestroy()
     }
@@ -340,7 +451,7 @@ class AssistantForegroundService : Service() {
             .setContentText("Watching over you in background")
             .setSubText("Background service")
             .setSmallIcon(R.drawable.ic_stat_waifu)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.logi))
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setColor(0xFFFF5252.toInt())
@@ -384,7 +495,11 @@ class AssistantForegroundService : Service() {
                     val messages = JSONArray().apply {
                         put(JSONObject().apply {
                             put("role", "system")
-                            put("content", "You are Zero Two, a loving anime wife. Refer to me as 'honey' or 'darling'. Keep it short (max 10 words). No expressions.")
+                            put(
+                                "content",
+                                activeSystemPrompt() +
+                                    "\nFor proactive check-ins, keep it very short (max 10 words)."
+                            )
                         })
                         put(JSONObject().apply {
                             put("role", "user")
@@ -433,7 +548,7 @@ class AssistantForegroundService : Service() {
         persistProactiveMessage(content)
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(Random().nextInt())
-        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
+        val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
             .setContentTitle("Zero Two Check-in")
@@ -463,20 +578,44 @@ class AssistantForegroundService : Service() {
             )
             .build()
         val uniqueId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-        manager?.notify(uniqueId, notification)
+        safeNotify(manager, uniqueId, notification)
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
-        if (!pulse) {
+        val popupEnabled = isWakePopupEnabled()
+        if (pulse && popupEnabled) {
+            val autoHideMs = if (
+                content.contains("speak your command", ignoreCase = true) ||
+                    content.contains("wake word detected", ignoreCase = true)
+            ) {
+                2600L
+            } else {
+                4300L
+            }
+            AssistantOverlayController.show(
+                applicationContext,
+                status = "Zero Two",
+                transcript = content,
+                autoHideMs = autoHideMs
+            )
+        }
+
+        val popupVisible = AssistantOverlayController.isShowing()
+        if (!pulse || popupVisible) {
             updateNotification(content)
             return
         }
 
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(WAKE_EVENT_NOTIFICATION_ID)
-        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
+        val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val wakeChannel = if (isWakePrompt(content)) {
+            WAKE_VIBRATE_CHANNEL_ID
+        } else {
+            MESSAGE_CHANNEL_ID
+        }
 
-        val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, wakeChannel)
             .setContentTitle("Zero Two Assistant")
             .setContentText(content)
             .setStyle(
@@ -504,7 +643,31 @@ class AssistantForegroundService : Service() {
             )
             .build()
 
-        manager?.notify(WAKE_EVENT_NOTIFICATION_ID, notification)
+        safeNotify(manager, WAKE_EVENT_NOTIFICATION_ID, notification)
+    }
+
+    private fun isWakePopupEnabled(): Boolean {
+        return flutterPrefs.getBoolean("flutter.wake_popup_enabled", true)
+    }
+
+    private fun isWakePrompt(content: String): Boolean {
+        val lower = content.lowercase(Locale.getDefault())
+        return lower.contains("wake word") ||
+            lower.contains("speak your command") ||
+            lower.contains("listening")
+    }
+
+    private fun syncOverlayStatus(
+        status: String,
+        transcript: String,
+        autoHideMs: Long = 12000L
+    ) {
+        AssistantOverlayController.update(
+            applicationContext,
+            status = status,
+            transcript = transcript,
+            autoHideMs = autoHideMs
+        )
     }
 
     private fun pickFallbackMessage(): String {
@@ -574,11 +737,85 @@ class AssistantForegroundService : Service() {
         }
     }
 
+    private fun recentChatContext(maxItems: Int = 10): JSONArray {
+        return try {
+            synchronized(queueLock) {
+                val flutterPendingKey = "flutter.pending_proactive_messages"
+                val legacyKey = "pending_proactive_messages"
+                val rawFlutter = flutterPrefs.getString(flutterPendingKey, "[]") ?: "[]"
+                val rawLegacy = prefs.getString(legacyKey, "[]") ?: "[]"
+
+                val flutterList = try {
+                    JSONArray(rawFlutter)
+                } catch (_: Exception) {
+                    JSONArray()
+                }
+                val legacyList = try {
+                    JSONArray(rawLegacy)
+                } catch (_: Exception) {
+                    JSONArray()
+                }
+                val source = if (flutterList.length() >= legacyList.length()) {
+                    flutterList
+                } else {
+                    legacyList
+                }
+
+                val start = (source.length() - maxItems).coerceAtLeast(0)
+                JSONArray().apply {
+                    for (i in start until source.length()) {
+                        val item = source.optJSONObject(i) ?: continue
+                        val rawRole = item.optString("role", "assistant")
+                            .trim()
+                            .lowercase(Locale.getDefault())
+                        val rawContent = item.optString("content", "").trim()
+                        if (rawContent.isBlank()) continue
+                        val safeRole = if (rawRole == "user") "user" else "assistant"
+                        put(
+                            JSONObject().apply {
+                                put("role", safeRole)
+                                put("content", rawContent)
+                            }
+                        )
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            JSONArray()
+        }
+    }
+
     private fun hasMicPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
             android.Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun canPostNotifications(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun safeNotify(
+        manager: NotificationManager?,
+        notificationId: Int,
+        notification: Notification
+    ) {
+        if (!canPostNotifications()) {
+            Log.w(TAG, "Notification blocked: POST_NOTIFICATIONS not granted")
+            return
+        }
+        try {
+            manager?.notify(notificationId, notification)
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Notification security error: ${e.message}")
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "Notification runtime error: ${e.message}")
+        }
     }
 
     private fun startWakeCaptureLoop() {
@@ -598,16 +835,28 @@ class AssistantForegroundService : Service() {
             stopWakeCaptureLoop()
             return
         }
-        if (wakeModeEnabled) {
+        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        if (listeningAllowed) {
+            if (!hasMicPermission()) {
+                Log.w(TAG, "Wake mode requested without mic permission; disabling wake mode")
+                wakeModeEnabled = false
+                overlayListenSessionActive = false
+                saveConfig()
+                stopWakeCaptureLoop()
+                ensureForegroundStarted(requireMicrophone = false)
+                return
+            }
             if (!ensureForegroundStarted(requireMicrophone = true)) {
                 Log.w(TAG, "Microphone foreground escalation blocked; disabling wake mode")
                 wakeModeEnabled = false
+                overlayListenSessionActive = false
                 saveConfig()
                 stopWakeCaptureLoop()
                 return
             }
             startWakeCaptureLoop()
         } else {
+            ensureForegroundStarted(requireMicrophone = false)
             stopWakeCaptureLoop()
         }
     }
@@ -623,6 +872,7 @@ class AssistantForegroundService : Service() {
         wakeAudioFile = null
         waitingForCommand = false
         wakeWindowOpenUntilMs = 0L
+        overlayListenSessionActive = false
     }
 
     private fun startWakeCaptureSnippet() {
@@ -630,7 +880,8 @@ class AssistantForegroundService : Service() {
             scheduleNextWakeCapture(300L)
             return
         }
-        if (!isRunning || !wakeModeEnabled || !hasMicPermission()) {
+        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        if (!isRunning || !listeningAllowed || !hasMicPermission()) {
             return
         }
 
@@ -727,7 +978,8 @@ class AssistantForegroundService : Service() {
     }
 
     private fun scheduleNextWakeCapture(delayMs: Long) {
-        if (!wakeLoopRunning || !isRunning || !wakeModeEnabled) return
+        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        if (!wakeLoopRunning || !isRunning || !listeningAllowed) return
         handler.removeCallbacks(wakeCaptureRunnable)
         handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(80L))
     }
@@ -821,10 +1073,23 @@ class AssistantForegroundService : Service() {
 
         if (waitingForCommand && System.currentTimeMillis() > wakeWindowOpenUntilMs) {
             waitingForCommand = false
+            if (overlayListenSessionActive && !wakeModeEnabled) {
+                stopWakeCaptureLoop()
+                syncOverlayStatus(
+                    "Listening ended",
+                    "Mic timed out. Tap mic and try again.",
+                    autoHideMs = 8000L
+                )
+                return
+            }
         }
 
         if (waitingForCommand) {
             waitingForCommand = false
+            if (overlayListenSessionActive && !wakeModeEnabled) {
+                stopWakeCaptureLoop()
+            }
+            syncOverlayStatus("You", normalized, autoHideMs = 16000L)
             handleVoiceCommand(normalized)
             return
         }
@@ -835,6 +1100,7 @@ class AssistantForegroundService : Service() {
 
         val inlineCommand = stripWakePhrases(normalized)
         if (inlineCommand.isNotBlank()) {
+            syncOverlayStatus("You", inlineCommand, autoHideMs = 16000L)
             handleVoiceCommand(inlineCommand)
             return
         }
@@ -847,22 +1113,42 @@ class AssistantForegroundService : Service() {
     private fun handleVoiceCommand(command: String) {
         val cleaned = command.trim()
         if (cleaned.isBlank()) return
+        syncOverlayStatus("You", cleaned, autoHideMs = 16000L)
         persistChatMessage("user", cleaned)
         fetchAndRespondToVoiceCommand(cleaned)
     }
 
     private fun fetchAndRespondToVoiceCommand(command: String) {
-        if (commandGenerating) return
+        if (commandGenerating) {
+            synchronized(queueLock) {
+                pendingVoiceCommands.addLast(command)
+            }
+            syncOverlayStatus(
+                "Queued",
+                "I'll handle this after the current request.",
+                autoHideMs = 14000L
+            )
+            return
+        }
 
         val key = apiKey
         val urlStr = apiUrl
         if (key.isNullOrEmpty() || urlStr.isNullOrEmpty()) {
             Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
-            showWakeAlert("I need API setup to answer you.", pulse = true)
+            val setupMissing = "I need API setup to answer you."
+            persistChatMessage("assistant", setupMissing)
+            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 14000L)
+            showWakeAlert(setupMissing, pulse = true)
+            queueWakeReplySpeech(setupMissing)
             return
         }
 
         commandGenerating = true
+        syncOverlayStatus(
+            "Processing",
+            "Working on: ${command.take(90)}",
+            autoHideMs = 16000L
+        )
         executor.execute {
             try {
                 val url = URL(urlStr)
@@ -876,16 +1162,7 @@ class AssistantForegroundService : Service() {
 
                 val payload = JSONObject().apply {
                     put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
-                    val messages = JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", "You are Zero Two. Keep answers short, clear, and caring.")
-                        })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", command)
-                        })
-                    }
+                    val messages = buildVoiceRequestMessages(command)
                     put("messages", messages)
                 }
 
@@ -909,15 +1186,302 @@ class AssistantForegroundService : Service() {
                     "I could not reach the server right now."
                 }
 
-                persistChatMessage("assistant", reply)
-                showWakeAlert(reply, pulse = true)
+                val finalReply = handleAssistantReplyAction(reply)
+                persistChatMessage("assistant", finalReply)
+                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 15000L)
+                showWakeAlert(finalReply, pulse = true)
+                queueWakeReplySpeech(finalReply)
             } catch (e: Exception) {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
+                syncOverlayStatus("Zero Two", fallback, autoHideMs = 14000L)
                 showWakeAlert(fallback, pulse = true)
+                queueWakeReplySpeech(fallback)
             } finally {
                 commandGenerating = false
+                val nextCommand = synchronized(queueLock) {
+                    if (pendingVoiceCommands.isEmpty()) null else pendingVoiceCommands.removeFirst()
+                }
+                if (!nextCommand.isNullOrBlank()) {
+                    fetchAndRespondToVoiceCommand(nextCommand)
+                }
+            }
+        }
+    }
+
+    private fun activeSystemPrompt(): String {
+        val prompt = systemPrompt?.trim()
+        if (!prompt.isNullOrBlank()) {
+            return prompt
+        }
+        return "You are Zero Two. Keep answers short, clear, and caring."
+    }
+
+    private fun handleAssistantReplyAction(reply: String): String {
+        val trimmed = reply.trim()
+        if (!openActionRegex.containsMatchIn(trimmed)) {
+            return trimmed
+        }
+
+        val appName = extractAppNameFromReply(trimmed)
+        if (appName.isBlank()) {
+            return "App name missing. Use Action: OPEN_APP and App: <app name>."
+        }
+
+        val launched = AppLaunchResolver.openByName(this, appName) != null
+        return if (launched) {
+            "Opened ${titleCase(appName)}."
+        } else {
+            "I could not open ${titleCase(appName)}. It may be unavailable, disabled, or not installed."
+        }
+    }
+
+    private fun extractAppNameFromReply(reply: String): String {
+        val line = appLineRegex.find(reply)?.groupValues?.getOrNull(1)?.trim()
+        if (!line.isNullOrBlank()) {
+            return sanitizeAppName(line)
+        }
+        val inline = Regex(
+            "Action\\s*:\\s*open[\\s_-]*app[\\s\\S]*?App\\s*:\\s*([^\\r\\n]+)",
+            setOf(RegexOption.IGNORE_CASE)
+        ).find(reply)?.groupValues?.getOrNull(1)?.trim()
+        if (!inline.isNullOrBlank()) {
+            return sanitizeAppName(inline)
+        }
+        return ""
+    }
+
+    private fun sanitizeAppName(value: String): String {
+        return value
+            .trim()
+            .trim('"', '\'')
+            .replace(Regex("[\\.;,\\)\\]]+$"), "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
+
+    private fun titleCase(input: String): String {
+        if (input.isBlank()) return input
+        return input
+            .split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+            .joinToString(" ") { word ->
+                val lower = word.lowercase(Locale.getDefault())
+                lower.replaceFirstChar { ch ->
+                    if (ch.isLowerCase()) ch.titlecase(Locale.getDefault()) else ch.toString()
+                }
+            }
+    }
+
+    private fun effectiveTtsApiKey(): String? {
+        val configured = ttsApiKey?.trim()
+        if (!configured.isNullOrBlank()) return configured
+        val fallback = apiKey?.trim()
+        if (!fallback.isNullOrBlank()) return fallback
+        return null
+    }
+
+    private fun effectiveTtsModel(): String {
+        val configured = ttsModel?.trim()
+        if (!configured.isNullOrBlank()) return configured
+        return "canopylabs/orpheus-arabic-saudi"
+    }
+
+    private fun effectiveTtsVoice(): String {
+        val configured = ttsVoice?.trim()
+        if (!configured.isNullOrBlank()) return configured
+        return "aisha"
+    }
+
+    private fun sanitizeTtsInput(text: String): String {
+        val compact = text.trim().replace(Regex("\\s+"), " ")
+        if (compact.length <= 320) return compact
+        return compact.take(320)
+    }
+
+    private fun queueWakeReplySpeech(content: String) {
+        val prepared = sanitizeTtsInput(content)
+        if (prepared.isBlank()) return
+
+        executor.execute {
+            speakWakeReply(prepared)
+        }
+    }
+
+    private fun speakWakeReply(content: String) {
+        val key = effectiveTtsApiKey() ?: return
+        try {
+            val url = URL(wakeTtsUrl)
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Authorization", "Bearer $key")
+                setRequestProperty("Content-Type", "application/json")
+                connectTimeout = 9000
+                readTimeout = 18000
+                doOutput = true
+            }
+
+            val payload = JSONObject().apply {
+                put("model", effectiveTtsModel())
+                put("voice", effectiveTtsVoice())
+                put("input", content)
+                put("response_format", "wav")
+            }
+            OutputStreamWriter(conn.outputStream).use { it.write(payload.toString()) }
+
+            val code = conn.responseCode
+            if (code != 200) {
+                val err = BufferedReader(InputStreamReader(conn.errorStream ?: conn.inputStream))
+                    .use { it.readText() }
+                Log.w(TAG, "Wake TTS failed: $code $err")
+                return
+            }
+
+            val audioBytes = conn.inputStream.use { it.readBytes() }
+            if (audioBytes.isEmpty()) return
+            val tmp = try {
+                File.createTempFile("wake_reply_", ".wav", cacheDir)
+            } catch (e: Exception) {
+                Log.w(TAG, "Wake TTS temp file create failed: ${e.message}")
+                return
+            }
+            tmp.writeBytes(audioBytes)
+            handler.post { playWakeReplyAudio(tmp) }
+        } catch (e: Exception) {
+            Log.w(TAG, "Wake TTS error: ${e.message}")
+        }
+    }
+
+    private fun playWakeReplyAudio(file: File) {
+        if (!isRunning) {
+            try {
+                file.delete()
+            } catch (_: Exception) {}
+            return
+        }
+        if (wakeModeEnabled && wakeLoopRunning) {
+            resumeWakeAfterReply = true
+            stopWakeCaptureLoop()
+        }
+        synchronized(replyPlayerLock) {
+            stopReplyPlaybackLocked()
+            val player = MediaPlayer()
+            try {
+                player.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                player.setDataSource(file.absolutePath)
+                player.setOnCompletionListener { mp ->
+                    synchronized(replyPlayerLock) {
+                        if (replyPlayer === mp) {
+                            replyPlayer = null
+                        }
+                    }
+                    try {
+                        mp.release()
+                    } catch (_: Exception) {}
+                    try {
+                        file.delete()
+                    } catch (_: Exception) {}
+                    resumeWakeCaptureIfNeeded()
+                }
+                player.setOnErrorListener { mp, _, _ ->
+                    synchronized(replyPlayerLock) {
+                        if (replyPlayer === mp) {
+                            replyPlayer = null
+                        }
+                    }
+                    try {
+                        mp.release()
+                    } catch (_: Exception) {}
+                    try {
+                        file.delete()
+                    } catch (_: Exception) {}
+                    resumeWakeCaptureIfNeeded()
+                    true
+                }
+                player.prepare()
+                player.start()
+                replyPlayer = player
+            } catch (e: Exception) {
+                try {
+                    player.release()
+                } catch (_: Exception) {}
+                try {
+                    file.delete()
+                } catch (_: Exception) {}
+                Log.w(TAG, "Wake TTS playback failed: ${e.message}")
+                resumeWakeCaptureIfNeeded()
+            }
+        }
+    }
+
+    private fun stopReplyPlayback() {
+        synchronized(replyPlayerLock) {
+            stopReplyPlaybackLocked()
+        }
+        resumeWakeCaptureIfNeeded()
+    }
+
+    private fun stopReplyPlaybackLocked() {
+        val player = replyPlayer ?: return
+        replyPlayer = null
+        try {
+            player.stop()
+        } catch (_: Exception) {}
+        try {
+            player.reset()
+        } catch (_: Exception) {}
+        try {
+            player.release()
+        } catch (_: Exception) {}
+    }
+
+    private fun resumeWakeCaptureIfNeeded() {
+        if (!resumeWakeAfterReply) return
+        resumeWakeAfterReply = false
+        handler.post {
+            if (isRunning && wakeModeEnabled) {
+                applyWakeRecognizerState()
+            }
+        }
+    }
+
+    private fun buildVoiceRequestMessages(command: String): JSONArray {
+        val prompt = activeSystemPrompt()
+        val normalizedCommand = command.trim()
+        val context = recentChatContext(maxItems = 10)
+        return JSONArray().apply {
+            put(
+                JSONObject().apply {
+                    put("role", "system")
+                    put("content", prompt)
+                }
+            )
+            for (i in 0 until context.length()) {
+                val item = context.optJSONObject(i) ?: continue
+                put(item)
+            }
+
+            val appendExplicitCommand = if (context.length() == 0) {
+                true
+            } else {
+                val last = context.optJSONObject(context.length() - 1)
+                val lastRole = last?.optString("role", "")?.trim() ?: ""
+                val lastContent = last?.optString("content", "")?.trim() ?: ""
+                !(lastRole == "user" && lastContent == normalizedCommand)
+            }
+            if (appendExplicitCommand) {
+                put(
+                    JSONObject().apply {
+                        put("role", "user")
+                        put("content", normalizedCommand)
+                    }
+                )
             }
         }
     }
@@ -933,7 +1497,7 @@ class AssistantForegroundService : Service() {
             .setColor(0xFFFF5252.toInt())
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
-        manager?.notify(NOTIFICATION_ID, notification)
+        safeNotify(manager, NOTIFICATION_ID, notification)
     }
 
     private fun createChannel() {
@@ -964,6 +1528,21 @@ class AssistantForegroundService : Service() {
                 setSound(notificationSoundUri(), notificationAudioAttributes())
             }
             manager.createNotificationChannel(messageChannel)
+
+            val wakeVibrateChannel = NotificationChannel(
+                WAKE_VIBRATE_CHANNEL_ID,
+                "Wake Events (Vibrate)",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Wake detection alerts with vibration only"
+                enableLights(true)
+                lightColor = android.graphics.Color.RED
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setSound(null, null)
+            }
+            manager.createNotificationChannel(wakeVibrateChannel)
         }
     }
 

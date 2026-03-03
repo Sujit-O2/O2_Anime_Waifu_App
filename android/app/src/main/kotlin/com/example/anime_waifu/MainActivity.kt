@@ -7,18 +7,12 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.graphics.PixelFormat
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.view.Gravity
-import android.view.WindowManager
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -31,11 +25,9 @@ class MainActivity : FlutterActivity() {
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"
     private val wakeEventChannelId = "assistant_wake_event_channel_alert_v4"
+    private val wakeVibrateChannelId = "assistant_wake_event_channel_vibrate_v1"
     private val assistantNotificationId = 2002
     private val wakeEventNotificationId = 2003
-    private var overlayView: LinearLayout? = null
-    private var overlayStatusText: TextView? = null
-    private var overlayTranscriptText: TextView? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -47,6 +39,10 @@ class MainActivity : FlutterActivity() {
                         val apiKey = call.argument<String>("apiKey")
                         val apiUrl = call.argument<String>("apiUrl")
                         val model = call.argument<String>("model")
+                        val systemPrompt = call.argument<String>("systemPrompt")
+                        val ttsApiKey = call.argument<String>("ttsApiKey")
+                        val ttsModel = call.argument<String>("ttsModel")
+                        val ttsVoice = call.argument<String>("ttsVoice")
                         val intervalMs = when (val arg = call.argument<Any>("intervalMs")) {
                             is Number -> arg.toLong()
                             else -> 15000L
@@ -56,6 +52,10 @@ class MainActivity : FlutterActivity() {
                             apiKey,
                             apiUrl,
                             model,
+                            systemPrompt,
+                            ttsApiKey,
+                            ttsModel,
+                            ttsVoice,
                             intervalMs,
                             proactiveRandomEnabled
                         )
@@ -217,6 +217,10 @@ class MainActivity : FlutterActivity() {
         apiKey: String?,
         apiUrl: String?,
         model: String?,
+        systemPrompt: String?,
+        ttsApiKey: String?,
+        ttsModel: String?,
+        ttsVoice: String?,
         intervalMs: Long?,
         proactiveRandomEnabled: Boolean?
     ) {
@@ -224,6 +228,10 @@ class MainActivity : FlutterActivity() {
             putExtra("API_KEY", apiKey)
             putExtra("API_URL", apiUrl)
             putExtra("MODEL", model)
+            putExtra("SYSTEM_PROMPT", systemPrompt)
+            putExtra("TTS_API_KEY", ttsApiKey)
+            putExtra("TTS_MODEL", ttsModel)
+            putExtra("TTS_VOICE", ttsVoice)
             if (intervalMs != null) putExtra("INTERVAL_MS", intervalMs)
             if (proactiveRandomEnabled != null) {
                 putExtra("PROACTIVE_RANDOM_ENABLED", proactiveRandomEnabled)
@@ -254,64 +262,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun openAppByPackage(targetPackage: String): Boolean {
-        if (targetPackage.isBlank()) return false
-        return try {
-            val launchIntent = packageManager.getLaunchIntentForPackage(targetPackage)
-            if (launchIntent != null) {
-                launchIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                )
-                startActivity(launchIntent)
-                return true
-            }
-
-            // Fallback: query launcher activity by package explicitly.
-            val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-                `package` = targetPackage
-            }
-            @Suppress("DEPRECATION")
-            val candidates = packageManager.queryIntentActivities(launcherIntent, 0)
-            if (!candidates.isNullOrEmpty()) {
-                val first = candidates.first().activityInfo
-                val explicit = Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_LAUNCHER)
-                    component = ComponentName(first.packageName, first.name)
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    )
-                }
-                startActivity(explicit)
-                return true
-            }
-
-            // Last-resort hardcoded launch components for popular apps.
-            val knownClasses = knownLaunchComponents(targetPackage)
-            for (className in knownClasses) {
-                try {
-                    val explicit = Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_LAUNCHER)
-                        component = ComponentName(targetPackage, className)
-                        addFlags(
-                            Intent.FLAG_ACTIVITY_NEW_TASK or
-                                Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                                Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        )
-                    }
-                    startActivity(explicit)
-                    return true
-                } catch (_: Exception) {
-                    // keep trying next component
-                }
-            }
-            false
-        } catch (_: Exception) {
-            false
-        }
+        return AppLaunchResolver.openByPackage(this, targetPackage)
     }
 
     private fun openResolvedIntent(
@@ -319,213 +270,11 @@ class MainActivity : FlutterActivity() {
         category: String?,
         data: String?
     ): Boolean {
-        if (action.isBlank()) return false
-        return try {
-            val baseIntent = Intent(action).apply {
-                if (!category.isNullOrBlank()) addCategory(category)
-                if (!data.isNullOrBlank()) {
-                    this.data = Uri.parse(data)
-                }
-            }
-
-            val resolved = packageManager.resolveActivity(baseIntent, PackageManager.MATCH_DEFAULT_ONLY)
-                ?: packageManager.resolveActivity(baseIntent, 0)
-                ?: return false
-
-            val activityInfo = resolved.activityInfo ?: return false
-            val explicitIntent = Intent(baseIntent).apply {
-                setClassName(activityInfo.packageName, activityInfo.name)
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                )
-            }
-
-            startActivity(explicitIntent)
-            true
-        } catch (_: Exception) {
-            false
-        }
+        return AppLaunchResolver.openResolvedIntent(this, action, category, data)
     }
 
     private fun openAppByName(query: String): String? {
-        if (query.isBlank()) return null
-        return try {
-            val packageLike = query.trim()
-            if (packageLike.contains(".") && openAppByPackage(packageLike)) {
-                return packageLike
-            }
-
-            val q = normalizeAppToken(query)
-            val knownPackages = resolveKnownPackagesByQuery(q)
-            for (pkg in knownPackages) {
-                if (openAppByPackage(pkg)) {
-                    return pkg
-                }
-            }
-
-            val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-            }
-            @Suppress("DEPRECATION")
-            val apps = packageManager.queryIntentActivities(launcherIntent, 0)
-            if (apps.isNullOrEmpty()) return null
-
-            var best: android.content.pm.ResolveInfo? = null
-            var bestScore = 0
-
-            for (resolve in apps) {
-                val activity = resolve.activityInfo ?: continue
-                val label = normalizeAppToken(resolve.loadLabel(packageManager)?.toString() ?: "")
-                val pkg = normalizeAppToken(activity.packageName)
-                val score = when {
-                    label == q || pkg == q -> 100
-                    label.startsWith(q) || pkg.startsWith(q) -> 90
-                    label.contains(q) || pkg.contains(q) -> 80
-                    q.contains(label) && label.length >= 4 -> 60
-                    hasStrongTokenOverlap(label, q) || hasStrongTokenOverlap(pkg, q) -> 55
-                    else -> 0
-                }
-                if (score > bestScore) {
-                    bestScore = score
-                    best = resolve
-                }
-            }
-
-            val target = best?.activityInfo ?: return null
-            if (bestScore <= 0) return null
-
-            val explicitIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-                setClassName(target.packageName, target.name)
-                addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                )
-            }
-            startActivity(explicitIntent)
-            target.packageName
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun normalizeAppToken(input: String): String {
-        return input
-            .lowercase()
-            .replace(Regex("[^a-z0-9]"), "")
-    }
-
-    private fun hasStrongTokenOverlap(a: String, b: String): Boolean {
-        if (a.isBlank() || b.isBlank()) return false
-        if (a.length < 4 || b.length < 4) return false
-        val minLen = minOf(a.length, b.length)
-        var longest = 0
-        for (i in a.indices) {
-            for (j in b.indices) {
-                var k = 0
-                while (i + k < a.length && j + k < b.length && a[i + k] == b[j + k]) {
-                    k++
-                }
-                if (k > longest) longest = k
-                if (longest >= minLen.coerceAtMost(6)) return true
-            }
-        }
-        return longest >= 5
-    }
-
-    private fun resolveKnownPackagesByQuery(query: String): List<String> {
-        return when (query) {
-            "whatsapp",
-            "whatsap",
-            "whatsaapp",
-            "watsapp",
-            "whatsup",
-            "wa",
-            "whatsappmessenger" -> listOf("com.whatsapp", "com.whatsapp.w4b")
-            "whatsappbusiness",
-            "wabusiness",
-            "whatsappbiz" -> listOf("com.whatsapp.w4b", "com.whatsapp")
-            "gmail",
-            "gmain",
-            "gmial",
-            "googlemail",
-            "mail" -> listOf(
-                "com.google.android.gm",
-                "com.google.android.gm.lite",
-                "com.google.android.email",
-            )
-            "youtube",
-            "youtub",
-            "yt" -> listOf("com.google.android.youtube")
-            "telegram",
-            "tele",
-            "tg",
-            "telegrammessenger",
-            "telegramapp" -> listOf("org.telegram.messenger")
-            "telegramx",
-            "tgx",
-            "tx",
-            "xtelegram",
-            "telegramxapp" -> listOf("org.thunderdog.challegram")
-            "xplayer",
-            "xvideo",
-            "xvideos",
-            "xvideoplayer",
-            "xvideoplayerapp" -> listOf(
-                "video.player.videoplayer",
-                "com.inshot.xplayer",
-                "com.mxtech.videoplayer.ad",
-            )
-            "google",
-            "googlesearch",
-            "googleapp" -> listOf(
-                "com.google.android.googlequicksearchbox",
-                "com.android.chrome",
-            )
-            "playstore",
-            "playstoreapp",
-            "googleplay",
-            "googleplaystore" -> listOf("com.android.vending")
-            else -> emptyList()
-        }
-    }
-
-    private fun knownLaunchComponents(pkg: String): List<String> {
-        return when (pkg) {
-            "com.whatsapp" -> listOf(
-                "com.whatsapp.HomeActivity",
-                "com.whatsapp.Main",
-            )
-            "com.whatsapp.w4b" -> listOf(
-                "com.whatsapp.w4b.HomeActivity",
-            )
-            "com.google.android.gm" -> listOf(
-                "com.google.android.gm.ConversationListActivityGmail",
-                "com.google.android.gm.GmailActivity",
-            )
-            "com.google.android.youtube" -> listOf(
-                "com.google.android.apps.youtube.app.WatchWhileActivity",
-                "com.google.android.youtube.HomeActivity",
-            )
-            "org.telegram.messenger" -> listOf(
-                "org.telegram.ui.LaunchActivity",
-            )
-            "org.thunderdog.challegram" -> listOf(
-                "org.thunderdog.challegram.MainActivity",
-            )
-            "video.player.videoplayer" -> listOf(
-                "video.player.videoplayer.videoeffect.MainActivity",
-                "video.player.videoplayer.MainActivity",
-            )
-            "com.google.android.googlequicksearchbox" -> listOf(
-                "com.google.android.apps.gsa.searchnow.SearchNowActivity",
-                "com.google.android.apps.gsa.search.core.google.GoogleAppActivity",
-            )
-            else -> emptyList()
-        }
+        return AppLaunchResolver.openByName(this, query)
     }
 
     private fun canPostNotifications(): Boolean {
@@ -574,12 +323,20 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun openNotificationSettings() {
-        val intent = Intent().apply {
-            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            val intent = Intent().apply {
+                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (_: Exception) {
+            val fallbackIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:$packageName")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(fallbackIntent)
         }
-        startActivity(intent)
     }
 
     private fun isIgnoringBatteryOptimizations(): Boolean {
@@ -599,11 +356,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun canDrawOverlays(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(this)
-        } else {
-            true
-        }
+        return AssistantOverlayController.canDrawOverlays(this)
     }
 
     private fun requestOverlayPermission() {
@@ -617,71 +370,23 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun showOverlay(status: String, transcript: String) {
-        if (!canDrawOverlays()) return
-
-        runOnUiThread {
-            if (overlayView == null) {
-                val root = LinearLayout(this).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setPadding(40, 30, 40, 30)
-                    setBackgroundColor(Color.parseColor("#CC1E1E1E"))
-                }
-
-                val statusText = TextView(this).apply {
-                    setTextColor(Color.parseColor("#FFFF5252"))
-                    textSize = 16f
-                }
-                val transcriptText = TextView(this).apply {
-                    setTextColor(Color.WHITE)
-                    textSize = 14f
-                }
-
-                root.addView(statusText)
-                root.addView(transcriptText)
-                overlayView = root
-                overlayStatusText = statusText
-                overlayTranscriptText = transcriptText
-
-                val params = WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                    else
-                        WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                    PixelFormat.TRANSLUCENT
-                ).apply {
-                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                    y = 160
-                }
-
-                val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-                wm.addView(root, params)
-            }
-
-            overlayStatusText?.text = status
-            overlayTranscriptText?.text = if (transcript.isBlank()) "Say something..." else transcript
-        }
+        AssistantOverlayController.show(
+            applicationContext,
+            status = status,
+            transcript = transcript
+        )
     }
 
     private fun updateOverlay(status: String, transcript: String) {
-        runOnUiThread {
-            overlayStatusText?.text = status
-            overlayTranscriptText?.text = if (transcript.isBlank()) "Say something..." else transcript
-        }
+        AssistantOverlayController.update(
+            applicationContext,
+            status = status,
+            transcript = transcript
+        )
     }
 
     private fun hideOverlay() {
-        runOnUiThread {
-            val view = overlayView ?: return@runOnUiThread
-            val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-            wm.removeView(view)
-            overlayView = null
-            overlayStatusText = null
-            overlayTranscriptText = null
-        }
+        AssistantOverlayController.hide()
     }
 
     private fun setAssistantIdleNotification() {
@@ -694,7 +399,7 @@ class MainActivity : FlutterActivity() {
             .setContentText("Wake word is active in background")
             .setSubText("Background status")
             .setSmallIcon(R.drawable.ic_stat_waifu)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.logi))
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
             .setContentIntent(openPendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -710,7 +415,7 @@ class MainActivity : FlutterActivity() {
         ensureNotificationChannels()
         val manager = getSystemService(NotificationManager::class.java)
         val openPendingIntent = buildLaunchPendingIntent(wakeEventNotificationId)
-        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logi)
+        val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val body = if (transcript.isBlank()) {
             status
@@ -737,7 +442,9 @@ class MainActivity : FlutterActivity() {
         manager?.notify(assistantNotificationId, mainNotification)
 
         if (pulse) {
-            val wakeNotification = NotificationCompat.Builder(this, wakeEventChannelId)
+            val isWakeDetection = isWakeDetectionPulse(status, transcript)
+            val pulseChannel = if (isWakeDetection) wakeVibrateChannelId else wakeEventChannelId
+            val wakeNotification = NotificationCompat.Builder(this, pulseChannel)
                 .setContentTitle(if (status.isNotBlank()) status else "Wake word detected")
                 .setContentText(if (transcript.isNotBlank()) transcript else "Zero Two is listening...")
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -755,6 +462,15 @@ class MainActivity : FlutterActivity() {
                 .build()
             manager?.notify(wakeEventNotificationId, wakeNotification)
         }
+    }
+
+    private fun isWakeDetectionPulse(status: String, transcript: String): Boolean {
+        val s = status.lowercase()
+        val t = transcript.lowercase()
+        return s.contains("wake word") ||
+            t.contains("wake word") ||
+            s.contains("speak your command") ||
+            t.contains("speak your command")
     }
 
     private fun ensureNotificationChannels() {
@@ -786,9 +502,19 @@ class MainActivity : FlutterActivity() {
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
             }
+            val wakeVibrateChannel = NotificationChannel(
+                wakeVibrateChannelId,
+                "Wake Events (Vibrate)",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                setSound(null, null)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
+            }
             manager?.createNotificationChannel(assistantChannel)
             manager?.createNotificationChannel(assistantStatusChannel)
             manager?.createNotificationChannel(wakeEventChannel)
+            manager?.createNotificationChannel(wakeVibrateChannel)
         }
     }
 
@@ -819,7 +545,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
-        hideOverlay()
+        AssistantOverlayController.hide()
         super.onDestroy()
     }
 }
