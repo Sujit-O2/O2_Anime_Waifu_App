@@ -16,7 +16,7 @@
 <!-- If targeting newer Android versions, you may also request android.permission.POST_NOTIFICATIONS at runtime if you use notifications -->
 
     <application
-        android:label="O2-WAIFU"
+        android:label="S-002"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher">
