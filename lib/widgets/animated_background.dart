@@ -196,6 +196,19 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   Offset? interactionPoint;
   AppThemeMode? _lastMode;
 
+  int _particleCountForTheme(AppThemeMode mode) {
+    switch (AppThemes.getParticleType(mode)) {
+      case ParticleType.rain:
+      case ParticleType.snow:
+        return 18;
+      case ParticleType.stars:
+      case ParticleType.bubbles:
+        return 20;
+      default:
+        return 24;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -236,8 +249,9 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
             final pType = AppThemes.getParticleType(mode);
             if (_lastMode == null || _lastMode != mode || particles.isEmpty) {
               _lastMode = mode;
+              final count = _particleCountForTheme(mode);
               particles = List.generate(
-                32,
+                count,
                 (_) => Particle(
                     Size(constraints.maxWidth, constraints.maxHeight), pType),
               );
@@ -321,7 +335,7 @@ class _CrepuscularPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const int rayCount = 10;
+    const int rayCount = 7;
     final double cx = size.width * 0.5;
     final double cy = -size.height * 0.38;
     final double maxR = size.height * 1.9;
@@ -330,7 +344,7 @@ class _CrepuscularPainter extends CustomPainter {
     for (int i = 0; i < rayCount; i++) {
       final double angle = base + (i / rayCount) * 2 * math.pi;
       final double hw = (0.025 + 0.018 * math.sin(i * 1.4)) * math.pi;
-      final double op = 0.045 + 0.020 * math.sin(i * 0.8 + 1.0);
+      final double op = 0.032 + 0.015 * math.sin(i * 0.8 + 1.0);
       final Color c = (i % 3 == 0) ? accent : primary;
 
       final double p1x = cx + maxR * math.cos(angle - hw);

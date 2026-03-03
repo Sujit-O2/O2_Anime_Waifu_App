@@ -24,6 +24,8 @@ class TtsService {
   int _playerSessionId = 0;
   int _fallbackSessionId = 0;
   Timer? _completionGuard;
+  bool _fallbackVoiceConfigured = false;
+  String _fallbackVoiceSignature = "";
 
   static const Duration _ttsRequestTimeout = Duration(seconds: 18);
 
@@ -168,9 +170,10 @@ class TtsService {
       _fallbackSessionId = sessionId;
       _playerSessionId = 0;
       await _flutterTts.stop();
-      await _flutterTts.setLanguage("en-US");
-      await _flutterTts.setPitch(1.0);
-      await _flutterTts.setSpeechRate(0.47);
+      await _configureFallbackVoice();
+      await _flutterTts.setPitch(1.03);
+      await _flutterTts.setSpeechRate(0.46);
+      await _flutterTts.setVolume(1.0);
 
       final result = await _flutterTts.speak(text);
       if (result != 1) {
@@ -207,5 +210,90 @@ class TtsService {
     if (previous != 0) {
       onComplete?.call();
     }
+  }
+
+  Future<void> _configureFallbackVoice() async {
+    final signature =
+        "${_voiceOverride.trim().toLowerCase()}|${_effectiveVoice.toLowerCase()}";
+    if (_fallbackVoiceConfigured && _fallbackVoiceSignature == signature) {
+      return;
+    }
+    _fallbackVoiceConfigured = true;
+    _fallbackVoiceSignature = signature;
+
+    try {
+      final dynamic voicesRaw = await _flutterTts.getVoices;
+      final voices = _normalizeVoices(voicesRaw);
+      final preferred = _pickBestFallbackVoice(
+        voices: voices,
+        requestedVoice: _voiceOverride.trim(),
+      );
+      if (preferred != null) {
+        final locale = (preferred['locale'] ?? 'en-US').toString();
+        final name = (preferred['name'] ?? '').toString();
+        await _flutterTts.setLanguage(locale);
+        if (name.isNotEmpty) {
+          await _flutterTts.setVoice({'name': name, 'locale': locale});
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint("Fallback voice discovery failed: $e");
+    }
+
+    await _flutterTts.setLanguage("en-US");
+  }
+
+  List<Map<String, dynamic>> _normalizeVoices(dynamic voicesRaw) {
+    if (voicesRaw is! List) return const [];
+    return voicesRaw
+        .whereType<Map>()
+        .map(
+          (v) => v.map(
+            (k, value) => MapEntry(
+              k.toString(),
+              value,
+            ),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Map<String, dynamic>? _pickBestFallbackVoice({
+    required List<Map<String, dynamic>> voices,
+    required String requestedVoice,
+  }) {
+    if (voices.isEmpty) return null;
+    final request = requestedVoice.trim().toLowerCase();
+
+    int scoreVoice(Map<String, dynamic> voice) {
+      final name = (voice['name'] ?? '').toString().toLowerCase();
+      final locale = (voice['locale'] ?? '').toString().toLowerCase();
+      final quality = (voice['quality'] as num?)?.toInt() ?? 0;
+      final notInstalled = voice['notInstalled'] == true;
+      final networkRequired = voice['network_required'] == true;
+
+      var score = 0;
+      if (locale.startsWith('en-us')) score += 60;
+      if (locale.startsWith('en-')) score += 25;
+      if (!notInstalled) score += 20;
+      if (!networkRequired) score += 10;
+      if (quality > 0) score += quality ~/ 10;
+
+      // Prefer human-like voices when available.
+      if (name.contains('female')) score += 18;
+      if (name.contains('natural') || name.contains('neural')) score += 22;
+      if (name.contains('wavenet')) score += 20;
+
+      // Respect user-configured fallback hint if it matches a device voice.
+      if (request.isNotEmpty && name.contains(request)) score += 100;
+
+      return score;
+    }
+
+    voices.sort((a, b) => scoreVoice(b).compareTo(scoreVoice(a)));
+    final best = voices.first;
+    final bestScore = scoreVoice(best);
+    return bestScore > 0 ? best : null;
   }
 }
