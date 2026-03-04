@@ -110,13 +110,13 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.pinkAccent.withOpacity(0.3),
-                          Colors.purpleAccent.withOpacity(0.2),
+                          Colors.pinkAccent.withValues(alpha: 0.3),
+                          Colors.purpleAccent.withValues(alpha: 0.2),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border:
-                          Border.all(color: Colors.pinkAccent.withOpacity(0.5)),
+                          Border.all(color: Colors.pinkAccent.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -182,7 +182,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.3),
+                            color: Colors.red.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.delete_outline,
@@ -193,7 +193,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -222,7 +222,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                               const SizedBox(height: 6),
                               Text(msg,
                                   style: GoogleFonts.outfit(
-                                      color: Colors.white.withOpacity(0.87),
+                                      color: Colors.white.withValues(alpha: 0.87),
                                       fontSize: 13)),
                             ],
                           ),
@@ -241,9 +241,9 @@ extension _MainNotificationsExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.30)),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -256,7 +256,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
           const SizedBox(width: 3),
           Text(label,
               style: GoogleFonts.outfit(
-                  color: color.withOpacity(0.7), fontSize: 10)),
+                  color: color.withValues(alpha: 0.7), fontSize: 10)),
         ],
       ),
     );
@@ -283,8 +283,8 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Colors.black.withOpacity(0.32),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withValues(alpha: 0.32),
+                    Colors.black.withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -1064,7 +1064,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
               borderRadius: BorderRadius.circular(14),
               child: Container(
                 width: double.infinity,
-                color: Colors.black.withOpacity(0.45),
+                color: Colors.black.withValues(alpha: 0.45),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
@@ -1182,12 +1182,12 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
                           color:
-                              Theme.of(context).primaryColor.withOpacity(0.15),
+                              Theme.of(context).primaryColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                               color: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.3)),
+                                  .withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           _controller?.value.playbackSpeed == 1.0
@@ -1221,7 +1221,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                       inactiveTrackColor: Colors.white12,
                       thumbColor: Colors.white,
                       overlayColor:
-                          Theme.of(context).primaryColor.withOpacity(0.2),
+                          Theme.of(context).primaryColor.withValues(alpha: 0.2),
                       valueIndicatorShape:
                           const PaddleSliderValueIndicatorShape(),
                       valueIndicatorColor: Theme.of(context).primaryColor,
@@ -1254,7 +1254,7 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                                   duration.inMilliseconds)
                               .clamp(0.0, 1.0)
                           : 0.0,
-                      backgroundColor: Colors.white.withOpacity(0.06),
+                      backgroundColor: Colors.white.withValues(alpha: 0.06),
                       color: Colors.white24,
                       minHeight: 2,
                     ),
@@ -1293,12 +1293,12 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                     ),
                     decoration: BoxDecoration(
                       color: selected
-                          ? Theme.of(context).primaryColor.withOpacity(0.16)
-                          : Colors.white.withOpacity(0.05),
+                          ? Theme.of(context).primaryColor.withValues(alpha: 0.16)
+                          : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: selected
-                            ? Theme.of(context).primaryColor.withOpacity(0.45)
+                            ? Theme.of(context).primaryColor.withValues(alpha: 0.45)
                             : Colors.white10,
                       ),
                     ),
@@ -1802,7 +1802,7 @@ class _LandscapeEpisodePlayerPageState
                 child: IgnorePointer(
                   child: Container(
                     color: Colors.black
-                        .withOpacity((1.0 - _brightnessLevel) * 0.72),
+                        .withValues(alpha: (1.0 - _brightnessLevel) * 0.72),
                   ),
                 ),
               ),
@@ -1837,7 +1837,7 @@ class _LandscapeEpisodePlayerPageState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.75),
+                    color: Colors.black.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -1911,7 +1911,7 @@ class _LandscapeEpisodePlayerPageState
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 8),
-                              color: Colors.black.withOpacity(0.45),
+                              color: Colors.black.withValues(alpha: 0.45),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -2020,7 +2020,7 @@ class _LandscapeEpisodePlayerPageState
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white30),
                               ),

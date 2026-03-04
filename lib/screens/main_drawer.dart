@@ -35,8 +35,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              gradient.first.withOpacity(0.97),
-              gradient.last.withOpacity(0.97),
+              gradient.first.withValues(alpha: 0.97),
+              gradient.last.withValues(alpha: 0.97),
             ],
           ),
         ),
@@ -62,8 +62,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.08),
-                      Colors.black.withOpacity(0.28),
+                      Colors.black.withValues(alpha: 0.08),
+                      Colors.black.withValues(alpha: 0.28),
                     ],
                   ),
                 ),
@@ -85,8 +85,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           height: 44,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: primary.withOpacity(0.2),
-                            border: Border.all(color: primary.withOpacity(0.5)),
+                            color: primary.withValues(alpha: 0.2),
+                            border: Border.all(color: primary.withValues(alpha: 0.5)),
                           ),
                           child: ClipOval(
                             child: Image(
@@ -129,9 +129,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white.withOpacity(0.08), height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
                   _buildDrawerAutoListenTile(primary),
-                  Divider(color: Colors.white.withOpacity(0.08), height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
                   const SizedBox(height: 8),
                   Expanded(
                     child: ListView.builder(
@@ -153,11 +153,11 @@ extension _MainDrawerExtension on _ChatHomePageState {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               color: selected
-                                  ? primary.withOpacity(0.18)
+                                  ? primary.withValues(alpha: 0.18)
                                   : Colors.transparent,
                               border: Border.all(
                                 color: selected
-                                    ? primary.withOpacity(0.4)
+                                    ? primary.withValues(alpha: 0.4)
                                     : Colors.transparent,
                               ),
                             ),
@@ -209,7 +209,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       },
                     ),
                   ),
-                  Divider(color: Colors.white.withOpacity(0.08), height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -266,8 +266,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.06),
-                    Colors.black.withOpacity(0.58),
+                    Colors.black.withValues(alpha: 0.06),
+                    Colors.black.withValues(alpha: 0.58),
                   ],
                 ),
               ),
