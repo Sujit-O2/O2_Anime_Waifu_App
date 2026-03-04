@@ -6,13 +6,15 @@
     android:clickable="true"
     android:focusable="true">
 
+    <!-- Blurred dark scrim behind the sheet -->
     <View
         android:id="@+id/overlayScrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0"
-        android:background="#7A000000" />
+        android:background="#88000000" />
 
+    <!-- Main bottom sheet -->
     <LinearLayout
         android:id="@+id/assistantOverlaySheet"
         android:layout_width="match_parent"
@@ -20,114 +22,174 @@
         android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="@drawable/assistant_overlay_compact_bg"
-        android:paddingStart="16dp"
-        android:paddingTop="14dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="14dp"
+        android:paddingStart="20dp"
+        android:paddingTop="0dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="20dp"
         android:clickable="true"
         android:focusable="true"
-        android:elevation="22dp">
+        android:elevation="28dp">
 
+        <!-- Handle bar with expanded touch target for resizing -->
+        <FrameLayout
+            android:id="@+id/overlayDragHandle"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp">
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@drawable/overlay_handle_bar" />
+        </FrameLayout>
+
+        <!-- Header row: avatar dot + title + close -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
 
+            <!-- Animated status dot -->
+            <View
+                android:id="@+id/overlayStatusDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="9dp"
+                android:background="@drawable/overlay_status_dot" />
+
+            <!-- Name / status text -->
             <TextView
+                android:id="@+id/overlayStatus"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Zero Two Assistant"
-                android:textColor="#FFF7F7F7"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="002"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
+            <!-- Close button (hidden per user request) -->
             <ImageButton
                 android:id="@+id/overlayCloseButton"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:background="@android:color/transparent"
+                android:visibility="gone"
+                android:background="@drawable/overlay_icon_btn_bg"
                 android:contentDescription="Close"
                 android:padding="8dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:tint="#B3FFFFFF" />
+                android:tint="#AAFFFFFF" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/overlayStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Ready"
-            android:textColor="#FFFFFFFF"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end" />
-
-        <TextView
-            android:id="@+id/overlayTranscript"
+        <!-- Transcript / response bubble array (now holds actual layout bubbles) -->
+        <ScrollView
+            android:id="@+id/overlayTranscriptScroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="8dp"
-            android:background="#141A23"
-            android:padding="12dp"
-            android:text="Tap mic for voice-to-voice or type a command."
-            android:textColor="#E6FFFFFF"
-            android:textSize="14sp" />
+            android:minHeight="140dp"
+            android:layout_marginBottom="14dp"
+            android:scrollbars="none"
+            android:fillViewport="true">
+            
+            <LinearLayout
+                android:id="@+id/overlayChatList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </ScrollView>
 
+        <!-- Waveform / listening pulse row -->
+        <LinearLayout
+            android:id="@+id/overlayWaveformRow"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_marginBottom="14dp"
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <!-- Five animated bars (set visibility=visible when listening) -->
+            <View android:layout_width="4dp" android:layout_height="12dp"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/overlay_wave_bar" />
+            <View android:layout_width="4dp" android:layout_height="20dp"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/overlay_wave_bar" />
+            <View android:layout_width="4dp" android:layout_height="9dp"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/overlay_wave_bar" />
+            <View android:layout_width="4dp" android:layout_height="22dp"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/overlay_wave_bar" />
+            <View android:layout_width="4dp" android:layout_height="14dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/overlay_wave_bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Listening..."
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Action row: mic + input + send -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- Mic button with glow bg -->
             <ImageButton
                 android:id="@+id/overlayMicButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/assistant_overlay_action_btn_bg"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/overlay_mic_btn_bg"
                 android:contentDescription="Voice command"
+                android:padding="12dp"
                 android:src="@android:drawable/ic_btn_speak_now"
-                android:tint="#FFFF6A6A" />
+                android:tint="#FFFF5252" />
 
+            <!-- Text input field -->
             <EditText
                 android:id="@+id/overlayInput"
                 android:layout_width="0dp"
                 android:layout_height="44dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/assistant_overlay_input_bg"
-                android:hint="Type command..."
+                android:layout_marginStart="10dp"
+                android:background="@drawable/overlay_input_field_bg"
+                android:hint="Type a command..."
                 android:imeOptions="actionSend"
                 android:inputType="textCapSentences"
                 android:maxLines="1"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:textColor="#FFFFFFFF"
-                android:textColorHint="#80FFFFFF"
+                android:textColorHint="#66FFFFFF"
                 android:textSize="14sp" />
 
+            <!-- Send button -->
             <ImageButton
                 android:id="@+id/overlaySendButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="8dp"
-                android:background="@drawable/assistant_overlay_action_btn_bg"
-                android:contentDescription="Send text command"
+                android:background="@drawable/overlay_send_btn_bg"
+                android:contentDescription="Send command"
+                android:padding="12dp"
                 android:src="@android:drawable/ic_menu_send"
-                android:tint="#FFFF6A6A" />
+                android:tint="#FFFFFFFF" />
         </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Auto closes after action"
-            android:textColor="#99FFFFFF"
-            android:textSize="11sp" />
     </LinearLayout>
 </FrameLayout>

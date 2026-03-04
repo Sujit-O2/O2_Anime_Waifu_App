@@ -302,7 +302,7 @@ extension _MainDebugExtension on _ChatHomePageState {
 
                       // Memory
                       _debugActionBtn('Clear Chat', Icons.delete_outline,
-                          () => _clearMemory()),
+                          () => unawaited(_clearMemory())),
 
                       // New Settings Quick Actions
                       _debugActionBtn('Toggle Timestamps', Icons.access_time,

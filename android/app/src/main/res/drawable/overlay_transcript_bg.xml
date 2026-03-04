@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transcript / response bubble background: dark card with subtle border -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="16dp" />
+    <solid android:color="#22FFFFFF" />
+    <stroke
+        android:width="1dp"
+        android:color="#40FFFFFF" />
+</shape>

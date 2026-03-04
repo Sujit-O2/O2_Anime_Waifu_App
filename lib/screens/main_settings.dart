@@ -688,7 +688,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           letterSpacing: 2)),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: _clearMemory,
+                    onTap: () => unawaited(_clearMemory()),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -721,7 +721,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ),
                   const SizedBox(height: 12),
                   GestureDetector(
-                    onTap: _clearNotifHistory,
+                    onTap: () => unawaited(_clearNotifHistory()),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
