@@ -12,12 +12,15 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
-import android.view.inputmethod.EditorInfo
-import android.view.animation.AccelerateInterpolator
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 
 object AssistantOverlayController {
@@ -27,6 +30,7 @@ object AssistantOverlayController {
 
     private const val ACTION_OVERLAY_SEND_TEXT = "OVERLAY_SEND_TEXT"
     private const val ACTION_OVERLAY_LISTEN_NOW = "OVERLAY_LISTEN_NOW"
+    private const val ACTION_OVERLAY_CANCEL_SESSION = "OVERLAY_CANCEL_SESSION"
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -35,9 +39,13 @@ object AssistantOverlayController {
     private var overlayScrimView: View? = null
     private var overlaySheetView: View? = null
     private var statusView: TextView? = null
-    private var transcriptView: TextView? = null
+    private var overlayTranscriptScroll: android.widget.ScrollView? = null
+    private var overlayChatList: LinearLayout? = null
     private var inputView: EditText? = null
     private var micButtonView: ImageButton? = null
+    private var statusDotView: View? = null
+    private var waveformRowView: LinearLayout? = null
+
     private var attached = false
     private var visible = false
     private var animatingOut = false
@@ -45,6 +53,11 @@ object AssistantOverlayController {
     private var lastStatus = ""
     private var lastTranscript = ""
     private var lastShownAtMs = 0L
+
+    private val sessionHistory = mutableListOf<Pair<String, String>>()
+
+    // Pulse animation for status dot
+    private var dotPulseRunnable: Runnable? = null
 
     fun canDrawOverlays(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -70,11 +83,20 @@ object AssistantOverlayController {
             ensureAttached(appContext)
             if (!attached || overlayView == null) return@post
 
-            val statusText = status.trim().ifBlank { "Assistant" }
-            val transcriptText = transcript.trim().ifBlank { "Listening..." }
+            val statusText = status.trim().ifBlank { "002" }
+            val transcriptText = transcript.trim().ifBlank { "Say a wake word or tap the mic..." }
+            
+            // Record to history if it's a completed message
+            if (!statusText.equals("Listening", ignoreCase = true) && 
+                !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
+                    sessionHistory.add(statusText to transcriptText)
+                }
+            }
+
             statusView?.text = statusText
-            transcriptView?.text = transcriptText
-            syncMicButtonVisual(statusText, transcriptText)
+            updateChatList(appContext, statusText, transcriptText)
+            syncListeningVisuals(statusText, transcriptText)
 
             val now = System.currentTimeMillis()
             val contentChanged = !(
@@ -86,15 +108,10 @@ object AssistantOverlayController {
             lastTranscript = transcriptText
             lastShownAtMs = now
 
-            // Animate only when the popup is entering; updates should not restart motion.
             if (!visible || animatingOut) {
                 animateIn(appContext)
-            } else if (contentChanged) {
-                // Keep it smooth on status/transcript refresh without replaying full entrance.
-                overlaySheetView?.animate()?.cancel()
             }
 
-            // Keep API compatibility; auto-hide is intentionally disabled.
             @Suppress("UNUSED_VARIABLE")
             val ignoredAutoHide = autoHideMs
             cancelAutoHide()
@@ -113,66 +130,125 @@ object AssistantOverlayController {
                 show(appContext, status, transcript, autoHideMs)
                 return@post
             }
-            statusView?.text = status.trim().ifBlank { "Assistant" }
-            transcriptView?.text = transcript.trim().ifBlank { "Listening..." }
-            syncMicButtonVisual(
-                statusView?.text?.toString().orEmpty(),
-                transcriptView?.text?.toString().orEmpty()
-            )
-            lastStatus = statusView?.text?.toString() ?: ""
-            lastTranscript = transcriptView?.text?.toString() ?: ""
+            val statusText = status.trim().ifBlank { "002" }
+            val transcriptText = transcript.trim().ifBlank { "Say a wake word or tap the mic..." }
+            
+            // Record to history if it's a completed message
+            if (!statusText.equals("Listening", ignoreCase = true) && 
+                !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
+                    sessionHistory.add(statusText to transcriptText)
+                }
+            }
+
+            statusView?.text = statusText
+            updateChatList(appContext, statusText, transcriptText)
+            syncListeningVisuals(statusText, transcriptText)
+            lastStatus = statusText
+            lastTranscript = transcriptText
             lastShownAtMs = System.currentTimeMillis()
             if (!visible || animatingOut) {
                 animateIn(appContext)
             }
-            // Keep API compatibility; auto-hide is intentionally disabled.
             @Suppress("UNUSED_VARIABLE")
             val ignoredAutoHide = autoHideMs
             cancelAutoHide()
         }
     }
 
-    fun hide() {
+    private fun updateChatList(context: Context, currentStatus: String, currentTranscript: String) {
+        val list = overlayChatList ?: return
+        val scroll = overlayTranscriptScroll ?: return
+        list.removeAllViews()
+        val inflater = LayoutInflater.from(context)
+
+        for (item in sessionHistory) {
+            val isUser = item.first.equals("You", ignoreCase = true)
+            val layoutId = if (isUser) R.layout.overlay_chat_bubble_user else R.layout.overlay_chat_bubble_assistant
+            val bubble = inflater.inflate(layoutId, list, false)
+            bubble.findViewById<TextView>(R.id.chatBubbleText).text = item.second
+            list.addView(bubble)
+        }
+
+        if (currentStatus.equals("Listening", ignoreCase = true) && currentTranscript.isNotBlank()) {
+            val bubble = inflater.inflate(R.layout.overlay_chat_bubble_assistant, list, false)
+            val tv = bubble.findViewById<TextView>(R.id.chatBubbleText)
+            tv.text = currentTranscript
+            tv.alpha = 0.7f
+            list.addView(bubble)
+        }
+
+        scroll.post {
+            scroll.fullScroll(View.FOCUS_DOWN)
+        }
+    }
+
+    fun hide(context: Context? = null) {
         mainHandler.post {
+            stopDotPulse()
             cancelAutoHide()
-            hideInternal()
+            hideInternal(context)
         }
     }
 
     private fun ensureAttached(context: Context) {
         if (attached && overlayView != null) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // Target modern Android only to avoid deprecated overlay window types.
-            return
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             val wm = context.getSystemService(WindowManager::class.java) ?: return
             val root = LayoutInflater.from(context)
                 .inflate(R.layout.assistant_overlay_compact, null)
+
             val scrim = root.findViewById<View>(R.id.overlayScrim)
             val sheet = root.findViewById<View>(R.id.assistantOverlaySheet)
             val status = root.findViewById<TextView>(R.id.overlayStatus)
-            val transcript = root.findViewById<TextView>(R.id.overlayTranscript)
+            val transcriptScroll = root.findViewById<android.widget.ScrollView>(R.id.overlayTranscriptScroll)
+            val chatList = root.findViewById<LinearLayout>(R.id.overlayChatList)
             val input = root.findViewById<EditText>(R.id.overlayInput)
             val micButton = root.findViewById<ImageButton>(R.id.overlayMicButton)
             val sendButton = root.findViewById<ImageButton>(R.id.overlaySendButton)
             val closeButton = root.findViewById<ImageButton>(R.id.overlayCloseButton)
+            val statusDot = root.findViewById<View>(R.id.overlayStatusDot)
+            val waveRow = root.findViewById<LinearLayout>(R.id.overlayWaveformRow)
+            val dragHandle = root.findViewById<View>(R.id.overlayDragHandle)
 
-            root.setOnClickListener { hide() }
-            sheet.setOnClickListener { /* Consume touches inside sheet. */ }
-
-            input.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    cancelAutoHide()
-                } else {
-                    cancelAutoHide()
+            var initialY = 0f
+            var initialHeight = 0
+            dragHandle.setOnTouchListener { v, event ->
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        initialY = event.rawY
+                        initialHeight = transcriptScroll.height
+                        true
+                    }
+                    android.view.MotionEvent.ACTION_MOVE -> {
+                        val deltaY = initialY - event.rawY
+                        var newHeight = (initialHeight + deltaY).toInt()
+                        val minH = dpF(context, 140).toInt()
+                        val maxH = dpF(context, 600).toInt()
+                        newHeight = newHeight.coerceIn(minH, maxH)
+                        
+                        val lp = transcriptScroll.layoutParams as ViewGroup.LayoutParams
+                        lp.height = newHeight
+                        transcriptScroll.layoutParams = lp
+                        true
+                    }
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                        v.performClick()
+                        true
+                    }
+                    else -> false
                 }
             }
+
+            root.setOnClickListener { hide(context) }
+            sheet.setOnClickListener { /* Consume touches inside sheet */ }
+
             input.setOnEditorActionListener { _, actionId, event ->
-                val isSendAction = actionId == EditorInfo.IME_ACTION_SEND
+                val isSend = actionId == EditorInfo.IME_ACTION_SEND
                 val isEnterUp = event?.keyCode == KeyEvent.KEYCODE_ENTER &&
                     event.action == KeyEvent.ACTION_UP
-                if (isSendAction || isEnterUp) {
+                if (isSend || isEnterUp) {
                     submitTypedCommand(context)
                     true
                 } else {
@@ -180,32 +256,25 @@ object AssistantOverlayController {
                 }
             }
 
-            micButton.setOnClickListener {
-                triggerVoiceListen(context)
-            }
-            sendButton.setOnClickListener {
-                submitTypedCommand(context)
-            }
-            closeButton.setOnClickListener {
-                hide()
-            }
+            micButton.setOnClickListener { triggerVoiceListen(context) }
+            sendButton.setOnClickListener { submitTypedCommand(context) }
+            closeButton.setOnClickListener { hide(context) }
 
-            val metrics = context.resources.displayMetrics
-            val sheetHeight = (metrics.heightPixels * 0.52f).toInt()
-            sheet.layoutParams = sheet.layoutParams.apply {
-                height = sheetHeight
-            }
+            // ✅ FIX: Drop FLAG_LAYOUT_IN_SCREEN so the system honours SOFT_INPUT_ADJUST_RESIZE
             val params = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_BLUR_BEHIND,
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
                 y = 0
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    blurBehindRadius = 45
+                }
             }
 
             wm.addView(root, params)
@@ -214,15 +283,33 @@ object AssistantOverlayController {
             overlayScrimView = scrim
             overlaySheetView = sheet
             statusView = status
-            transcriptView = transcript
+            overlayTranscriptScroll = transcriptScroll
+            overlayChatList = chatList
             inputView = input
             micButtonView = micButton
+            statusDotView = statusDot
+            waveformRowView = waveRow
+
+            // ✅ FIX: Keyboard listener — shift popup up so input stays above keyboard
+            root.viewTreeObserver.addOnGlobalLayoutListener {
+                val visibleRect = android.graphics.Rect()
+                root.getWindowVisibleDisplayFrame(visibleRect)
+                val screenHeight = root.rootView.height
+                val keyboardHeight = screenHeight - visibleRect.bottom
+                val newY = if (keyboardHeight > screenHeight * 0.15f) keyboardHeight else 0
+                if (params.y != newY) {
+                    params.y = newY
+                    try { wm.updateViewLayout(root, params) } catch (_: Exception) {}
+                }
+            }
+
             scrim.alpha = 0f
             sheet.alpha = 0f
+            sheet.translationY = dpF(context, 500)
+            sheet.scaleX = 0.96f
             attached = true
             visible = false
             animatingOut = false
-            setMicButtonActive(false)
         } catch (se: SecurityException) {
             Log.w(TAG, "Overlay permission denied: ${se.message}")
             clearRefs()
@@ -235,43 +322,32 @@ object AssistantOverlayController {
     private fun submitTypedCommand(context: Context) {
         val command = inputView?.text?.toString()?.trim().orEmpty()
         if (command.isBlank()) return
-        dispatchServiceAction(
-            context = context,
-            action = ACTION_OVERLAY_SEND_TEXT,
-            text = command
-        )
+        // ✅ FIX: persist to sessionHistory so the bubble survives future updates
+        sessionHistory.add("You" to command)
+        dispatchServiceAction(context, ACTION_OVERLAY_SEND_TEXT, text = command)
         statusView?.text = "You"
-        transcriptView?.text = command
+        updateChatList(context, "You", command)
         lastStatus = "You"
         lastTranscript = command
         lastShownAtMs = System.currentTimeMillis()
         inputView?.setText("")
-        setMicButtonActive(false)
+        syncListeningVisuals("You", command)
     }
 
     private fun triggerVoiceListen(context: Context) {
-        dispatchServiceAction(
-            context = context,
-            action = ACTION_OVERLAY_LISTEN_NOW
-        )
+        dispatchServiceAction(context, ACTION_OVERLAY_LISTEN_NOW)
         statusView?.text = "Listening"
-        transcriptView?.text = "Speak your command now."
+        updateChatList(context, "Listening", "Speak your command now.")
         lastStatus = "Listening"
         lastTranscript = "Speak your command now."
         lastShownAtMs = System.currentTimeMillis()
-        setMicButtonActive(true)
+        syncListeningVisuals("Listening", "Speak your command now.")
     }
 
-    private fun dispatchServiceAction(
-        context: Context,
-        action: String,
-        text: String? = null
-    ) {
+    private fun dispatchServiceAction(context: Context, action: String, text: String? = null) {
         val intent = Intent(context, AssistantForegroundService::class.java).apply {
             this.action = action
-            if (!text.isNullOrBlank()) {
-                putExtra("OVERLAY_TEXT", text)
-            }
+            if (!text.isNullOrBlank()) putExtra("OVERLAY_TEXT", text)
         }
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -284,87 +360,94 @@ object AssistantOverlayController {
         }
     }
 
-    private fun hideInternal() {
-        val root = overlayView ?: return
-        val sheet = overlaySheetView ?: return
-        val scrim = overlayScrimView
+    /** Show/hide waveform and pulse dot based on listening state. */
+    private fun syncListeningVisuals(status: String, transcript: String) {
+        val isListening = status.equals("Listening", ignoreCase = true) ||
+            transcript.contains("speak your command", ignoreCase = true) ||
+            transcript.contains("listening", ignoreCase = true)
 
-        animationToken += 1
-        val token = animationToken
-        animatingOut = true
-        visible = false
-
-        sheet.animate().cancel()
-        scrim?.animate()?.cancel()
-
-        val downDistance = (sheet.height.takeIf { it > 0 } ?: dp(root.context, 360)).toFloat()
-
-        scrim?.animate()
-            ?.alpha(0f)
-            ?.setDuration(170L)
-            ?.setInterpolator(AccelerateInterpolator(1.15f))
-            ?.start()
-
-        sheet.animate()
-            .alpha(0f)
-            .translationY(downDistance)
-            .setDuration(220L)
-            .setInterpolator(AccelerateInterpolator(1.2f))
-            .withEndAction {
-                if (token != animationToken) return@withEndAction
-                removeViewNow(root)
+        val waveRow = waveformRowView
+        if (waveRow != null) {
+            if (isListening) {
+                waveRow.visibility = View.VISIBLE
+                animateWaveform(waveRow)
+            } else {
+                waveRow.visibility = View.GONE
+                waveRow.animate().cancel()
             }
-            .start()
-    }
+        }
 
-    private fun removeViewNow(view: View) {
-        try {
-            windowManager?.removeView(view)
-        } catch (_: Exception) {
-            // View can already be detached by the system.
-        } finally {
-            clearRefs()
+        val dot = statusDotView ?: return
+        if (isListening) {
+            startDotPulse(dot)
+        } else {
+            stopDotPulse()
+            dot.animate().cancel()
+            dot.alpha = 1f
+            dot.scaleX = 1f
+            dot.scaleY = 1f
         }
     }
 
-    private fun clearRefs() {
-        overlayView = null
-        overlayScrimView = null
-        overlaySheetView = null
-        statusView = null
-        transcriptView = null
-        inputView = null
-        micButtonView = null
-        windowManager = null
-        attached = false
-        visible = false
-        animatingOut = false
-        animationToken = 0
-        lastStatus = ""
-        lastTranscript = ""
-        lastShownAtMs = 0L
+    private fun animateWaveform(row: LinearLayout) {
+        // Animate each bar child with a different delay/amplitude for a live waveform feel
+        val count = row.childCount
+        for (i in 0 until count) {
+            val bar = row.getChildAt(i) as? View ?: continue
+            val delay = (i * 80L)
+            val targetScale = floatArrayOf(1.8f, 2.4f, 1.3f, 2.8f, 1.6f, 1.0f)
+            val scale = if (i < targetScale.size) targetScale[i] else 1.5f
+            bar.animate()
+                .scaleY(scale)
+                .setDuration(380L)
+                .setStartDelay(delay)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    bar.animate()
+                        .scaleY(1f)
+                        .setDuration(380L)
+                        .setInterpolator(AccelerateDecelerateInterpolator())
+                        .start()
+                }
+                .start()
+        }
     }
 
-    private fun cancelAutoHide() {
-        // Auto hide disabled: popup stays until user dismisses (outside tap or close button).
+    private fun startDotPulse(dot: View) {
+        stopDotPulse()
+        val r = object : Runnable {
+            override fun run() {
+                if (!attached) return
+                dot.animate()
+                    .scaleX(1.55f)
+                    .scaleY(1.55f)
+                    .alpha(0.4f)
+                    .setDuration(600L)
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .withEndAction {
+                        dot.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .alpha(1f)
+                            .setDuration(600L)
+                            .setInterpolator(AccelerateDecelerateInterpolator())
+                            .start()
+                    }
+                    .start()
+                mainHandler.postDelayed(this, 1200L)
+            }
+        }
+        dotPulseRunnable = r
+        mainHandler.post(r)
     }
 
-    private fun dp(context: Context, value: Int): Int {
-        return (value * context.resources.displayMetrics.density).toInt()
+    private fun stopDotPulse() {
+        dotPulseRunnable?.let { mainHandler.removeCallbacks(it) }
+        dotPulseRunnable = null
     }
 
-    private fun syncMicButtonVisual(status: String, transcript: String) {
-        val active = status.equals("Listening", ignoreCase = true) ||
-            transcript.contains("speak your command", ignoreCase = true)
-        setMicButtonActive(active)
-    }
 
-    private fun setMicButtonActive(active: Boolean) {
-        val button = micButtonView ?: return
-        button.alpha = if (active) 1.0f else 0.88f
-        button.setColorFilter(if (active) 0xFFFF3D5A.toInt() else 0xFFFF6A6A.toInt())
-        button.isSelected = active
-    }
+    // ── Animation ──────────────────────────────────────────────────────────────
 
     private fun animateIn(context: Context) {
         val root = overlayView ?: return
@@ -381,28 +464,125 @@ object AssistantOverlayController {
         root.post {
             if (token != animationToken || overlayView == null) return@post
 
-            val startY = (sheet.height.takeIf { it > 0 } ?: dp(context, 360)).toFloat()
+            // Start from well below and scaled down
+            val startY = dpF(context, 480)
             sheet.translationY = startY
             sheet.alpha = 0f
+            sheet.scaleX = 0.85f
+            sheet.scaleY = 0.88f
             scrim?.alpha = 0f
 
+            // Scrim fades in quickly
             scrim?.animate()
-                ?.alpha(1f)
-                ?.setDuration(230L)
-                ?.setInterpolator(DecelerateInterpolator(1.3f))
+                ?.alpha(0.88f)
+                ?.setDuration(260L)
+                ?.setInterpolator(DecelerateInterpolator(1.4f))
                 ?.start()
 
+            // Sheet slides up with satisfying bouncy spring catch
             sheet.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setDuration(320L)
-                .setInterpolator(DecelerateInterpolator(1.55f))
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(460L)
+                .setInterpolator(OvershootInterpolator(1.35f))
                 .withEndAction {
                     if (token != animationToken) return@withEndAction
                     visible = true
                     animatingOut = false
+                    // Kick off status dot pulse after slide completes
+                    val dot = statusDotView
+                    val s = statusView?.text?.toString() ?: ""
+                    if (dot != null) {
+                        val isListening = s.equals("Listening", ignoreCase = true)
+                        if (isListening) startDotPulse(dot)
+                    }
                 }
                 .start()
         }
     }
+
+    private fun hideInternal(context: Context?) {
+        val root = overlayView ?: return
+        val sheet = overlaySheetView ?: return
+        val scrim = overlayScrimView
+
+        animationToken += 1
+        val token = animationToken
+        animatingOut = true
+        visible = false
+
+        sessionHistory.clear()
+        
+        if (context != null) {
+            dispatchServiceAction(context, ACTION_OVERLAY_CANCEL_SESSION)
+        }
+
+        sheet.animate().cancel()
+        scrim?.animate()?.cancel()
+
+        val downDistance = dpF(sheet.context, 380)
+
+        scrim?.animate()
+            ?.alpha(0f)
+            ?.setDuration(200L)
+            ?.setInterpolator(AccelerateDecelerateInterpolator())
+            ?.start()
+
+        sheet.animate()
+            .alpha(0f)
+            .translationY(downDistance)
+            .scaleX(0.96f)
+            .scaleY(0.97f)
+            .setDuration(260L)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                if (token != animationToken) return@withEndAction
+                removeViewNow(root)
+            }
+            .start()
+    }
+
+    private fun removeViewNow(view: View) {
+        try {
+            windowManager?.removeView(view)
+        } catch (_: Exception) {}
+        finally {
+            clearRefs()
+        }
+    }
+
+    private fun clearRefs() {
+        stopDotPulse()
+        overlayView = null
+        overlayScrimView = null
+        overlaySheetView = null
+        statusView = null
+        overlayTranscriptScroll = null
+        overlayChatList = null
+        inputView = null
+        micButtonView = null
+        statusDotView = null
+        waveformRowView = null
+        windowManager = null
+        attached = false
+        visible = false
+        animatingOut = false
+        animationToken = 0
+        lastStatus = ""
+        lastTranscript = ""
+        lastShownAtMs = 0L
+        sessionHistory.clear()
+    }
+
+    private fun cancelAutoHide() {
+        // Auto hide disabled: popup stays until user explicitly dismisses.
+    }
+
+    private fun dp(context: Context, value: Int): Int =
+        (value * context.resources.displayMetrics.density).toInt()
+
+    private fun dpF(context: Context, value: Int): Float =
+        value * context.resources.displayMetrics.density
 }

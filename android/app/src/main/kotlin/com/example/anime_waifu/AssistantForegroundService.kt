@@ -1,6 +1,7 @@
 package com.example.anime_waifu
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -104,10 +105,10 @@ class AssistantForegroundService : Service() {
         "darling"
     )
     private val wakeWindowMs = 12000L
-    private val wakeCaptureDurationMs = 900L
-    private val wakeCommandCaptureDurationMs = 3000L
-    private val wakeCapturePauseMs = 140L
-    private val wakeCaptureFastPauseMs = 60L
+    private val wakeCaptureDurationMs = 1500L
+    private val wakeCommandCaptureDurationMs = 8500L
+    private val wakeCapturePauseMs = 120L
+    private val wakeCaptureFastPauseMs = 80L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
     private val wakeTtsUrl = "https://api.groq.com/openai/v1/audio/speech"
     private val wakeTranscriptionModel = "whisper-large-v3-turbo"
@@ -127,6 +128,18 @@ class AssistantForegroundService : Service() {
                 return
             }
             startWakeCaptureSnippet()
+        }
+    }
+
+    /** Periodically checks and revives the wake loop if it should be running but isn't. */
+    private val wakeWatchdogRunnable = object : Runnable {
+        override fun run() {
+            if (!isRunning) return
+            if (wakeModeEnabled && !wakeLoopRunning && hasMicPermission()) {
+                Log.w(TAG, "WakeWatchdog: wake loop dead — restarting via applyWakeRecognizerState")
+                applyWakeRecognizerState()
+            }
+            handler.postDelayed(this, 45_000L)
         }
     }
 
@@ -235,6 +248,18 @@ class AssistantForegroundService : Service() {
             wakeModeEnabled = wakeModeEnabled && BACKGROUND_WAKE_ALLOWED
             saveConfig()
             applyWakeRecognizerState()
+            return START_STICKY
+        }
+
+        if (action == "OVERLAY_CANCEL_SESSION") {
+            Log.d(TAG, "OVERLAY_CANCEL_SESSION received. Stopping active listen.")
+            waitingForCommand = false
+            commandGenerating = false
+            if (overlayListenSessionActive) {
+                overlayListenSessionActive = false
+                stopWakeCaptureLoop()
+                applyWakeRecognizerState()
+            }
             return START_STICKY
         }
 
@@ -355,11 +380,13 @@ class AssistantForegroundService : Service() {
         if (!isRunning) {
             isRunning = true
             val delayMs = getNextDelayMs()
-            Log.d(TAG, "Service started. First proactive check in ${delayMs / 1000} seconds")
+            Log.d(TAG, "Service started. First proactive check in ${delayMs / 1000}s. wakeModeEnabled=$wakeModeEnabled mic=${hasMicPermission()}")
             handler.postDelayed(proactiveRunnable, delayMs)
+            // Start wake watchdog — revives wake loop if it dies silently.
+            handler.removeCallbacks(wakeWatchdogRunnable)
+            handler.postDelayed(wakeWatchdogRunnable, 20_000L)
         } else {
-            Log.d(TAG, "Service already running. Timer will continue with updated intervalMs: $intervalMs")
-            // Optional: Restart timer immediately with new interval
+            Log.d(TAG, "Service already running. Updated config. wakeModeEnabled=$wakeModeEnabled")
             handler.removeCallbacks(proactiveRunnable)
             val delayMs = getNextDelayMs()
             handler.postDelayed(proactiveRunnable, delayMs)
@@ -400,6 +427,7 @@ class AssistantForegroundService : Service() {
     override fun onDestroy() {
         isRunning = false
         handler.removeCallbacks(proactiveRunnable)
+        handler.removeCallbacks(wakeWatchdogRunnable)
         stopWakeCaptureLoop()
         stopReplyPlayback()
         AssistantOverlayController.hide()
@@ -426,10 +454,53 @@ class AssistantForegroundService : Service() {
             }
         } catch (e: RuntimeException) {
             Log.w(TAG, "Restart service onTaskRemoved blocked: ${e.message}")
+            // On Android 12+ startForegroundService may throw
+            // ForegroundServiceStartNotAllowedException from onTaskRemoved.
+            // Schedule an alarm as a fallback restart mechanism.
+            scheduleAlarmRestart()
         } catch (t: Throwable) {
             Log.w(TAG, "Restart service onTaskRemoved failed: ${t.message}")
+            scheduleAlarmRestart()
         }
         super.onTaskRemoved(rootIntent)
+    }
+
+    /**
+     * Schedules a one-shot AlarmManager alarm to restart the service a few seconds
+     * after the app is swiped away. This is the fallback for Android 12+ where
+     * startForegroundService() is blocked from onTaskRemoved().
+     */
+    private fun scheduleAlarmRestart() {
+        try {
+            val alarmManager = getSystemService(ALARM_SERVICE) as? AlarmManager ?: return
+            val intent = Intent(applicationContext, AlarmRestartReceiver::class.java).apply {
+                action = AlarmRestartReceiver.ACTION_RESTART_SERVICE
+            }
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                applicationContext,
+                9001,
+                intent,
+                flags
+            )
+            val triggerAtMs = System.currentTimeMillis() + 3_000L
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMs,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMs, pendingIntent)
+            }
+            Log.d(TAG, "AlarmManager restart scheduled for ~3s from now")
+        } catch (e: Exception) {
+            Log.w(TAG, "scheduleAlarmRestart failed: ${e.message}")
+        }
     }
 
     private fun syncBackgroundWakeFromFlutterPrefs() {
@@ -1050,8 +1121,8 @@ class AssistantForegroundService : Service() {
         }
 
         val boundary = "----ZeroTwoBoundary${System.currentTimeMillis()}"
-        val connectMs = if (commandMode) 6000 else 3500
-        val readMs = if (commandMode) 9000 else 5500
+        val connectMs = if (commandMode) 8000 else 4500
+        val readMs = if (commandMode) 15000 else 6500
         val conn = (URL(wakeTranscriptionUrl).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             setRequestProperty("Authorization", "Bearer $key")

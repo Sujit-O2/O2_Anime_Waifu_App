@@ -24,7 +24,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                     label: const Text('Clear All',
                         style:
                             TextStyle(color: Colors.redAccent, fontSize: 12)),
-                    onPressed: _clearNotifHistory,
+                    onPressed: () => unawaited(_clearNotifHistory()),
                   ),
               ],
             ),

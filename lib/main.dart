@@ -1239,8 +1239,14 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached) {
+      // Capture state now so the timer callback doesn't race against a
+      // subsequent resumed event that may flip _isInForeground back to true.
+      final capturedState = state;
       _backgroundTransitionTimer = Timer(const Duration(milliseconds: 450), () {
-        if (_isDisposed || _isInForeground) return;
+        if (_isDisposed) return;
+        // Only proceed if we are still in the non-foreground state that
+        // triggered this timer (guards against rapid pause→resume transitions).
+        if (capturedState == AppLifecycleState.resumed) return;
         if (_assistantModeEnabled) {
           unawaited(_enterBackgroundAssistantMode());
         } else {
@@ -1366,6 +1372,14 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     _suspendWakeWord = true;
 
     try {
+      // Flush current preference values to FlutterSharedPreferences NOW so that
+      // syncBackgroundWakeFromFlutterPrefs() in the native service reads fresh
+      // values even if the native service is restarted after a swipe-away.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('wake_word_enabled', _wakeWordEnabledByUser);
+      await prefs.setBool('assistant_mode_enabled', _assistantModeEnabled);
+      await prefs.setBool('proactive_enabled', _proactiveEnabled);
+
       await _assistantModeService.start(
         apiKey: _devApiKeyOverride.isNotEmpty
             ? _devApiKeyOverride
@@ -1428,7 +1442,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       return;
     }
     if (_wakeWordActivationLimitHit) {
-      debugPrint("_initWakeWord: Skipped - Activation limit hit");
+      debugPrint("_initWakeWord: Skipped - Porcupine activation limit reached");
+      // Background wake (Groq Whisper) still works — don't block it.
+      _ensureBackgroundWakeIfEnabled();
       return;
     }
     final hasMic = await _ensureMicPermission(requestIfNeeded: false);
@@ -1438,7 +1454,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     }
     _wakeInitInProgress = true;
     try {
-      debugPrint("_initWakeWord: Starting initialization...");
+      debugPrint("_initWakeWord: Starting Porcupine initialization...");
       await _wakeWordService.init(_onWakeWordDetected);
       _wakeWordReady = true;
       _wakeInitRetryTimer?.cancel();
@@ -1449,45 +1465,29 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       final errorStr = e.toString();
       debugPrint("_initWakeWord: FAILED - $e");
 
-      // Activation limit - don't retry, just disable
-      if (_isWakeActivationLimitError(errorStr)) {
+      // Porcupine activation limit or invalid key:
+      // Mark the Porcupine engine as failed IN MEMORY ONLY.
+      // Do NOT touch SharedPreferences or disable the background Groq-Whisper wake.
+      if (_isWakeActivationLimitError(errorStr) ||
+          _isWakeAccessKeyError(errorStr)) {
         _wakeWordActivationLimitHit = true;
-        _wakeWordEnabledByUser = false;
-        await _persistWakeWordEnabled(false);
+        // Note: _wakeWordEnabledByUser stays true so background wake remains active.
         _wakeInitRetryTimer?.cancel();
-        debugPrint("_initWakeWord: Activation limit hit - Wake word disabled");
+        final msg = _isWakeActivationLimitError(errorStr)
+            ? "Picovoice activation limit reached. Background wake (Groq) still active."
+            : "Invalid Picovoice key in .env → WAKE_WORD_KEY. Background wake (Groq) still active.";
+        debugPrint("_initWakeWord: $msg");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Picovoice activation limit reached. Update WAKE_WORD_KEY in .env",
-              ),
-              duration: Duration(seconds: 6),
-              backgroundColor: Colors.orange,
+            SnackBar(
+              content: Text(msg),
+              duration: const Duration(seconds: 5),
+              backgroundColor: Colors.orange.shade700,
             ),
           );
         }
-        return;
-      }
-
-      // Access key invalid - don't retry
-      if (_isWakeAccessKeyError(errorStr)) {
-        _wakeWordActivationLimitHit = true;
-        _wakeWordEnabledByUser = false;
-        await _persistWakeWordEnabled(false);
-        _wakeInitRetryTimer?.cancel();
-        debugPrint("_initWakeWord: Invalid access key - Wake word disabled");
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Invalid Picovoice key. Check WAKE_WORD_KEY in .env",
-              ),
-              duration: Duration(seconds: 6),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        // Ensure background Groq-Whisper wake is still activated.
+        _ensureBackgroundWakeIfEnabled();
         return;
       }
 
@@ -1508,6 +1508,18 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     } finally {
       _wakeInitInProgress = false;
     }
+  }
+
+  /// Activates background Groq-Whisper wake word via the native service,
+  /// even if Porcupine (foreground wake engine) failed to initialize.
+  void _ensureBackgroundWakeIfEnabled() {
+    if (!_assistantModeEnabled || _isInForeground) return;
+    unawaited(() async {
+      final hasMic = await _ensureMicPermission(requestIfNeeded: false);
+      if (hasMic && _wakeWordEnabledByUser) {
+        await _assistantModeService.setWakeMode(true);
+      }
+    }());
   }
 
   Future<void> _onWakeWordDetected(int keywordIndex) async {
@@ -1735,15 +1747,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
   Future<void> _saveMemory() async {
     final prefs = await SharedPreferences.getInstance();
-    final messagesToSave = _messages
-        .take(_messages.length)
-        .toList()
-        .reversed
-        .take(50)
-        .toList()
-        .reversed
-        .map((m) => jsonEncode(m.toJson()))
-        .toList();
+    final start = _messages.length > 50 ? _messages.length - 50 : 0;
+    final messagesToSave =
+        _messages.skip(start).map((m) => jsonEncode(m.toJson())).toList();
     await prefs.setStringList('conversation_memory', messagesToSave);
   }
 
@@ -1765,10 +1771,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     for (var s in saved) {
       try {
         final map = jsonDecode(s) as Map<String, dynamic>;
-        _messages.add(ChatMessage(
-          role: map['role'] ?? 'user',
-          content: map['content'] ?? '',
-        ));
+        _messages.add(ChatMessage.fromJson(map));
         _listKey.currentState
             ?.insertItem(_messages.length - 1, duration: Duration.zero);
       } catch (_) {}
@@ -2409,7 +2412,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         await _ensureWakeWordActive();
         await _setBackgroundIdleNotification();
         await _showBackgroundListeningNotification(
-          status: "Assistant mode enabled",
+          status: "002 Mode enabled",
           transcript: (_backgroundWakeEnabled &&
                   !_isInForeground &&
                   hasMic &&
@@ -2436,10 +2439,10 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         await _ensureWakeWordActive();
       }
     } catch (e) {
-      debugPrint("Assistant mode error: $e");
+      debugPrint("002 Mode error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Assistant mode failed: $e")),
+          SnackBar(content: Text("002 Mode failed: $e")),
         );
       }
     }
@@ -2844,9 +2847,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
   }
 
   void _scrollToBottom() {
-    if (_isDisposed) return;
+    if (_isDisposed || !_autoScrollChat) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && !_isDisposed) {
+      if (_scrollController.hasClients && !_isDisposed && _autoScrollChat) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -2935,7 +2938,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             ((1.0 - _wallpaperBrightness).clamp(0.0, 1.0) * 0.65).toDouble();
         return PopScope(
           canPop: false,
-          onPopInvoked: (bool didPop) {
+          onPopInvokedWithResult: (bool didPop, _) {
             if (didPop) return;
             SystemNavigator.pop();
           },
@@ -3778,7 +3781,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           ),
           const SizedBox(width: 8),
           actionCircle(
-            onTap: _toggleManualMic,
+            onTap: () => unawaited(_toggleManualMic()),
             icon: _isSpeaking
                 ? Icons.stop_rounded
                 : (isListening ? Icons.mic_rounded : Icons.mic_none_rounded),

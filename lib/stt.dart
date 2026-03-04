@@ -34,14 +34,16 @@ class SpeechService {
   String? _currentPath;
   bool _hadVoiceSignal = false;
 
-  static const Duration _maxListenDuration = Duration(seconds: 12);
-  static const Duration _silenceStopAfter = Duration(milliseconds: 900);
+  static const Duration _maxListenDuration = Duration(seconds: 14);
+  static const Duration _silenceStopAfter = Duration(milliseconds: 1100);
   static const Duration _minListenBeforeSilenceCheck =
-      Duration(milliseconds: 300);
-  static const Duration _noSpeechAbortAfter = Duration(milliseconds: 5800);
-  static const double _voiceThresholdDb = -47.0;
-  static const Duration _transcriptionTimeout = Duration(seconds: 9);
-  static const int _minUsefulAudioBytes = 2048;
+      Duration(milliseconds: 400);
+  static const Duration _noSpeechAbortAfter = Duration(milliseconds: 7500);
+  // -40 dB is a reasonable voice-presence threshold (-47 was too strict on
+  // some devices and caused speech to be skipped entirely).
+  static const double _voiceThresholdDb = -40.0;
+  static const Duration _transcriptionTimeout = Duration(seconds: 12);
+  static const int _minUsefulAudioBytes = 1024;
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
@@ -240,8 +242,10 @@ class SpeechService {
 
     // Amplitude callbacks can be unreliable on some devices/encoders.
     // If we captured enough audio bytes, still attempt transcription.
+    // Use a generous threshold: 2x minUsefulAudioBytes (used to be 4x which
+    // was dropping too many genuine short utterances).
     final skipNoVoiceTranscription =
-        !hadVoiceSignal && fileLength < (_minUsefulAudioBytes * 4);
+        !hadVoiceSignal && fileLength < (_minUsefulAudioBytes * 2);
 
     if (skipNoVoiceTranscription) {
       if (onResult != null) onResult!("", true);

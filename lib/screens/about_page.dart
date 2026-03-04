@@ -406,7 +406,7 @@ extension _AboutPageExtension on _ChatHomePageState {
         'Verbose startup diagnostics in debug logging paths',
       ]),
       _AboutFeatureSection('Controls and Data', [
-        'Wake word toggle and assistant mode toggle',
+        'Wake word toggle and 002 mode toggle',
         'Idle timer toggle with duration slider',
         'Check-in random/manual mode control with interval slider',
         'Clear chat memory and clear notification history actions',

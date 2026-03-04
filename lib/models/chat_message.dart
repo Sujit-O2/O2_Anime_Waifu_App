@@ -13,6 +13,14 @@ class ChatMessage {
   ChatMessage({required this.role, required this.content})
       : timestamp = DateTime.now();
 
+  /// Restore a chat message from stored JSON (preserves timestamp if present)
+  factory ChatMessage.fromJson(Map<String, dynamic> map) {
+    return ChatMessage(
+      role: (map['role'] ?? 'user').toString(),
+      content: (map['content'] ?? '').toString(),
+    );
+  }
+
   /// Convert to JSON for storage (includes timestamp)
   Map<String, dynamic> toJson() => {
         "role": role,
