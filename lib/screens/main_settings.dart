@@ -212,7 +212,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -274,7 +274,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -495,7 +495,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -552,7 +552,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -589,8 +589,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                       const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     color: sel
-                                        ? Colors.amberAccent.withOpacity(0.2)
-                                        : Colors.white.withOpacity(0.05),
+                                        ? Colors.amberAccent.withValues(alpha: 0.2)
+                                        : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: sel
@@ -618,7 +618,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -655,8 +655,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                       const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     color: sel
-                                        ? Colors.cyanAccent.withOpacity(0.15)
-                                        : Colors.white.withOpacity(0.05),
+                                        ? Colors.cyanAccent.withValues(alpha: 0.15)
+                                        : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: sel
@@ -693,9 +693,9 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.08),
+                        color: Colors.red.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.withOpacity(0.25)),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.25)),
                       ),
                       child: Row(
                         children: [
@@ -726,10 +726,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.06),
+                        color: Colors.orange.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                         border:
-                            Border.all(color: Colors.orange.withOpacity(0.2)),
+                            Border.all(color: Colors.orange.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -784,8 +784,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -825,7 +825,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -910,7 +910,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white10),
         ),
@@ -961,7 +961,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white12),
         ),
@@ -997,10 +997,10 @@ Widget _settingsTile({
     margin: const EdgeInsets.only(bottom: 10),
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.04),
+      color: Colors.white.withValues(alpha: 0.04),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-          color: value ? activeColor.withOpacity(0.25) : Colors.white10),
+          color: value ? activeColor.withValues(alpha: 0.25) : Colors.white10),
     ),
     child: Row(
       children: [

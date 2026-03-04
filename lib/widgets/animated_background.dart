@@ -99,7 +99,7 @@ class ParticlePainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (var p in particles) {
-      paint.color = themeColor.withOpacity(p.opacity);
+      paint.color = themeColor.withValues(alpha: p.opacity);
 
       switch (type) {
         case ParticleType.circles:
@@ -168,7 +168,7 @@ class ParticlePainter extends CustomPainter {
 
       // Subtle glow
       paint.style = PaintingStyle.fill;
-      paint.color = themeColor.withOpacity(p.opacity * 0.2);
+      paint.color = themeColor.withValues(alpha: p.opacity * 0.2);
       if (type == ParticleType.sakura || type == ParticleType.embers) {
         canvas.drawCircle(Offset(p.x, p.y), p.radius * 3, paint);
       } else {
@@ -362,7 +362,7 @@ class _CrepuscularPainter extends CustomPainter {
         ..shader = RadialGradient(
           center: const Alignment(0.0, -0.5),
           radius: 1.15,
-          colors: [c.withOpacity(op), Colors.transparent],
+          colors: [c.withValues(alpha: op), Colors.transparent],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
       canvas.drawPath(path, paint);

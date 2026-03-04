@@ -34,10 +34,10 @@ extension _MainThemesExtension on _ChatHomePageState {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: td.primaryColor.withOpacity(0.18),
+                        color: td.primaryColor.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: td.primaryColor.withOpacity(0.45)),
+                            color: td.primaryColor.withValues(alpha: 0.45)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -72,12 +72,12 @@ extension _MainThemesExtension on _ChatHomePageState {
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: _liteModeEnabled
-                              ? Colors.greenAccent.withOpacity(0.18)
-                              : Colors.white.withOpacity(0.06),
+                              ? Colors.greenAccent.withValues(alpha: 0.18)
+                              : Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                               color: _liteModeEnabled
-                                  ? Colors.greenAccent.withOpacity(0.45)
+                                  ? Colors.greenAccent.withValues(alpha: 0.45)
                                   : Colors.white12),
                         ),
                         child: Row(
@@ -125,13 +125,13 @@ extension _MainThemesExtension on _ChatHomePageState {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.purpleAccent.withOpacity(0.25),
-                              Colors.pinkAccent.withOpacity(0.15),
+                              Colors.purpleAccent.withValues(alpha: 0.25),
+                              Colors.pinkAccent.withValues(alpha: 0.15),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: Colors.purpleAccent.withOpacity(0.4)),
+                              color: Colors.purpleAccent.withValues(alpha: 0.4)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -231,14 +231,14 @@ extension _MainThemesExtension on _ChatHomePageState {
                                   border: Border.all(
                                     color: isSelected
                                         ? td.primaryColor
-                                        : Colors.white.withOpacity(0.08),
+                                        : Colors.white.withValues(alpha: 0.08),
                                     width: isSelected ? 2.5 : 1,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
                                             color: td.primaryColor
-                                                .withOpacity(0.5),
+                                                .withValues(alpha: 0.5),
                                             blurRadius: 12,
                                           )
                                         ]
@@ -319,8 +319,8 @@ extension _MainThemesExtension on _ChatHomePageState {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.black.withOpacity(0.15),
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha: 0.15),
+                    Colors.black.withValues(alpha: 0.55),
                   ],
                 ),
               ),

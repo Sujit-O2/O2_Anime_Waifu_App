@@ -18,7 +18,7 @@ extension _AboutPageExtension on _ChatHomePageState {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
               child: Container(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -30,9 +30,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.20),
-                  Colors.black.withOpacity(0.35),
-                  Colors.black.withOpacity(0.50),
+                  Colors.black.withValues(alpha: 0.20),
+                  Colors.black.withValues(alpha: 0.35),
+                  Colors.black.withValues(alpha: 0.50),
                 ],
               ),
             ),
@@ -60,13 +60,13 @@ extension _AboutPageExtension on _ChatHomePageState {
                           filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.24),
+                              color: Colors.black.withValues(alpha: 0.24),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.18)),
+                                  color: Colors.white.withValues(alpha: 0.18)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.30),
+                                  color: Colors.black.withValues(alpha: 0.30),
                                   blurRadius: 18,
                                   offset: const Offset(0, 8),
                                 ),
@@ -230,9 +230,9 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: RichText(
         text: TextSpan(
@@ -276,7 +276,7 @@ extension _AboutPageExtension on _ChatHomePageState {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -458,9 +458,9 @@ extension _AboutPageExtension on _ChatHomePageState {
       width: 184,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -516,7 +516,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -604,7 +604,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -682,7 +682,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -775,7 +775,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                             color: color,
                             boxShadow: [
                               BoxShadow(
-                                  color: color.withOpacity(0.5), blurRadius: 6)
+                                  color: color.withValues(alpha: 0.5), blurRadius: 6)
                             ]),
                       ),
                       const SizedBox(width: 7),
@@ -837,7 +837,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                     Expanded(
                       child: Text(flow.title,
                           style: GoogleFonts.outfit(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 11,
                               fontWeight: FontWeight.w700)),
                     ),
@@ -846,13 +846,13 @@ extension _AboutPageExtension on _ChatHomePageState {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
-                        color: flow.color.withOpacity(0.15),
+                        color: flow.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: flow.color.withOpacity(0.4)),
+                        border: Border.all(color: flow.color.withValues(alpha: 0.4)),
                       ),
                       child: Text(flow.tag,
                           style: GoogleFonts.outfit(
-                              color: flow.color.withOpacity(0.9),
+                              color: flow.color.withValues(alpha: 0.9),
                               fontSize: 8,
                               fontWeight: FontWeight.w800)),
                     ),
@@ -877,12 +877,12 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(fillOpacity),
+        color: color.withValues(alpha: fillOpacity),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(borderOpacity)),
+        border: Border.all(color: color.withValues(alpha: borderOpacity)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.26 * pulse),
+            color: color.withValues(alpha: 0.26 * pulse),
             blurRadius: 10 + (pulse * 8),
             spreadRadius: pulse,
           ),
@@ -913,7 +913,7 @@ extension _AboutPageExtension on _ChatHomePageState {
   Widget _flowArrow(double pulse) {
     return Icon(
       Icons.arrow_forward,
-      color: Colors.white.withOpacity(0.20 + (pulse * 0.62)),
+      color: Colors.white.withValues(alpha: 0.20 + (pulse * 0.62)),
       size: 14 + (pulse * 1.4),
     );
   }
@@ -1201,8 +1201,8 @@ class _AboutFireflyPainter extends CustomPainter {
       final twinkle = 0.5 + 0.5 * math.sin((t * math.pi * 20) + (f.x + f.y));
       final alpha = (f.alphaBase * twinkle).clamp(0.0, 1.0);
 
-      glow.color = f.color.withOpacity(alpha * 0.6);
-      core.color = Colors.white.withOpacity(alpha);
+      glow.color = f.color.withValues(alpha: alpha * 0.6);
+      core.color = Colors.white.withValues(alpha: alpha);
 
       canvas.drawCircle(Offset(f.x, f.y), f.size * 2, glow);
       canvas.drawCircle(Offset(f.x, f.y), f.size, core);

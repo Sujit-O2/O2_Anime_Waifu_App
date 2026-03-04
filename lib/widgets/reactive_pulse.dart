@@ -61,8 +61,8 @@ class _ReactivePulseState extends State<ReactivePulse>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        widget.baseColor.withOpacity(opacity / (i + 1)),
-                        widget.baseColor.withOpacity(0),
+                        widget.baseColor.withValues(alpha: opacity / (i + 1)),
+                        widget.baseColor.withValues(alpha: 0),
                       ],
                     ),
                   ),

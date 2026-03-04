@@ -157,8 +157,8 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.55),
                   ],
                 ),
               ),
@@ -199,12 +199,12 @@ extension _MainDevConfigExtension on _ChatHomePageState {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: isOverriding
-            ? Colors.greenAccent.withOpacity(0.06)
-            : Colors.white.withOpacity(0.04),
+            ? Colors.greenAccent.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
             color: isOverriding
-                ? Colors.greenAccent.withOpacity(0.3)
+                ? Colors.greenAccent.withValues(alpha: 0.3)
                 : Colors.white12),
       ),
       child: Row(
@@ -413,7 +413,7 @@ extension _MainDevConfigExtension on _ChatHomePageState {
         labelText: label,
         labelStyle: GoogleFonts.outfit(color: Colors.white54, fontSize: 12),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,

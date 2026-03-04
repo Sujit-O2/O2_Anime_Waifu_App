@@ -2535,7 +2535,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             margin: const EdgeInsets.only(top: 6),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.white12),
             ),
@@ -3114,7 +3114,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.26),
+            color: primary.withValues(alpha: 0.26),
             blurRadius: 20,
             spreadRadius: 2,
           ),
@@ -3220,9 +3220,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: primary.withOpacity(0.14),
+                  color: primary.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withOpacity(0.24)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -3260,9 +3260,9 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color:
-            active ? accent.withOpacity(0.22) : Colors.white.withOpacity(0.06),
+            active ? accent.withValues(alpha: 0.22) : Colors.white.withValues(alpha: 0.06),
         border: Border.all(
-          color: active ? accent.withOpacity(0.8) : Colors.white12,
+          color: active ? accent.withValues(alpha: 0.8) : Colors.white12,
           width: 1,
         ),
       ),
@@ -3380,32 +3380,32 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
       Color tone;
       switch (style.bubbleStyle) {
         case BubbleStyle.terminal:
-          tone = Color.alphaBlend(Colors.black.withOpacity(0.30), scaffold);
+          tone = Color.alphaBlend(Colors.black.withValues(alpha: 0.30), scaffold);
           break;
         case BubbleStyle.outlined:
           final fill = isUser
-              ? primary.withOpacity(isGhost ? 0.12 : 0.18)
-              : Colors.black.withOpacity(isGhost ? 0.16 : 0.26);
+              ? primary.withValues(alpha: isGhost ? 0.12 : 0.18)
+              : Colors.black.withValues(alpha: isGhost ? 0.16 : 0.26);
           tone = Color.alphaBlend(fill, scaffold);
           break;
         case BubbleStyle.luxury:
           final fill = isUser
-              ? primary.withOpacity(isGhost ? 0.54 : 0.72)
-              : const Color(0xFF151004).withOpacity(isGhost ? 0.85 : 0.96);
+              ? primary.withValues(alpha: isGhost ? 0.54 : 0.72)
+              : const Color(0xFF151004).withValues(alpha: isGhost ? 0.85 : 0.96);
           tone = Color.alphaBlend(fill, scaffold);
           break;
         case BubbleStyle.solid:
           final fill = isUser
-              ? primary.withOpacity(isGhost ? 0.5 : 0.9)
+              ? primary.withValues(alpha: isGhost ? 0.5 : 0.9)
               : (isInferno
-                  ? const Color(0xFF140906).withOpacity(isGhost ? 0.80 : 0.97)
-                  : Colors.white.withOpacity(0.09));
+                  ? const Color(0xFF140906).withValues(alpha: isGhost ? 0.80 : 0.97)
+                  : Colors.white.withValues(alpha: 0.09));
           tone = Color.alphaBlend(fill, scaffold);
           break;
         case BubbleStyle.glassmorphic:
           final fill = isUser
-              ? primary.withOpacity(isGhost ? 0.34 : 0.70)
-              : Colors.black.withOpacity(isGhost ? 0.18 : 0.34);
+              ? primary.withValues(alpha: isGhost ? 0.34 : 0.70)
+              : Colors.black.withValues(alpha: isGhost ? 0.18 : 0.34);
           tone = Color.alphaBlend(fill, scaffold);
           break;
       }
@@ -3419,7 +3419,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             : Colors.black;
     final textColor = isError
         ? Colors.redAccent
-        : onBubble.withOpacity(isGhost ? 0.86 : 0.96);
+        : onBubble.withValues(alpha: isGhost ? 0.86 : 0.96);
 
     final textWidget = Text(
       isError
@@ -3430,7 +3430,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             shadows: isInferno
                 ? [
                     Shadow(
-                      color: Colors.black.withOpacity(0.35),
+                      color: Colors.black.withValues(alpha: 0.35),
                       blurRadius: 5,
                     ),
                   ]
@@ -3470,7 +3470,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             child: Text(
               "${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}",
               textAlign: TextAlign.right,
-              style: style.font(8, textColor.withOpacity(0.68)).copyWith(
+              style: style.font(8, textColor.withValues(alpha: 0.68)).copyWith(
                     fontWeight: FontWeight.w400,
                     letterSpacing: 0.5,
                   ),
@@ -3486,12 +3486,12 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                 Icon(
                   Icons.graphic_eq_rounded,
                   size: 14,
-                  color: primary.withOpacity(0.7),
+                  color: primary.withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   "THINKING...",
-                  style: style.font(9, primary.withOpacity(0.7)).copyWith(
+                  style: style.font(9, primary.withValues(alpha: 0.7)).copyWith(
                         letterSpacing: 2,
                         fontWeight: FontWeight.bold,
                       ),
@@ -3515,7 +3515,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                 width: isUser ? 3 : 2,
               ),
             ),
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
           ),
           child: content,
         );
@@ -3523,8 +3523,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
       case BubbleStyle.outlined:
         final outlinedFill = isUser
-            ? primary.withOpacity(isGhost ? 0.12 : 0.18)
-            : Colors.black.withOpacity(isGhost ? 0.16 : 0.26);
+            ? primary.withValues(alpha: isGhost ? 0.12 : 0.18)
+            : Colors.black.withValues(alpha: isGhost ? 0.16 : 0.26);
         bubble = Container(
           constraints: BoxConstraints(maxWidth: maxW),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -3538,7 +3538,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             boxShadow: [
               BoxShadow(
                 color: (isUser ? primary : style.borderColor(primary))
-                    .withOpacity(isGhost ? 0.1 : 0.2),
+                    .withValues(alpha: isGhost ? 0.1 : 0.2),
                 blurRadius: 12,
                 spreadRadius: 0,
               ),
@@ -3557,16 +3557,16 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isUser
-                  ? [primary.withOpacity(0.80), primary.withOpacity(0.60)]
+                  ? [primary.withValues(alpha: 0.80), primary.withValues(alpha: 0.60)]
                   : [const Color(0xFF1A1200), const Color(0xFF120D00)],
             ),
             border: Border.all(
-              color: primary.withOpacity(0.45),
+              color: primary.withValues(alpha: 0.45),
               width: 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: primary.withOpacity(0.15),
+                color: primary.withValues(alpha: 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),
@@ -3579,10 +3579,10 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
 
       case BubbleStyle.solid:
         final bgColor = isUser
-            ? primary.withOpacity(isGhost ? 0.5 : 0.9)
+            ? primary.withValues(alpha: isGhost ? 0.5 : 0.9)
             : (isInferno
-                ? const Color(0xFF140906).withOpacity(isGhost ? 0.80 : 0.97)
-                : Colors.white.withOpacity(0.09));
+                ? const Color(0xFF140906).withValues(alpha: isGhost ? 0.80 : 0.97)
+                : Colors.white.withValues(alpha: 0.09));
         final borderColor = style.borderColor(primary);
         final hasAccentBar = style.leftAccentBar && !isUser;
 
@@ -3609,8 +3609,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
         break;
 
       case BubbleStyle.glassmorphic:
-        final aiGlassTop = Colors.black.withOpacity(isGhost ? 0.20 : 0.38);
-        final aiGlassBottom = Colors.black.withOpacity(isGhost ? 0.12 : 0.28);
+        final aiGlassTop = Colors.black.withValues(alpha: isGhost ? 0.20 : 0.38);
+        final aiGlassBottom = Colors.black.withValues(alpha: isGhost ? 0.12 : 0.28);
         bubble = Container(
           constraints: BoxConstraints(maxWidth: maxW),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -3621,8 +3621,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
               end: Alignment.bottomRight,
               colors: isUser
                   ? [
-                      primary.withOpacity(isGhost ? 0.35 : 0.76),
-                      primary.withOpacity(isGhost ? 0.23 : 0.60),
+                      primary.withValues(alpha: isGhost ? 0.35 : 0.76),
+                      primary.withValues(alpha: isGhost ? 0.23 : 0.60),
                     ]
                   : [
                       aiGlassTop,
@@ -3636,7 +3636,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             boxShadow: [
               BoxShadow(
                 color: (isUser ? primary : Colors.white)
-                    .withOpacity(isGhost ? 0.08 : 0.14),
+                    .withValues(alpha: isGhost ? 0.08 : 0.14),
                 blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
@@ -3704,7 +3704,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
     final hint =
         _showChatHint ? (isListening ? "Listening..." : "Type a message") : "";
 
-    final inputTextStyle = style.font(15, Colors.white.withOpacity(0.96));
+    final inputTextStyle = style.font(15, Colors.white.withValues(alpha: 0.96));
     final hintTextStyle = style.font(14, Colors.white54);
 
     Widget actionCircle({
@@ -3722,10 +3722,10 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(colors: colors),
-            border: Border.all(color: Colors.white.withOpacity(0.22)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
             boxShadow: [
               BoxShadow(
-                color: colors.first.withOpacity(0.30),
+                color: colors.first.withValues(alpha: 0.30),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -3744,15 +3744,15 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.10),
+            Colors.white.withValues(alpha: 0.10),
             const Color(0x22130A15),
             const Color(0x66140A18),
           ],
         ),
-        border: Border.all(color: Colors.white.withOpacity(0.20)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.22),
+            color: primary.withValues(alpha: 0.22),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -3786,10 +3786,10 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                 ? Icons.stop_rounded
                 : (isListening ? Icons.mic_rounded : Icons.mic_none_rounded),
             colors: isListening
-                ? [primary.withOpacity(0.95), primary.withOpacity(0.62)]
+                ? [primary.withValues(alpha: 0.95), primary.withValues(alpha: 0.62)]
                 : [
-                    Colors.white.withOpacity(0.22),
-                    Colors.white.withOpacity(0.10),
+                    Colors.white.withValues(alpha: 0.22),
+                    Colors.white.withValues(alpha: 0.10),
                   ],
             size: 44,
           ),
@@ -3798,8 +3798,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
             onTap: () => unawaited(_handleTextInput()),
             icon: Icons.arrow_upward_rounded,
             colors: [
-              primary.withOpacity(0.92),
-              primary.withOpacity(0.72),
+              primary.withValues(alpha: 0.92),
+              primary.withValues(alpha: 0.72),
             ],
             size: 44,
           ),
@@ -3889,14 +3889,14 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF22110E).withOpacity(0.94),
-                        const Color(0xFF110A12).withOpacity(0.88),
+                        const Color(0xFF22110E).withValues(alpha: 0.94),
+                        const Color(0xFF110A12).withValues(alpha: 0.88),
                       ],
                     ),
-                    border: Border.all(color: primary.withOpacity(0.65)),
+                    border: Border.all(color: primary.withValues(alpha: 0.65)),
                     boxShadow: [
                       BoxShadow(
-                        color: primary.withOpacity(0.28),
+                        color: primary.withValues(alpha: 0.28),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -3909,8 +3909,8 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                         height: 36,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: primary.withOpacity(0.18),
-                          border: Border.all(color: primary.withOpacity(0.55)),
+                          color: primary.withValues(alpha: 0.18),
+                          border: Border.all(color: primary.withValues(alpha: 0.55)),
                         ),
                         alignment: Alignment.center,
                         child: Icon(
@@ -3942,7 +3942,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.outfit(
-                                color: Colors.white.withOpacity(0.90),
+                                color: Colors.white.withValues(alpha: 0.90),
                                 fontSize: 12,
                                 height: 1.25,
                               ),
@@ -3954,7 +3954,7 @@ You are an anime character, my wife, Zero Two (don't use your name very often).
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 18,
-                        color: Colors.white.withOpacity(0.72),
+                        color: Colors.white.withValues(alpha: 0.72),
                       ),
                     ],
                   ),
