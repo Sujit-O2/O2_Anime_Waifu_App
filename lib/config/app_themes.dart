@@ -138,6 +138,9 @@ enum ParticleType {
 }
 
 class AppThemes {
+  // Global override for primary neon elements
+  static Color? customAccentColor;
+
   // ==========================================================
   //  PRIMARY GETTER
   // ==========================================================
@@ -345,16 +348,19 @@ class AppThemes {
     required Color bg,
     required Color accent,
   }) {
+    final effectivePrimary = customAccentColor ?? primary;
+    final effectiveAccent = customAccentColor ?? accent;
+
     return ThemeData(
       brightness: Brightness.dark,
-      primaryColor: primary,
+      primaryColor: effectivePrimary,
       scaffoldBackgroundColor: bg,
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
       colorScheme: ColorScheme.dark(
-        primary: primary,
+        primary: effectivePrimary,
         secondary: secondary,
         surface: bg,
-        tertiary: accent,
+        tertiary: effectiveAccent,
       ),
     );
   }
