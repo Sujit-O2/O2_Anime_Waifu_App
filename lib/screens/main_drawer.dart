@@ -15,6 +15,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
       'Dev Config',
       'Debug',
       'About',
+      'Gacha 🎲',
+      'Mood Tracker',
+      'Secret Notes',
     ];
     const icons = [
       Icons.chat_bubble_outline,
@@ -25,6 +28,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
       Icons.terminal,
       Icons.bug_report_outlined,
       Icons.info_outline,
+      Icons.casino_outlined,
+      Icons.mood_outlined,
+      Icons.lock_outline,
     ];
 
     return Drawer(
@@ -86,7 +92,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: primary.withValues(alpha: 0.2),
-                            border: Border.all(color: primary.withValues(alpha: 0.5)),
+                            border: Border.all(
+                                color: primary.withValues(alpha: 0.5)),
                           ),
                           child: ClipOval(
                             child: Image(
@@ -129,9 +136,11 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                  Divider(
+                      color: Colors.white.withValues(alpha: 0.08), height: 1),
                   _buildDrawerAutoListenTile(primary),
-                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                  Divider(
+                      color: Colors.white.withValues(alpha: 0.08), height: 1),
                   const SizedBox(height: 8),
                   Expanded(
                     child: ListView.builder(
@@ -209,7 +218,92 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       },
                     ),
                   ),
-                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                  Divider(
+                      color: Colors.white.withValues(alpha: 0.08), height: 1),
+                  // Quick actions section
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                    child: Text(
+                      'QUICK LAUNCH',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white24,
+                          fontSize: 10,
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  // Commands
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context)
+                        ..pop()
+                        ..push(MaterialPageRoute(
+                            builder: (_) => const CommandsPage()));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      child: Row(
+                        children: [
+                          Icon(Icons.terminal_rounded,
+                              color: Colors.pinkAccent.withValues(alpha: 0.8),
+                              size: 18),
+                          const SizedBox(width: 14),
+                          Text(
+                            'Commands',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white60,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.pinkAccent.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text('40+',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.pinkAccent,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Features
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context)
+                        ..pop()
+                        ..push(MaterialPageRoute(
+                            builder: (_) => const FeaturesPage()));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      child: Row(
+                        children: [
+                          Icon(Icons.auto_awesome_rounded,
+                              color: Colors.amberAccent.withValues(alpha: 0.8),
+                              size: 18),
+                          const SizedBox(width: 14),
+                          Text(
+                            'All Features',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white60,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Divider(
+                      color: Colors.white.withValues(alpha: 0.08), height: 1),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
