@@ -261,6 +261,91 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   _buildDrawerAutoListenTile(primary),
                   Divider(
                       color: Colors.white.withValues(alpha: 0.08), height: 1),
+
+                  // NEW: System Info / Data Display
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('SYSTEM METRICS',
+                              style: GoogleFonts.outfit(
+                                  color: primary.withValues(alpha: 0.8),
+                                  fontSize: 9,
+                                  letterSpacing: 2,
+                                  fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.memory_outlined,
+                                  color: Colors.white54, size: 14),
+                              const SizedBox(width: 8),
+                              Text('Context Nodes:',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.white54, fontSize: 11)),
+                              const Spacer(),
+                              Text('${_messages.length}',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(Icons.monitor_heart_outlined,
+                                  color: Colors.white54, size: 14),
+                              const SizedBox(width: 8),
+                              Text('Core Status:',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.white54, fontSize: 11)),
+                              const Spacer(),
+                              Text('Stable',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.greenAccent,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(Icons.hub_outlined,
+                                  color: Colors.white54, size: 14),
+                              const SizedBox(width: 8),
+                              Text('Model Override:',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.white54, fontSize: 11)),
+                              const Spacer(),
+                              Expanded(
+                                child: Text(
+                                    _devModelOverride.isNotEmpty
+                                        ? _devModelOverride
+                                        : 'Default',
+                                    textAlign: TextAlign.right,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   // Scrollable nav
                   Expanded(
                     child: ListView(
