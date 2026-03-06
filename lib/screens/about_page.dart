@@ -1534,7 +1534,89 @@ class _FeatureGuideDialog extends StatelessWidget {
                     title: 'Mood Tracker',
                     description: 'Keep a daily journal of your emotions.',
                     howTo:
-                        'Open Settings -> APPS & TOOLS -> Mood Tracker (Or say "Track my mood").',
+                        'Open Settings → APPS & TOOLS → Mood Tracker (Or say "Track my mood").',
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── NEW FEATURES ──────────────────────────────────────────
+                  _buildFeatureItem(
+                    icon: Icons.music_note_rounded,
+                    color: Colors.purpleAccent,
+                    title: '🎵 Music Player',
+                    description:
+                        'Full in-app music player with animated vinyl disc, album art, seek bar, and song queue — plays local music from your device.',
+                    howTo:
+                        'Say "Play music" or "Play [song name]". Or open via Settings → APPS & TOOLS → Music Player. The mini-player bar appears above chat input while music is playing.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.alarm_rounded,
+                    color: Colors.orangeAccent,
+                    title: '⏰ Waifu Wake-Up Alarm',
+                    description:
+                        'Set device alarms by voice. When it fires, Zero Two wakes you up and reads the weather.',
+                    howTo:
+                        'Say "Wake me up at 7 AM" or "Set an alarm for 6:30". Fires even when app is closed.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.contacts_rounded,
+                    color: Colors.greenAccent,
+                    title: '📞 Contacts Lookup',
+                    description:
+                        'Ask Zero Two about anyone in your contacts — she looks them up instantly.',
+                    howTo:
+                        'Say "Who is John?" or "Find contact for Priya". Requires Contacts permission.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.auto_fix_high_rounded,
+                    color: Colors.cyanAccent,
+                    title: '🖼️ AI Drawing',
+                    description:
+                        'Zero Two generates images for you on demand using Pollinations.ai — no API key needed!',
+                    howTo:
+                        'Say "Draw me a cat", "Generate an anime girl", or "Draw [anything]". The image appears in-chat.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.games_rounded,
+                    color: Colors.amberAccent,
+                    title: '🎮 Mini-Games',
+                    description:
+                        'Play Rock-Paper-Scissors, Tic-Tac-Toe, or Anime Trivia — all directly in the chat!',
+                    howTo:
+                        'RPS: Say "Rock", "Paper", or "Scissors"\nTic-Tac-Toe: Say "tic tac toe" then a number 1–9\nTrivia: Say "trivia" to get a question',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.fingerprint_rounded,
+                    color: Colors.redAccent,
+                    title: '🔒 App Lock',
+                    description:
+                        'Secure the app with your phone fingerprint or PIN so only you can open it.',
+                    howTo:
+                        'Open Settings → SECURITY → App Lock → Enable Biometric Lock.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.cloud_sync_rounded,
+                    color: Colors.blueAccent,
+                    title: '☁️ Google Drive Backup',
+                    description:
+                        'Save your chat memories, secret notes, and settings to Google Drive automatically.',
+                    howTo:
+                        'Open Settings → BACKUP → Cloud Sync → tap "Backup". Setup: create OAuth credentials at console.cloud.google.com, download google-services.json to android/app/.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.search_rounded,
+                    color: Colors.white70,
+                    title: '🔎 Chat Search',
+                    description:
+                        'Find any old message in the chat history instantly with a live search bar.',
+                    howTo:
+                        'Tap the 🔍 SEARCH chip in the chat header. Type any keyword to filter messages in real-time.',
                   ),
                 ],
               ),

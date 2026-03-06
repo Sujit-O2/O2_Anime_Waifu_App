@@ -13,6 +13,14 @@ import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 import 'package:anime_waifu/services/open_app_service.dart';
 import 'package:anime_waifu/services/memory_service.dart';
+import 'package:anime_waifu/services/google_drive_service.dart';
+import 'package:anime_waifu/services/contacts_lookup_service.dart';
+import 'package:anime_waifu/services/image_gen_service.dart';
+import 'package:anime_waifu/services/mini_game_service.dart';
+import 'package:anime_waifu/services/music_service.dart';
+import 'package:anime_waifu/services/music_player_service.dart';
+import 'package:anime_waifu/services/waifu_alarm_service.dart';
+import 'package:anime_waifu/screens/music_player_page.dart';
 import 'package:anime_waifu/services/weather_service.dart';
 import 'package:anime_waifu/services/mood_service.dart';
 import 'package:anime_waifu/services/quote_service.dart';
@@ -20,6 +28,7 @@ import 'package:anime_waifu/services/secret_notes_service.dart';
 import 'package:anime_waifu/stt.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/screens/commands_page.dart';
+import 'package:anime_waifu/screens/mini_games_page.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:anime_waifu/widgets/visual_effects_overlay.dart';
@@ -404,6 +413,12 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
   Timer? _inAppNotifHideTimer;
   bool _showInAppNotif = false;
   String _inAppNotifText = "";
+
+  // Chat Search
+  bool _isChatSearchActive = false;
+  String _chatSearchQuery = '';
+  final TextEditingController _chatSearchController = TextEditingController();
+
   static const String _imagePackPrefKey = 'ui_image_pack_alt_v1';
   static const String _customChatImagePathPrefKey = 'custom_chat_image_path_v1';
   static const String _chatImageFromSystemPrefKey = 'chat_image_from_system_v1';
@@ -413,6 +428,7 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
   static const String _dualVoiceSecondaryPrefKey = 'dual_voice_secondary_v1';
   static const String _liteModeEnabledPrefKey = 'lite_mode_enabled_v1';
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
+
   String get _chatImageAsset =>
       _useAltImagePack ? 'assets/img/logi.png' : 'assets/img/z2s.jpg';
   String get _appIconImageAsset => 'assets/img/logi.png';
@@ -2140,6 +2156,180 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
     ));
 
     _scrollToBottom();
+
+    // ── Keyword shortcut handlers (no API call needed) ──────────────────────
+    final lowerText = text.toLowerCase();
+
+    // Mini-Games: Rock Paper Scissors
+    if (lowerText.contains('rock') ||
+        lowerText.contains('paper') ||
+        lowerText.contains('scissors')) {
+      if (lowerText.contains('play') ||
+          lowerText.startsWith('rock') ||
+          lowerText.startsWith('paper') ||
+          lowerText.startsWith('scissors') ||
+          lowerText.contains('rps')) {
+        final result = MiniGameService.playRPS(text);
+        _appendMessage(ChatMessage(role: 'assistant', content: result));
+        if (mounted) setState(() => _isBusy = false);
+        return;
+      }
+    }
+
+    // Mini-Games: Trivia
+    if (lowerText.contains('trivia') ||
+        lowerText.contains('quiz') ||
+        lowerText.contains('anime question')) {
+      final q = MiniGameService.getNextTrivia();
+      _appendMessage(ChatMessage(role: 'assistant', content: q));
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // Mini-Games: Answer trivia if one is pending
+    if (MiniGameService.hasPendingTrivia()) {
+      final ans = MiniGameService.checkTriviaAnswer(text);
+      _appendMessage(ChatMessage(role: 'assistant', content: ans));
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // Contacts Lookup: "Who is X" or "find X in contacts"
+    if (lowerText.contains("who is") ||
+        lowerText.contains("find contact") ||
+        lowerText.contains("lookup contact") ||
+        lowerText.contains("look up contact") ||
+        (lowerText.contains("number") && lowerText.contains("contact"))) {
+      final nameMatch = RegExp(r"who is ([a-zA-Z ]+)").firstMatch(lowerText);
+      final rawQuery = nameMatch?.group(1) ??
+          text
+              .replaceAll(
+                  RegExp(r'(who is|find|look up|lookup|contact|number)',
+                      caseSensitive: false),
+                  '')
+              .trim();
+      final contact = await ContactsLookupService.findContact(rawQuery);
+      _appendMessage(ChatMessage(role: 'assistant', content: contact));
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // AI Image Generation: "draw me X" or "generate image of X"
+    if (lowerText.contains('draw me') ||
+        lowerText.contains('draw a') ||
+        lowerText.contains('draw an') ||
+        lowerText.contains('generate image') ||
+        lowerText.contains('create image') ||
+        lowerText.contains('make a picture') ||
+        lowerText.contains('generate picture')) {
+      _appendMessage(ChatMessage(
+          role: 'assistant',
+          content: '🎨 Generating image, please wait darling...'));
+      if (mounted) setState(() {});
+      final cleaned = lowerText
+          .replaceAll(
+              RegExp(
+                  r'draw me|draw a|draw an|generate image of|create image of|make a picture of|generate picture of',
+                  caseSensitive: false),
+              '')
+          .trim();
+      final url =
+          await ImageGenService.generateImage(cleaned.isEmpty ? text : cleaned);
+      if (url != null) {
+        // Replace last placeholder
+        final msgs = List<ChatMessage>.from(_messages);
+        msgs[msgs.length - 1] = ChatMessage(
+            role: 'assistant',
+            content: '🖼️ Here you go, darling!\n![Generated Image]($url)');
+        if (mounted) setState(() => _messages.clear());
+        for (final m in msgs) _appendMessage(m);
+      } else {
+        _appendMessage(ChatMessage(
+            role: 'assistant',
+            content:
+                '😢 I couldn\'t generate that image right now. Try again!'));
+      }
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+    // Mini-Games: Tic-Tac-Toe start
+    if (lowerText.contains('tic tac toe') ||
+        lowerText.contains('tic-tac-toe') ||
+        lowerText.contains('tictactoe')) {
+      final result = MiniGameService.startTicTacToe();
+      _appendMessage(ChatMessage(role: 'assistant', content: result));
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // Mini-Games: Tic-Tac-Toe move (if game is active)
+    if (MiniGameService.hasPendingTTT()) {
+      final result = MiniGameService.playTTT(text);
+      _appendMessage(ChatMessage(role: 'assistant', content: result));
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // Music: "play music" / "play X" — use in-app local music player
+    if ((lowerText.startsWith('play ') &&
+            !lowerText.contains('game') &&
+            !lowerText.contains('tic')) ||
+        lowerText == 'play music' ||
+        lowerText.contains('play my') ||
+        lowerText.contains('start music') ||
+        lowerText.contains('play local') ||
+        lowerText.contains('play songs') ||
+        lowerText.contains('open spotify') ||
+        lowerText.contains('open music')) {
+      final query = text
+          .replaceAll(
+              RegExp(r'(play|open|start|local|music|my|playlist|songs)',
+                  caseSensitive: false),
+              '')
+          .trim();
+      final musicSvc = MusicPlayerService();
+      await musicSvc.init();
+      if (musicSvc.songList.value.isEmpty) {
+        // No local music — fall back to Spotify
+        final r =
+            await MusicService.playMusic(query.isEmpty ? 'my playlist' : query);
+        _appendMessage(ChatMessage(role: 'assistant', content: r));
+      } else {
+        await musicSvc.playSongByName(query);
+        final song = musicSvc.currentSong.value;
+        final songName = song?.title ?? 'your music';
+        _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '🎵 Playing **$songName**! Enjoy the music, darling~ 🎶'));
+        if (mounted) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const MusicPlayerPage()));
+        }
+      }
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // Waifu Alarm: "wake me up at 7 AM" / "set alarm for 8:30"
+    if (lowerText.contains('wake me up') ||
+        lowerText.contains('set alarm') ||
+        lowerText.contains('alarm at') ||
+        lowerText.contains('alarm for')) {
+      final time = WaifuAlarmService.parseTime(text);
+      if (time != null) {
+        final result = await WaifuAlarmService.setAlarm(time, 'Zero Two');
+        _appendMessage(ChatMessage(role: 'assistant', content: result));
+      } else {
+        _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '⏰ Tell me the time! E.g. "Wake me up at 7 AM"'));
+      }
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
+    // ── End keyword shortcuts ───────────────────────────────────────────────
+
     await _sendToApiAndReply(readOutReply: false);
   }
 
@@ -2576,20 +2766,6 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       var canOverlay = await _assistantModeService.canDrawOverlays();
       if (!canOverlay && requestIfNeeded) {
         await _assistantModeService.requestOverlayPermission();
-        await Future.delayed(const Duration(milliseconds: 700));
-        canOverlay = await _assistantModeService.canDrawOverlays();
-      }
-      if (!canOverlay) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Allow 'Display over other apps' for popup mic to work.",
-              ),
-            ),
-          );
-        }
-        return false;
       }
     }
 
@@ -3483,6 +3659,50 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
                 active: _assistantModeEnabled,
                 accent: Colors.cyanAccent,
               ),
+              GestureDetector(
+                onTap: () => setState(() {
+                  _isChatSearchActive = !_isChatSearchActive;
+                  if (!_isChatSearchActive) {
+                    _chatSearchQuery = '';
+                    _chatSearchController.clear();
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: _isChatSearchActive
+                        ? Colors.orangeAccent.withValues(alpha: 0.22)
+                        : Colors.white.withValues(alpha: 0.06),
+                    border: Border.all(
+                      color: _isChatSearchActive
+                          ? Colors.orangeAccent.withValues(alpha: 0.8)
+                          : Colors.white12,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.search,
+                          size: 10,
+                          color: _isChatSearchActive
+                              ? Colors.orangeAccent
+                              : Colors.white70),
+                      const SizedBox(width: 4),
+                      Text('SEARCH',
+                          style: GoogleFonts.outfit(
+                              color: _isChatSearchActive
+                                  ? Colors.white
+                                  : Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -3556,60 +3776,85 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
   }
 
   Widget _buildChatList() {
+    final displayMessages = _chatSearchQuery.isEmpty
+        ? _messages
+        : _messages
+            .where((m) => m.content
+                .toLowerCase()
+                .contains(_chatSearchQuery.toLowerCase()))
+            .toList();
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
         child: Column(
           children: [
-            Expanded(
-              child: AnimatedList(
-                key: _listKey,
-                controller: _scrollController,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                initialItemCount: _messages.length,
-                itemBuilder: (context, index, animation) {
-                  if (index >= _messages.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final msg = _messages[index];
-                  final isUser = msg.role == 'user';
-                  final child = _buildBubble(context, msg, isGhost: false);
-                  final offsetTween = Tween<Offset>(
-                    begin: isUser
-                        ? const Offset(0.07, 0.07)
-                        : const Offset(-0.07, 0.07),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
+            // ── Search bar ────────────────────────────────────
+            if (_isChatSearchActive)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TextField(
+                  controller: _chatSearchController,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  cursorColor: Colors.white,
+                  onChanged: (q) => setState(() => _chatSearchQuery = q),
+                  decoration: InputDecoration(
+                    hintText: 'Search messages...',
+                    hintStyle:
+                        const TextStyle(color: Colors.white38, fontSize: 13),
+                    prefixIcon: const Icon(Icons.search,
+                        color: Colors.white38, size: 18),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white38, size: 18),
+                      onPressed: () {
+                        setState(() {
+                          _isChatSearchActive = false;
+                          _chatSearchQuery = '';
+                          _chatSearchController.clear();
+                        });
+                      },
                     ),
-                  );
-                  return RepaintBoundary(
-                    child: FadeTransition(
-                      opacity: CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOut,
-                      ),
-                      child: SlideTransition(
-                        position: offsetTween,
-                        child: child,
-                      ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
+            Expanded(
+              child: displayMessages.isEmpty
+                  ? Center(
+                      child: Text(
+                        _chatSearchQuery.isEmpty
+                            ? ''
+                            : 'No messages matching "$_chatSearchQuery"',
+                        style: const TextStyle(
+                            color: Colors.white38, fontSize: 13),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller:
+                          _isChatSearchActive ? null : _scrollController,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 12),
+                      itemCount: displayMessages.length,
+                      itemBuilder: (context, index) {
+                        final msg = displayMessages[index];
+                        return _buildBubble(context, msg, isGhost: false);
+                      },
+                    ),
             ),
             if (_currentVoiceText.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 6, right: 6, bottom: 10),
                 child: _buildBubble(
                   context,
-                  ChatMessage(
-                    role: 'user',
-                    content: _currentVoiceText,
-                  ),
+                  ChatMessage(role: 'user', content: _currentVoiceText),
                   isGhost: true,
                 ),
               ),
@@ -4398,6 +4643,13 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
               children: [
                 _buildAvatarArea(),
                 _buildChatList(),
+                // Mini music player — auto-shows when music is playing
+                MiniMusicPlayer(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MusicPlayerPage()),
+                  ),
+                ),
                 _buildInputArea(),
               ],
             ),

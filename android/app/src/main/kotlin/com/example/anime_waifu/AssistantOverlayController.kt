@@ -58,6 +58,7 @@ object AssistantOverlayController {
 
     // Pulse animation for status dot
     private var dotPulseRunnable: Runnable? = null
+    private var hideRunnable: Runnable? = null
 
     fun canDrawOverlays(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -112,9 +113,7 @@ object AssistantOverlayController {
                 animateIn(appContext)
             }
 
-            @Suppress("UNUSED_VARIABLE")
-            val ignoredAutoHide = autoHideMs
-            cancelAutoHide()
+            scheduleAutoHide(autoHideMs, appContext)
         }
     }
 
@@ -150,9 +149,7 @@ object AssistantOverlayController {
             if (!visible || animatingOut) {
                 animateIn(appContext)
             }
-            @Suppress("UNUSED_VARIABLE")
-            val ignoredAutoHide = autoHideMs
-            cancelAutoHide()
+            scheduleAutoHide(autoHideMs, appContext)
         }
     }
 
@@ -577,7 +574,17 @@ object AssistantOverlayController {
     }
 
     private fun cancelAutoHide() {
-        // Auto hide disabled: popup stays until user explicitly dismisses.
+        hideRunnable?.let { mainHandler.removeCallbacks(it) }
+        hideRunnable = null
+    }
+
+    private fun scheduleAutoHide(autoHideMs: Long, context: Context) {
+        cancelAutoHide()
+        if (autoHideMs > 0) {
+            val r = Runnable { hideInternal(context) }
+            hideRunnable = r
+            mainHandler.postDelayed(r, autoHideMs)
+        }
     }
 
     private fun dp(context: Context, value: Int): Int =
