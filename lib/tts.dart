@@ -92,44 +92,55 @@ class TtsService {
 
   /// Calls Groq TTS API and returns audio bytes
   Future<Uint8List?> _fetchAudioFromApi(String text) async {
-    try {
-      if (_effectiveApiKey.isEmpty) {
-        debugPrint("TTS API key is missing");
-        return null;
-      }
+    final keySource = _effectiveApiKey;
+    final keys = keySource
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
-      final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
-      final bodyData = {
-        "model": _effectiveModel,
-        "voice": _effectiveVoice,
-        "input": text,
-        "response_format": "wav"
-      };
-
-      final response = await http
-          .post(
-            url,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer $_effectiveApiKey",
-            },
-            body: jsonEncode(bodyData),
-          )
-          .timeout(_ttsRequestTimeout);
-
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
-      } else {
-        debugPrint("TTS API Error: ${response.statusCode} - ${response.body}");
-        return null;
-      }
-    } on TimeoutException catch (_) {
-      debugPrint("TTS API request timeout");
-      return null;
-    } catch (e) {
-      debugPrint("TTS API Exception: $e");
+    if (keys.isEmpty) {
+      debugPrint("TTS API key is missing");
       return null;
     }
+
+    final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
+    final bodyData = {
+      "model": _effectiveModel,
+      "voice": _effectiveVoice,
+      "input": text,
+      "response_format": "wav"
+    };
+
+    for (int i = 0; i < keys.length; i++) {
+      final key = keys[i];
+      try {
+        final response = await http
+            .post(
+              url,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $key",
+              },
+              body: jsonEncode(bodyData),
+            )
+            .timeout(_ttsRequestTimeout);
+
+        if (response.statusCode == 200) {
+          return response.bodyBytes;
+        } else {
+          debugPrint(
+              "TTS API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body}");
+        }
+      } on TimeoutException catch (_) {
+        debugPrint("TTS API request timeout (Key ${i + 1}/${keys.length})");
+      } catch (e) {
+        debugPrint("TTS API Exception (Key ${i + 1}/${keys.length}): $e");
+      }
+    }
+
+    debugPrint("All TTS API keys failed.");
+    return null;
   }
 
   /// Speak text (API call + play)

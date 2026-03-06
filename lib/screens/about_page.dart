@@ -104,6 +104,10 @@ extension _AboutPageExtension on _ChatHomePageState {
                                       child: _buildFeatureSnapshot(),
                                     ),
                                     const SizedBox(height: 28),
+                                    _buildSectionTitle('NEW FEATURE GUIDE'),
+                                    const SizedBox(height: 12),
+                                    _buildFeatureGuideButton(),
+                                    const SizedBox(height: 28),
                                     _buildSectionTitle('FEATURE COVERAGE'),
                                     const SizedBox(height: 12),
                                     _buildFeatureCoverageGraph(),
@@ -115,6 +119,84 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     _buildSectionTitle('SIGNAL FLOW'),
                                     const SizedBox(height: 12),
                                     _buildSignalFlowGraph(),
+                                    const SizedBox(height: 28),
+                                    _buildSectionTitle('CMD REFERENCE'),
+                                    const SizedBox(height: 12),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const CommandsPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.pinkAccent
+                                                  .withValues(alpha: 0.10),
+                                              Colors.purpleAccent
+                                                  .withValues(alpha: 0.08),
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.pinkAccent
+                                                  .withValues(alpha: 0.35)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.pinkAccent
+                                                    .withValues(alpha: 0.15),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.terminal_rounded,
+                                                color: Colors.pinkAccent,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Example Commands',
+                                                    style: GoogleFonts.outfit(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w700),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    'See all things your AI can do →',
+                                                    style: GoogleFonts.outfit(
+                                                        color: Colors.white54,
+                                                        fontSize: 12),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: Colors.white38,
+                                                size: 20),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -301,13 +383,16 @@ extension _AboutPageExtension on _ChatHomePageState {
                     size: 16,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    _projectGitHubUrl,
-                    style: GoogleFonts.outfit(
-                      color: Colors.cyanAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.underline,
+                  Expanded(
+                    child: Text(
+                      _projectGitHubUrl,
+                      style: GoogleFonts.outfit(
+                        color: Colors.cyanAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -413,6 +498,15 @@ extension _AboutPageExtension on _ChatHomePageState {
         'Default behavior: idle enabled, random check-in mode enabled',
         'Notification and memory buffers capped for stable runtime usage',
       ]),
+      _AboutFeatureSection('Utilities and Minigames', [
+        'Gacha system for random Zero Two quotes',
+        'Mood Tracker with persistent emotion history',
+        'Secret Notes secured with local PIN code and XOR masking',
+        'Pomodoro timer utilizing system alarms',
+        'On-demand chat summary condensation via LLM',
+        'Chat export to local .txt file using the native share sheet',
+        'Instant translation through MyMemory API integration',
+      ]),
       _AboutFeatureSection('Reliability and Safety', [
         'Mic and notification permission gating before sensitive actions',
         'Wake-word stop fallback when user disables wake mode',
@@ -436,26 +530,112 @@ extension _AboutPageExtension on _ChatHomePageState {
       _notificationsAllowed,
     ].where((enabled) => enabled).length;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Column(
       children: [
-        _buildSnapshotCard('Feature Groups', '${sections.length}',
-            Icons.dashboard_customize_outlined, Colors.cyanAccent),
-        _buildSnapshotCard('Listed Features', '$totalFeatures',
-            Icons.list_alt_outlined, Colors.greenAccent),
-        _buildSnapshotCard(
-            'Navigation Panels', '8', Icons.space_dashboard, Colors.pinkAccent),
-        _buildSnapshotCard('Runtime Flags', '$activeRuntimeFlags/4',
-            Icons.speed_outlined, Colors.orangeAccent),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSnapshotCard('Feature Groups', '${sections.length}',
+                  Icons.dashboard_customize_outlined, Colors.cyanAccent),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildSnapshotCard('Listed Features', '$totalFeatures',
+                  Icons.list_alt_outlined, Colors.greenAccent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSnapshotCard('Navigation Panels', '11',
+                  Icons.space_dashboard, Colors.pinkAccent),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildSnapshotCard(
+                  'Runtime Flags',
+                  '$activeRuntimeFlags/4',
+                  Icons.speed_outlined,
+                  Colors.orangeAccent),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildFeatureGuideButton() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => _FeatureGuideDialog(),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.greenAccent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.greenAccent.withValues(alpha: 0.05),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.menu_book_rounded,
+                  color: Colors.greenAccent, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'How To Use App Features',
+                    style: GoogleFonts.outfit(
+                      color: Colors.greenAccent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to view the full instruction guide',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white60,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: Colors.greenAccent, size: 14),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildSnapshotCard(
       String label, String value, IconData icon, Color color) {
     return Container(
-      width: 184,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
@@ -775,7 +955,8 @@ extension _AboutPageExtension on _ChatHomePageState {
                             color: color,
                             boxShadow: [
                               BoxShadow(
-                                  color: color.withValues(alpha: 0.5), blurRadius: 6)
+                                  color: color.withValues(alpha: 0.5),
+                                  blurRadius: 6)
                             ]),
                       ),
                       const SizedBox(width: 7),
@@ -848,7 +1029,8 @@ extension _AboutPageExtension on _ChatHomePageState {
                       decoration: BoxDecoration(
                         color: flow.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: flow.color.withValues(alpha: 0.4)),
+                        border: Border.all(
+                            color: flow.color.withValues(alpha: 0.4)),
                       ),
                       child: Text(flow.tag,
                           style: GoogleFonts.outfit(
@@ -1211,4 +1393,230 @@ class _AboutFireflyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AboutFireflyPainter oldDelegate) => true;
+}
+
+class _FeatureGuideDialog extends StatelessWidget {
+  const _FeatureGuideDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 400,
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: const Color(0xFF161618),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.6),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.white10)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.menu_book_rounded,
+                      color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Feature Guide',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _buildFeatureItem(
+                    icon: Icons.timer,
+                    color: Colors.redAccent,
+                    title: 'Pomodoro Timer',
+                    description:
+                        'A focus timer that sets a system alarm for you.',
+                    howTo:
+                        'Tap the mic and say: "Start a 25 minute pomodoro" or "Set a focus timer for 30 minutes".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.summarize,
+                    color: Colors.blueAccent,
+                    title: 'Conversation Summary',
+                    description: 'Let the AI recap the chat history for you.',
+                    howTo:
+                        'Tap the mic and say: "Summarize our conversation" or "What were we just talking about?".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.file_download,
+                    color: Colors.greenAccent,
+                    title: 'Chat Export',
+                    description: 'Save your memories to a local text file.',
+                    howTo:
+                        'Tap the mic and say: "Export the chat history" or "Save our conversation".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.content_paste,
+                    color: Colors.orangeAccent,
+                    title: 'Clipboard Assistant',
+                    description: 'Have the AI read what you recently copied.',
+                    howTo:
+                        'Tap the mic and say: "What did I copy?" or "Read my clipboard".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.sms,
+                    color: Colors.pinkAccent,
+                    title: 'SMS Reader',
+                    description:
+                        'Have the AI securely read your latest text messages.',
+                    howTo:
+                        'Tap the mic and say: "Read my last SMS" or "Check my texts".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.person_pin_circle,
+                    color: Colors.cyanAccent,
+                    title: 'Persona Switcher',
+                    description: 'Change the AI\'s personality and TTS voice.',
+                    howTo:
+                        'Open Settings -> AI PERSONA -> Select Personality. Choose between Zero Two, Rem, Miku, or Custom.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.lock,
+                    color: Colors.purpleAccent,
+                    title: 'Secret Notes',
+                    description:
+                        'A private vault where you can securely store personal information the AI can remember.',
+                    howTo:
+                        'Open Settings -> APPS & TOOLS -> Secret Notes (or say "Open my notes").',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.casino,
+                    color: Colors.amberAccent,
+                    title: 'Gacha Minigame',
+                    description:
+                        'A fun minigame to get random iconic anime quotes.',
+                    howTo:
+                        'Open Settings -> APPS & TOOLS -> Gacha Quotes (Or say "Roll a quote").',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.mood,
+                    color: Colors.tealAccent,
+                    title: 'Mood Tracker',
+                    description: 'Keep a daily journal of your emotions.',
+                    howTo:
+                        'Open Settings -> APPS & TOOLS -> Mood Tracker (Or say "Track my mood").',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String description,
+    required String howTo,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.4)),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.outfit(
+                  color: color,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          description,
+          style: GoogleFonts.outfit(
+            color: Colors.white70,
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.mic, color: Colors.white54, size: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  howTo,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
