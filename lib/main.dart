@@ -2284,7 +2284,9 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
             role: 'assistant',
             content: '🖼️ Here you go, darling!\n![Generated Image]($url)');
         if (mounted) setState(() => _messages.clear());
-        for (final m in msgs) _appendMessage(m);
+        for (final m in msgs) {
+          _appendMessage(m);
+        }
       } else {
         _appendMessage(ChatMessage(
             role: 'assistant',

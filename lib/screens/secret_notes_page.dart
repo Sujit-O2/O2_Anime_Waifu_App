@@ -165,6 +165,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
               onPressed: () async {
                 if (ctlr.text.trim().length >= 4) {
                   await SecretNotesService.setPin(ctlr.text.trim());
+                  if (!ctx.mounted) return;
                   Navigator.of(ctx).pop();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

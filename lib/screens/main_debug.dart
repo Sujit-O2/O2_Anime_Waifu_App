@@ -562,11 +562,12 @@ extension _MainDebugExtension on _ChatHomePageState {
                                     builder: (_) => const MusicPlayerPage()));
                           }
                         } else {
-                          if (mounted)
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text(
                                         'No local music found on device')));
+                          }
                         }
                       }),
                       _debugActionBtn('⏸️ Pause Music', Icons.pause_rounded,
@@ -588,31 +589,35 @@ extension _MainDebugExtension on _ChatHomePageState {
                           () async {
                         final result =
                             await ContactsLookupService.findContact('John');
-                        if (mounted)
+                        if (mounted) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text(result)));
+                        }
                       }),
                       _debugActionBtn('⏰ Test Alarm', Icons.alarm, () async {
                         final t =
                             DateTime.now().add(const Duration(minutes: 1));
                         final result =
                             await WaifuAlarmService.setAlarm(t, 'Zero Two');
-                        if (mounted)
+                        if (mounted) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text(result)));
+                        }
                       }),
                       _debugActionBtn('🎮 RPS Game', Icons.sports_esports, () {
                         final r = MiniGameService.playRPS('rock');
-                        if (mounted)
+                        if (mounted) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text(r)));
+                        }
                       }),
                       _debugActionBtn('🎮 Trivia', Icons.quiz_rounded, () {
                         final q = MiniGameService.getNextTrivia();
-                        if (mounted)
+                        if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(q),
                               duration: const Duration(seconds: 5)));
+                        }
                       }),
                     ],
                   ),

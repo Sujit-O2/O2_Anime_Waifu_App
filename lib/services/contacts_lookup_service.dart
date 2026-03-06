@@ -29,7 +29,7 @@ class ContactsLookupService {
       final phones = contact.phones.map((p) => p.number).join(', ');
       final emails = contact.emails.map((e) => e.address).join(', ');
 
-      final parts = <String>['${contact.displayName}'];
+      final parts = <String>[contact.displayName];
       if (phones.isNotEmpty) parts.add('📞 $phones');
       if (emails.isNotEmpty) parts.add('📧 $emails');
 

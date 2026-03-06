@@ -23,11 +23,12 @@ class _MoodTrackerViewState extends State<_MoodTrackerView> {
 
   Future<void> _load() async {
     final entries = await MoodService.getAll();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _entries = entries.reversed.toList();
         _loading = false;
       });
+    }
   }
 
   Future<void> _logMood(String mood) async {

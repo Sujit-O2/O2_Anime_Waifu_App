@@ -33,7 +33,7 @@ class WeatherService {
         final humidity = main?['humidity']?.toString() ?? '?';
         final desc = weather?['description'] ?? 'unknown';
         final wind = (data['wind'] as Map?)?['speed']?.toString() ?? '?';
-        return '📍 $name: $desc, ${temp}°C (feels ${feels}°C), humidity ${humidity}%, wind ${wind} m/s.';
+        return '📍 $name: $desc, $temp°C (feels $feels°C), humidity $humidity%, wind $wind m/s.';
       } else if (res.statusCode == 404) {
         return 'Could not find weather for "$safeCity". Try a different city name.';
       } else {
