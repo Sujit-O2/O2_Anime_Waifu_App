@@ -2,7 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:anime_waifu/config/app_themes.dart';
-import 'package:anime_waifu/main.dart' show themeNotifier;
+import 'package:anime_waifu/main.dart'
+    show themeNotifier, customBackgroundUrlNotifier;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -280,17 +281,41 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
                   return Stack(
                     children: [
-                      // LAYER 1: Deep cinematic gradient base (diagonal)
-                      Container(
-                        width: w,
-                        height: h,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: gradientColors,
-                          ),
-                        ),
+                      // LAYER 1: Deep cinematic gradient base OR Custom Image Pack
+                      ValueListenableBuilder<String?>(
+                        valueListenable: customBackgroundUrlNotifier,
+                        builder: (context, bgUrl, _) {
+                          if (bgUrl != null && bgUrl.isNotEmpty) {
+                            // If it's a URL, use network. Otherwise, maybe it's a path or asset
+                            return SizedBox(
+                              width: w,
+                              height: h,
+                              child: bgUrl.startsWith('http')
+                                  ? Image.network(bgUrl, fit: BoxFit.cover)
+                                  : bgUrl.startsWith('assets/')
+                                      ? Image.asset(bgUrl, fit: BoxFit.cover)
+                                      : Image.network(bgUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (c, e, s) =>
+                                              Image.asset(
+                                                  'assets/zero_two_dance.gif',
+                                                  fit: BoxFit.cover)),
+                            );
+                          }
+
+                          // Fallback to purely gradient
+                          return Container(
+                            width: w,
+                            height: h,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: gradientColors,
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       // LAYER 2: Crepuscular god-rays — slow rotating beams from above

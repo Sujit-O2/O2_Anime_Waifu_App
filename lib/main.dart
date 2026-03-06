@@ -26,9 +26,12 @@ import 'package:anime_waifu/services/mood_service.dart';
 import 'package:anime_waifu/services/quote_service.dart';
 import 'package:anime_waifu/services/secret_notes_service.dart';
 import 'package:anime_waifu/stt.dart';
+import 'package:anime_waifu/screens/advanced_settings_page.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/screens/commands_page.dart';
+import 'package:anime_waifu/screens/image_pack_page.dart';
 import 'package:anime_waifu/screens/mini_games_page.dart';
+import 'package:anime_waifu/screens/theme_accent_page.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:anime_waifu/widgets/visual_effects_overlay.dart';
@@ -61,6 +64,8 @@ part 'screens/secret_notes_page.dart';
 
 final ValueNotifier<AppThemeMode> themeNotifier =
     ValueNotifier(_defaultThemeMode);
+final ValueNotifier<Color?> accentColorNotifier = ValueNotifier(null);
+final ValueNotifier<String?> customBackgroundUrlNotifier = ValueNotifier(null);
 
 const AppThemeMode _defaultThemeMode = AppThemeMode.neonSerpent;
 const Set<AppThemeMode> _activeThemeModes = {
@@ -99,6 +104,18 @@ Future<void> main() async {
     // Load persisted theme
     final prefs = await SharedPreferences.getInstance();
     final index = prefs.getInt('app_theme_index') ?? 0;
+
+    final savedAccent = prefs.getInt('flutter.theme_accent_color');
+    if (savedAccent != null) {
+      AppThemes.customAccentColor = Color(savedAccent);
+      accentColorNotifier.value = Color(savedAccent);
+    }
+
+    final savedBgUrl = prefs.getString('flutter.custom_bg_url');
+    if (savedBgUrl != null && savedBgUrl.isNotEmpty) {
+      customBackgroundUrlNotifier.value = savedBgUrl;
+    }
+
     final savedTheme = AppThemeMode.values[index % AppThemeMode.values.length];
     final migratedTheme =
         savedTheme == AppThemeMode.infernoGod ? _defaultThemeMode : savedTheme;
@@ -128,14 +145,20 @@ class VoiceAiApp extends StatelessWidget {
     return ValueListenableBuilder<AppThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, mode, child) {
-        return MaterialApp(
-          title: 'Zero Two',
-          debugShowCheckedModeBanner: false,
-          theme: AppThemes.getTheme(mode),
-          routes: {
-            '/wake-debug': (ctx) => const WakewordDebugPage(),
+        return ValueListenableBuilder<Color?>(
+          valueListenable: accentColorNotifier,
+          builder: (context, accent, _) {
+            return MaterialApp(
+              title: 'Zero Two',
+              debugShowCheckedModeBanner: false,
+              theme: AppThemes.getTheme(mode),
+              routes: {
+                '/wake-debug': (ctx) => const WakewordDebugPage(),
+              },
+              home:
+                  AppLockWrapper(key: appLockKey, child: const ChatHomePage()),
+            );
           },
-          home: AppLockWrapper(key: appLockKey, child: const ChatHomePage()),
         );
       },
     );
@@ -348,6 +371,11 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
   String? _customAppIconPath;
   String _dualVoiceSecondary = "alloy";
   int _dualVoiceTurn = 0;
+
+  // Advanced Settings
+  int _advancedMemoryLimit = 15;
+  bool _advancedDebugLogs = false;
+  bool _advancedStrictWake = false;
 
   // ── Chat image attach ────────────────────────────────────────────────
   File? _selectedImage; // image chosen for the NEXT chat message
@@ -1232,6 +1260,14 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
         prefs.getString(_dualVoiceSecondaryPrefKey) ?? "alloy";
     final liteModeEnabled = prefs.getBool(_liteModeEnabledPrefKey) ?? false;
     final appLockEnabled = prefs.getBool(_appLockEnabledPrefKey) ?? false;
+
+    final advancedMemoryLimit =
+        prefs.getInt('flutter.advanced_memory_limit') ?? 15;
+    final advancedDebugLogs =
+        prefs.getBool('flutter.advanced_debug_logs') ?? false;
+    final advancedStrictWake =
+        prefs.getBool('flutter.advanced_strict_wake') ?? false;
+
     if (mounted) {
       setState(() {
         _wakeWordEnabledByUser = enabled;
@@ -1243,6 +1279,9 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
         _dualVoiceSecondary = dualVoiceSecondary;
         _liteModeEnabled = liteModeEnabled;
         _appLockEnabled = appLockEnabled;
+        _advancedMemoryLimit = advancedMemoryLimit;
+        _advancedDebugLogs = advancedDebugLogs;
+        _advancedStrictWake = advancedStrictWake;
       });
     } else {
       _wakeWordEnabledByUser = enabled;
@@ -1254,6 +1293,9 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       _dualVoiceSecondary = dualVoiceSecondary;
       _liteModeEnabled = liteModeEnabled;
       _appLockEnabled = appLockEnabled;
+      _advancedMemoryLimit = advancedMemoryLimit;
+      _advancedDebugLogs = advancedDebugLogs;
+      _advancedStrictWake = advancedStrictWake;
     }
     _syncLiteModeRuntime();
     if (_idleTimerEnabled) {

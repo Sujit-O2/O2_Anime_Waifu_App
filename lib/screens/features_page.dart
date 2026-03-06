@@ -83,6 +83,11 @@ class FeaturesPage extends StatelessWidget {
             delayMs: sections.length * 60,
             child: _buildCommandExamples(),
           ),
+          const SizedBox(height: 16),
+          _AboutStaggerReveal(
+            delayMs: sections.length * 60 + 100,
+            child: _buildHowToUseRules(),
+          ),
         ],
       ),
     );
@@ -295,6 +300,106 @@ class FeaturesPage extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 11,
                       fontStyle: FontStyle.italic)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHowToUseRules() {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amberAccent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.menu_book_rounded,
+                  color: Colors.amberAccent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'HOW TO USE & RULES',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'The App is designed to act as your personal AI companion. Here are the core rules and guidelines to get the most out of your experience:',
+            style: GoogleFonts.outfit(
+                color: Colors.white70, fontSize: 12, height: 1.5),
+          ),
+          const SizedBox(height: 12),
+          _buildRuleItem('1', 'Wake Word',
+              'Say the wake word to activate hands-free listening. You can change sensitivity in Advanced Settings.'),
+          _buildRuleItem('2', 'Memory Limit',
+              'The AI remembers your recent context. You can lower the memory limit if responses get slow.'),
+          _buildRuleItem('3', 'Background Mode',
+              'Keep the app running in the background for proactive notifications and random check-ins.'),
+          _buildRuleItem('4', 'Image & Themes',
+              'Use the Settings panel to apply custom backgrounds (Image Pack) or change the entire app\'s neon accent color.'),
+          _buildRuleItem('5', 'Dev Config',
+              'For power users: Override the LLM model, Voice, API Keys, or System Persona live without restarting.'),
+          const SizedBox(height: 12),
+          Text(
+            '⚠️ Note: Do not share your API keys if you set custom ones in Dev Config. The core features run on secure edge functions by default.',
+            style: GoogleFonts.outfit(
+                color: Colors.redAccent.withValues(alpha: 0.9),
+                fontSize: 11,
+                fontStyle: FontStyle.italic),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuleItem(String numText, String title, String body) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.amberAccent.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              numText,
+              style: GoogleFonts.outfit(
+                  color: Colors.amberAccent,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(body,
+                    style: GoogleFonts.outfit(
+                        color: Colors.white54, fontSize: 11, height: 1.4)),
+              ],
             ),
           ),
         ],
