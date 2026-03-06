@@ -67,6 +67,7 @@ class AssistantForegroundService : Service() {
     private var ttsApiKey: String? = null
     private var ttsModel: String? = null
     private var ttsVoice: String? = null
+    private var ttsSpeed: Double = 1.0
     private var intervalMs: Long = 10000 // Default 10s for testing
     private var isGenerating = false
     private var proactiveEnabled = true
@@ -173,6 +174,7 @@ class AssistantForegroundService : Service() {
         ttsApiKey = prefs.getString("tts_api_key", null)
         ttsModel = prefs.getString("tts_model", null)
         ttsVoice = prefs.getString("tts_voice", null)
+        ttsSpeed = prefs.getFloat("tts_speed", 1.0f).toDouble()
         // Flutter SharedPreferences stores interval as Int, but we need Long.
         // Try Long first; fall back to Int if a ClassCastException occurs.
         intervalMs = try {
@@ -195,6 +197,7 @@ class AssistantForegroundService : Service() {
             putString("tts_api_key", ttsApiKey)
             putString("tts_model", ttsModel)
             putString("tts_voice", ttsVoice)
+            putFloat("tts_speed", ttsSpeed.toFloat())
             putLong("interval_ms", intervalMs)
             putBoolean("proactive_enabled", proactiveEnabled)
             putBoolean("proactive_random_enabled", proactiveRandomEnabled)
@@ -332,6 +335,9 @@ class AssistantForegroundService : Service() {
             if (hasTtsVoice) {
                 ttsVoice = intent.getStringExtra("TTS_VOICE")
             }
+            if (intent.hasExtra("TTS_SPEED")) {
+                ttsSpeed = intent.getDoubleExtra("TTS_SPEED", 1.0)
+            }
             intervalMs = intent.getLongExtra("INTERVAL_MS", 10000L)
             if (intent.hasExtra("PROACTIVE_RANDOM_ENABLED")) {
                 proactiveRandomEnabled = intent.getBooleanExtra("PROACTIVE_RANDOM_ENABLED", false)
@@ -351,7 +357,10 @@ class AssistantForegroundService : Service() {
             if (hasTtsVoice) {
                 ttsVoice = intent?.getStringExtra("TTS_VOICE")
             }
-            if (hasSystemPrompt || hasTtsApiKey || hasTtsModel || hasTtsVoice) {
+            if (intent?.hasExtra("TTS_SPEED") == true) {
+                ttsSpeed = intent.getDoubleExtra("TTS_SPEED", 1.0)
+            }
+            if (hasSystemPrompt || hasTtsApiKey || hasTtsModel || hasTtsVoice || intent?.hasExtra("TTS_SPEED") == true) {
                 saveConfig()
             }
         }
@@ -1557,6 +1566,13 @@ class AssistantForegroundService : Service() {
                     true
                 }
                 player.prepare()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ttsSpeed != 1.0) {
+                    try {
+                        player.playbackParams = player.playbackParams.setSpeed(ttsSpeed.toFloat())
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to set playback speed: ${e.message}")
+                    }
+                }
                 player.start()
                 replyPlayer = player
             } catch (e: Exception) {
