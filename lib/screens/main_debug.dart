@@ -244,6 +244,71 @@ extension _MainDebugExtension on _ChatHomePageState {
                         'Episodes: ready | Landscape: supported | Speed cycle: enabled',
                   ),
 
+                  _debugStatusCard(
+                    label: 'AI Persona',
+                    status: _selectedPersona,
+                    color: Colors.pinkAccent,
+                    icon: Icons.theater_comedy_rounded,
+                    extra: 'Affects system prompt greeting + tone',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Sleep Mode',
+                    status: _sleepModeEnabled ? 'Enabled' : 'Disabled',
+                    color: _sleepModeEnabled
+                        ? Colors.indigoAccent
+                        : Colors.white38,
+                    icon: Icons.nightlight_round,
+                    extra: _isSleepTime
+                        ? '🌙 Currently in sleep window (midnight–7AM) — TTS muted'
+                        : 'Not in sleep window right now',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Memory Service',
+                    status: _cachedMemoryBlock.isEmpty ? 'Empty' : 'Has facts',
+                    color: _cachedMemoryBlock.isEmpty
+                        ? Colors.white38
+                        : Colors.purpleAccent,
+                    icon: Icons.psychology_rounded,
+                    extra: 'Facts injected into system prompt each request',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Image Attach (Vision)',
+                    status:
+                        _selectedImage != null ? 'Image selected' : 'No image',
+                    color: _selectedImage != null
+                        ? Colors.orangeAccent
+                        : Colors.white38,
+                    icon: Icons.image_outlined,
+                    extra: _selectedImage != null
+                        ? 'Path: ${_selectedImage!.path.split('/').last}'
+                        : 'Tap 📎 in chat input to attach',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'API Key Rotation',
+                    status: 'Round-robin active',
+                    color: Colors.greenAccent,
+                    icon: Icons.vpn_key_rounded,
+                    extra: 'Comma-separate up to 5 keys in .env API_KEY field',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Weather API',
+                    status: WeatherService.isConfigured
+                        ? 'Configured ✅'
+                        : 'Key missing ❌',
+                    color: WeatherService.isConfigured
+                        ? Colors.greenAccent
+                        : Colors.redAccent,
+                    icon: Icons.cloud_outlined,
+                    extra: WeatherService.isConfigured
+                        ? 'OPENWEATHER_API_KEY set in .env'
+                        : 'Add OPENWEATHER_API_KEY to .env file',
+                  ),
+
                   const SizedBox(height: 20),
 
                   // ── ACTION BUTTONS ──────────────────────────────────────────
@@ -260,6 +325,27 @@ extension _MainDebugExtension on _ChatHomePageState {
                           'Reinit Wake', Icons.refresh, () => _initWakeWord()),
                       _debugActionBtn('Wake Debug', Icons.bug_report,
                           () => Navigator.pushNamed(context, '/wake-debug')),
+
+                      // System Tests
+                      _debugActionBtn(
+                          'Simulate Exception',
+                          Icons.warning_amber_rounded,
+                          () => throw Exception(
+                              'Simulated test exception from Debug page')),
+                      _debugActionBtn(
+                          'Trigger Battery Intent', Icons.battery_alert_rounded,
+                          () async {
+                        try {
+                          await const MethodChannel(
+                                  'anime_waifu/assistant_mode')
+                              .invokeMethod('triggerBatteryIntent');
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Battery intent error: $e')));
+                          }
+                        }
+                      }),
 
                       // TTS
                       _debugActionBtn(
@@ -341,6 +427,40 @@ extension _MainDebugExtension on _ChatHomePageState {
                             duration: Duration(seconds: 2),
                           ),
                         );
+                      }),
+                      // Feature Tests
+                      _debugActionBtn('Test Weather', Icons.cloud_rounded,
+                          () async {
+                        final result =
+                            await WeatherService.getWeather('Bhubaneswar');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(result),
+                              duration: const Duration(seconds: 4)));
+                        }
+                      }),
+                      _debugActionBtn(
+                          'Toggle Sleep Mode',
+                          Icons.nightlight_round,
+                          () => _setSleepMode(!_sleepModeEnabled)),
+                      _debugActionBtn(
+                          'Cycle Persona', Icons.theater_comedy_rounded, () {
+                        final personas = ['Zero Two', 'Rem', 'Miku', 'Custom'];
+                        final next = personas[
+                            (personas.indexOf(_selectedPersona) + 1) %
+                                personas.length];
+                        _setPersona(next);
+                      }),
+                      _debugActionBtn(
+                          'Refresh Memory', Icons.psychology_rounded, () async {
+                        await _refreshMemoryCache();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(_cachedMemoryBlock.isEmpty
+                                  ? 'Memory empty'
+                                  : 'Memory refreshed: ${_cachedMemoryBlock.length} chars'),
+                              duration: const Duration(seconds: 2)));
+                        }
                       }),
                       _debugActionBtn(
                           'Reset Dev Config', Icons.settings_backup_restore,

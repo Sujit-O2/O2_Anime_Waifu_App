@@ -98,6 +98,21 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                           : 'Using .env default',
                       _devWakeKeyOverride.isNotEmpty),
                   const SizedBox(height: 8),
+                  // ── STT ───────────────────────────────────────────────────
+                  _devSectionLabel('STT (Speech-to-Text)'),
+                  _devInfoCard(
+                      'STT Lang',
+                      _devSttLangOverride.isNotEmpty
+                          ? _devSttLangOverride
+                          : 'System Default',
+                      _devSttLangOverride.isNotEmpty),
+                  _devInfoCard(
+                      'STT Timeout',
+                      _devSttTimeoutOverride > 0
+                          ? '$_devSttTimeoutOverride seconds'
+                          : 'System Default',
+                      _devSttTimeoutOverride > 0),
+                  const SizedBox(height: 8),
                   // ── Mail ──────────────────────────────────────────────────
                   _devSectionLabel('MAIL (MailJet)'),
                   _devInfoCard(
@@ -112,6 +127,29 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                           ? 'Custom secret set'
                           : 'Using .env default',
                       _devMailJetSecOverride.isNotEmpty),
+                  const SizedBox(height: 8),
+                  // ── FEATURE STATUS ────────────────────────────────────────
+                  _devSectionLabel('FEATURE STATUS'),
+                  _devInfoCard('API Key Rotation', () {
+                    final keys = (dotenv.env['API_KEY'] ?? '')
+                        .split(',')
+                        .where((k) => k.trim().isNotEmpty)
+                        .toList();
+                    return '${keys.length} key${keys.length == 1 ? '' : 's'} configured (round-robin)';
+                  }(), true),
+                  _devInfoCard(
+                      'Weather API',
+                      (dotenv.env['OPENWEATHER_API_KEY'] ?? '').isNotEmpty
+                          ? 'OPENWEATHER_API_KEY set ✅'
+                          : '❌ Missing — add to .env',
+                      (dotenv.env['OPENWEATHER_API_KEY'] ?? '').isNotEmpty),
+                  _devInfoCard('AI Persona', _selectedPersona, true),
+                  _devInfoCard(
+                      'Sleep Mode',
+                      _sleepModeEnabled
+                          ? 'Enabled (mutes midnight–7AM)'
+                          : 'Disabled',
+                      _sleepModeEnabled),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -251,6 +289,11 @@ extension _MainDevConfigExtension on _ChatHomePageState {
     final ttsModelC = TextEditingController(text: _devTtsModelOverride);
     final wakeKeyC = TextEditingController(text: _devWakeKeyOverride);
     final systemC = TextEditingController(text: _devSystemQuery);
+    final sttLangC = TextEditingController(text: _devSttLangOverride);
+    final sttTimeoutC = TextEditingController(
+        text: _devSttTimeoutOverride > 0
+            ? _devSttTimeoutOverride.toString()
+            : '');
     final mjApiC = TextEditingController(text: _devMailJetApiOverride);
     final mjSecC = TextEditingController(text: _devMailJetSecOverride);
 
@@ -309,6 +352,13 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                   _cfgLabel('WAKE WORD'),
                   _buildConfigTextField('Wake-Word API Key Override', wakeKeyC),
                   const SizedBox(height: 14),
+                  _cfgLabel('STT (Speech-to-Text)'),
+                  _buildConfigTextField(
+                      'STT Language Code (e.g., en-US)', sttLangC),
+                  const SizedBox(height: 10),
+                  _buildConfigTextField(
+                      'STT Timeout (seconds, e.g., 5)', sttTimeoutC),
+                  const SizedBox(height: 14),
                   _cfgLabel('MAIL (MailJet)'),
                   _buildConfigTextField('MailJet API Key', mjApiC),
                   const SizedBox(height: 10),
@@ -328,6 +378,8 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                               _devTtsApiKeyOverride = '';
                               _devTtsModelOverride = '';
                               _devWakeKeyOverride = '';
+                              _devSttLangOverride = '';
+                              _devSttTimeoutOverride = 0;
                               _devMailJetApiOverride = '';
                               _devMailJetSecOverride = '';
                             });
@@ -359,6 +411,9 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                               _devTtsApiKeyOverride = ttsApiKeyC.text.trim();
                               _devTtsModelOverride = ttsModelC.text.trim();
                               _devWakeKeyOverride = wakeKeyC.text.trim();
+                              _devSttLangOverride = sttLangC.text.trim();
+                              _devSttTimeoutOverride =
+                                  int.tryParse(sttTimeoutC.text.trim()) ?? 0;
                               _devMailJetApiOverride = mjApiC.text.trim();
                               _devMailJetSecOverride = mjSecC.text.trim();
                             });

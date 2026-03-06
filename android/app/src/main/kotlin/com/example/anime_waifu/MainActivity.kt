@@ -28,11 +28,11 @@ import android.view.KeyEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"

@@ -78,6 +78,11 @@ class FeaturesPage extends StatelessWidget {
                 isLast: s == sections.length - 1,
               ),
             ),
+          const SizedBox(height: 16),
+          _AboutStaggerReveal(
+            delayMs: sections.length * 60,
+            child: _buildCommandExamples(),
+          ),
         ],
       ),
     );
@@ -223,6 +228,80 @@ class FeaturesPage extends StatelessWidget {
     );
   }
 
+  Widget _buildCommandExamples() {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.pinkAccent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.mic, color: Colors.pinkAccent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'VOICE COMMANDS',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildCmd('📝 Summarize Chat', '"Summarize our conversation"'),
+          _buildCmd('📄 Export Chat', '"Export the chat history"'),
+          _buildCmd('🎲 Gacha Quote', '"Roll a random quote"'),
+          _buildCmd('😄 Mood Tracker', '"I am feeling happy today"'),
+          _buildCmd('🍅 Pomodoro Timer', '"Start a 25 minute pomodoro"'),
+          _buildCmd('🌐 Translation', '"Translate hello to Japanese"'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCmd(String title, String example) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(title,
+                style: GoogleFonts.outfit(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Text(example,
+                  style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<_AboutFeatureSection> _aboutFeatureSections() {
     return const [
       _AboutFeatureSection('Chat and Conversation', [
@@ -291,6 +370,15 @@ class FeaturesPage extends StatelessWidget {
         'Clear chat memory and clear notification history actions',
         'Default behavior: idle enabled, random check-in mode enabled',
         'Notification and memory buffers capped for stable runtime usage',
+      ]),
+      _AboutFeatureSection('Utilities and Minigames', [
+        'Gacha system for random Zero Two quotes',
+        'Mood Tracker with persistent emotion history',
+        'Secret Notes secured with local PIN code and XOR masking',
+        'Pomodoro timer utilizing system alarms',
+        'On-demand chat summary condensation via LLM',
+        'Chat export to local .txt file using the native share sheet',
+        'Instant translation through MyMemory API integration',
       ]),
       _AboutFeatureSection('Reliability and Safety', [
         'Mic and notification permission gating before sensitive actions',
