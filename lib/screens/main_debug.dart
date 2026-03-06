@@ -309,6 +309,70 @@ extension _MainDebugExtension on _ChatHomePageState {
                         : 'Add OPENWEATHER_API_KEY to .env file',
                   ),
 
+                  // ── NEW FEATURES STATUS ────────────────────────────────────
+                  _debugStatusCard(
+                    label: '🎵 Music Player',
+                    status: MusicPlayerService().currentSong.value != null
+                        ? (MusicPlayerService().isPlaying.value
+                            ? 'Playing'
+                            : 'Paused')
+                        : 'Idle',
+                    color: MusicPlayerService().isPlaying.value
+                        ? Colors.purpleAccent
+                        : Colors.white38,
+                    icon: Icons.music_note_rounded,
+                    extra: MusicPlayerService().currentSong.value != null
+                        ? 'Now: ${MusicPlayerService().currentSong.value!.title}'
+                        : 'Library: ${MusicPlayerService().songList.value.length} songs loaded',
+                  ),
+
+                  _debugStatusCard(
+                    label: '⏰ Waifu Alarm',
+                    status: 'Ready',
+                    color: Colors.orangeAccent,
+                    icon: Icons.alarm_rounded,
+                    extra:
+                        'Say "Wake me up at 7 AM" to set. android_alarm_manager_plus',
+                  ),
+
+                  _debugStatusCard(
+                    label: '📞 Contacts Lookup',
+                    status: 'Available',
+                    color: Colors.greenAccent,
+                    icon: Icons.contacts_rounded,
+                    extra:
+                        'Say "Who is [name]?" — requires READ_CONTACTS permission',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🖼️ AI Drawing',
+                    status: 'Online',
+                    color: Colors.cyanAccent,
+                    icon: Icons.auto_fix_high_rounded,
+                    extra:
+                        'Say "Draw me a cat" — Uses Pollinations.ai (no API key needed)',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🎮 Mini-Games',
+                    status: MiniGameService.hasPendingTTT()
+                        ? 'Tic-Tac-Toe Active'
+                        : 'Ready',
+                    color: MiniGameService.hasPendingTTT()
+                        ? Colors.amberAccent
+                        : Colors.white54,
+                    icon: Icons.games_rounded,
+                    extra: 'Rock-Paper-Scissors · Tic-Tac-Toe · Anime Trivia',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🔎 Chat Search',
+                    status: _isChatSearchActive ? 'Active' : 'Hidden',
+                    color: _isChatSearchActive ? Colors.blue : Colors.white38,
+                    icon: Icons.search_rounded,
+                    extra: 'Tap SEARCH chip in chat header to activate',
+                  ),
+
                   const SizedBox(height: 20),
 
                   // ── ACTION BUTTONS ──────────────────────────────────────────
@@ -482,6 +546,73 @@ extension _MainDebugExtension on _ChatHomePageState {
                               content: Text('Dev config reset to defaults'),
                               duration: Duration(seconds: 2)),
                         );
+                      }),
+
+                      // ── NEW FEATURE TESTS ─────────────────────────────────
+                      _debugActionBtn('🎵 Play Music', Icons.play_arrow_rounded,
+                          () async {
+                        final svc = MusicPlayerService();
+                        await svc.init();
+                        if (svc.songList.value.isNotEmpty) {
+                          await svc.playSongAt(0);
+                          if (mounted) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const MusicPlayerPage()));
+                          }
+                        } else {
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'No local music found on device')));
+                        }
+                      }),
+                      _debugActionBtn('⏸️ Pause Music', Icons.pause_rounded,
+                          () => MusicPlayerService().playPause()),
+                      _debugActionBtn('🖼️ Test Draw', Icons.auto_fix_high,
+                          () async {
+                        final url = await ImageGenService.generateImage(
+                                'anime cat girl') ??
+                            'Error: null result';
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text((url).startsWith('http')
+                                  ? '✅ Image: ${url.substring(0, url.length.clamp(0, 40))}...'
+                                  : '❌ $url'),
+                              duration: const Duration(seconds: 3)));
+                        }
+                      }),
+                      _debugActionBtn('📞 Test Contacts', Icons.contacts,
+                          () async {
+                        final result =
+                            await ContactsLookupService.findContact('John');
+                        if (mounted)
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(result)));
+                      }),
+                      _debugActionBtn('⏰ Test Alarm', Icons.alarm, () async {
+                        final t =
+                            DateTime.now().add(const Duration(minutes: 1));
+                        final result =
+                            await WaifuAlarmService.setAlarm(t, 'Zero Two');
+                        if (mounted)
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(result)));
+                      }),
+                      _debugActionBtn('🎮 RPS Game', Icons.sports_esports, () {
+                        final r = MiniGameService.playRPS('rock');
+                        if (mounted)
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(r)));
+                      }),
+                      _debugActionBtn('🎮 Trivia', Icons.quiz_rounded, () {
+                        final q = MiniGameService.getNextTrivia();
+                        if (mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(q),
+                              duration: const Duration(seconds: 5)));
                       }),
                     ],
                   ),
