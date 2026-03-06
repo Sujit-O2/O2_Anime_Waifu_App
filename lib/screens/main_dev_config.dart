@@ -128,6 +128,25 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                           : 'Using .env default',
                       _devMailJetSecOverride.isNotEmpty),
                   const SizedBox(height: 8),
+
+                  // ── SYSTEM LIMITS & DEBUG ─────────────────────────────────
+                  _devSectionLabel('SYSTEM LIMITS (Advanced)'),
+                  _devInfoCard(
+                      'Context Memory (Tokens)',
+                      '$_advancedMemoryLimit max messages retained',
+                      _advancedMemoryLimit != 15),
+                  _devInfoCard(
+                      'Debug Logs (Console)',
+                      _advancedDebugLogs ? 'Enabled ⚠️' : 'Disabled',
+                      _advancedDebugLogs),
+                  _devInfoCard(
+                      'Strict Wake Word',
+                      _advancedStrictWake
+                          ? 'Enabled (Lower false positives)'
+                          : 'Disabled',
+                      _advancedStrictWake),
+                  const SizedBox(height: 8),
+
                   // ── FEATURE STATUS ────────────────────────────────────────
                   _devSectionLabel('FEATURE STATUS'),
                   _devInfoCard('API Key Rotation', () {
