@@ -10,72 +10,96 @@ class MiniGamesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0816),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Mini Games Hub',
-          style: GoogleFonts.outfit(
-              fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white70, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F0816), Color(0xFF190D2A)],
-          ),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            Text(
-              'Select a game to play with me!',
-              style: GoogleFonts.outfit(
-                color: Colors.white70,
-                fontSize: 16,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white, size: 22),
+              onPressed: () => Navigator.pop(context),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                'ARCADE HUB',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  color: Colors.white,
+                  letterSpacing: 2.0,
+                  shadows: [Shadow(color: Colors.purpleAccent, blurRadius: 10)],
+                ),
               ),
-              textAlign: TextAlign.center,
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [const Color(0xFF2D1B69), const Color(0xFF11113B)],
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(Icons.sports_esports_rounded,
+                      size: 80, color: Colors.white12),
+                ),
+              ),
             ),
-            const SizedBox(height: 30),
-            _buildGameCard(
-              context,
-              title: 'Tic-Tac-Toe',
-              subtitle: 'Classic X and O strategy game',
-              icon: Icons.grid_3x3_rounded,
-              color: Colors.cyanAccent,
-              command: 'tic tac toe',
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: 0.85,
+              children: [
+                _buildGridCard(
+                  context,
+                  title: 'Tic-Tac-Toe',
+                  subtitle: 'Classic X and O strategy',
+                  icon: Icons.grid_3x3_rounded,
+                  color: Colors.cyanAccent,
+                  command: 'tic tac toe',
+                ),
+                _buildGridCard(
+                  context,
+                  title: 'Rock Paper Scissors',
+                  subtitle: 'Test your luck',
+                  icon: Icons.back_hand_rounded,
+                  color: Colors.orangeAccent,
+                  command: 'rock paper scissors',
+                ),
+                _buildGridCard(
+                  context,
+                  title: 'Anime Trivia',
+                  subtitle: 'Weeb knowledge check',
+                  icon: Icons.quiz_rounded,
+                  color: Colors.pinkAccent,
+                  command: 'trivia',
+                ),
+                _buildGridCard(
+                  context,
+                  title: 'Gacha Rolls',
+                  subtitle: 'Pull iconic quotes',
+                  icon: Icons.stars_rounded,
+                  color: Colors.amberAccent,
+                  command: 'roll quote',
+                ),
+              ],
             ),
-            _buildGameCard(
-              context,
-              title: 'Rock Paper Scissors',
-              subtitle: 'Test your luck and reading skills',
-              icon: Icons.back_hand_rounded,
-              color: Colors.orangeAccent,
-              command: 'rock paper scissors',
-            ),
-            _buildGameCard(
-              context,
-              title: 'Anime Trivia',
-              subtitle: 'How well do you know anime?',
-              icon: Icons.quiz_rounded,
-              color: Colors.pinkAccent,
-              command: 'trivia',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildGameCard(
+  Widget _buildGridCard(
     BuildContext context, {
     required String title,
     required String subtitle,
@@ -83,68 +107,62 @@ class MiniGamesPage extends StatelessWidget {
     required Color color,
     required String command,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.pop(context); // Close games hub
-            onGameSelected(command); // Trigger game in chat
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withValues(alpha: 0.3)),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.05),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                )
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: color, size: 32),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.pop(context); // Close hub
+          onGameSelected(command); // Trigger in chat
+        },
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.05),
+                blurRadius: 15,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white60,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Icon(icon, color: color, size: 36),
+              ),
+              const Spacer(),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                Icon(Icons.play_arrow_rounded,
-                    color: color.withValues(alpha: 0.6), size: 28),
-              ],
-            ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  color: Colors.white60,
+                  fontSize: 11,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
         ),
       ),

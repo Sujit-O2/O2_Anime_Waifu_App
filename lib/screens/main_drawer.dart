@@ -365,46 +365,58 @@ extension _MainDrawerExtension on _ChatHomePageState {
                             .map((e) => navItem(Map<String, dynamic>.from(e))),
                         sectionHeader('QUICK LAUNCH'),
                         quickItem(
-                          '🎮 Mini Games',
+                          'Mini Games',
                           Icons.sports_esports_rounded,
                           Colors.cyanAccent,
-                          () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => MiniGamesPage(
-                                        onGameSelected: (cmd) {
-                                          _textController.text = cmd;
-                                          _handleTextInput();
-                                        },
-                                      ))),
+                          () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => MiniGamesPage(
+                                          onGameSelected: (cmd) {
+                                            _textController.text = cmd;
+                                            _handleTextInput();
+                                          },
+                                        )));
+                          },
                         ),
                         quickItem(
-                          '🎵 Music Player',
+                          'Music Player',
                           Icons.music_note_rounded,
                           Colors.purpleAccent,
-                          () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const MusicPlayerPage())),
+                          () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const MusicPlayerPage()));
+                          },
                         ),
                         quickItem(
-                          '⌨️ Commands',
+                          'Commands',
                           Icons.terminal_rounded,
                           Colors.pinkAccent,
-                          () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const CommandsPage())),
+                          () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const CommandsPage()));
+                          },
                           badge: '40+',
                         ),
                         quickItem(
-                          '✨ All Features',
+                          'All Features',
                           Icons.auto_awesome_rounded,
                           Colors.amberAccent,
-                          () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const FeaturesPage())),
+                          () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const FeaturesPage()));
+                          },
                         ),
                         // INFO — About always last
                         sectionHeader('INFO'),

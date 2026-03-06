@@ -435,130 +435,167 @@ class MiniMusicPlayer extends StatelessWidget {
           builder: (_, song, __) {
             if (song == null) return const SizedBox.shrink();
 
-            return Dismissible(
-              key: const Key('mini_music_player_dismiss'),
-              direction: DismissDirection.horizontal,
-              onDismissed: (_) => service.hideMiniPlayer(),
-              child: GestureDetector(
-                onTap: onTap,
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2D1B69), Color(0xFF11113B)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: Colors.purpleAccent.withValues(alpha: 0.3)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.purpleAccent.withValues(alpha: 0.2),
-                        blurRadius: 12,
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // Artwork
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: QueryArtworkWidget(
-                            id: song.id,
-                            type: ArtworkType.AUDIO,
-                            nullArtworkWidget: Container(
-                              color: const Color(0xFF9B59B6),
-                              child: const Icon(Icons.music_note_rounded,
-                                  color: Colors.white54, size: 20),
-                            ),
-                            artworkFit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Title + Artist
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              song.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              song.artist ?? 'Unknown',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                color: Colors.white70,
-                                fontSize: 11,
-                              ),
+            return ValueListenableBuilder<bool>(
+              valueListenable: service.isMiniPlayerMinimized,
+              builder: (_, isMinimized, __) {
+                if (isMinimized) {
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: service.toggleMinimize,
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 12, bottom: 6),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2D1B69),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: Colors.purpleAccent.withValues(alpha: 0.5),
+                              width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.purpleAccent.withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
+                        child: const Icon(Icons.music_note_rounded,
+                            color: Colors.white, size: 24),
                       ),
-                      // Controls
-                      ValueListenableBuilder<bool>(
-                        valueListenable: service.isPlaying,
-                        builder: (_, playing, __) {
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.skip_previous_rounded,
-                                    color: Colors.white70, size: 20),
-                                onPressed: service.skipPrevious,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: Icon(
-                                  playing
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  color: Colors.purpleAccent,
-                                  size: 26,
+                    ),
+                  );
+                }
+
+                return Dismissible(
+                  key: const Key('mini_music_player_dismiss'),
+                  direction: DismissDirection.horizontal,
+                  onDismissed: (_) => service.hideMiniPlayer(),
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2D1B69), Color(0xFF11113B)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.purpleAccent.withValues(alpha: 0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.purpleAccent.withValues(alpha: 0.2),
+                            blurRadius: 12,
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Artwork
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: QueryArtworkWidget(
+                                id: song.id,
+                                type: ArtworkType.AUDIO,
+                                nullArtworkWidget: Container(
+                                  color: const Color(0xFF9B59B6),
+                                  child: const Icon(Icons.music_note_rounded,
+                                      color: Colors.white54, size: 20),
                                 ),
-                                onPressed: service.playPause,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
+                                artworkFit: BoxFit.cover,
                               ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: const Icon(Icons.skip_next_rounded,
-                                    color: Colors.white70, size: 20),
-                                onPressed: service.skipNext,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.close_rounded,
-                                    color: Colors.white54, size: 20),
-                                onPressed: service.hideMiniPlayer,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          );
-                        },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Title + Artist
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  song.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                Text(
+                                  song.artist ?? 'Unknown',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Controls
+                          ValueListenableBuilder<bool>(
+                            valueListenable: service.isPlaying,
+                            builder: (_, playing, __) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.skip_previous_rounded,
+                                        color: Colors.white70,
+                                        size: 20),
+                                    onPressed: service.skipPrevious,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: Icon(
+                                      playing
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      color: Colors.purpleAccent,
+                                      size: 26,
+                                    ),
+                                    onPressed: service.playPause,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(Icons.skip_next_rounded,
+                                        color: Colors.white70, size: 20),
+                                    onPressed: service.skipNext,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: Colors.white54,
+                                        size: 24),
+                                    onPressed: service.toggleMinimize,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );

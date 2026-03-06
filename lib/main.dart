@@ -2323,21 +2323,31 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
         lowerText.contains('play songs') ||
         lowerText.contains('open spotify') ||
         lowerText.contains('open music')) {
+      final musicSvc = MusicPlayerService();
+      await musicSvc.init();
+
+      final isFolderQuery =
+          lowerText.contains('folder') || lowerText.contains('album');
       final query = text
           .replaceAll(
-              RegExp(r'(play|open|start|local|music|my|playlist|songs)',
+              RegExp(
+                  r'(play|open|start|local|music|my|playlist|songs|folder|album)',
                   caseSensitive: false),
               '')
           .trim();
-      final musicSvc = MusicPlayerService();
-      await musicSvc.init();
+
       if (musicSvc.songList.value.isEmpty) {
         // No local music — fall back to Spotify
         final r =
             await MusicService.playMusic(query.isEmpty ? 'my playlist' : query);
         _appendMessage(ChatMessage(role: 'assistant', content: r));
       } else {
-        await musicSvc.playSongByName(query);
+        if (isFolderQuery && query.isNotEmpty) {
+          await musicSvc.playFolder(query);
+        } else {
+          await musicSvc.playSongByName(query);
+        }
+
         final song = musicSvc.currentSong.value;
         final songName = song?.title ?? 'your music';
         _appendMessage(ChatMessage(

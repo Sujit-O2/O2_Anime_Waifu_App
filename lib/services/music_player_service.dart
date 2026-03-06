@@ -22,6 +22,7 @@ class MusicPlayerService {
   final ValueNotifier<Duration> duration = ValueNotifier(Duration.zero);
   final ValueNotifier<List<SongModel>> songList = ValueNotifier([]);
   final ValueNotifier<bool> isMiniPlayerVisible = ValueNotifier(false);
+  final ValueNotifier<bool> isMiniPlayerMinimized = ValueNotifier(false);
 
   AudioPlayer get player => _player;
 
@@ -53,7 +54,12 @@ class MusicPlayerService {
           path.contains('voice') ||
           path.contains('ringtone') ||
           path.contains('notification') ||
-          path.contains('alarm')) {
+          path.contains('alarm') ||
+          path.contains('audio_records') ||
+          path.contains('call') ||
+          path.contains('telegram') ||
+          path.contains('sound_recorder') ||
+          path.contains('voice_recorder')) {
         return false;
       }
       return true;
@@ -78,6 +84,7 @@ class MusicPlayerService {
     final song = _songs[_currentIndex];
     currentSong.value = song;
     isMiniPlayerVisible.value = true;
+    isMiniPlayerMinimized.value = false;
     try {
       await _player.setAudioSource(AudioSource.uri(Uri.parse(song.uri!)));
       await _player.play();
@@ -95,6 +102,21 @@ class MusicPlayerService {
         (s.album ?? '').toLowerCase().contains(lq));
     if (idx < 0) idx = 0;
     await playSongAt(idx);
+  }
+
+  Future<void> playFolder(String folderName) async {
+    if (_songs.isEmpty) await init();
+    final lq = folderName.toLowerCase();
+    final folderSongs =
+        _songs.where((s) => s.data.toLowerCase().contains(lq)).toList();
+    if (folderSongs.isNotEmpty) {
+      _songs = folderSongs; // Temporarily restrict playlist to this folder
+      songList.value = _songs;
+      await playSongAt(0);
+    } else {
+      // Fallback
+      await playSongByName(folderName);
+    }
   }
 
   Future<void> playPause() async {
@@ -135,6 +157,10 @@ class MusicPlayerService {
 
   void hideMiniPlayer() {
     isMiniPlayerVisible.value = false;
+  }
+
+  void toggleMinimize() {
+    isMiniPlayerMinimized.value = !isMiniPlayerMinimized.value;
   }
 
   void dispose() {

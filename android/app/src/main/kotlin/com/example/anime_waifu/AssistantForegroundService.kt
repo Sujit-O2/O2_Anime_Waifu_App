@@ -1348,6 +1348,22 @@ class AssistantForegroundService : Service() {
                     queueWakeReplySpeech(finalReply)
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Voice command error", e)
+                val err = "I had trouble processing that."
+                persistChatMessage("assistant", err)
+                syncOverlayStatus("Error", err, autoHideMs = 8000L)
+                showWakeAlert(err, pulse = false)
+                if (speakReply) {
+                    queueWakeReplySpeech(err)
+                }
+            } finally {
+                commandGenerating = false
+                // Note: The syncOverlayStatus calls above already include an autoHideMs, 
+                // but we trigger a clear request just to be safe if the UI gets stuck.
+                Handler(Looper.getMainLooper()).postDelayed({
+                    clearOverlayStatus()
+                }, 15000L)
+            }
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
