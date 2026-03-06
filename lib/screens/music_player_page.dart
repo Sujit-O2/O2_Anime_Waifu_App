@@ -15,6 +15,9 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   final _service = MusicPlayerService();
   late AnimationController _rotateCtrl;
   bool _showList = false;
+  int _selectedTab = 0; // 0: Songs, 1: Folders
+  String? _openFolderName;
+  List<SongModel>? _openFolderSongs;
 
   @override
   void initState() {
@@ -111,7 +114,29 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                   ),
                 ),
 
-                if (_showList) _buildSongList() else _buildPlayer(),
+                if (_showList) ...[
+                  // Tab Selector
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        _tabBtn('Songs', 0),
+                        const SizedBox(width: 12),
+                        _tabBtn('Folders', 1),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                if (_showList)
+                  (_selectedTab == 0
+                      ? _buildSongList()
+                      : (_openFolderName == null
+                          ? _buildFolderList()
+                          : _buildFolderSongsView()))
+                else
+                  _buildPlayer(),
               ],
             ),
           ),
@@ -413,6 +438,149 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     return IconButton(
       icon: Icon(icon, color: Colors.white70, size: size),
       onPressed: onTap,
+    );
+  }
+
+  Widget _tabBtn(String label, int index) {
+    final active = _selectedTab == index;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _selectedTab = index;
+        _openFolderName = null;
+        _openFolderSongs = null;
+      }),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active
+              ? Colors.purpleAccent
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: active
+                  ? Colors.purpleAccent
+                  : Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+            color: active ? Colors.black : Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFolderList() {
+    return Expanded(
+      child: ValueListenableBuilder<Map<String, List<SongModel>>>(
+        valueListenable: _service.folders,
+        builder: (_, folders, __) {
+          if (folders.isEmpty) {
+            return Center(
+              child: Text('No folders found',
+                  style: GoogleFonts.outfit(color: Colors.white24)),
+            );
+          }
+          final paths = folders.keys.toList()..sort();
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: paths.length,
+            itemBuilder: (context, i) {
+              final path = paths[i];
+              final songs = folders[path]!;
+              final folderName = path.split('/').last;
+              return ListTile(
+                onTap: () {
+                  setState(() {
+                    _openFolderName = folderName;
+                    _openFolderSongs = songs;
+                  });
+                },
+                leading: const Icon(Icons.folder_rounded,
+                    color: Colors.amberAccent, size: 28),
+                title: Text(folderName,
+                    style:
+                        GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
+                subtitle: Text('${songs.length} songs',
+                    style: GoogleFonts.outfit(
+                        color: Colors.white38, fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: Colors.white24, size: 20),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFolderSongsView() {
+    return Expanded(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() {
+                    _openFolderName = null;
+                    _openFolderSongs = null;
+                  }),
+                  child: const Icon(Icons.arrow_back_ios_new_rounded,
+                      color: Colors.purpleAccent, size: 16),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(_openFolderName ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                          color: Colors.purpleAccent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14)),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _openFolderSongs?.length ?? 0,
+              itemBuilder: (context, i) {
+                final song = _openFolderSongs![i];
+                return ValueListenableBuilder<SongModel?>(
+                  valueListenable: _service.currentSong,
+                  builder: (_, current, __) {
+                    final isActive = current?.id == song.id;
+                    return ListTile(
+                      onTap: () {
+                        _service.playSongAt(i, playlist: _openFolderSongs);
+                        setState(() => _showList = false);
+                      },
+                      leading: const Icon(Icons.music_note_rounded,
+                          color: Colors.white24, size: 20),
+                      title: Text(song.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                              color:
+                                  isActive ? Colors.purpleAccent : Colors.white,
+                              fontSize: 13)),
+                      subtitle: Text(song.artist ?? 'Unknown',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 11)),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

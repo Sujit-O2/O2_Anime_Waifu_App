@@ -31,7 +31,14 @@ class TtsService {
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['GROQ_API_KEY_VOICE'] ?? dotenv.env['API_KEY'] ?? "";
+    final voiceKey = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
+    final mainKeys = dotenv.env['API_KEY'] ?? "";
+
+    // Merge all keys into one string
+    if (voiceKey.isNotEmpty && mainKeys.isNotEmpty) {
+      return "$voiceKey,$mainKeys";
+    }
+    return voiceKey.isNotEmpty ? voiceKey : mainKeys;
   }
 
   String get _effectiveVoice {
@@ -103,6 +110,9 @@ class TtsService {
       debugPrint("TTS API key is missing");
       return null;
     }
+
+    // Shuffle for random rotation
+    keys.shuffle();
 
     final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
     final bodyData = {

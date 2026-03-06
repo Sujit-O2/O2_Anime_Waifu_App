@@ -76,12 +76,36 @@ class MusicPlayerService {
         skipNext();
       }
     });
+
+    _groupSongsByFolder();
   }
 
-  Future<void> playSongAt(int index) async {
-    if (_songs.isEmpty) return;
-    _currentIndex = index.clamp(0, _songs.length - 1);
-    final song = _songs[_currentIndex];
+  void _groupSongsByFolder() {
+    final Map<String, List<SongModel>> groups = {};
+    for (var song in _songs) {
+      // Get folder path from song.data
+      final pathParts = song.data.split('/');
+      if (pathParts.length > 1) {
+        final folderPath = pathParts.sublist(0, pathParts.length - 1).join('/');
+        groups.putIfAbsent(folderPath, () => []).add(song);
+      } else {
+        groups.putIfAbsent('Unknown', () => []).add(song);
+      }
+    }
+    folders.value = groups;
+  }
+
+  final ValueNotifier<Map<String, List<SongModel>>> folders = ValueNotifier({});
+
+  Future<void> playSongAt(int index, {List<SongModel>? playlist}) async {
+    final list = playlist ?? _songs;
+    if (list.isEmpty) return;
+
+    // If we're changing the active playlist, update current tracking
+    _currentPlaylist = playlist ?? _currentPlaylist ?? _songs;
+
+    _currentIndex = index.clamp(0, list.length - 1);
+    final song = list[_currentIndex];
     currentSong.value = song;
     isMiniPlayerVisible.value = true;
     isMiniPlayerMinimized.value = false;
@@ -92,6 +116,8 @@ class MusicPlayerService {
       debugPrint('MusicPlayer play error: $e');
     }
   }
+
+  List<SongModel>? _currentPlaylist;
 
   Future<void> playSongByName(String query) async {
     if (_songs.isEmpty) await init();
@@ -130,18 +156,20 @@ class MusicPlayerService {
   }
 
   Future<void> skipNext() async {
-    if (_songs.isEmpty) return;
-    final next = (_currentIndex + 1) % _songs.length;
-    await playSongAt(next);
+    final list = _currentPlaylist ?? _songs;
+    if (list.isEmpty) return;
+    final next = (_currentIndex + 1) % list.length;
+    await playSongAt(next, playlist: list);
   }
 
   Future<void> skipPrevious() async {
-    if (_songs.isEmpty) return;
+    final list = _currentPlaylist ?? _songs;
+    if (list.isEmpty) return;
     if (position.value.inSeconds > 3) {
       await _player.seek(Duration.zero);
     } else {
-      final prev = (_currentIndex - 1 + _songs.length) % _songs.length;
-      await playSongAt(prev);
+      final prev = (_currentIndex - 1 + list.length) % list.length;
+      await playSongAt(prev, playlist: list);
     }
   }
 

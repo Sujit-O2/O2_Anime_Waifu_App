@@ -2364,6 +2364,34 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       return;
     }
 
+    // Music: "stop music", "pause music", "next song", etc.
+    if (lowerText == 'stop music' ||
+        lowerText == 'pause music' ||
+        lowerText == 'next song' ||
+        lowerText == 'previous song' ||
+        lowerText == 'skip song') {
+      final musicSvc = MusicPlayerService();
+      if (lowerText == 'stop music') {
+        await musicSvc.stop();
+        _appendMessage(ChatMessage(
+            role: 'assistant', content: '🛑 Music stopped, darling.'));
+      } else if (lowerText == 'pause music') {
+        await musicSvc.playPause();
+        _appendMessage(ChatMessage(
+            role: 'assistant', content: '⏸️ Music paused, darling.'));
+      } else if (lowerText == 'next song' || lowerText == 'skip song') {
+        await musicSvc.skipNext();
+        _appendMessage(ChatMessage(
+            role: 'assistant', content: '⏭️ Playing the next one!'));
+      } else if (lowerText == 'previous song') {
+        await musicSvc.skipPrevious();
+        _appendMessage(ChatMessage(
+            role: 'assistant', content: '⏮️ Going back to the previous one.'));
+      }
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
     // Waifu Alarm: "wake me up at 7 AM" / "set alarm for 8:30"
     if (lowerText.contains('wake me up') ||
         lowerText.contains('set alarm') ||
