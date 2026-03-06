@@ -16,6 +16,9 @@ class ApiService {
   String _mailJetApiOverride = "";
   String _mailJetSecOverride = "";
 
+  /// Round-robin index — advances after each successful request
+  int _keyIndex = 0;
+
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
     return dotenv.env['API_KEY'] ?? "";
@@ -71,9 +74,21 @@ class ApiService {
     }
   }
 
-  Future<String> sendConversation(List<Map<String, dynamic>> messages) async {
-    final apiKey = _effectiveApiKey;
-    if (apiKey.isEmpty) {
+  Future<String> sendConversation(
+    List<Map<String, dynamic>> messages, {
+    String? modelOverride,
+  }) async {
+    final apiKeySource = _apiKeyOverride.trim().isNotEmpty
+        ? _apiKeyOverride.trim()
+        : (dotenv.env['API_KEY'] ?? "");
+
+    final keys = apiKeySource
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (keys.isEmpty) {
       throw Exception("API_KEY not set in .env or dev config");
     }
 
@@ -81,83 +96,99 @@ class ApiService {
       throw Exception("No messages provided for conversation");
     }
 
-    try {
-      final now = DateTime.now().toString();
-      final timeMessage = {
-        "role": "system",
-        "content":
-            "Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked."
-      };
-      final payloadMessages = [...messages, timeMessage];
-      final payload = {
-        "model": _effectiveModel,
-        "messages": payloadMessages,
-      };
+    final now = DateTime.now().toString();
+    final timeMessage = {
+      "role": "system",
+      "content":
+          "Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked."
+    };
+    final payloadMessages = [...messages, timeMessage];
+    final payload = {
+      "model": modelOverride ?? _effectiveModel,
+      "messages": payloadMessages,
+    };
 
-      final res = await http
-          .post(
-            Uri.parse(_effectiveUrl),
-            headers: {
-              "Authorization": "Bearer $apiKey",
-              "Content-Type": "application/json",
-            },
-            body: jsonEncode(payload),
-          )
-          .timeout(_chatTimeout);
+    List<Exception> errors = [];
 
-      debugPrint("API Response Status: ${res.statusCode}");
+    // Start rotation from last-used key index for round-robin across requests
+    final startIdx = _keyIndex % keys.length;
+    for (int attempt = 0; attempt < keys.length; attempt++) {
+      final idx = (startIdx + attempt) % keys.length;
+      final apiKey = keys[idx];
+      try {
+        final res = await http
+            .post(
+              Uri.parse(_effectiveUrl),
+              headers: {
+                "Authorization": "Bearer $apiKey",
+                "Content-Type": "application/json",
+              },
+              body: jsonEncode(payload),
+            )
+            .timeout(_chatTimeout);
 
-      if (res.statusCode != 200) {
-        throw Exception("API error: ${res.statusCode}. Body: ${res.body}");
-      }
+        debugPrint(
+            "API Response Status: ${res.statusCode} (key ${idx + 1}/${keys.length})");
 
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      final choices = data["choices"];
-      if (choices is! List || choices.isEmpty) {
-        throw Exception("API response missing 'choices' field");
-      }
-
-      final first = choices.first;
-      if (first is! Map<String, dynamic>) {
-        throw Exception("API response 'choices[0]' format invalid");
-      }
-
-      final msg = first["message"];
-      if (msg is! Map<String, dynamic>) {
-        throw Exception("API response missing 'message' in choice");
-      }
-
-      final content = (msg["content"] ?? "").toString().trim();
-      if (content.isEmpty) {
-        return "No response";
-      }
-
-      if (content.contains("Mail:") && content.contains("Body:")) {
-        // Extract email using regex
-        final emailRegex =
-            RegExp(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}");
-        final match = emailRegex.firstMatch(content);
-        var mail = "Sujitswain077@gmail.com";
-        if (match != null) {
-          mail = match.group(0)!.toString();
-          debugPrint("Extracted Email: ${match.group(0)}");
+        if (res.statusCode != 200) {
+          throw Exception("API error: ${res.statusCode}. Body: ${res.body}");
         }
-        const extSub = "Zero Two";
-        final bodyStart = content.indexOf("Body:");
-        if (bodyStart == -1 || bodyStart + 5 >= content.length) {
-          return content;
-        }
-        final extBody = content.substring(bodyStart + 5).trim();
-        return sendMail(mail, extBody, extSub);
-      }
 
-      return content;
-    } on TimeoutException catch (_) {
-      throw Exception("API request timeout - connection took too long");
-    } catch (e) {
-      debugPrint("API error: $e");
-      rethrow;
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        final choices = data["choices"];
+        if (choices is! List || choices.isEmpty) {
+          throw Exception("API response missing 'choices' field");
+        }
+
+        final first = choices.first;
+        if (first is! Map<String, dynamic>) {
+          throw Exception("API response 'choices[0]' format invalid");
+        }
+
+        final msg = first["message"];
+        if (msg is! Map<String, dynamic>) {
+          throw Exception("API response missing 'message' in choice");
+        }
+
+        final content = (msg["content"] ?? "").toString().trim();
+        if (content.isEmpty) {
+          return "No response";
+        }
+
+        // Advance round-robin index on success
+        _keyIndex = (idx + 1) % keys.length;
+
+        // --- Mail Handling ---
+        if (content.contains("Mail:") && content.contains("Body:")) {
+          final emailRegex =
+              RegExp(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}");
+          final match = emailRegex.firstMatch(content);
+          var mail = "Sujitswain077@gmail.com";
+          if (match != null) {
+            mail = match.group(0)!.toString();
+            debugPrint("Extracted Email: ${match.group(0)}");
+          }
+          const extSub = "Zero Two";
+          final bodyStart = content.indexOf("Body:");
+          if (bodyStart == -1 || bodyStart + 5 >= content.length) {
+            return content;
+          }
+          final extBody = content.substring(bodyStart + 5).trim();
+          return sendMail(mail, extBody, extSub);
+        }
+
+        return content; // Return success immediately
+      } on TimeoutException catch (e) {
+        debugPrint("API Key ${idx + 1}/${keys.length} timeout: $e");
+        errors.add(Exception("Timeout with key ${idx + 1}"));
+      } catch (e) {
+        debugPrint("API Key ${idx + 1}/${keys.length} failed: $e");
+        errors.add(e is Exception ? e : Exception(e.toString()));
+      }
     }
+
+    throw Exception(
+        "All ${keys.length} API keys failed. Last error: ${errors.last}");
   }
 
   Future<String> sendMail(String mailId, String body, String head) async {
