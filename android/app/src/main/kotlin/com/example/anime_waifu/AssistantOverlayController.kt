@@ -142,10 +142,14 @@ object AssistantOverlayController {
             // Record to history if it's a completed message
             if (!statusText.equals("Listening", ignoreCase = true) && 
                 !statusText.equals("Processing", ignoreCase = true) &&
+                !statusText.startsWith("Working on", ignoreCase = true) &&
                 !transcriptText.contains("Say a wake word", ignoreCase = true)) {
                 
                 // If the last history item was a temporary processing message, replace it
-                if (sessionHistory.isNotEmpty() && sessionHistory.last().first.equals("Processing", ignoreCase = true)) {
+                if (sessionHistory.isNotEmpty() && (
+                    sessionHistory.last().first.equals("Processing", ignoreCase = true) ||
+                    sessionHistory.last().first.startsWith("Working on", ignoreCase = true)
+                )) {
                     sessionHistory.removeLast()
                 }
                 

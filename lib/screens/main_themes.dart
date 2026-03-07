@@ -213,6 +213,7 @@ extension _MainThemesExtension on _ChatHomePageState {
                             final name = AppThemes.getThemeName(mode);
                             final grad = AppThemes.getGradient(mode);
                             return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () async {
                                 themeNotifier.value = mode;
                                 final prefs =
