@@ -144,6 +144,14 @@ class AppThemes {
   // ==========================================================
   //  PRIMARY GETTER
   // ==========================================================
+  static ThemeData getRawTheme(AppThemeMode mode) {
+    Color? old = customAccentColor;
+    customAccentColor = null;
+    ThemeData t = getTheme(mode);
+    customAccentColor = old;
+    return t;
+  }
+
   static ThemeData getTheme(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.bloodMoon:

@@ -89,7 +89,14 @@ object AssistantOverlayController {
             
             // Record to history if it's a completed message
             if (!statusText.equals("Listening", ignoreCase = true) && 
+                !statusText.equals("Processing", ignoreCase = true) &&
                 !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                
+                // If the last history item was a temporary processing message, replace it
+                if (sessionHistory.isNotEmpty() && sessionHistory.last().first.equals("Processing", ignoreCase = true)) {
+                    sessionHistory.removeLast()
+                }
+                
                 if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
                     sessionHistory.add(statusText to transcriptText)
                 }
@@ -134,7 +141,14 @@ object AssistantOverlayController {
             
             // Record to history if it's a completed message
             if (!statusText.equals("Listening", ignoreCase = true) && 
+                !statusText.equals("Processing", ignoreCase = true) &&
                 !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                
+                // If the last history item was a temporary processing message, replace it
+                if (sessionHistory.isNotEmpty() && sessionHistory.last().first.equals("Processing", ignoreCase = true)) {
+                    sessionHistory.removeLast()
+                }
+                
                 if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
                     sessionHistory.add(statusText to transcriptText)
                 }
@@ -544,8 +558,8 @@ object AssistantOverlayController {
     private fun removeViewNow(view: View) {
         try {
             windowManager?.removeView(view)
-        } catch (_: Exception) {}
-        finally {
+        } catch (_: Exception) {
+        } finally {
             clearRefs()
         }
     }

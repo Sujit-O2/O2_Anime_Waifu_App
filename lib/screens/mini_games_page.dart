@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../main.dart'; // To access ChatHomePage
 
 class MiniGamesPage extends StatelessWidget {
   final Function(String) onGameSelected;
@@ -8,93 +9,121 @@ class MiniGamesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F0816),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white, size: 22),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Text(
-                'ARCADE HUB',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 22,
-                  color: Colors.white,
-                  letterSpacing: 2.0,
-                  shadows: [Shadow(color: Colors.purpleAccent, blurRadius: 10)],
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatHomePage()),
+              (r) => false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0F0816),
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 200.0,
+              floating: false,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white, size: 22),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ChatHomePage()),
+                        (r) => false);
+                  }
+                },
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF2D1B69), const Color(0xFF11113B)],
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: Text(
+                  'ARCADE HUB',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    color: Colors.white,
+                    letterSpacing: 2.0,
+                    shadows: [
+                      Shadow(color: Colors.purpleAccent, blurRadius: 10)
+                    ],
                   ),
                 ),
-                child: const Center(
-                  child: Icon(Icons.sports_esports_rounded,
-                      size: 80, color: Colors.white12),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF2D1B69),
+                        const Color(0xFF11113B)
+                      ],
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.sports_esports_rounded,
+                        size: 80, color: Colors.white12),
+                  ),
                 ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(20),
-            sliver: SliverGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 20,
-              childAspectRatio: 0.85,
-              children: [
-                _buildGridCard(
-                  context,
-                  title: 'Tic-Tac-Toe',
-                  subtitle: 'Classic X and O strategy',
-                  icon: Icons.grid_3x3_rounded,
-                  color: Colors.cyanAccent,
-                  command: 'tic tac toe',
-                ),
-                _buildGridCard(
-                  context,
-                  title: 'Rock Paper Scissors',
-                  subtitle: 'Test your luck',
-                  icon: Icons.back_hand_rounded,
-                  color: Colors.orangeAccent,
-                  command: 'rock paper scissors',
-                ),
-                _buildGridCard(
-                  context,
-                  title: 'Anime Trivia',
-                  subtitle: 'Weeb knowledge check',
-                  icon: Icons.quiz_rounded,
-                  color: Colors.pinkAccent,
-                  command: 'trivia',
-                ),
-                _buildGridCard(
-                  context,
-                  title: 'Gacha Rolls',
-                  subtitle: 'Pull iconic quotes',
-                  icon: Icons.stars_rounded,
-                  color: Colors.amberAccent,
-                  command: 'roll quote',
-                ),
-              ],
+            SliverPadding(
+              padding: const EdgeInsets.all(20),
+              sliver: SliverGrid.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: 0.85,
+                children: [
+                  _buildGridCard(
+                    context,
+                    title: 'Tic-Tac-Toe',
+                    subtitle: 'Classic X and O strategy',
+                    icon: Icons.grid_3x3_rounded,
+                    color: Colors.cyanAccent,
+                    command: 'tic tac toe',
+                  ),
+                  _buildGridCard(
+                    context,
+                    title: 'Rock Paper Scissors',
+                    subtitle: 'Test your luck',
+                    icon: Icons.back_hand_rounded,
+                    color: Colors.orangeAccent,
+                    command: 'rock paper scissors',
+                  ),
+                  _buildGridCard(
+                    context,
+                    title: 'Anime Trivia',
+                    subtitle: 'Weeb knowledge check',
+                    icon: Icons.quiz_rounded,
+                    color: Colors.pinkAccent,
+                    command: 'trivia',
+                  ),
+                  _buildGridCard(
+                    context,
+                    title: 'Gacha Rolls',
+                    subtitle: 'Pull iconic quotes',
+                    icon: Icons.stars_rounded,
+                    color: Colors.amberAccent,
+                    command: 'roll quote',
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

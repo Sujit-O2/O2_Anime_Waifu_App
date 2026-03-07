@@ -48,6 +48,10 @@ class TtsService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
+    final voice = _effectiveVoice.toLowerCase();
+    if (voice == 'autumn' || voice == 'hannah' || voice == 'english') {
+      return "canopylabs/orpheus-v1-english";
+    }
     return "canopylabs/orpheus-arabic-saudi";
   }
 
@@ -295,26 +299,39 @@ class TtsService {
       final networkRequired = voice['network_required'] == true;
 
       var score = 0;
-      if (locale.startsWith('en-us')) score += 60;
-      if (locale.startsWith('en-')) score += 25;
+      if (request == 'aisha') {
+        if (locale.startsWith('ar-sa')) score += 60;
+        if (locale.startsWith('ar-')) score += 25;
+      } else {
+        if (locale.startsWith('en-us')) score += 60;
+        if (locale.startsWith('en-')) score += 25;
+      }
+
       if (!notInstalled) score += 20;
       if (!networkRequired) score += 10;
-      if (quality > 0) score += quality ~/ 10;
+      if (quality > 0) score += quality;
 
-      // Prefer human-like voices when available.
-      if (name.contains('female')) score += 18;
-      if (name.contains('natural') || name.contains('neural')) score += 22;
-      if (name.contains('wavenet')) score += 20;
-
-      // Respect user-configured fallback hint if it matches a device voice.
-      if (request.isNotEmpty && name.contains(request)) score += 100;
+      if (name.contains(request)) score += 50;
+      if (name.contains('female')) score += 15;
 
       return score;
     }
 
-    voices.sort((a, b) => scoreVoice(b).compareTo(scoreVoice(a)));
-    final best = voices.first;
-    final bestScore = scoreVoice(best);
-    return bestScore > 0 ? best : null;
+    // Try to find exact override match first
+    for (final v in voices) {
+      final n = (v['name'] ?? '').toString().toLowerCase();
+      if (n == request) return v;
+    }
+
+    if (voices.isEmpty) return null;
+
+    final scored = voices.map((v) => MapEntry(v, scoreVoice(v))).toList();
+    scored.sort((a, b) => b.value.compareTo(a.value));
+
+    // Cache the best score to avoid calling scoreVoice twice.
+    final bestScore = scored.first.value;
+    if (bestScore > 0) return scored.first.key;
+
+    return null;
   }
 }

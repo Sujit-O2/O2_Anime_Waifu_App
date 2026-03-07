@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../main.dart'; // To access ChatHomePage
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Commands Reference Page
@@ -169,90 +170,114 @@ class CommandsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalCmds = _categories.fold<int>(0, (sum, c) => sum + c.cmds.length);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0B18),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ────────────────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.pinkAccent.withValues(alpha: 0.14),
-                    const Color(0xFF0B0B18),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatHomePage()),
+              (r) => false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B0B18),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Header ────────────────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.pinkAccent.withValues(alpha: 0.14),
+                      const Color(0xFF0B0B18),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ChatHomePage()),
+                              (r) => false);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: const Icon(Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white70, size: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('CMD REFERENCE',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.8)),
+                          Text('Everything your AI can do',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.pinkAccent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: Colors.pinkAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(
+                        '$totalCmds cmds',
+                        style: GoogleFonts.outfit(
+                            color: Colors.pinkAccent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
                   ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
                 ),
               ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white70, size: 16),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('CMD REFERENCE',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.8)),
-                        Text('Everything your AI can do',
-                            style: GoogleFonts.outfit(
-                                color: Colors.pinkAccent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.pinkAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: Colors.pinkAccent.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      '$totalCmds cmds',
-                      style: GoogleFonts.outfit(
-                          color: Colors.pinkAccent,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
+              // ── Category list ─────────────────────────────────────────────
+              Expanded(
+                child: ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _categories.length,
+                  itemBuilder: (_, idx) =>
+                      _CmdCategoryCard(cat: _categories[idx]),
+                ),
               ),
-            ),
-            // ── Category list ─────────────────────────────────────────────
-            Expanded(
-              child: ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                physics: const BouncingScrollPhysics(),
-                itemCount: _categories.length,
-                itemBuilder: (_, idx) =>
-                    _CmdCategoryCard(cat: _categories[idx]),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
