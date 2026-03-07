@@ -20,9 +20,7 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 class GoogleDriveService {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [drive.DriveApi.driveFileScope],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   GoogleSignInAccount? _currentUser;
   drive.DriveApi? _driveApi;
@@ -31,12 +29,19 @@ class GoogleDriveService {
 
   Future<bool> signIn() async {
     try {
-      _currentUser = await _googleSignIn.signIn();
+      // 1. Initialize GoogleSignIn (v7.0+ requirement)
+      await _googleSignIn.initialize();
+
+      // 2. Authenticate
+      _currentUser = await _googleSignIn.authenticate();
       if (_currentUser == null) return false;
 
-      final auth = await _currentUser!.authentication;
+      // 3. Authorize scopes and get access token
+      final authorization = await _googleSignIn.authorizationClient
+          .authorizeScopes([drive.DriveApi.driveFileScope]);
+
       final authHeaders = {
-        'Authorization': 'Bearer ${auth.accessToken}',
+        'Authorization': 'Bearer ${authorization.accessToken}',
         'X-Goog-AuthUser': '0',
       };
 
