@@ -1256,7 +1256,7 @@ class AssistantForegroundService : Service() {
     private fun handleVoiceCommand(command: String, speakReply: Boolean = true) {
         val cleaned = command.trim()
         if (cleaned.isBlank()) return
-        syncOverlayStatus("You", cleaned, autoHideMs = 16000L)
+        syncOverlayStatus("You", cleaned, autoHideMs = 30000L)
         persistChatMessage("user", cleaned)
         fetchAndRespondToVoiceCommand(cleaned, speakReply)
     }
@@ -1285,7 +1285,7 @@ class AssistantForegroundService : Service() {
             Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
             val setupMissing = "I need API setup to answer you."
             persistChatMessage("assistant", setupMissing)
-            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 14000L)
+            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 28000L)
             showWakeAlert(setupMissing, pulse = true)
             if (speakReply) {
                 queueWakeReplySpeech(setupMissing)
@@ -1338,7 +1338,7 @@ class AssistantForegroundService : Service() {
 
                 val finalReply = handleAssistantReplyAction(reply)
                 persistChatMessage("assistant", finalReply)
-                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 15000L)
+                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 30000L)
                 showWakeAlert(finalReply, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(finalReply)
@@ -1347,7 +1347,7 @@ class AssistantForegroundService : Service() {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
-                syncOverlayStatus("Zero Two", fallback, autoHideMs = 14000L)
+                syncOverlayStatus("Zero Two", fallback, autoHideMs = 28000L)
                 showWakeAlert(fallback, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(fallback)

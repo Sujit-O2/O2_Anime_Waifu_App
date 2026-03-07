@@ -12,15 +12,17 @@ class Particle {
   double opacity;
   final ParticleType type;
 
+  static final _random = math.Random();
+
   Particle(Size size, this.type)
-      : x = math.Random().nextDouble() * size.width,
-        y = math.Random().nextDouble() * size.height,
+      : x = _random.nextDouble() * size.width,
+        y = _random.nextDouble() * size.height,
         vx = 0,
         vy = 0,
-        radius = math.Random().nextDouble() * 2.5 + 0.5,
-        speed = math.Random().nextDouble() * 0.4 + 0.1,
-        theta = math.Random().nextDouble() * 2 * math.pi,
-        opacity = math.Random().nextDouble() * 0.5 + 0.1;
+        radius = _random.nextDouble() * 2.5 + 0.5,
+        speed = _random.nextDouble() * 0.4 + 0.1,
+        theta = _random.nextDouble() * 2 * math.pi,
+        opacity = _random.nextDouble() * 0.5 + 0.1;
 
   void update(Size size, Offset? interactionPoint) {
     theta += 0.002;
