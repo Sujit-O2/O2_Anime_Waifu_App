@@ -100,12 +100,24 @@ class ApiService {
     }
 
     final now = DateTime.now().toString();
-    final timeMessage = {
-      "role": "system",
-      "content":
-          "Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked."
-    };
-    final payloadMessages = [...messages, timeMessage];
+    final timeContext =
+        " [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]";
+
+    final payloadMessages = List<Map<String, dynamic>>.from(messages);
+    if (payloadMessages.isNotEmpty &&
+        payloadMessages.first['role'] == 'system') {
+      final oldContent = payloadMessages.first['content'].toString();
+      payloadMessages[0] = {
+        'role': 'system',
+        'content': oldContent + timeContext,
+      };
+    } else {
+      payloadMessages.insert(0, {
+        "role": "system",
+        "content": timeContext.trim(),
+      });
+    }
+
     final payload = {
       "model": modelOverride ?? _effectiveModel,
       "messages": payloadMessages,

@@ -2473,8 +2473,11 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       // Build payload — encode images as base64 for vision
       bool hasVision = false;
       final payloadMessages = <Map<String, dynamic>>[];
-      for (final m in contextMessages) {
-        if (m.imagePath != null && m.imagePath!.isNotEmpty) {
+      for (int i = 0; i < contextMessages.length; i++) {
+        final m = contextMessages[i];
+        final isLast = (i == contextMessages.length - 1);
+
+        if (m.imagePath != null && m.imagePath!.isNotEmpty && isLast) {
           hasVision = true;
           try {
             final bytes = await File(m.imagePath!).readAsBytes();
@@ -2498,18 +2501,25 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
             payloadMessages.add(m.toApiJson());
           }
         } else {
+          // If it's an old message with an image, or just a text message,
+          // send it as plain text so we don't break Groq API with history images
           payloadMessages.add(m.toApiJson());
         }
       }
-      // ignore: unused_local_variable
-      final _ = hasVision; // reserved: switch to vision model if images present
-
       final payload = [
         {'role': 'system', 'content': _zeroTwoSystemPrompt},
         ...payloadMessages,
       ];
 
-      final reply = await _apiService.sendConversation(payload);
+      String? visionModelOverride;
+      if (hasVision) {
+        visionModelOverride = 'llama-3.2-11b-vision-preview';
+      }
+
+      final reply = await _apiService.sendConversation(
+        payload,
+        modelOverride: visionModelOverride,
+      );
 
       if (reply.isNotEmpty) {
         // Sequential dispatch — first match wins; refresh memory after save
