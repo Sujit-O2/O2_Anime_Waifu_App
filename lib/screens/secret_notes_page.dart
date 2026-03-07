@@ -258,7 +258,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text('SECRET NOTES 🔒',
+                  child: Text('SECRET NOTES ',
                       style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 16,
