@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:anime_waifu/services/music_player_service.dart';
+import '../main.dart'; // To access ChatHomePage
 
 class MusicPlayerPage extends StatefulWidget {
   const MusicPlayerPage({super.key});
@@ -52,95 +53,120 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
-      body: Stack(
-        children: [
-          // Animated gradient bg
-          Positioned.fill(
-            child: ValueListenableBuilder<SongModel?>(
-              valueListenable: _service.currentSong,
-              builder: (_, song, __) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 600),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF1a0038),
-                        Color(0xFF0A0A0F),
-                        Color(0xFF001a30)
-                      ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatHomePage()),
+              (r) => false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0A0A0F),
+        body: Stack(
+          children: [
+            // Animated gradient bg
+            Positioned.fill(
+              child: ValueListenableBuilder<SongModel?>(
+                valueListenable: _service.currentSong,
+                builder: (_, song, __) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF1a0038),
+                          Color(0xFF0A0A0F),
+                          Color(0xFF001a30)
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // ── Top bar ──────────────────────────────────────────────
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white70, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Expanded(
-                        child: Text('NOW PLAYING',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2)),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                            _showList
-                                ? Icons.music_note_rounded
-                                : Icons.queue_music_rounded,
-                            color: Colors.white70,
-                            size: 22),
-                        onPressed: () => setState(() => _showList = !_showList),
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (_showList) ...[
-                  // Tab Selector
+            SafeArea(
+              child: Column(
+                children: [
+                  // ── Top bar ──────────────────────────────────────────────
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     child: Row(
                       children: [
-                        _tabBtn('Songs', 0),
-                        const SizedBox(width: 12),
-                        _tabBtn('Folders', 1),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white70, size: 20),
+                          onPressed: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const ChatHomePage()),
+                                  (r) => false);
+                            }
+                          },
+                        ),
+                        Expanded(
+                          child: Text('NOW PLAYING',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 2)),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                              _showList
+                                  ? Icons.music_note_rounded
+                                  : Icons.queue_music_rounded,
+                              color: Colors.white70,
+                              size: 22),
+                          onPressed: () =>
+                              setState(() => _showList = !_showList),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                ],
 
-                if (_showList)
-                  (_selectedTab == 0
-                      ? _buildSongList()
-                      : (_openFolderName == null
-                          ? _buildFolderList()
-                          : _buildFolderSongsView()))
-                else
-                  _buildPlayer(),
-              ],
+                  if (_showList) ...[
+                    // Tab Selector
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          _tabBtn('Songs', 0),
+                          const SizedBox(width: 12),
+                          _tabBtn('Folders', 1),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  if (_showList)
+                    (_selectedTab == 0
+                        ? _buildSongList()
+                        : (_openFolderName == null
+                            ? _buildFolderList()
+                            : _buildFolderSongsView()))
+                  else
+                    _buildPlayer(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

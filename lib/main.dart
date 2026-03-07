@@ -198,6 +198,9 @@ class _ChatHomePageState extends State<ChatHomePage>
   bool _isSpeaking = false;
   bool _suspendWakeWord = false;
   bool _isManualMicSession = false;
+
+  // Voice Model State
+  String _voiceModel = 'english'; // 'english' or 'arabic'
   bool _wakeEffectVisible = false;
   String _apiKeyStatus = "Checking...";
   String _devApiKeyOverride = "";
@@ -708,6 +711,7 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       _chatTextSize = cs;
       _autoScrollChat = as_;
       _ttsSpeed = ttsSpeed;
+      return;
     }
     setState(() {
       _showMessageTimestamps = ts;
@@ -1268,6 +1272,8 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
     final advancedStrictWake =
         prefs.getBool('flutter.advanced_strict_wake') ?? false;
 
+    final voiceModel = prefs.getString('voice_model') ?? 'arabic';
+
     if (mounted) {
       setState(() {
         _wakeWordEnabledByUser = enabled;
@@ -1282,6 +1288,7 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
         _advancedMemoryLimit = advancedMemoryLimit;
         _advancedDebugLogs = advancedDebugLogs;
         _advancedStrictWake = advancedStrictWake;
+        _voiceModel = voiceModel;
       });
     } else {
       _wakeWordEnabledByUser = enabled;
@@ -1296,6 +1303,7 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
       _advancedMemoryLimit = advancedMemoryLimit;
       _advancedDebugLogs = advancedDebugLogs;
       _advancedStrictWake = advancedStrictWake;
+      _voiceModel = voiceModel;
     }
     _syncLiteModeRuntime();
     if (_idleTimerEnabled) {
@@ -1614,8 +1622,16 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
             : "moonshotai/kimi-k2-instruct",
         systemPrompt: _zeroTwoSystemPrompt,
         ttsApiKey: _effectiveTtsApiKey,
-        ttsModel: _effectiveTtsModel,
-        ttsVoice: _effectiveTtsVoice,
+        ttsModel: _voiceModel == 'arabic' || _voiceModel == 'lulwa'
+            ? 'canopylabs/orpheus-arabic-saudi'
+            : 'canopylabs/orpheus-v1-english',
+        ttsVoice: _voiceModel == 'arabic'
+            ? 'aisha'
+            : _voiceModel == 'lulwa'
+                ? 'lulwa'
+                : _voiceModel == 'autumn'
+                    ? 'autumn'
+                    : 'hannah',
         ttsSpeed: _ttsSpeed,
         intervalMs: _proactiveIntervalSeconds * 1000,
         proactiveRandomEnabled: _proactiveRandomEnabled,
@@ -1913,8 +1929,9 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
         _isManualMicSession = false;
       }
       unawaited(_setBackgroundIdleNotification());
-    }
-    if (status == 'notListening') {
+      // Clear the wake-word pause on BOTH 'done' (record-based STT) and
+      // 'notListening' (speech_to_text fallback). Previously only 'notListening'
+      // was handled, so the wake word would never re-enable after a record session.
       _suspendWakeWord = false;
       unawaited(_ensureWakeWordActive());
     }
@@ -3003,6 +3020,51 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
     );
   }
 
+  Future<void> _setVoiceModel(String model) async {
+    if (_voiceModel == model) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('voice_model', model);
+    if (mounted) {
+      setState(() {
+        _voiceModel = model;
+      });
+    } else {
+      _voiceModel = model;
+    }
+    if (_voiceModel == 'arabic') {
+      _ttsService.configure(
+          modelOverride: "canopylabs/orpheus-arabic-saudi",
+          voiceOverride: "aisha");
+    } else if (_voiceModel == 'lulwa') {
+      _ttsService.configure(
+          modelOverride: "canopylabs/orpheus-arabic-saudi",
+          voiceOverride: "lulwa");
+    } else if (_voiceModel == 'autumn') {
+      _ttsService.configure(
+          modelOverride: "canopylabs/orpheus-v1-english",
+          voiceOverride: "autumn");
+    } else {
+      _ttsService.configure(
+          modelOverride: "canopylabs/orpheus-v1-english",
+          voiceOverride: "hannah");
+    }
+
+    // Restart assistant mode to apply new voice in background
+    if (_assistantModeEnabled) {
+      await _assistantModeService.setProactiveMode(false);
+      await _assistantModeService.setWakeMode(false);
+      await _enterBackgroundAssistantMode();
+
+      final hasMic = await _ensureMicPermission(requestIfNeeded: false);
+      await _assistantModeService.setWakeMode(
+        _backgroundWakeEnabled &&
+            !_isInForeground &&
+            hasMic &&
+            _wakeWordEnabledByUser,
+      );
+    }
+  }
+
   Future<void> _openDevConfigSheet() async {
     final keyController = TextEditingController(text: _devApiKeyOverride);
     final modelController = TextEditingController(text: _devModelOverride);
@@ -3473,7 +3535,13 @@ ${memoryBlock}For ALL action responses above (rules 8-33): respond ONLY with the
           canPop: false,
           onPopInvokedWithResult: (bool didPop, _) {
             if (didPop) return;
-            SystemNavigator.pop();
+            if (_navIndex != 0) {
+              if (mounted) {
+                setState(() => _navIndex = 0);
+              }
+            } else {
+              SystemNavigator.pop();
+            }
           },
           child: Scaffold(
             extendBodyBehindAppBar: true,

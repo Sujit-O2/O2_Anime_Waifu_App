@@ -19,7 +19,7 @@ class WeatherService {
     final safeCity = city.trim().isEmpty ? 'Bhubaneswar' : city.trim();
     try {
       final uri = Uri.parse(
-        '$_baseUrl?q=${Uri.encodeQueryComponent(safeCity)}&appid=$_apiKey&units=metric',
+        '$_baseUrl?q=${Uri.encodeQueryComponent(safeCity)}&appid=$_apiKey&units=metric&lang=en',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {

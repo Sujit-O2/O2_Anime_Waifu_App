@@ -209,7 +209,7 @@ extension _MainThemesExtension on _ChatHomePageState {
                           itemBuilder: (ctx, idx) {
                             final mode = tier.modes[idx];
                             final isSelected = currentMode == mode;
-                            final td = AppThemes.getTheme(mode);
+                            final td = AppThemes.getRawTheme(mode);
                             final name = AppThemes.getThemeName(mode);
                             final grad = AppThemes.getGradient(mode);
                             return GestureDetector(

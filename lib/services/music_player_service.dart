@@ -136,9 +136,11 @@ class MusicPlayerService {
     final folderSongs =
         _songs.where((s) => s.data.toLowerCase().contains(lq)).toList();
     if (folderSongs.isNotEmpty) {
-      _songs = folderSongs; // Temporarily restrict playlist to this folder
-      songList.value = _songs;
-      await playSongAt(0);
+      // Use _currentPlaylist to scope to this folder — do NOT overwrite _songs
+      // (that would permanently break full-library navigation).
+      _currentPlaylist = folderSongs;
+      songList.value = folderSongs;
+      await playSongAt(0, playlist: folderSongs);
     } else {
       // Fallback
       await playSongByName(folderName);

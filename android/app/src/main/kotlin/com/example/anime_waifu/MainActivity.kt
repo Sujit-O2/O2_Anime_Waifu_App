@@ -208,12 +208,8 @@ class MainActivity : FlutterFragmentActivity() {
                         sendMediaKey(action)
                         result.success(true)
                     }
-                    "openResolvedIntent" -> {
-                        val action = call.argument<String>("action") ?: ""
-                        val category = call.argument<String>("category")
-                        result.success(openResolvedIntent(action, category))
-                    }
-                    "scheduleReminder" -> {
+
+                     "scheduleReminder" -> {
                         val id = call.argument<String>("id") ?: ""
                         val text = call.argument<String>("text") ?: ""
                         val delayMs = call.argument<Int>("delayMs") ?: 0

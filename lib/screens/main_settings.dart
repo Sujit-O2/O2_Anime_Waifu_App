@@ -2,6 +2,33 @@ part of '../main.dart';
 
 extension _MainSettingsExtension on _ChatHomePageState {
 // —— Page: Settings ————————————————————————————————————————————————————————————————
+  Widget _buildVoiceOption(BuildContext context, String id, String label) {
+    final bool sel = _voiceModel == id;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => unawaited(_setVoiceModel(id)),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: sel
+                ? Colors.cyanAccent.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: sel ? Colors.cyanAccent : Colors.white12),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+                color: sel ? Colors.cyanAccent : Colors.white70,
+                fontSize: 12,
+                fontWeight: sel ? FontWeight.bold : FontWeight.normal),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSettingsPage() {
     final primary = Theme.of(context).primaryColor;
     return SafeArea(
@@ -539,6 +566,66 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       ],
                     ),
                   ),
+
+                  // Voice Engine Model Chooser
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.language_rounded,
+                                color: Colors.white54, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Voice Model',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text(
+                                _voiceModel == 'arabic'
+                                    ? 'Aisha'
+                                    : _voiceModel == 'lulwa'
+                                        ? 'Lulwa'
+                                        : _voiceModel == 'autumn'
+                                            ? 'Autumn'
+                                            : 'Hannah',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.cyanAccent, fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Column(
+                          children: [
+                            Row(
+                              children: [
+                                _buildVoiceOption(context, 'arabic', 'Aisha'),
+                                const SizedBox(width: 8),
+                                _buildVoiceOption(context, 'lulwa', 'Lulwa'),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _buildVoiceOption(context, 'english', 'Hannah'),
+                                const SizedBox(width: 8),
+                                _buildVoiceOption(context, 'autumn', 'Autumn'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
                   _settingsTile(
                     icon: Icons.record_voice_over_outlined,
                     label: 'Dual Voice',
@@ -954,13 +1041,21 @@ extension _MainSettingsExtension on _ChatHomePageState {
                             builder: (_) => const MusicPlayerPage())),
                   ),
                   _buildToolShortcut(
-                    icon: Icons.mic_none_rounded,
-                    label: 'Voice Engine',
-                    subtitle: 'Choose your preferred voice model',
+                    icon: Icons.record_voice_over_rounded,
+                    label: 'Test Current Voice',
+                    subtitle: 'Tap to hear a sample of $_voiceModel',
                     color: Colors.cyanAccent,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('Voice Engine settings coming soon')));
+                    onTap: () async {
+                      if (_isSpeaking) {
+                        await _ttsService.stop();
+                        // State refresh will happen via speech listeners
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Testing $_voiceModel voice...'),
+                          duration: const Duration(seconds: 2),
+                        ));
+                        await _ttsService.speak('Hello Darling, I am ready!');
+                      }
                     },
                   ),
                   _buildToolShortcut(

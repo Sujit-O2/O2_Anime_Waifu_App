@@ -365,7 +365,7 @@ class OpenAppService {
         final emoji = level >= 80
             ? '🔋'
             : level >= 40
-                ? '🔋'
+                ? '⚡'
                 : '🪫';
         return OpenAppActionResult(
             launched: true, assistantMessage: '$emoji Battery is at $level%.');
