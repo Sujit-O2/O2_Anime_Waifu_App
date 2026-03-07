@@ -1,26 +1,38 @@
 package com.example.anime_waifu
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.media.AudioManager
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
 import android.media.AudioAttributes
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.provider.AlarmClock
 import android.provider.Settings
+import android.view.KeyEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"
@@ -43,6 +55,7 @@ class MainActivity : FlutterActivity() {
                         val ttsApiKey = call.argument<String>("ttsApiKey")
                         val ttsModel = call.argument<String>("ttsModel")
                         val ttsVoice = call.argument<String>("ttsVoice")
+                        val ttsSpeed = call.argument<Double>("ttsSpeed")
                         val requireMicrophone = call.argument<Boolean>("requireMicrophone")
                         val intervalMs = when (val arg = call.argument<Any>("intervalMs")) {
                             is Number -> arg.toLong()
@@ -57,6 +70,7 @@ class MainActivity : FlutterActivity() {
                             ttsApiKey,
                             ttsModel,
                             ttsVoice,
+                            ttsSpeed,
                             requireMicrophone,
                             intervalMs,
                             proactiveRandomEnabled
@@ -157,6 +171,57 @@ class MainActivity : FlutterActivity() {
                     "getLauncherIconVariant" -> {
                         result.success(getLauncherIconVariant())
                     }
+                    "setAlarm" -> {
+                        val hour = call.argument<Int>("hour") ?: -1
+                        val minute = call.argument<Int>("minute") ?: 0
+                        val message = call.argument<String>("message") ?: "Zero Two Alarm"
+                        result.success(setAlarm(hour, minute, message))
+                    }
+                    "shareText" -> {
+                        val text = call.argument<String>("text") ?: ""
+                        shareText(text)
+                        result.success(true)
+                    }
+                    "toggleFlashlight" -> {
+                        val on = call.argument<Boolean>("on") ?: false
+                        toggleFlashlight(on)
+                        result.success(true)
+                    }
+                    "getBatteryLevel" -> {
+                        result.success(getBatteryLevel())
+                    }
+                    "setTimer" -> {
+                        val seconds = call.argument<Int>("seconds") ?: -1
+                        val message = call.argument<String>("message") ?: "Zero Two Timer"
+                        result.success(setTimer(seconds, message))
+                    }
+                    "setVolume" -> {
+                        val level = call.argument<Int>("level") ?: -1
+                        setVolume(level)
+                        result.success(true)
+                    }
+                    "isWifiConnected" -> {
+                        result.success(isWifiConnected())
+                    }
+                    "mediaControl" -> {
+                        val action = call.argument<String>("action") ?: "play"
+                        sendMediaKey(action)
+                        result.success(true)
+                    }
+
+                     "scheduleReminder" -> {
+                        val id = call.argument<String>("id") ?: ""
+                        val text = call.argument<String>("text") ?: ""
+                        val delayMs = call.argument<Int>("delayMs") ?: 0
+                        scheduleReminderNotification(id, text, delayMs.toLong())
+                        result.success(true)
+                    }
+                    "addCalendarEvent" -> {
+                        val title = call.argument<String>("title") ?: ""
+                        val date = call.argument<String>("date") ?: ""
+                        val time = call.argument<String>("time") ?: ""
+                        result.success(addCalendarEvent(title, date, time))
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -223,6 +288,7 @@ class MainActivity : FlutterActivity() {
         ttsApiKey: String?,
         ttsModel: String?,
         ttsVoice: String?,
+        ttsSpeed: Double?,
         requireMicrophone: Boolean?,
         intervalMs: Long?,
         proactiveRandomEnabled: Boolean?
@@ -235,6 +301,7 @@ class MainActivity : FlutterActivity() {
             putExtra("TTS_API_KEY", ttsApiKey)
             putExtra("TTS_MODEL", ttsModel)
             putExtra("TTS_VOICE", ttsVoice)
+            if (ttsSpeed != null) putExtra("TTS_SPEED", ttsSpeed)
             if (requireMicrophone != null) putExtra("REQUIRE_MICROPHONE", requireMicrophone)
             if (intervalMs != null) putExtra("INTERVAL_MS", intervalMs)
             if (proactiveRandomEnabled != null) {
@@ -548,8 +615,161 @@ class MainActivity : FlutterActivity() {
             .build()
     }
 
+    private fun setAlarm(hour: Int, minute: Int, message: String): Boolean {
+        if (hour < 0 || hour > 23) return false
+        return try {
+            val intent = Intent(AlarmClock.ACTION_SET_ALARM).apply {
+                putExtra(AlarmClock.EXTRA_HOUR, hour)
+                putExtra(AlarmClock.EXTRA_MINUTES, minute)
+                putExtra(AlarmClock.EXTRA_MESSAGE, message)
+                putExtra(AlarmClock.EXTRA_SKIP_UI, false)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun shareText(text: String) {
+        if (text.isBlank()) return
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val chooser = Intent.createChooser(intent, "Share via").apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(chooser)
+        } catch (_: Exception) {}
+    }
+
+    private fun toggleFlashlight(on: Boolean) {
+        try {
+            val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
+            val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
+                val chars = cameraManager.getCameraCharacteristics(id)
+                chars.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            } ?: return
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraManager.setTorchMode(cameraId, on)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun getBatteryLevel(): Int {
+        return try {
+            val bm = getSystemService(BATTERY_SERVICE) as BatteryManager
+            bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        } catch (_: Exception) {
+            -1
+        }
+    }
+
+    private fun setTimer(seconds: Int, message: String): Boolean {
+        if (seconds <= 0) return false
+        return try {
+            val intent = Intent(AlarmClock.ACTION_SET_TIMER).apply {
+                putExtra(AlarmClock.EXTRA_LENGTH, seconds)
+                putExtra(AlarmClock.EXTRA_MESSAGE, message)
+                putExtra(AlarmClock.EXTRA_SKIP_UI, false)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            true
+        } catch (_: Exception) { false }
+    }
+
+    private fun setVolume(level: Int) {
+        if (level < 0 || level > 100) return
+        try {
+            val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            val scaled = (level / 100.0 * max).toInt()
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, scaled, AudioManager.FLAG_SHOW_UI)
+        } catch (_: Exception) {}
+    }
+
+    private fun isWifiConnected(): Boolean {
+        return try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+        } catch (_: Exception) { false }
+    }
+
+    private fun sendMediaKey(action: String) {
+        try {
+            val keyCode = when (action) {
+                "pause", "play" -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+                "next" -> KeyEvent.KEYCODE_MEDIA_NEXT
+                "prev" -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
+                else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+            }
+            val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            am.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            am.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        } catch (_: Exception) {}
+    }
+
+    private fun openResolvedIntent(action: String, category: String?): Boolean {
+        return try {
+            val intent = Intent(action).apply {
+                if (category != null) addCategory(category)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                true
+            } else false
+        } catch (_: Exception) { false }
+    }
+
+    private fun scheduleReminderNotification(id: String, text: String, delayMs: Long) {
+        try {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val notifIntent = Intent(this, MainActivity::class.java).apply {
+                putExtra("reminder_text", text)
+                putExtra("reminder_id", id)
+            }
+            val pending = PendingIntent.getActivity(
+                this, id.hashCode(), notifIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            val triggerAt = System.currentTimeMillis() + delayMs
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun addCalendarEvent(title: String, date: String, time: String): Boolean {
+        return try {
+            val intent = Intent(Intent.ACTION_INSERT).apply {
+                data = android.provider.CalendarContract.Events.CONTENT_URI
+                putExtra(android.provider.CalendarContract.Events.TITLE, title)
+                if (date.isNotBlank()) {
+                    // Best effort: if date is parseable we add it, otherwise calendar opens clean
+                    putExtra(android.provider.CalendarContract.EXTRA_EVENT_ALL_DAY, false)
+                }
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                true
+            } else false
+        } catch (_: Exception) { false }
+    }
+
     override fun onDestroy() {
         AssistantOverlayController.hide()
         super.onDestroy()
     }
 }
+

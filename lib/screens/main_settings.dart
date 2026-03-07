@@ -2,6 +2,33 @@ part of '../main.dart';
 
 extension _MainSettingsExtension on _ChatHomePageState {
 // —— Page: Settings ————————————————————————————————————————————————————————————————
+  Widget _buildVoiceOption(BuildContext context, String id, String label) {
+    final bool sel = _voiceModel == id;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => unawaited(_setVoiceModel(id)),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: sel
+                ? Colors.cyanAccent.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: sel ? Colors.cyanAccent : Colors.white12),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+                color: sel ? Colors.cyanAccent : Colors.white70,
+                fontSize: 12,
+                fontWeight: sel ? FontWeight.bold : FontWeight.normal),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSettingsPage() {
     final primary = Theme.of(context).primaryColor;
     return SafeArea(
@@ -27,6 +54,13 @@ extension _MainSettingsExtension on _ChatHomePageState {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── VOICE & ASSISTANT ────────────────────────────────────
+                  Text('VOICE & ASSISTANT',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
                   _settingsTile(
                     icon: Icons.hearing,
                     label: 'Wake Word',
@@ -208,13 +242,222 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     onChanged: (_) => _toggleAssistantMode(),
                     activeColor: Colors.redAccent,
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── AI PERSONA ────────────────────────────────────────────
+                  Text('AI PERSONA',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
                   Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.pinkAccent.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border.all(
+                          color: Colors.pinkAccent.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.theater_comedy_rounded,
+                                color: Colors.pinkAccent, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Persona',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text(_selectedPersona,
+                                style: GoogleFonts.outfit(
+                                    color: Colors.pinkAccent, fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: ['Zero Two', 'Rem', 'Miku', 'Custom']
+                              .map((p) => ChoiceChip(
+                                    label: Text(p,
+                                        style: GoogleFonts.outfit(
+                                          color: _selectedPersona == p
+                                              ? Colors.black
+                                              : Colors.white70,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        )),
+                                    selected: _selectedPersona == p,
+                                    selectedColor: Colors.pinkAccent,
+                                    backgroundColor: Colors.white10,
+                                    onSelected: (sel) {
+                                      if (sel) _setPersona(p);
+                                    },
+                                  ))
+                              .toList(),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Controls her name, tone, and greeting style in the system prompt.',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 10.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _settingsTile(
+                    icon: Icons.nightlight_round,
+                    label: 'Sleep Mode',
+                    subtitle: _sleepModeEnabled
+                        ? 'Auto-mutes midnight – 7 AM'
+                        : 'Always active (no mute)',
+                    value: _sleepModeEnabled,
+                    onChanged: (v) => _setSleepMode(v),
+                    activeColor: Colors.indigoAccent,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── MEMORY ────────────────────────────────────────────────
+                  Text('MEMORY',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  FutureBuilder<String>(
+                    future: MemoryService.buildMemoryPromptBlock(),
+                    builder: (ctx, snap) {
+                      final block = snap.data ?? '';
+                      final count = '\nFact:'.allMatches(block).length;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.purpleAccent.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color:
+                                  Colors.purpleAccent.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.psychology_rounded,
+                                color: Colors.purpleAccent, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Saved Facts',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    count == 0
+                                        ? 'No facts saved yet — tell her something to remember!'
+                                        : '$count fact${count == 1 ? '' : 's'} stored in memory',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white54, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await MemoryService.clearAll();
+                                if (mounted) updateState(() {});
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Memory cleared'),
+                                          duration: Duration(seconds: 2)));
+                                }
+                              },
+                              child: Text('Clear',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Google Drive Backup UI
+                  _GoogleDriveBackupWidget(
+                      onRestoreComplete: () => updateState(() {})),
+
+                  const SizedBox(height: 16),
+
+                  // ── APPS & TOOLS ──────────────────────────────────────────
+                  Text('APPS & TOOLS',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  _settingsTile(
+                    icon: Icons.fingerprint_rounded,
+                    label: 'App Privacy Lock',
+                    subtitle: _appLockEnabled
+                        ? 'Biometric/PIN required on startup'
+                        : 'No authentication required',
+                    value: _appLockEnabled,
+                    onChanged: (_) => _toggleAppLock(),
+                    activeColor: Colors.pinkAccent,
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.mood_rounded,
+                    label: 'Mood Tracker',
+                    subtitle: 'Check your feeling history',
+                    color: Colors.orangeAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 9);
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.lock_outline_rounded,
+                    label: 'Secret Notes',
+                    subtitle: 'Encrypted local journal',
+                    color: Colors.tealAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 10);
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.casino_rounded,
+                    label: 'Gacha Quotes',
+                    subtitle: 'Roll for a daily quote',
+                    color: Colors.pinkAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 8);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── VOICE ENGINE ──────────────────────────────────────────
+                  Text('VOICE ENGINE',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
                     ),
                     child: Row(
                       children: [
@@ -270,99 +513,119 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     onChanged: (_) => _toggleAutoListen(),
                     activeColor: primary,
                   ),
+                  // TTS Playback Speed slider
                   Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.mic_external_on_rounded,
-                                color: Colors.white70, size: 18),
+                            const Icon(Icons.speed,
+                                color: Colors.white54, size: 18),
                             const SizedBox(width: 8),
-                            Text(
-                              'STT Engine',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                            Text('TTS Playback Speed',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text('${_ttsSpeed.toStringAsFixed(1)}x',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.lightBlueAccent,
+                                    fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Slider(
+                          value: _ttsSpeed,
+                          min: 0.5,
+                          max: 2.0,
+                          divisions: 15,
+                          onChanged: (v) {
+                            unawaited(_setTtsSpeed(v));
+                          },
+                          activeColor: Colors.lightBlueAccent,
+                          inactiveColor: Colors.white12,
+                        ),
+                        Text(
+                          _ttsSpeed < 1.0
+                              ? 'Slower and clearer'
+                              : _ttsSpeed > 1.0
+                                  ? 'Fast paced'
+                                  : 'Normal speed',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Voice Engine Model Chooser
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.language_rounded,
+                                color: Colors.white54, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Voice Model',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
                             const Spacer(),
                             Text(
-                              _sttEngineMode == 'android'
-                                  ? 'Android'
-                                  : 'Current',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white54,
-                                fontSize: 11,
-                              ),
-                            ),
+                                _voiceModel == 'arabic'
+                                    ? 'Aisha'
+                                    : _voiceModel == 'lulwa'
+                                        ? 'Lulwa'
+                                        : _voiceModel == 'autumn'
+                                            ? 'Autumn'
+                                            : 'Hannah',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.cyanAccent, fontSize: 11)),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          'STT only. TTS is unchanged.',
-                          style: GoogleFonts.outfit(
-                            color: Colors.white54,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
+                        Column(
                           children: [
-                            ChoiceChip(
-                              label: Text(
-                                'Current (Default)',
-                                style: GoogleFonts.outfit(
-                                  color: _sttEngineMode == 'current'
-                                      ? Colors.black
-                                      : Colors.white70,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              selected: _sttEngineMode == 'current',
-                              selectedColor: Colors.tealAccent,
-                              backgroundColor: Colors.white10,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  unawaited(_setSttEngineMode('current'));
-                                }
-                              },
+                            Row(
+                              children: [
+                                _buildVoiceOption(context, 'arabic', 'Aisha'),
+                                const SizedBox(width: 8),
+                                _buildVoiceOption(context, 'lulwa', 'Lulwa'),
+                              ],
                             ),
-                            ChoiceChip(
-                              label: Text(
-                                'Android',
-                                style: GoogleFonts.outfit(
-                                  color: _sttEngineMode == 'android'
-                                      ? Colors.black
-                                      : Colors.white70,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              selected: _sttEngineMode == 'android',
-                              selectedColor: Colors.tealAccent,
-                              backgroundColor: Colors.white10,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  unawaited(_setSttEngineMode('android'));
-                                }
-                              },
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _buildVoiceOption(context, 'english', 'Hannah'),
+                                const SizedBox(width: 8),
+                                _buildVoiceOption(context, 'autumn', 'Autumn'),
+                              ],
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
+
                   _settingsTile(
                     icon: Icons.record_voice_over_outlined,
                     label: 'Dual Voice',
@@ -423,7 +686,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   const SizedBox(height: 8),
                   _buildImagePackCard(),
                   const SizedBox(height: 16),
-                  // ── NEW USER SETTINGS ─────────────────────────────────────
+                  // ── CHAT & DISPLAY ────────────────────────────────────────
                   Text('CHAT & DISPLAY',
                       style: GoogleFonts.outfit(
                           color: Colors.white38,
@@ -492,12 +755,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ),
                   // Wallpaper Brightness slider
                   Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,12 +812,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   const SizedBox(height: 20),
 
                   Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,8 +852,9 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                       const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     color: sel
-                                        ? Colors.amberAccent.withOpacity(0.2)
-                                        : Colors.white.withOpacity(0.05),
+                                        ? Colors.amberAccent
+                                            .withValues(alpha: 0.2)
+                                        : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: sel
@@ -615,12 +879,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ),
                   // Chat Text Size chooser
                   Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.02))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,8 +919,9 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                       const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     color: sel
-                                        ? Colors.cyanAccent.withOpacity(0.15)
-                                        : Colors.white.withOpacity(0.05),
+                                        ? Colors.cyanAccent
+                                            .withValues(alpha: 0.15)
+                                        : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: sel
@@ -681,7 +946,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ),
                   const SizedBox(height: 20),
 
-                  Text('DATA',
+                  // ── DATA & STORAGE ────────────────────────────────────────
+                  Text('DATA & STORAGE',
                       style: GoogleFonts.outfit(
                           color: Colors.white38,
                           fontSize: 11,
@@ -693,9 +959,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.08),
+                        color: Colors.red.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.withOpacity(0.25)),
+                        border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.25)),
                       ),
                       child: Row(
                         children: [
@@ -726,10 +993,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.06),
+                        color: Colors.orange.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            Border.all(color: Colors.orange.withOpacity(0.2)),
+                        border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -754,11 +1021,187 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // ── APPS & TOOLS ──────────────────────────────────────────
+                  Text('APPS & TOOLS',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  _buildToolShortcut(
+                    icon: Icons.music_note_rounded,
+                    label: 'Music Player',
+                    subtitle: 'Play local music — in-app player with album art',
+                    color: Colors.purpleAccent,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const MusicPlayerPage())),
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.record_voice_over_rounded,
+                    label: 'Test Current Voice',
+                    subtitle: 'Tap to hear a sample of $_voiceModel',
+                    color: Colors.cyanAccent,
+                    onTap: () async {
+                      if (_isSpeaking) {
+                        await _ttsService.stop();
+                        // State refresh will happen via speech listeners
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Testing $_voiceModel voice...'),
+                          duration: const Duration(seconds: 2),
+                        ));
+                        await _ttsService.speak('Hello Darling, I am ready!');
+                      }
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.auto_fix_high_rounded,
+                    label: 'AI Drawing',
+                    subtitle:
+                        'Say "Draw me a cat" to generate images (Pollinations.ai)',
+                    color: Colors.pinkAccent,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'Say "Draw me a [thing]" in chat to generate images!')));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.games_rounded,
+                    label: 'Mini-Games',
+                    subtitle: 'RPS · Tic-Tac-Toe · Anime Trivia — all in chat',
+                    color: Colors.amberAccent,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'Say "Rock", "tic tac toe", or "trivia" in chat!')));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.alarm_rounded,
+                    label: 'Waifu Alarm',
+                    subtitle: 'Say "Wake me up at 7 AM" to set an alarm',
+                    color: Colors.orangeAccent,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'Say "Wake me up at 7 AM" in chat to set an alarm!')));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.image_outlined,
+                    label: 'Image Pack',
+                    subtitle: 'Customize app icon and chat image',
+                    color: Colors.blueAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ImagePackPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.palette_outlined,
+                    label: 'Theme & Accent',
+                    subtitle: 'Change app theme and accent color',
+                    color: Colors.greenAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ThemeAccentPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.tune_outlined,
+                    label: 'Advanced Settings',
+                    subtitle: 'Fine-tune app behavior and features',
+                    color: Colors.white54,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdvancedSettingsPage(),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildToolShortcut({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            border: Border(
+                bottom:
+                    BorderSide(color: Colors.white.withValues(alpha: 0.02))),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white54,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded,
+                  color: Colors.white24, size: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -784,8 +1227,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -822,12 +1265,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
 
   Widget _buildImagePackCard() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.02))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,7 +1351,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white10),
         ),
@@ -961,7 +1402,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white12),
         ),
@@ -993,42 +1434,159 @@ Widget _settingsTile({
   required ValueChanged<bool> onChanged,
   required Color activeColor,
 }) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.04),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-          color: value ? activeColor.withOpacity(0.25) : Colors.white10),
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: value ? activeColor : Colors.white38, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
-              Text(subtitle,
-                  style:
-                      GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
-            ],
+  return InkWell(
+    onTap: () => onChanged(!value),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.02))),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: value ? activeColor : Colors.white38, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+                Text(subtitle,
+                    style: GoogleFonts.outfit(
+                        color: Colors.white38, fontSize: 11)),
+              ],
+            ),
           ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: activeColor,
-          inactiveThumbColor: Colors.white38,
-          inactiveTrackColor: Colors.white12,
-        ),
-      ],
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: activeColor,
+            inactiveThumbColor: Colors.white38,
+            inactiveTrackColor: Colors.white12,
+          ),
+        ],
+      ),
     ),
   );
+}
+
+class _GoogleDriveBackupWidget extends StatefulWidget {
+  final VoidCallback onRestoreComplete;
+  const _GoogleDriveBackupWidget({required this.onRestoreComplete});
+
+  @override
+  State<_GoogleDriveBackupWidget> createState() =>
+      _GoogleDriveBackupWidgetState();
+}
+
+class _GoogleDriveBackupWidgetState extends State<_GoogleDriveBackupWidget> {
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
+
+  Future<void> _performBackup() async {
+    setState(() => _isBackingUp = true);
+    final service = GoogleDriveService();
+    final success = await service.backupData();
+    if (!mounted) return;
+    setState(() => _isBackingUp = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(success ? 'Backup successful! 🎉' : 'Backup failed.'),
+      backgroundColor: success ? Colors.green.shade800 : Colors.red.shade800,
+    ));
+  }
+
+  Future<void> _performRestore() async {
+    setState(() => _isRestoring = true);
+    final service = GoogleDriveService();
+    final success = await service.restoreData();
+    if (!mounted) return;
+    setState(() => _isRestoring = false);
+    if (success) widget.onRestoreComplete();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(success
+          ? 'Restore completed!'
+          : 'Restore failed. No backup found or auth error.'),
+      backgroundColor: success ? Colors.blue.shade800 : Colors.orange.shade800,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.cloud_sync_rounded,
+                color: Colors.blueAccent, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text('Cloud Sync',
+                    style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600))),
+          ]),
+          const SizedBox(height: 8),
+          Text('Backup your Secret Notes and Settings to Google Drive.',
+              style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _isBackingUp ? null : _performBackup,
+                icon: _isBackingUp
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.backup_rounded, size: 16),
+                label: Text(_isBackingUp ? 'Syncing...' : 'Backup',
+                    style: GoogleFonts.outfit(fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent.withValues(alpha: 0.2),
+                  foregroundColor: Colors.blueAccent,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _isRestoring ? null : _performRestore,
+                icon: _isRestoring
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.restore_rounded, size: 16),
+                label: Text(_isRestoring ? 'Downloading...' : 'Restore',
+                    style: GoogleFonts.outfit(fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white10,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

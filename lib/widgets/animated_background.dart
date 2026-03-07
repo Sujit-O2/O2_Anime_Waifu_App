@@ -2,7 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:anime_waifu/config/app_themes.dart';
-import 'package:anime_waifu/main.dart' show themeNotifier;
+import 'package:anime_waifu/main.dart'
+    show themeNotifier, customBackgroundUrlNotifier;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -11,15 +12,17 @@ class Particle {
   double opacity;
   final ParticleType type;
 
+  static final _random = math.Random();
+
   Particle(Size size, this.type)
-      : x = math.Random().nextDouble() * size.width,
-        y = math.Random().nextDouble() * size.height,
+      : x = _random.nextDouble() * size.width,
+        y = _random.nextDouble() * size.height,
         vx = 0,
         vy = 0,
-        radius = math.Random().nextDouble() * 2.5 + 0.5,
-        speed = math.Random().nextDouble() * 0.4 + 0.1,
-        theta = math.Random().nextDouble() * 2 * math.pi,
-        opacity = math.Random().nextDouble() * 0.5 + 0.1;
+        radius = _random.nextDouble() * 2.5 + 0.5,
+        speed = _random.nextDouble() * 0.4 + 0.1,
+        theta = _random.nextDouble() * 2 * math.pi,
+        opacity = _random.nextDouble() * 0.5 + 0.1;
 
   void update(Size size, Offset? interactionPoint) {
     theta += 0.002;
@@ -99,7 +102,7 @@ class ParticlePainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     for (var p in particles) {
-      paint.color = themeColor.withOpacity(p.opacity);
+      paint.color = themeColor.withValues(alpha: p.opacity);
 
       switch (type) {
         case ParticleType.circles:
@@ -168,7 +171,7 @@ class ParticlePainter extends CustomPainter {
 
       // Subtle glow
       paint.style = PaintingStyle.fill;
-      paint.color = themeColor.withOpacity(p.opacity * 0.2);
+      paint.color = themeColor.withValues(alpha: p.opacity * 0.2);
       if (type == ParticleType.sakura || type == ParticleType.embers) {
         canvas.drawCircle(Offset(p.x, p.y), p.radius * 3, paint);
       } else {
@@ -280,17 +283,41 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
                   return Stack(
                     children: [
-                      // LAYER 1: Deep cinematic gradient base (diagonal)
-                      Container(
-                        width: w,
-                        height: h,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: gradientColors,
-                          ),
-                        ),
+                      // LAYER 1: Deep cinematic gradient base OR Custom Image Pack
+                      ValueListenableBuilder<String?>(
+                        valueListenable: customBackgroundUrlNotifier,
+                        builder: (context, bgUrl, _) {
+                          if (bgUrl != null && bgUrl.isNotEmpty) {
+                            // If it's a URL, use network. Otherwise, maybe it's a path or asset
+                            return SizedBox(
+                              width: w,
+                              height: h,
+                              child: bgUrl.startsWith('http')
+                                  ? Image.network(bgUrl, fit: BoxFit.cover)
+                                  : bgUrl.startsWith('assets/')
+                                      ? Image.asset(bgUrl, fit: BoxFit.cover)
+                                      : Image.network(bgUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (c, e, s) =>
+                                              Image.asset(
+                                                  'assets/zero_two_dance.gif',
+                                                  fit: BoxFit.cover)),
+                            );
+                          }
+
+                          // Fallback to purely gradient
+                          return Container(
+                            width: w,
+                            height: h,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: gradientColors,
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       // LAYER 2: Crepuscular god-rays — slow rotating beams from above
@@ -362,7 +389,7 @@ class _CrepuscularPainter extends CustomPainter {
         ..shader = RadialGradient(
           center: const Alignment(0.0, -0.5),
           radius: 1.15,
-          colors: [c.withOpacity(op), Colors.transparent],
+          colors: [c.withValues(alpha: op), Colors.transparent],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
       canvas.drawPath(path, paint);

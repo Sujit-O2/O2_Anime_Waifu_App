@@ -67,6 +67,7 @@ class AssistantForegroundService : Service() {
     private var ttsApiKey: String? = null
     private var ttsModel: String? = null
     private var ttsVoice: String? = null
+    private var ttsSpeed: Double = 1.0
     private var intervalMs: Long = 10000 // Default 10s for testing
     private var isGenerating = false
     private var proactiveEnabled = true
@@ -80,13 +81,16 @@ class AssistantForegroundService : Service() {
     private var wakeAudioFile: File? = null
     @Volatile
     private var wakeCaptureInProgress = false
+    @Volatile
     private var wakeLoopRunning = false
     private var waitingForCommand = false
     private var wakeWindowOpenUntilMs = 0L
     private var overlayListenSessionActive = false
+    @Volatile
     private var commandGenerating = false
     private var replyPlayer: MediaPlayer? = null
     private val replyPlayerLock = Any()
+    private val random = Random()
     @Volatile
     private var resumeWakeAfterReply = false
     private val openActionRegex = Regex(
@@ -106,7 +110,7 @@ class AssistantForegroundService : Service() {
     )
     private val wakeWindowMs = 12000L
     private val wakeCaptureDurationMs = 1500L
-    private val wakeCommandCaptureDurationMs = 8500L
+    private val wakeCommandCaptureDurationMs = 3000L
     private val wakeCapturePauseMs = 120L
     private val wakeCaptureFastPauseMs = 80L
     private val wakeTranscriptionUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -166,13 +170,14 @@ class AssistantForegroundService : Service() {
     }
 
     private fun loadConfig() {
-    apiKey = prefs.getString("api_key", null)
+        apiKey = prefs.getString("api_key", null)
         apiUrl = prefs.getString("api_url", null)
         model = prefs.getString("model", null)
         systemPrompt = prefs.getString("system_prompt", null)
         ttsApiKey = prefs.getString("tts_api_key", null)
         ttsModel = prefs.getString("tts_model", null)
         ttsVoice = prefs.getString("tts_voice", null)
+        ttsSpeed = prefs.getFloat("tts_speed", 1.0f).toDouble()
         // Flutter SharedPreferences stores interval as Int, but we need Long.
         // Try Long first; fall back to Int if a ClassCastException occurs.
         intervalMs = try {
@@ -195,6 +200,7 @@ class AssistantForegroundService : Service() {
             putString("tts_api_key", ttsApiKey)
             putString("tts_model", ttsModel)
             putString("tts_voice", ttsVoice)
+            putFloat("tts_speed", ttsSpeed.toFloat())
             putLong("interval_ms", intervalMs)
             putBoolean("proactive_enabled", proactiveEnabled)
             putBoolean("proactive_random_enabled", proactiveRandomEnabled)
@@ -332,6 +338,9 @@ class AssistantForegroundService : Service() {
             if (hasTtsVoice) {
                 ttsVoice = intent.getStringExtra("TTS_VOICE")
             }
+            if (intent.hasExtra("TTS_SPEED")) {
+                ttsSpeed = intent.getDoubleExtra("TTS_SPEED", 1.0)
+            }
             intervalMs = intent.getLongExtra("INTERVAL_MS", 10000L)
             if (intent.hasExtra("PROACTIVE_RANDOM_ENABLED")) {
                 proactiveRandomEnabled = intent.getBooleanExtra("PROACTIVE_RANDOM_ENABLED", false)
@@ -351,7 +360,10 @@ class AssistantForegroundService : Service() {
             if (hasTtsVoice) {
                 ttsVoice = intent?.getStringExtra("TTS_VOICE")
             }
-            if (hasSystemPrompt || hasTtsApiKey || hasTtsModel || hasTtsVoice) {
+            if (intent?.hasExtra("TTS_SPEED") == true) {
+                ttsSpeed = intent.getDoubleExtra("TTS_SPEED", 1.0)
+            }
+            if (hasSystemPrompt || hasTtsApiKey || hasTtsModel || hasTtsVoice || intent?.hasExtra("TTS_SPEED") == true) {
                 saveConfig()
             }
         }
@@ -556,13 +568,13 @@ class AssistantForegroundService : Service() {
     }
     private fun getNextDelayMs(): Long {
         if (proactiveRandomEnabled) {
-            return proactiveRandomIntervalsMs[Random().nextInt(proactiveRandomIntervalsMs.size)]
+            return proactiveRandomIntervalsMs[random.nextInt(proactiveRandomIntervalsMs.size)]
         }
         return if (intervalMs > 0) intervalMs else 15000L
     }
 
     private fun fetchAndShowProactiveMessage() {
-        val key = apiKey
+        val key = pickRandomChatApiKey()
         val urlStr = apiUrl
         if (key.isNullOrEmpty() || urlStr.isNullOrEmpty()) {
             Log.e(TAG, "Cannot fetch message: apiKey or apiUrl is null — skipping notification")
@@ -640,7 +652,7 @@ class AssistantForegroundService : Service() {
     private fun showCheckInAlert(content: String) {
         persistProactiveMessage(content)
         val manager = getSystemService(NotificationManager::class.java)
-        val pendingIntent = buildLaunchPendingIntent(Random().nextInt())
+        val pendingIntent = buildLaunchPendingIntent(random.nextInt())
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
@@ -684,14 +696,7 @@ class AssistantForegroundService : Service() {
         val popupEnabled = isWakePopupEnabled()
         val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
         if (shouldShowPopup) {
-            val autoHideMs = if (
-                content.contains("speak your command", ignoreCase = true) ||
-                    content.contains("wake word detected", ignoreCase = true)
-            ) {
-                4200L
-            } else {
-                4300L
-            }
+            val autoHideMs = 4200L
             AssistantOverlayController.show(
                 applicationContext,
                 status = "Zero Two",
@@ -781,7 +786,7 @@ class AssistantForegroundService : Service() {
             "I am here with you. Want to chat now?",
             "Darling, are you free? Let us talk."
         )
-        return options[Random().nextInt(options.size)]
+        return options[random.nextInt(options.size)]
     }
 
     private fun persistProactiveMessage(content: String) {
@@ -1108,7 +1113,7 @@ class AssistantForegroundService : Service() {
     }
 
     private fun transcribeWakeAudio(file: File, commandMode: Boolean): String {
-        val key = apiKey
+        val key = pickRandomChatApiKey()
         if (key.isNullOrBlank()) {
             if (commandMode) {
                 syncOverlayStatus(
@@ -1251,7 +1256,7 @@ class AssistantForegroundService : Service() {
     private fun handleVoiceCommand(command: String, speakReply: Boolean = true) {
         val cleaned = command.trim()
         if (cleaned.isBlank()) return
-        syncOverlayStatus("You", cleaned, autoHideMs = 16000L)
+        syncOverlayStatus("You", cleaned, autoHideMs = 30000L)
         persistChatMessage("user", cleaned)
         fetchAndRespondToVoiceCommand(cleaned, speakReply)
     }
@@ -1280,7 +1285,7 @@ class AssistantForegroundService : Service() {
             Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
             val setupMissing = "I need API setup to answer you."
             persistChatMessage("assistant", setupMissing)
-            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 14000L)
+            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 28000L)
             showWakeAlert(setupMissing, pulse = true)
             if (speakReply) {
                 queueWakeReplySpeech(setupMissing)
@@ -1292,14 +1297,14 @@ class AssistantForegroundService : Service() {
         syncOverlayStatus(
             "Processing",
             "Working on: ${command.take(90)}",
-            autoHideMs = 16000L
+            autoHideMs = 35000L
         )
         executor.execute {
             try {
                 val url = URL(urlStr)
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
-                conn.setRequestProperty("Authorization", "Bearer $key")
+                conn.setRequestProperty("Authorization", "Bearer ${pickRandomChatApiKey() ?: key}")
                 conn.setRequestProperty("Content-Type", "application/json")
                 conn.connectTimeout = 15000
                 conn.readTimeout = 15000
@@ -1333,7 +1338,7 @@ class AssistantForegroundService : Service() {
 
                 val finalReply = handleAssistantReplyAction(reply)
                 persistChatMessage("assistant", finalReply)
-                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 15000L)
+                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 30000L)
                 showWakeAlert(finalReply, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(finalReply)
@@ -1342,7 +1347,7 @@ class AssistantForegroundService : Service() {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
-                syncOverlayStatus("Zero Two", fallback, autoHideMs = 14000L)
+                syncOverlayStatus("Zero Two", fallback, autoHideMs = 28000L)
                 showWakeAlert(fallback, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(fallback)
@@ -1434,10 +1439,28 @@ class AssistantForegroundService : Service() {
         return null
     }
 
+    /** Returns a random key from a comma-separated key string. Helps spread load across keys. */
+    private fun pickRandomApiKey(): String? {
+        val source = effectiveTtsApiKey()?.trim()
+        if (source.isNullOrBlank()) return null
+        val keys = source.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        if (keys.isEmpty()) return null
+        return keys[random.nextInt(keys.size)]
+    }
+
+    /** Returns a random key from the chat API key pool (comma-separated). */
+    private fun pickRandomChatApiKey(): String? {
+        val source = apiKey?.trim() ?: return null
+        if (source.isBlank()) return null
+        val keys = source.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        if (keys.isEmpty()) return null
+        return keys[random.nextInt(keys.size)]
+    }
+
     private fun effectiveTtsModel(): String {
         val configured = ttsModel?.trim()
         if (!configured.isNullOrBlank()) return configured
-        return "canopylabs/orpheus-arabic-saudi"
+        return "playai-tts"  // English by default
     }
 
     private fun effectiveTtsVoice(): String {
@@ -1462,7 +1485,7 @@ class AssistantForegroundService : Service() {
     }
 
     private fun speakWakeReply(content: String) {
-        val key = effectiveTtsApiKey() ?: return
+        val key = pickRandomApiKey() ?: return
         try {
             val url = URL(wakeTtsUrl)
             val conn = (url.openConnection() as HttpURLConnection).apply {
@@ -1557,6 +1580,13 @@ class AssistantForegroundService : Service() {
                     true
                 }
                 player.prepare()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ttsSpeed != 1.0) {
+                    try {
+                        player.playbackParams = player.playbackParams.setSpeed(ttsSpeed.toFloat())
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to set playback speed: ${e.message}")
+                    }
+                }
                 player.start()
                 replyPlayer = player
             } catch (e: Exception) {

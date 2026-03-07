@@ -31,7 +31,14 @@ class TtsService {
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['GROQ_API_KEY_VOICE'] ?? dotenv.env['API_KEY'] ?? "";
+    final voiceKey = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
+    final mainKeys = dotenv.env['API_KEY'] ?? "";
+
+    // Merge all keys into one string
+    if (voiceKey.isNotEmpty && mainKeys.isNotEmpty) {
+      return "$voiceKey,$mainKeys";
+    }
+    return voiceKey.isNotEmpty ? voiceKey : mainKeys;
   }
 
   String get _effectiveVoice {
@@ -41,6 +48,10 @@ class TtsService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
+    final voice = _effectiveVoice.toLowerCase();
+    if (voice == 'autumn' || voice == 'hannah' || voice == 'english') {
+      return "canopylabs/orpheus-v1-english";
+    }
     return "canopylabs/orpheus-arabic-saudi";
   }
 
@@ -92,44 +103,58 @@ class TtsService {
 
   /// Calls Groq TTS API and returns audio bytes
   Future<Uint8List?> _fetchAudioFromApi(String text) async {
-    try {
-      if (_effectiveApiKey.isEmpty) {
-        debugPrint("TTS API key is missing");
-        return null;
-      }
+    final keySource = _effectiveApiKey;
+    final keys = keySource
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
-      final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
-      final bodyData = {
-        "model": _effectiveModel,
-        "voice": _effectiveVoice,
-        "input": text,
-        "response_format": "wav"
-      };
-
-      final response = await http
-          .post(
-            url,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer $_effectiveApiKey",
-            },
-            body: jsonEncode(bodyData),
-          )
-          .timeout(_ttsRequestTimeout);
-
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
-      } else {
-        debugPrint("TTS API Error: ${response.statusCode} - ${response.body}");
-        return null;
-      }
-    } on TimeoutException catch (_) {
-      debugPrint("TTS API request timeout");
-      return null;
-    } catch (e) {
-      debugPrint("TTS API Exception: $e");
+    if (keys.isEmpty) {
+      debugPrint("TTS API key is missing");
       return null;
     }
+
+    // Shuffle for random rotation
+    keys.shuffle();
+
+    final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
+    final bodyData = {
+      "model": _effectiveModel,
+      "voice": _effectiveVoice,
+      "input": text,
+      "response_format": "wav"
+    };
+
+    for (int i = 0; i < keys.length; i++) {
+      final key = keys[i];
+      try {
+        final response = await http
+            .post(
+              url,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $key",
+              },
+              body: jsonEncode(bodyData),
+            )
+            .timeout(_ttsRequestTimeout);
+
+        if (response.statusCode == 200) {
+          return response.bodyBytes;
+        } else {
+          debugPrint(
+              "TTS API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body}");
+        }
+      } on TimeoutException catch (_) {
+        debugPrint("TTS API request timeout (Key ${i + 1}/${keys.length})");
+      } catch (e) {
+        debugPrint("TTS API Exception (Key ${i + 1}/${keys.length}): $e");
+      }
+    }
+
+    debugPrint("All TTS API keys failed.");
+    return null;
   }
 
   /// Speak text (API call + play)
@@ -274,26 +299,39 @@ class TtsService {
       final networkRequired = voice['network_required'] == true;
 
       var score = 0;
-      if (locale.startsWith('en-us')) score += 60;
-      if (locale.startsWith('en-')) score += 25;
+      if (request == 'aisha') {
+        if (locale.startsWith('ar-sa')) score += 60;
+        if (locale.startsWith('ar-')) score += 25;
+      } else {
+        if (locale.startsWith('en-us')) score += 60;
+        if (locale.startsWith('en-')) score += 25;
+      }
+
       if (!notInstalled) score += 20;
       if (!networkRequired) score += 10;
-      if (quality > 0) score += quality ~/ 10;
+      if (quality > 0) score += quality;
 
-      // Prefer human-like voices when available.
-      if (name.contains('female')) score += 18;
-      if (name.contains('natural') || name.contains('neural')) score += 22;
-      if (name.contains('wavenet')) score += 20;
-
-      // Respect user-configured fallback hint if it matches a device voice.
-      if (request.isNotEmpty && name.contains(request)) score += 100;
+      if (name.contains(request)) score += 50;
+      if (name.contains('female')) score += 15;
 
       return score;
     }
 
-    voices.sort((a, b) => scoreVoice(b).compareTo(scoreVoice(a)));
-    final best = voices.first;
-    final bestScore = scoreVoice(best);
-    return bestScore > 0 ? best : null;
+    // Try to find exact override match first
+    for (final v in voices) {
+      final n = (v['name'] ?? '').toString().toLowerCase();
+      if (n == request) return v;
+    }
+
+    if (voices.isEmpty) return null;
+
+    final scored = voices.map((v) => MapEntry(v, scoreVoice(v))).toList();
+    scored.sort((a, b) => b.value.compareTo(a.value));
+
+    // Cache the best score to avoid calling scoreVoice twice.
+    final bestScore = scored.first.value;
+    if (bestScore > 0) return scored.first.key;
+
+    return null;
   }
 }

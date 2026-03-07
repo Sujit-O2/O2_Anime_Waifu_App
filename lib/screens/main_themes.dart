@@ -34,10 +34,10 @@ extension _MainThemesExtension on _ChatHomePageState {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: td.primaryColor.withOpacity(0.18),
+                        color: td.primaryColor.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: td.primaryColor.withOpacity(0.45)),
+                            color: td.primaryColor.withValues(alpha: 0.45)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -72,12 +72,12 @@ extension _MainThemesExtension on _ChatHomePageState {
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: _liteModeEnabled
-                              ? Colors.greenAccent.withOpacity(0.18)
-                              : Colors.white.withOpacity(0.06),
+                              ? Colors.greenAccent.withValues(alpha: 0.18)
+                              : Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                               color: _liteModeEnabled
-                                  ? Colors.greenAccent.withOpacity(0.45)
+                                  ? Colors.greenAccent.withValues(alpha: 0.45)
                                   : Colors.white12),
                         ),
                         child: Row(
@@ -125,13 +125,14 @@ extension _MainThemesExtension on _ChatHomePageState {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.purpleAccent.withOpacity(0.25),
-                              Colors.pinkAccent.withOpacity(0.15),
+                              Colors.purpleAccent.withValues(alpha: 0.25),
+                              Colors.pinkAccent.withValues(alpha: 0.15),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: Colors.purpleAccent.withOpacity(0.4)),
+                              color:
+                                  Colors.purpleAccent.withValues(alpha: 0.4)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -208,10 +209,11 @@ extension _MainThemesExtension on _ChatHomePageState {
                           itemBuilder: (ctx, idx) {
                             final mode = tier.modes[idx];
                             final isSelected = currentMode == mode;
-                            final td = AppThemes.getTheme(mode);
+                            final td = AppThemes.getRawTheme(mode);
                             final name = AppThemes.getThemeName(mode);
                             final grad = AppThemes.getGradient(mode);
                             return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () async {
                                 themeNotifier.value = mode;
                                 final prefs =
@@ -219,69 +221,116 @@ extension _MainThemesExtension on _ChatHomePageState {
                                 await prefs.setInt('app_theme_index',
                                     AppThemeMode.values.indexOf(mode));
                               },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
+                              child: Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: grad.take(3).toList(),
-                                  ),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? td.primaryColor
-                                        : Colors.white.withOpacity(0.08),
-                                    width: isSelected ? 2.5 : 1,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(24),
+                                    bottomRight: Radius.circular(24),
+                                    topRight: Radius.circular(8),
+                                    bottomLeft: Radius.circular(8),
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
                                             color: td.primaryColor
-                                                .withOpacity(0.5),
-                                            blurRadius: 12,
+                                                .withValues(alpha: 0.6),
+                                            blurRadius: 16,
+                                            spreadRadius: 2,
                                           )
                                         ]
                                       : [],
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    AnimatedContainer(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(24),
+                                    bottomRight: Radius.circular(24),
+                                    topRight: Radius.circular(8),
+                                    bottomLeft: Radius.circular(8),
+                                  ),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                        sigmaX: 8.0, sigmaY: 8.0),
+                                    child: AnimatedContainer(
                                       duration:
                                           const Duration(milliseconds: 300),
-                                      width: isSelected ? 28 : 22,
-                                      height: isSelected ? 28 : 22,
                                       decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: td.primaryColor,
-                                      ),
-                                      child: isSelected
-                                          ? const Icon(Icons.check_rounded,
-                                              color: Colors.black87, size: 14)
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      child: Text(
-                                        name,
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.outfit(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.white60,
-                                          fontSize: 8.5,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w400,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: grad.take(3).toList(),
                                         ),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(24),
+                                          bottomRight: Radius.circular(24),
+                                          topRight: Radius.circular(8),
+                                          bottomLeft: Radius.circular(8),
+                                        ),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? td.primaryColor
+                                              : Colors.white
+                                                  .withValues(alpha: 0.15),
+                                          width: isSelected ? 2.5 : 1,
+                                        ),
+                                        color: isSelected
+                                            ? Colors.transparent
+                                            : Colors.black
+                                                .withValues(alpha: 0.3),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 300),
+                                            width: isSelected ? 28 : 22,
+                                            height: isSelected ? 28 : 22,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: td.primaryColor,
+                                              boxShadow: isSelected
+                                                  ? [
+                                                      BoxShadow(
+                                                        color: td.primaryColor
+                                                            .withValues(
+                                                                alpha: 0.8),
+                                                        blurRadius: 8,
+                                                      )
+                                                    ]
+                                                  : [],
+                                            ),
+                                            child: isSelected
+                                                ? const Icon(
+                                                    Icons.check_rounded,
+                                                    color: Colors.black87,
+                                                    size: 14)
+                                                : null,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4),
+                                            child: Text(
+                                              name,
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.outfit(
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.white70,
+                                                fontSize: 8.5,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w800
+                                                    : FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             );
@@ -300,10 +349,20 @@ extension _MainThemesExtension on _ChatHomePageState {
   }
 
   Widget _buildThemesHero() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: SizedBox(
-        height: 250,
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purpleAccent.withValues(alpha: 0.2),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -311,22 +370,24 @@ extension _MainThemesExtension on _ChatHomePageState {
               'assets/img/bg2.png',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              errorBuilder: (_, __, ___) => Container(
+                color: Colors.black87,
+              ),
             ),
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.15),
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.8),
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -335,15 +396,23 @@ extension _MainThemesExtension on _ChatHomePageState {
                     'Visual Presets',
                     style: GoogleFonts.outfit(
                       color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      shadows: [
+                        Shadow(
+                          color: Colors.purpleAccent.withValues(alpha: 0.8),
+                          blurRadius: 10,
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     'Pick a mood for chat and effects',
                     style: GoogleFonts.outfit(
                       color: Colors.white70,
-                      fontSize: 11,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],

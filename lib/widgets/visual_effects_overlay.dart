@@ -25,12 +25,12 @@ class VisualEffectsOverlay extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: theme.primaryColor.withOpacity(intensity * 0.08),
+                    color: theme.primaryColor.withValues(alpha: intensity * 0.08),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.primaryColor.withOpacity(intensity * 0.12),
+                      color: theme.primaryColor.withValues(alpha: intensity * 0.12),
                       blurRadius: 14,
                       spreadRadius: -4,
                     ),
@@ -70,13 +70,13 @@ class _CinemaPainter extends CustomPainter {
         final x = ((i * 57) % 997) / 997 * size.width;
         final y = ((i * 131) % 991) / 991 * size.height;
         final op = (((i * 37) % 100) / 100) * grainIntensity * 0.32;
-        paint.color = Colors.white.withOpacity(op);
+        paint.color = Colors.white.withValues(alpha: op);
         canvas.drawRect(Rect.fromLTWH(x, y, 1, 1), paint);
       }
     }
 
     if (AppThemes.hasScanlines(mode)) {
-      paint.color = Colors.black.withOpacity(0.04);
+      paint.color = Colors.black.withValues(alpha: 0.04);
       paint.strokeWidth = 1.0;
       for (double y = 0; y < size.height; y += 8.0) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);

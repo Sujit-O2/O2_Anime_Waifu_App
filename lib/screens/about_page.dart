@@ -18,7 +18,7 @@ extension _AboutPageExtension on _ChatHomePageState {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
               child: Container(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -30,9 +30,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.20),
-                  Colors.black.withOpacity(0.35),
-                  Colors.black.withOpacity(0.50),
+                  Colors.black.withValues(alpha: 0.20),
+                  Colors.black.withValues(alpha: 0.35),
+                  Colors.black.withValues(alpha: 0.50),
                 ],
               ),
             ),
@@ -60,13 +60,13 @@ extension _AboutPageExtension on _ChatHomePageState {
                           filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.24),
+                              color: Colors.black.withValues(alpha: 0.24),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.18)),
+                                  color: Colors.white.withValues(alpha: 0.18)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.30),
+                                  color: Colors.black.withValues(alpha: 0.30),
                                   blurRadius: 18,
                                   offset: const Offset(0, 8),
                                 ),
@@ -104,6 +104,10 @@ extension _AboutPageExtension on _ChatHomePageState {
                                       child: _buildFeatureSnapshot(),
                                     ),
                                     const SizedBox(height: 28),
+                                    _buildSectionTitle('NEW FEATURE GUIDE'),
+                                    const SizedBox(height: 12),
+                                    _buildFeatureGuideButton(),
+                                    const SizedBox(height: 28),
                                     _buildSectionTitle('FEATURE COVERAGE'),
                                     const SizedBox(height: 12),
                                     _buildFeatureCoverageGraph(),
@@ -115,6 +119,84 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     _buildSectionTitle('SIGNAL FLOW'),
                                     const SizedBox(height: 12),
                                     _buildSignalFlowGraph(),
+                                    const SizedBox(height: 28),
+                                    _buildSectionTitle('CMD REFERENCE'),
+                                    const SizedBox(height: 12),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const CommandsPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.pinkAccent
+                                                  .withValues(alpha: 0.10),
+                                              Colors.purpleAccent
+                                                  .withValues(alpha: 0.08),
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.pinkAccent
+                                                  .withValues(alpha: 0.35)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.pinkAccent
+                                                    .withValues(alpha: 0.15),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.terminal_rounded,
+                                                color: Colors.pinkAccent,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Example Commands',
+                                                    style: GoogleFonts.outfit(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w700),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    'See all things your AI can do →',
+                                                    style: GoogleFonts.outfit(
+                                                        color: Colors.white54,
+                                                        fontSize: 12),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: Colors.white38,
+                                                size: 20),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -230,9 +312,9 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: RichText(
         text: TextSpan(
@@ -276,7 +358,7 @@ extension _AboutPageExtension on _ChatHomePageState {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -301,13 +383,16 @@ extension _AboutPageExtension on _ChatHomePageState {
                     size: 16,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    _projectGitHubUrl,
-                    style: GoogleFonts.outfit(
-                      color: Colors.cyanAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      decoration: TextDecoration.underline,
+                  Expanded(
+                    child: Text(
+                      _projectGitHubUrl,
+                      style: GoogleFonts.outfit(
+                        color: Colors.cyanAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -413,6 +498,15 @@ extension _AboutPageExtension on _ChatHomePageState {
         'Default behavior: idle enabled, random check-in mode enabled',
         'Notification and memory buffers capped for stable runtime usage',
       ]),
+      _AboutFeatureSection('Utilities and Minigames', [
+        'Gacha system for random Zero Two quotes',
+        'Mood Tracker with persistent emotion history',
+        'Secret Notes secured with local PIN code and XOR masking',
+        'Pomodoro timer utilizing system alarms',
+        'On-demand chat summary condensation via LLM',
+        'Chat export to local .txt file using the native share sheet',
+        'Instant translation through MyMemory API integration',
+      ]),
       _AboutFeatureSection('Reliability and Safety', [
         'Mic and notification permission gating before sensitive actions',
         'Wake-word stop fallback when user disables wake mode',
@@ -436,31 +530,117 @@ extension _AboutPageExtension on _ChatHomePageState {
       _notificationsAllowed,
     ].where((enabled) => enabled).length;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Column(
       children: [
-        _buildSnapshotCard('Feature Groups', '${sections.length}',
-            Icons.dashboard_customize_outlined, Colors.cyanAccent),
-        _buildSnapshotCard('Listed Features', '$totalFeatures',
-            Icons.list_alt_outlined, Colors.greenAccent),
-        _buildSnapshotCard(
-            'Navigation Panels', '8', Icons.space_dashboard, Colors.pinkAccent),
-        _buildSnapshotCard('Runtime Flags', '$activeRuntimeFlags/4',
-            Icons.speed_outlined, Colors.orangeAccent),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSnapshotCard('Feature Groups', '${sections.length}',
+                  Icons.dashboard_customize_outlined, Colors.cyanAccent),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildSnapshotCard('Listed Features', '$totalFeatures',
+                  Icons.list_alt_outlined, Colors.greenAccent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSnapshotCard('Navigation Panels', '11',
+                  Icons.space_dashboard, Colors.pinkAccent),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildSnapshotCard(
+                  'Runtime Flags',
+                  '$activeRuntimeFlags/4',
+                  Icons.speed_outlined,
+                  Colors.orangeAccent),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildFeatureGuideButton() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => _FeatureGuideDialog(),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.greenAccent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.greenAccent.withValues(alpha: 0.05),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.menu_book_rounded,
+                  color: Colors.greenAccent, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'How To Use App Features',
+                    style: GoogleFonts.outfit(
+                      color: Colors.greenAccent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to view the full instruction guide',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white60,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: Colors.greenAccent, size: 14),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildSnapshotCard(
       String label, String value, IconData icon, Color color) {
     return Container(
-      width: 184,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -516,7 +696,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -604,7 +784,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -682,7 +862,7 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -775,7 +955,8 @@ extension _AboutPageExtension on _ChatHomePageState {
                             color: color,
                             boxShadow: [
                               BoxShadow(
-                                  color: color.withOpacity(0.5), blurRadius: 6)
+                                  color: color.withValues(alpha: 0.5),
+                                  blurRadius: 6)
                             ]),
                       ),
                       const SizedBox(width: 7),
@@ -837,7 +1018,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                     Expanded(
                       child: Text(flow.title,
                           style: GoogleFonts.outfit(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 11,
                               fontWeight: FontWeight.w700)),
                     ),
@@ -846,13 +1027,14 @@ extension _AboutPageExtension on _ChatHomePageState {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
-                        color: flow.color.withOpacity(0.15),
+                        color: flow.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: flow.color.withOpacity(0.4)),
+                        border: Border.all(
+                            color: flow.color.withValues(alpha: 0.4)),
                       ),
                       child: Text(flow.tag,
                           style: GoogleFonts.outfit(
-                              color: flow.color.withOpacity(0.9),
+                              color: flow.color.withValues(alpha: 0.9),
                               fontSize: 8,
                               fontWeight: FontWeight.w800)),
                     ),
@@ -877,12 +1059,12 @@ extension _AboutPageExtension on _ChatHomePageState {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(fillOpacity),
+        color: color.withValues(alpha: fillOpacity),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(borderOpacity)),
+        border: Border.all(color: color.withValues(alpha: borderOpacity)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.26 * pulse),
+            color: color.withValues(alpha: 0.26 * pulse),
             blurRadius: 10 + (pulse * 8),
             spreadRadius: pulse,
           ),
@@ -913,7 +1095,7 @@ extension _AboutPageExtension on _ChatHomePageState {
   Widget _flowArrow(double pulse) {
     return Icon(
       Icons.arrow_forward,
-      color: Colors.white.withOpacity(0.20 + (pulse * 0.62)),
+      color: Colors.white.withValues(alpha: 0.20 + (pulse * 0.62)),
       size: 14 + (pulse * 1.4),
     );
   }
@@ -1201,8 +1383,8 @@ class _AboutFireflyPainter extends CustomPainter {
       final twinkle = 0.5 + 0.5 * math.sin((t * math.pi * 20) + (f.x + f.y));
       final alpha = (f.alphaBase * twinkle).clamp(0.0, 1.0);
 
-      glow.color = f.color.withOpacity(alpha * 0.6);
-      core.color = Colors.white.withOpacity(alpha);
+      glow.color = f.color.withValues(alpha: alpha * 0.6);
+      core.color = Colors.white.withValues(alpha: alpha);
 
       canvas.drawCircle(Offset(f.x, f.y), f.size * 2, glow);
       canvas.drawCircle(Offset(f.x, f.y), f.size, core);
@@ -1211,4 +1393,312 @@ class _AboutFireflyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AboutFireflyPainter oldDelegate) => true;
+}
+
+class _FeatureGuideDialog extends StatelessWidget {
+  const _FeatureGuideDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 400,
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: const Color(0xFF161618),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.6),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.white10)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.menu_book_rounded,
+                      color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Feature Guide',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _buildFeatureItem(
+                    icon: Icons.timer,
+                    color: Colors.redAccent,
+                    title: 'Pomodoro Timer',
+                    description:
+                        'A focus timer that sets a system alarm for you.',
+                    howTo:
+                        'Tap the mic and say: "Start a 25 minute pomodoro" or "Set a focus timer for 30 minutes".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.summarize,
+                    color: Colors.blueAccent,
+                    title: 'Conversation Summary',
+                    description: 'Let the AI recap the chat history for you.',
+                    howTo:
+                        'Tap the mic and say: "Summarize our conversation" or "What were we just talking about?".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.file_download,
+                    color: Colors.greenAccent,
+                    title: 'Chat Export',
+                    description: 'Save your memories to a local text file.',
+                    howTo:
+                        'Tap the mic and say: "Export the chat history" or "Save our conversation".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.content_paste,
+                    color: Colors.orangeAccent,
+                    title: 'Clipboard Assistant',
+                    description: 'Have the AI read what you recently copied.',
+                    howTo:
+                        'Tap the mic and say: "What did I copy?" or "Read my clipboard".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.sms,
+                    color: Colors.pinkAccent,
+                    title: 'SMS Reader',
+                    description:
+                        'Have the AI securely read your latest text messages.',
+                    howTo:
+                        'Tap the mic and say: "Read my last SMS" or "Check my texts".',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.person_pin_circle,
+                    color: Colors.cyanAccent,
+                    title: 'Persona Switcher',
+                    description: 'Change the AI\'s personality and TTS voice.',
+                    howTo:
+                        'Open Settings -> AI PERSONA -> Select Personality. Choose between Zero Two, Rem, Miku, or Custom.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.lock,
+                    color: Colors.purpleAccent,
+                    title: 'Secret Notes',
+                    description:
+                        'A private vault where you can securely store personal information the AI can remember.',
+                    howTo:
+                        'Open Settings -> APPS & TOOLS -> Secret Notes (or say "Open my notes").',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.casino,
+                    color: Colors.amberAccent,
+                    title: 'Gacha Minigame',
+                    description:
+                        'A fun minigame to get random iconic anime quotes.',
+                    howTo:
+                        'Open Settings -> APPS & TOOLS -> Gacha Quotes (Or say "Roll a quote").',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.mood,
+                    color: Colors.tealAccent,
+                    title: 'Mood Tracker',
+                    description: 'Keep a daily journal of your emotions.',
+                    howTo:
+                        'Open Settings → APPS & TOOLS → Mood Tracker (Or say "Track my mood").',
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── NEW FEATURES ──────────────────────────────────────────
+                  _buildFeatureItem(
+                    icon: Icons.music_note_rounded,
+                    color: Colors.purpleAccent,
+                    title: '🎵 Music Player',
+                    description:
+                        'Full in-app music player with animated vinyl disc, album art, seek bar, and song queue — plays local music from your device.',
+                    howTo:
+                        'Say "Play music" or "Play [song name]". Or open via Settings → APPS & TOOLS → Music Player. The mini-player bar appears above chat input while music is playing.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.alarm_rounded,
+                    color: Colors.orangeAccent,
+                    title: '⏰ Waifu Wake-Up Alarm',
+                    description:
+                        'Set device alarms by voice. When it fires, Zero Two wakes you up and reads the weather.',
+                    howTo:
+                        'Say "Wake me up at 7 AM" or "Set an alarm for 6:30". Fires even when app is closed.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.contacts_rounded,
+                    color: Colors.greenAccent,
+                    title: '📞 Contacts Lookup',
+                    description:
+                        'Ask Zero Two about anyone in your contacts — she looks them up instantly.',
+                    howTo:
+                        'Say "Who is John?" or "Find contact for Priya". Requires Contacts permission.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.auto_fix_high_rounded,
+                    color: Colors.cyanAccent,
+                    title: '🖼️ AI Drawing',
+                    description:
+                        'Zero Two generates images for you on demand using Pollinations.ai — no API key needed!',
+                    howTo:
+                        'Say "Draw me a cat", "Generate an anime girl", or "Draw [anything]". The image appears in-chat.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.games_rounded,
+                    color: Colors.amberAccent,
+                    title: '🎮 Mini-Games',
+                    description:
+                        'Play Rock-Paper-Scissors, Tic-Tac-Toe, or Anime Trivia — all directly in the chat!',
+                    howTo:
+                        'RPS: Say "Rock", "Paper", or "Scissors"\nTic-Tac-Toe: Say "tic tac toe" then a number 1–9\nTrivia: Say "trivia" to get a question',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.fingerprint_rounded,
+                    color: Colors.redAccent,
+                    title: '🔒 App Lock',
+                    description:
+                        'Secure the app with your phone fingerprint or PIN so only you can open it.',
+                    howTo:
+                        'Open Settings → SECURITY → App Lock → Enable Biometric Lock.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.cloud_sync_rounded,
+                    color: Colors.blueAccent,
+                    title: '☁️ Google Drive Backup',
+                    description:
+                        'Save your chat memories, secret notes, and settings to Google Drive automatically.',
+                    howTo:
+                        'Open Settings → BACKUP → Cloud Sync → tap "Backup". Setup: create OAuth credentials at console.cloud.google.com, download google-services.json to android/app/.',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildFeatureItem(
+                    icon: Icons.search_rounded,
+                    color: Colors.white70,
+                    title: '🔎 Chat Search',
+                    description:
+                        'Find any old message in the chat history instantly with a live search bar.',
+                    howTo:
+                        'Tap the 🔍 SEARCH chip in the chat header. Type any keyword to filter messages in real-time.',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String description,
+    required String howTo,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.4)),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.outfit(
+                  color: color,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          description,
+          style: GoogleFonts.outfit(
+            color: Colors.white70,
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.mic, color: Colors.white54, size: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  howTo,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }

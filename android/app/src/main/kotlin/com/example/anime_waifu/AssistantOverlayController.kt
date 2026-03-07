@@ -58,6 +58,7 @@ object AssistantOverlayController {
 
     // Pulse animation for status dot
     private var dotPulseRunnable: Runnable? = null
+    private var hideRunnable: Runnable? = null
 
     fun canDrawOverlays(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -88,7 +89,14 @@ object AssistantOverlayController {
             
             // Record to history if it's a completed message
             if (!statusText.equals("Listening", ignoreCase = true) && 
+                !statusText.equals("Processing", ignoreCase = true) &&
                 !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                
+                // If the last history item was a temporary processing message, replace it
+                if (sessionHistory.isNotEmpty() && sessionHistory.last().first.equals("Processing", ignoreCase = true)) {
+                    sessionHistory.removeLast()
+                }
+                
                 if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
                     sessionHistory.add(statusText to transcriptText)
                 }
@@ -112,9 +120,7 @@ object AssistantOverlayController {
                 animateIn(appContext)
             }
 
-            @Suppress("UNUSED_VARIABLE")
-            val ignoredAutoHide = autoHideMs
-            cancelAutoHide()
+            scheduleAutoHide(autoHideMs, appContext)
         }
     }
 
@@ -135,7 +141,18 @@ object AssistantOverlayController {
             
             // Record to history if it's a completed message
             if (!statusText.equals("Listening", ignoreCase = true) && 
+                !statusText.equals("Processing", ignoreCase = true) &&
+                !statusText.startsWith("Working on", ignoreCase = true) &&
                 !transcriptText.contains("Say a wake word", ignoreCase = true)) {
+                
+                // If the last history item was a temporary processing message, replace it
+                if (sessionHistory.isNotEmpty() && (
+                    sessionHistory.last().first.equals("Processing", ignoreCase = true) ||
+                    sessionHistory.last().first.startsWith("Working on", ignoreCase = true)
+                )) {
+                    sessionHistory.removeLast()
+                }
+                
                 if (sessionHistory.isEmpty() || sessionHistory.last().second != transcriptText) {
                     sessionHistory.add(statusText to transcriptText)
                 }
@@ -150,9 +167,7 @@ object AssistantOverlayController {
             if (!visible || animatingOut) {
                 animateIn(appContext)
             }
-            @Suppress("UNUSED_VARIABLE")
-            val ignoredAutoHide = autoHideMs
-            cancelAutoHide()
+            scheduleAutoHide(autoHideMs, appContext)
         }
     }
 
@@ -547,8 +562,8 @@ object AssistantOverlayController {
     private fun removeViewNow(view: View) {
         try {
             windowManager?.removeView(view)
-        } catch (_: Exception) {}
-        finally {
+        } catch (_: Exception) {
+        } finally {
             clearRefs()
         }
     }
@@ -577,7 +592,17 @@ object AssistantOverlayController {
     }
 
     private fun cancelAutoHide() {
-        // Auto hide disabled: popup stays until user explicitly dismisses.
+        hideRunnable?.let { mainHandler.removeCallbacks(it) }
+        hideRunnable = null
+    }
+
+    private fun scheduleAutoHide(autoHideMs: Long, context: Context) {
+        cancelAutoHide()
+        if (autoHideMs > 0) {
+            val r = Runnable { hideInternal(context) }
+            hideRunnable = r
+            mainHandler.postDelayed(r, autoHideMs)
+        }
     }
 
     private fun dp(context: Context, value: Int): Int =

@@ -244,6 +244,135 @@ extension _MainDebugExtension on _ChatHomePageState {
                         'Episodes: ready | Landscape: supported | Speed cycle: enabled',
                   ),
 
+                  _debugStatusCard(
+                    label: 'AI Persona',
+                    status: _selectedPersona,
+                    color: Colors.pinkAccent,
+                    icon: Icons.theater_comedy_rounded,
+                    extra: 'Affects system prompt greeting + tone',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Sleep Mode',
+                    status: _sleepModeEnabled ? 'Enabled' : 'Disabled',
+                    color: _sleepModeEnabled
+                        ? Colors.indigoAccent
+                        : Colors.white38,
+                    icon: Icons.nightlight_round,
+                    extra: _isSleepTime
+                        ? '🌙 Currently in sleep window (midnight–7AM) — TTS muted'
+                        : 'Not in sleep window right now',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Memory Service',
+                    status: _cachedMemoryBlock.isEmpty ? 'Empty' : 'Has facts',
+                    color: _cachedMemoryBlock.isEmpty
+                        ? Colors.white38
+                        : Colors.purpleAccent,
+                    icon: Icons.psychology_rounded,
+                    extra: 'Facts injected into system prompt each request',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Image Attach (Vision)',
+                    status:
+                        _selectedImage != null ? 'Image selected' : 'No image',
+                    color: _selectedImage != null
+                        ? Colors.orangeAccent
+                        : Colors.white38,
+                    icon: Icons.image_outlined,
+                    extra: _selectedImage != null
+                        ? 'Path: ${_selectedImage!.path.split('/').last}'
+                        : 'Tap 📎 in chat input to attach',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'API Key Rotation',
+                    status: 'Round-robin active',
+                    color: Colors.greenAccent,
+                    icon: Icons.vpn_key_rounded,
+                    extra: 'Comma-separate up to 5 keys in .env API_KEY field',
+                  ),
+
+                  _debugStatusCard(
+                    label: 'Weather API',
+                    status: WeatherService.isConfigured
+                        ? 'Configured ✅'
+                        : 'Key missing ❌',
+                    color: WeatherService.isConfigured
+                        ? Colors.greenAccent
+                        : Colors.redAccent,
+                    icon: Icons.cloud_outlined,
+                    extra: WeatherService.isConfigured
+                        ? 'OPENWEATHER_API_KEY set in .env'
+                        : 'Add OPENWEATHER_API_KEY to .env file',
+                  ),
+
+                  // ── NEW FEATURES STATUS ────────────────────────────────────
+                  _debugStatusCard(
+                    label: '🎵 Music Player',
+                    status: MusicPlayerService().currentSong.value != null
+                        ? (MusicPlayerService().isPlaying.value
+                            ? 'Playing'
+                            : 'Paused')
+                        : 'Idle',
+                    color: MusicPlayerService().isPlaying.value
+                        ? Colors.purpleAccent
+                        : Colors.white38,
+                    icon: Icons.music_note_rounded,
+                    extra: MusicPlayerService().currentSong.value != null
+                        ? 'Now: ${MusicPlayerService().currentSong.value!.title}'
+                        : 'Library: ${MusicPlayerService().songList.value.length} songs loaded',
+                  ),
+
+                  _debugStatusCard(
+                    label: '⏰ Waifu Alarm',
+                    status: 'Ready',
+                    color: Colors.orangeAccent,
+                    icon: Icons.alarm_rounded,
+                    extra:
+                        'Say "Wake me up at 7 AM" to set. android_alarm_manager_plus',
+                  ),
+
+                  _debugStatusCard(
+                    label: '📞 Contacts Lookup',
+                    status: 'Available',
+                    color: Colors.greenAccent,
+                    icon: Icons.contacts_rounded,
+                    extra:
+                        'Say "Who is [name]?" — requires READ_CONTACTS permission',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🖼️ AI Drawing',
+                    status: 'Online',
+                    color: Colors.cyanAccent,
+                    icon: Icons.auto_fix_high_rounded,
+                    extra:
+                        'Say "Draw me a cat" — Uses Pollinations.ai (no API key needed)',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🎮 Mini-Games',
+                    status: MiniGameService.hasPendingTTT()
+                        ? 'Tic-Tac-Toe Active'
+                        : 'Ready',
+                    color: MiniGameService.hasPendingTTT()
+                        ? Colors.amberAccent
+                        : Colors.white54,
+                    icon: Icons.games_rounded,
+                    extra: 'Rock-Paper-Scissors · Tic-Tac-Toe · Anime Trivia',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🔎 Chat Search',
+                    status: _isChatSearchActive ? 'Active' : 'Hidden',
+                    color: _isChatSearchActive ? Colors.blue : Colors.white38,
+                    icon: Icons.search_rounded,
+                    extra: 'Tap SEARCH chip in chat header to activate',
+                  ),
+
                   const SizedBox(height: 20),
 
                   // ── ACTION BUTTONS ──────────────────────────────────────────
@@ -260,6 +389,27 @@ extension _MainDebugExtension on _ChatHomePageState {
                           'Reinit Wake', Icons.refresh, () => _initWakeWord()),
                       _debugActionBtn('Wake Debug', Icons.bug_report,
                           () => Navigator.pushNamed(context, '/wake-debug')),
+
+                      // System Tests
+                      _debugActionBtn(
+                          'Simulate Exception',
+                          Icons.warning_amber_rounded,
+                          () => throw Exception(
+                              'Simulated test exception from Debug page')),
+                      _debugActionBtn(
+                          'Trigger Battery Intent', Icons.battery_alert_rounded,
+                          () async {
+                        try {
+                          await const MethodChannel(
+                                  'anime_waifu/assistant_mode')
+                              .invokeMethod('triggerBatteryIntent');
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Battery intent error: $e')));
+                          }
+                        }
+                      }),
 
                       // TTS
                       _debugActionBtn(
@@ -342,6 +492,40 @@ extension _MainDebugExtension on _ChatHomePageState {
                           ),
                         );
                       }),
+                      // Feature Tests
+                      _debugActionBtn('Test Weather', Icons.cloud_rounded,
+                          () async {
+                        final result =
+                            await WeatherService.getWeather('Bhubaneswar');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(result),
+                              duration: const Duration(seconds: 4)));
+                        }
+                      }),
+                      _debugActionBtn(
+                          'Toggle Sleep Mode',
+                          Icons.nightlight_round,
+                          () => _setSleepMode(!_sleepModeEnabled)),
+                      _debugActionBtn(
+                          'Cycle Persona', Icons.theater_comedy_rounded, () {
+                        final personas = ['Zero Two', 'Rem', 'Miku', 'Custom'];
+                        final next = personas[
+                            (personas.indexOf(_selectedPersona) + 1) %
+                                personas.length];
+                        _setPersona(next);
+                      }),
+                      _debugActionBtn(
+                          'Refresh Memory', Icons.psychology_rounded, () async {
+                        await _refreshMemoryCache();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(_cachedMemoryBlock.isEmpty
+                                  ? 'Memory empty'
+                                  : 'Memory refreshed: ${_cachedMemoryBlock.length} chars'),
+                              duration: const Duration(seconds: 2)));
+                        }
+                      }),
                       _debugActionBtn(
                           'Reset Dev Config', Icons.settings_backup_restore,
                           () {
@@ -362,6 +546,78 @@ extension _MainDebugExtension on _ChatHomePageState {
                               content: Text('Dev config reset to defaults'),
                               duration: Duration(seconds: 2)),
                         );
+                      }),
+
+                      // ── NEW FEATURE TESTS ─────────────────────────────────
+                      _debugActionBtn('🎵 Play Music', Icons.play_arrow_rounded,
+                          () async {
+                        final svc = MusicPlayerService();
+                        await svc.init();
+                        if (svc.songList.value.isNotEmpty) {
+                          await svc.playSongAt(0);
+                          if (mounted) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const MusicPlayerPage()));
+                          }
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'No local music found on device')));
+                          }
+                        }
+                      }),
+                      _debugActionBtn('⏸️ Pause Music', Icons.pause_rounded,
+                          () => MusicPlayerService().playPause()),
+                      _debugActionBtn('🖼️ Test Draw', Icons.auto_fix_high,
+                          () async {
+                        final url = await ImageGenService.generateImage(
+                                'anime cat girl') ??
+                            'Error: null result';
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text((url).startsWith('http')
+                                  ? '✅ Image: ${url.substring(0, url.length.clamp(0, 40))}...'
+                                  : '❌ $url'),
+                              duration: const Duration(seconds: 3)));
+                        }
+                      }),
+                      _debugActionBtn('📞 Test Contacts', Icons.contacts,
+                          () async {
+                        final result =
+                            await ContactsLookupService.findContact('John');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(result)));
+                        }
+                      }),
+                      _debugActionBtn('⏰ Test Alarm', Icons.alarm, () async {
+                        final t =
+                            DateTime.now().add(const Duration(minutes: 1));
+                        final result =
+                            await WaifuAlarmService.setAlarm(t, 'Zero Two');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(result)));
+                        }
+                      }),
+                      _debugActionBtn('🎮 RPS Game', Icons.sports_esports, () {
+                        final r = MiniGameService.playRPS('rock');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(r)));
+                        }
+                      }),
+                      _debugActionBtn('🎮 Trivia', Icons.quiz_rounded, () {
+                        final q = MiniGameService.getNextTrivia();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(q),
+                              duration: const Duration(seconds: 5)));
+                        }
                       }),
                     ],
                   ),
@@ -402,8 +658,8 @@ extension _MainDebugExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.65),
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.65),
                   ],
                 ),
               ),
@@ -449,16 +705,16 @@ extension _MainDebugExtension on _ChatHomePageState {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -483,9 +739,9 @@ extension _MainDebugExtension on _ChatHomePageState {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: color.withOpacity(0.3)),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
             child: Text(status,
                 style: GoogleFonts.outfit(
@@ -502,7 +758,7 @@ extension _MainDebugExtension on _ChatHomePageState {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white12),
         ),
