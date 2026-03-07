@@ -19,9 +19,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
       {'label': 'Videos', 'icon': Icons.videocam_outlined, 'nav': 2},
     ];
     final entertainmentItems = [
-      {'label': 'Gacha 🎲', 'icon': Icons.casino_outlined, 'nav': 8},
+      {'label': 'Gacha', 'icon': Icons.casino_outlined, 'nav': 8},
       {'label': 'Mood Tracker', 'icon': Icons.mood_outlined, 'nav': 9},
-      {'label': 'Secret Notes 🔒', 'icon': Icons.lock_outline, 'nav': 10},
+      {'label': 'Secret Notes', 'icon': Icons.lock_outline, 'nav': 10},
     ];
     final settingsItems = [
       {'label': 'Settings', 'icon': Icons.settings_outlined, 'nav': 3},

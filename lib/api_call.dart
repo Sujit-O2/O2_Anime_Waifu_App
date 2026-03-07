@@ -257,7 +257,7 @@ class ApiService {
         <table class="main" role="presentation">
             <tr>
                 <td class="header">
-                    <img src="https://media.tenor.com/7S8hP2Yg1r4AAAAC/zero-two-dance.gif" alt="Zero Two" style="width: 120px; height: auto; border-radius: 50%; border: 4px solid #ffffff; margin-bottom: 20px; box-shadow: 0 0 20px rgba(255, 0, 87, 0.6);">
+                    <img src="https://tenor.com/en-GB/view/zero-two-gif-16646466052208870880" alt="Zero Two" style="width: 120px; height: auto; border-radius: 50%; border: 4px solid #ffffff; margin-bottom: 20px; box-shadow: 0 0 20px rgba(255, 0, 87, 0.6);">
                     <h1>DARLING ALERT</h1>
                 </td>
             </tr>
