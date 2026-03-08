@@ -10,11 +10,13 @@ extension _GachaPageExtension on _ChatHomePageState {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                       child: Text(
                         'GACHA QUOTES',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 16,
