@@ -284,7 +284,7 @@ Last error: $lastError
       debugPrint("Wake word init error: $e");
       await _disposeManagers();
       _initialized = false;
-      rethrow;
+      // Do not rethrow; error is already logged and handled by checking _initialized
     } finally {
       _initializing = false;
     }

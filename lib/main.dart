@@ -3688,13 +3688,15 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
                       ),
                     ),
                   ),
-                (_navIndex == 0 && !_liteModeEnabled)
-                    ? VisualEffectsOverlay(
-                        themeMode: themeMode,
-                        isSpeaking: _isSpeaking,
-                        child: _buildNavBody(),
-                      )
-                    : _buildNavBody(),
+                Positioned.fill(
+                  child: (_navIndex == 0 && !_liteModeEnabled)
+                      ? VisualEffectsOverlay(
+                          themeMode: themeMode,
+                          isSpeaking: _isSpeaking,
+                          child: _buildNavBody(),
+                        )
+                      : _buildNavBody(),
+                ),
                 if (_inAppNotifText.isNotEmpty) _buildInAppNotificationPopup(),
                 if (_showOpeningOverlay) _buildOpeningOverlay(),
               ],
