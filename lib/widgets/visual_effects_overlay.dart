@@ -25,8 +25,8 @@ class VisualEffectsOverlay extends StatelessWidget {
 
         // Isolate the animated border so it doesn't force the chat UI to paint
         if (intensity > 0 || isSpeaking)
-          RepaintBoundary(
-            child: Positioned.fill(
+          Positioned.fill(
+            child: RepaintBoundary(
               child: _AnimatedGlowBorder(
                 isSpeaking: isSpeaking,
                 intensity: intensity,

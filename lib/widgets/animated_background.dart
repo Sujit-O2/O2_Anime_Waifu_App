@@ -270,27 +270,32 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
               child: Stack(
                 children: [
                   // LAYER 1: Deep cinematic gradient base OR Custom Image Pack (STATIC, OUTSIDE ANIMATION LOOP)
-                  const RepaintBoundary(child: _StaticBackgroundLayer()),
+                  const Positioned.fill(
+                    child: RepaintBoundary(child: _StaticBackgroundLayer()),
+                  ),
 
                   // LAYER 2: Particles on top (ONLY layer that rebuilds 60fps)
-                  RepaintBoundary(
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, _) {
-                        for (var p in particles) {
-                          p.update(
-                              Size(constraints.maxWidth, constraints.maxHeight),
-                              interactionPoint);
-                        }
+                  Positioned.fill(
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) {
+                          for (var p in particles) {
+                            p.update(
+                                Size(constraints.maxWidth,
+                                    constraints.maxHeight),
+                                interactionPoint);
+                          }
 
-                        return CustomPaint(
-                          painter: ParticlePainter(
-                              particles, _controller.value, primary, pType),
-                          size: Size.infinite,
-                          isComplex: false,
-                          willChange: true,
-                        );
-                      },
+                          return CustomPaint(
+                            painter: ParticlePainter(
+                                particles, _controller.value, primary, pType),
+                            size: Size.infinite,
+                            isComplex: false,
+                            willChange: true,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
