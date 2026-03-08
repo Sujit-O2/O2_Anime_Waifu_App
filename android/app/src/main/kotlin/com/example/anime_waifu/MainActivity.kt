@@ -184,8 +184,7 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     "toggleFlashlight" -> {
                         val on = call.argument<Boolean>("on") ?: false
-                        toggleFlashlight(on)
-                        result.success(true)
+                        result.success(toggleFlashlight(on))
                     }
                     "getBatteryLevel" -> {
                         result.success(getBatteryLevel())
@@ -221,6 +220,31 @@ class MainActivity : FlutterFragmentActivity() {
                         val date = call.argument<String>("date") ?: ""
                         val time = call.argument<String>("time") ?: ""
                         result.success(addCalendarEvent(title, date, time))
+                    }
+                    "getClipboard" -> {
+                        result.success(getClipboardText())
+                    }
+                    "getRecentNotifications" -> {
+                        result.success(getRecentNotifications())
+                    }
+                    "getLastSms" -> {
+                        val contact = call.argument<String>("contact")
+                        result.success(getLastSms(contact))
+                    }
+                    "lookupContact" -> {
+                        val name = call.argument<String>("name") ?: ""
+                        result.success(lookupContact(name))
+                    }
+                    "showAssistantOverlay" -> {
+                        // Triggered by the swipe right→left gesture on the input bar
+                        // Shows the floating assistant overlay immediately
+                        val sent = try {
+                            val intent = Intent("com.example.anime_waifu.SHOW_OVERLAY")
+                            intent.setPackage(packageName)
+                            sendBroadcast(intent)
+                            true
+                        } catch (e: Exception) { false }
+                        result.success(sent)
                     }
                     else -> result.notImplemented()
                 }
@@ -529,7 +553,6 @@ class MainActivity : FlutterFragmentActivity() {
                 .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setTimeoutAfter(15000)
                 .build()
             manager?.notify(wakeEventNotificationId, wakeNotification)
         }
@@ -622,11 +645,13 @@ class MainActivity : FlutterFragmentActivity() {
                 putExtra(AlarmClock.EXTRA_HOUR, hour)
                 putExtra(AlarmClock.EXTRA_MINUTES, minute)
                 putExtra(AlarmClock.EXTRA_MESSAGE, message)
-                putExtra(AlarmClock.EXTRA_SKIP_UI, false)
+                putExtra(AlarmClock.EXTRA_SKIP_UI, true)  // Set alarm silently without UI
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            startActivity(intent)
-            true
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                true
+            } else false
         } catch (_: Exception) {
             false
         }
@@ -647,17 +672,23 @@ class MainActivity : FlutterFragmentActivity() {
         } catch (_: Exception) {}
     }
 
-    private fun toggleFlashlight(on: Boolean) {
-        try {
+    private fun toggleFlashlight(on: Boolean): Boolean {
+        // Check CAMERA permission at runtime (required for setTorchMode)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            // Request it — user will be prompted; torch will work on next attempt
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 1003)
+            return false
+        }
+        return try {
             val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
             val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
                 val chars = cameraManager.getCameraCharacteristics(id)
                 chars.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-            } ?: return
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                cameraManager.setTorchMode(cameraId, on)
-            }
-        } catch (_: Exception) {}
+            } ?: return false
+            cameraManager.setTorchMode(cameraId, on)
+            true
+        } catch (_: Exception) { false }
     }
 
     private fun getBatteryLevel(): Int {
@@ -770,6 +801,81 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onDestroy() {
         AssistantOverlayController.hide()
         super.onDestroy()
+    }
+
+    private fun getClipboardText(): String? {
+        return try {
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = cm.primaryClip ?: return null
+            if (clip.itemCount == 0) return null
+            clip.getItemAt(0).coerceToText(this)?.toString()
+        } catch (_: Exception) { null }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun getRecentNotifications(): List<Map<String, String>> {
+        // NotificationListenerService-based access; falls back to empty if not granted
+        return try {
+            val serviceClass = Class.forName("com.example.anime_waifu.WaifuNotificationListenerService")
+            val getRecent = serviceClass.getMethod("getRecentNotifications")
+            val raw = getRecent.invoke(null) as? List<*> ?: emptyList<Any>()
+            raw.filterIsInstance<Map<String, String>>()
+        } catch (_: Exception) { emptyList() }
+    }
+
+    private fun getLastSms(contact: String?): Map<String, String>? {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_SMS), 1004)
+            return null
+        }
+        return try {
+            val uri = android.provider.Telephony.Sms.CONTENT_URI
+            val projection = arrayOf("address", "body", "date")
+            val selection = if (!contact.isNullOrBlank())
+                "address LIKE ?" else null
+            val selectionArgs = if (!contact.isNullOrBlank())
+                arrayOf("%$contact%") else null
+            val cursor = contentResolver.query(
+                uri, projection, selection, selectionArgs,
+                "date DESC LIMIT 1"
+            ) ?: return null
+            cursor.use {
+                if (it.moveToFirst()) {
+                    mapOf(
+                        "from" to (it.getString(0) ?: "Unknown"),
+                        "body" to (it.getString(1) ?: "")
+                    )
+                } else null
+            }
+        } catch (_: Exception) { null }
+    }
+
+    private fun lookupContact(name: String): Map<String, String>? {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), 1005)
+            return null
+        }
+        return try {
+            val uri = android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+            val projection = arrayOf(
+                android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER
+            )
+            val selection = "${android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} LIKE ?"
+            val cursor = contentResolver.query(
+                uri, projection, selection, arrayOf("%$name%"), null
+            ) ?: return null
+            cursor.use {
+                if (it.moveToFirst()) {
+                    mapOf(
+                        "name" to (it.getString(0) ?: name),
+                        "phone" to (it.getString(1) ?: "No number")
+                    )
+                } else null
+            }
+        } catch (_: Exception) { null }
     }
 }
 

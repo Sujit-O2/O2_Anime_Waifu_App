@@ -19,6 +19,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
       {'label': 'Videos', 'icon': Icons.videocam_outlined, 'nav': 2},
     ];
     final entertainmentItems = [
+      {'label': 'Quests', 'icon': Icons.flag_circle_outlined, 'nav': 11},
       {'label': 'Gacha', 'icon': Icons.casino_outlined, 'nav': 8},
       {'label': 'Mood Tracker', 'icon': Icons.mood_outlined, 'nav': 9},
       {'label': 'Secret Notes', 'icon': Icons.lock_outline, 'nav': 10},
@@ -256,6 +257,48 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       ),
                     ]),
                   ),
+
+                  // Affection Progress Bar
+                  AnimatedBuilder(
+                    animation: AffectionService.instance,
+                    builder: (context, child) {
+                      final srv = AffectionService.instance;
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(srv.levelName,
+                                    style: GoogleFonts.outfit(
+                                        color: srv.levelColor,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold)),
+                                Text('${srv.points} pts',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white54, fontSize: 10)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: srv.levelProgress,
+                                minHeight: 4,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.1),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    srv.levelColor),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
                   Divider(
                       color: Colors.white.withValues(alpha: 0.08), height: 1),
                   _buildDrawerAutoListenTile(primary),
@@ -365,20 +408,14 @@ extension _MainDrawerExtension on _ChatHomePageState {
                             .map((e) => navItem(Map<String, dynamic>.from(e))),
                         sectionHeader('QUICK LAUNCH'),
                         quickItem(
-                          'Mini Games',
+                          'Game Zone',
                           Icons.sports_esports_rounded,
                           Colors.cyanAccent,
                           () {
-                            Navigator.pop(context);
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => MiniGamesPage(
-                                          onGameSelected: (cmd) {
-                                            _textController.text = cmd;
-                                            _handleTextInput();
-                                          },
-                                        )));
+                                    builder: (_) => const GamesHubPage()));
                           },
                         ),
                         quickItem(

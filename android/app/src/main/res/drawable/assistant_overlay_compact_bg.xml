@@ -16,7 +16,7 @@
                 android:endColor="#00FF3D5A" />
         </shape>
     </item>
-    <!-- Main opaque dark layer (Deep solid dark with slight transparency) -->
+    <!-- Main translucent layer (Allows GIF to shine through while keeping text readable) -->
     <item>
         <shape>
             <corners
@@ -24,7 +24,7 @@
                 android:topRightRadius="28dp"
                 android:bottomLeftRadius="0dp"
                 android:bottomRightRadius="0dp" />
-            <solid android:color="#E60D1018" />
+            <solid android:color="#770D1018" />
             <stroke
                 android:width="1.5dp"
                 android:color="#80FF3D5A" />

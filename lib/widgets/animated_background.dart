@@ -261,84 +261,44 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
             }
             final theme = AppThemes.getTheme(mode);
             final primary = theme.primaryColor;
-            final accent = theme.colorScheme.tertiary;
-            final gradientColors = AppThemes.getGradient(mode);
 
             return GestureDetector(
               onPanUpdate: (details) {
                 setState(() => interactionPoint = details.localPosition);
               },
               onPanEnd: (_) => setState(() => interactionPoint = null),
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  for (var p in particles) {
-                    p.update(Size(constraints.maxWidth, constraints.maxHeight),
-                        interactionPoint);
-                  }
+              child: Stack(
+                children: [
+                  // LAYER 1: Deep cinematic gradient base OR Custom Image Pack (STATIC, OUTSIDE ANIMATION LOOP)
+                  const Positioned.fill(
+                    child: RepaintBoundary(child: _StaticBackgroundLayer()),
+                  ),
 
-                  final t = _controller.value;
-                  final w = constraints.maxWidth;
-                  final h = constraints.maxHeight;
-
-                  return Stack(
-                    children: [
-                      // LAYER 1: Deep cinematic gradient base OR Custom Image Pack
-                      ValueListenableBuilder<String?>(
-                        valueListenable: customBackgroundUrlNotifier,
-                        builder: (context, bgUrl, _) {
-                          if (bgUrl != null && bgUrl.isNotEmpty) {
-                            // If it's a URL, use network. Otherwise, maybe it's a path or asset
-                            return SizedBox(
-                              width: w,
-                              height: h,
-                              child: bgUrl.startsWith('http')
-                                  ? Image.network(bgUrl, fit: BoxFit.cover)
-                                  : bgUrl.startsWith('assets/')
-                                      ? Image.asset(bgUrl, fit: BoxFit.cover)
-                                      : Image.network(bgUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (c, e, s) =>
-                                              Image.asset(
-                                                  'assets/zero_two_dance.gif',
-                                                  fit: BoxFit.cover)),
-                            );
+                  // LAYER 2: Particles on top (ONLY layer that rebuilds 60fps)
+                  Positioned.fill(
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) {
+                          for (var p in particles) {
+                            p.update(
+                                Size(constraints.maxWidth,
+                                    constraints.maxHeight),
+                                interactionPoint);
                           }
 
-                          // Fallback to purely gradient
-                          return Container(
-                            width: w,
-                            height: h,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: gradientColors,
-                              ),
-                            ),
+                          return CustomPaint(
+                            painter: ParticlePainter(
+                                particles, _controller.value, primary, pType),
+                            size: Size.infinite,
+                            isComplex: false,
+                            willChange: true,
                           );
                         },
                       ),
-
-                      // LAYER 2: Crepuscular god-rays — slow rotating beams from above
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _CrepuscularPainter(
-                            primary: primary,
-                            accent: accent,
-                            t: (t * 0.014) % 1.0, // full rotation every ~72s
-                          ),
-                        ),
-                      ),
-
-                      // LAYER 3: Particles on top
-                      CustomPaint(
-                        painter: ParticlePainter(particles, t, primary, pType),
-                        size: Size.infinite,
-                      ),
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -348,54 +308,53 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   }
 }
 
-/// Cinematic crepuscular god-rays from above screen, slow 72s rotation.
-class _CrepuscularPainter extends CustomPainter {
-  final Color primary;
-  final Color accent;
-  final double t;
-
-  const _CrepuscularPainter({
-    required this.primary,
-    required this.accent,
-    required this.t,
-  });
+class _StaticBackgroundLayer extends StatelessWidget {
+  const _StaticBackgroundLayer();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    const int rayCount = 7;
-    final double cx = size.width * 0.5;
-    final double cy = -size.height * 0.38;
-    final double maxR = size.height * 1.9;
-    final double base = t * 2 * math.pi;
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<AppThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, mode, _) {
+        final gradientColors = AppThemes.getGradient(mode);
+        return ValueListenableBuilder<String?>(
+          valueListenable: customBackgroundUrlNotifier,
+          builder: (context, bgUrl, _) {
+            if (bgUrl != null && bgUrl.isNotEmpty) {
+              return SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: bgUrl.startsWith('http')
+                    ? Image.network(bgUrl, fit: BoxFit.cover)
+                    : bgUrl.startsWith('assets/')
+                        ? Image.asset(bgUrl, fit: BoxFit.cover)
+                        : Image.network(
+                            bgUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) => Image.asset(
+                              'assets/zero_two_dance.gif',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+              );
+            }
 
-    for (int i = 0; i < rayCount; i++) {
-      final double angle = base + (i / rayCount) * 2 * math.pi;
-      final double hw = (0.025 + 0.018 * math.sin(i * 1.4)) * math.pi;
-      final double op = 0.032 + 0.015 * math.sin(i * 0.8 + 1.0);
-      final Color c = (i % 3 == 0) ? accent : primary;
-
-      final double p1x = cx + maxR * math.cos(angle - hw);
-      final double p1y = cy + maxR * math.sin(angle - hw);
-      final double p2x = cx + maxR * math.cos(angle + hw);
-      final double p2y = cy + maxR * math.sin(angle + hw);
-
-      final path = Path()
-        ..moveTo(cx, cy)
-        ..lineTo(p1x, p1y)
-        ..lineTo(p2x, p2y)
-        ..close();
-
-      final paint = Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(0.0, -0.5),
-          radius: 1.15,
-          colors: [c.withValues(alpha: op), Colors.transparent],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-      canvas.drawPath(path, paint);
-    }
+            return Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradientColors,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
-
-  @override
-  bool shouldRepaint(_CrepuscularPainter o) => true;
 }
+
+// Removed _CrepuscularPainter to save CPU payload.

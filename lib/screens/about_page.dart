@@ -514,6 +514,20 @@ extension _AboutPageExtension on _ChatHomePageState {
         'Controller attach/detach lifecycle management for media playback',
         'Portrait orientation restoration after leaving landscape player',
       ]),
+      _AboutFeatureSection('Relationship & Affection System', [
+        'Affection points tracking system measuring companion bond',
+        'Earned actively through chatting, routines, and daily quests',
+        'Six escalating tiers from Stranger to Soulmate with color coding',
+        'Decay mechanic reducing affection after 2+ days of inactivity',
+        'Tier-based unlocks for more expressive and casual AI responses',
+      ]),
+      _AboutFeatureSection('Daily Quests & Routines', [
+        '3 daily generative quests (Morning Routine, Afternoon Chat, etc.)',
+        'Automated morning briefing triggers precisely on system alarms',
+        'Nighttime wind-down routine with reflection logging',
+        'Rewards affection points upon quest/routine completion',
+        'Persistent quest states refreshed at local midnight',
+      ]),
     ];
   }
 

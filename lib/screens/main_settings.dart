@@ -1134,6 +1134,254 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       );
                     },
                   ),
+                  const SizedBox(height: 20),
+
+                  // ── RELATIONSHIP SYSTEM ────────────────────────────────────
+                  Text('RELATIONSHIP SYSTEM',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.pinkAccent.withValues(alpha: 0.12),
+                          Colors.deepPurple.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: Colors.pinkAccent.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.favorite_rounded,
+                                color: Colors.pinkAccent, size: 20),
+                            const SizedBox(width: 10),
+                            Text('Affection Status',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700)),
+                            const Spacer(),
+                            ValueListenableBuilder<int>(
+                              valueListenable: ValueNotifier(
+                                  AffectionService.instance.points),
+                              builder: (_, pts, __) => Text(
+                                  '${AffectionService.instance.points} pts',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.pinkAccent, fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your relationship: ${AffectionService.instance.levelName}',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white70, fontSize: 13),
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: AffectionService.instance.levelProgress,
+                            minHeight: 6,
+                            backgroundColor: Colors.white12,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.pinkAccent),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Earn points by chatting, completing quests, and daily routines. '
+                          'Inactivity for 2+ days causes decay.',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 10.5),
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            await AffectionService.instance.addPoints(10);
+                            if (context.mounted) updateState(() {});
+                          },
+                          icon: const Icon(Icons.add_circle_outline,
+                              color: Colors.pinkAccent, size: 16),
+                          label: Text('Grant +10 pts (test)',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.pinkAccent, fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: Colors.pinkAccent, width: 0.8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── HOME SCREEN WIDGETS ───────────────────────────────────
+                  Text('HOME SCREEN WIDGETS',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.blueAccent.withValues(alpha: 0.10),
+                          Colors.tealAccent.withValues(alpha: 0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: Colors.blueAccent.withValues(alpha: 0.25)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.widgets_rounded,
+                                color: Colors.blueAccent, size: 20),
+                            const SizedBox(width: 10),
+                            Text('Your 20 Widgets',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ...[
+                          (
+                            '❤️ Affection (Small)',
+                            'Shows relationship tier on home screen'
+                          ),
+                          (
+                            '💖 Affection (Large)',
+                            'Detailed progress bar with points'
+                          ),
+                          ('💬 Daily Quote', 'New quote every day'),
+                          ('⚡ Zero Two Quote', 'Her iconic lines'),
+                          (
+                            '🎮 Quick Actions Row',
+                            'Talk / Routine / Quests buttons'
+                          ),
+                          ('🔲 Quick Actions Grid', '6-button shortcut panel'),
+                          ('🌤 Weather Status', 'Synced weather glance'),
+                          ('🔋 Battery Status', 'Device battery level'),
+                          ('😊 Mood Tracker', 'Your current logged mood'),
+                          ('⏰ Next Alarm', 'Upcoming alarm or event'),
+                          ('🔦 Flashlight Toggle', '1-tap flashlight button'),
+                          ('🔇 DND Toggle', 'Do Not Disturb quick toggle'),
+                          ('💬 Open Chat Shortcut', 'Jump directly to chat'),
+                          ('🌅 Morning Routine', 'Trigger morning briefing'),
+                          ('🌙 Night Routine', 'Trigger night wind-down'),
+                          ('🍅 Pomodoro Status', 'Current focus timer'),
+                          ('🧠 Memory Flashcard', 'Random saved fact'),
+                          ('📋 Daily Summary', 'Today\'s briefing glance'),
+                          ('🕐 Greeting & Clock', 'Clock + Zero Two greeting'),
+                          ('📡 Device Stats', 'Wi-Fi & system info'),
+                        ].map((item) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.$1,
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white70, fontSize: 12)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text('— ${item.$2}',
+                                        style: GoogleFonts.outfit(
+                                            color: Colors.white38,
+                                            fontSize: 11)),
+                                  ),
+                                ],
+                              ),
+                            )),
+                        const SizedBox(height: 10),
+                        Text(
+                          'To add: long-press your home screen → Widgets → S-002',
+                          style: GoogleFonts.outfit(
+                              color: Colors.blueAccent, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── ROUTINES & ALARMS ──────────────────────────────────────
+                  Text('ROUTINES & ALARMS',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                  const SizedBox(height: 10),
+                  _buildToolShortcut(
+                    icon: Icons.wb_sunny_rounded,
+                    label: 'Morning Routine',
+                    subtitle:
+                        'Say "Good morning" or trigger from home screen widget',
+                    color: Colors.amberAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 0);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'Go to chat and say "Good morning" to start!'),
+                          duration: Duration(seconds: 3)));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.nights_stay_rounded,
+                    label: 'Night Routine',
+                    subtitle: 'Say "Good night" to trigger nightly wind-down',
+                    color: Colors.indigoAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 0);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Go to chat and say "Good night" to start!'),
+                          duration: Duration(seconds: 3)));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.alarm_rounded,
+                    label: 'Set Waifu Alarm',
+                    subtitle: 'Say "Wake me up at 7 AM" to set a dynamic alarm',
+                    color: Colors.orangeAccent,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'Say "Wake me up at [time]" in chat to set a dynamic alarm!')));
+                    },
+                  ),
+                  _buildToolShortcut(
+                    icon: Icons.task_alt_rounded,
+                    label: 'Daily Quests',
+                    subtitle:
+                        'See and complete your daily relationship challenges',
+                    color: Colors.greenAccent,
+                    onTap: () {
+                      updateState(() => _navIndex = 11);
+                    },
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

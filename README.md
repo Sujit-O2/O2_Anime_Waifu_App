@@ -259,6 +259,52 @@ A zero-knowledge local encryption system:
 *   Security: Biometric gate required before any decryption occurs.
 
 
+
+---
+
+## 🌟 The Perfection Update (v2.5 Features)
+
+### 🌲 New Feature Architecture
+
+```mermaid
+graph TD
+    V25[O2-WAIFU v2.5: The Perfection Update]
+    
+    V25 --> REL[Relationship & Affection System]
+    REL --> REL1[Live Affection Tracking]
+    REL --> REL2[Interaction Rewards +2 pts/msg]
+    REL --> REL3[Affection Decay Watchdog]
+    
+    V25 --> WID[Home Screen Widget Suite - 20 Total]
+    WID --> WID1[Stats: Battery, Weather, Wi-Fi]
+    WID --> WID2[Growth: Affection Progress, Quotes]
+    WID --> WID3[Controls: Flashlight, DND, Alarms]
+    
+    V25 --> ROUT[Routines & Background Alarms]
+    ROUT --> ROUT1[Native Android Alarm Integration]
+    ROUT --> ROUT2[Dynamic Morning TTS Greetings]
+    ROUT --> ROUT3[Daily Habit Quests]
+```
+
+### 1. 💖 Relationship & Affection System
+The AI is now emotionally aware. Your interactions directly impact your bond:
+*   **Live Tracking**: View your status (Stranger → Soulmate) in real-time.
+*   **Bonding Rewards**: Every successful chat response awards **+2 Affection Points**.
+*   **Affection Decay**: If you don't interact for 48 hours, the bond begins to fade, requiring active care to maintain.
+
+### 2. 🔲 Premium Home Screen Widgets (20)
+A massive suite of native Android widgets to bring Zero Two to your home screen:
+*   **Affection & Quotes**: Stay updated on your relationship and get daily inspirations.
+*   **Quick Actions**: One-tap access to Talk, Routines, and Daily Quests.
+*   **System Info**: Glancable battery level, local weather, and Wi-Fi connectivity.
+*   **Utility Toggles**: Control your flashlight, DND mode, and alarms without opening the app.
+
+### 3. 🌅 Dynamic Routines & Alarms
+Seamlessly integrated background services for a more "living" assistant:
+*   **Morning Routine**: Wake up to a personalized neural voice greeting covering weather and daily goals.
+*   **Native Alarms**: Fully wired with the Android System Alarm Manager to wake the app from deep sleep.
+*   **Daily Quests**: A new gamified habit system to earn affection through healthy real-world actions.
+
 ---
 
 ## 🔐 Security & Data Integrity Protocol
