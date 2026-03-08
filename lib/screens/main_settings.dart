@@ -283,7 +283,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: ['Zero Two', 'Rem', 'Miku', 'Custom']
+                          children: ['Default', 'Tsundere', 'Shy', 'Yandere']
                               .map((p) => ChoiceChip(
                                     label: Text(p,
                                         style: GoogleFonts.outfit(
@@ -684,7 +684,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       ),
                     ),
                   const SizedBox(height: 8),
-                  _buildImagePackCard(),
+                  _buildOutfitChangerCard(),
                   const SizedBox(height: 16),
                   // ── CHAT & DISPLAY ────────────────────────────────────────
                   Text('CHAT & DISPLAY',
@@ -1511,7 +1511,14 @@ extension _MainSettingsExtension on _ChatHomePageState {
     );
   }
 
-  Widget _buildImagePackCard() {
+  Widget _buildOutfitChangerCard() {
+    final List<String> outfits = [
+      'assets/img/z2s.jpg',
+      'assets/img/logi.png',
+      'assets/img/z12.jpg',
+      'assets/img/bll.jpg',
+    ];
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -1523,10 +1530,11 @@ extension _MainSettingsExtension on _ChatHomePageState {
         children: [
           Row(
             children: [
-              const Icon(Icons.image_outlined, color: Colors.white70, size: 18),
+              const Icon(Icons.checkroom_outlined,
+                  color: Colors.white70, size: 18),
               const SizedBox(width: 8),
               Text(
-                'Image Pack: $_imagePackLabel',
+                'Outfit Changer',
                 style: GoogleFonts.outfit(
                   color: Colors.white,
                   fontSize: 13,
@@ -1534,107 +1542,79 @@ extension _MainSettingsExtension on _ChatHomePageState {
                 ),
               ),
               const Spacer(),
-              TextButton(
-                onPressed: _toggleImagePack,
-                child: Text(
-                  'Switch',
+              if (_chatImageFromSystem)
+                Text(
+                  'Custom Active',
                   style: GoogleFonts.outfit(
-                    color: Colors.redAccent,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    color: Colors.orangeAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _packPreview(
-                label: 'App Icon',
-                asset: _appIconImageAsset,
-                customPath: _effectiveAppIconCustomPath,
-              ),
-              const SizedBox(width: 10),
-              _packPreview(
-                label: 'Chat Image',
-                asset: _chatImageAsset,
-                customPath: _effectiveChatCustomPath,
-              ),
-            ],
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 80,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: outfits.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final outfit = outfits[index];
+                final isSelected =
+                    !_chatImageFromSystem && _selectedOutfit == outfit;
+                return GestureDetector(
+                  onTap: () {
+                    if (_chatImageFromSystem) {
+                      _resetCustomImages();
+                    }
+                    _setOutfit(outfit);
+                  },
+                  child: Container(
+                    width: 60,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color:
+                            isSelected ? Colors.redAccent : Colors.transparent,
+                        width: 2,
+                      ),
+                      image: DecorationImage(
+                        image: AssetImage(outfit),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               _imageActionBtn(
-                label: 'Gallery Chat',
+                label: 'Custom Outfit',
                 icon: Icons.photo_library_outlined,
                 onTap: () => _pickImageFromGallery(forChatImage: true),
               ),
               _imageActionBtn(
-                label: 'Gallery Logo',
+                label: 'Custom Logo',
                 icon: Icons.add_photo_alternate_outlined,
                 onTap: () => _pickImageFromGallery(forChatImage: false),
               ),
-              _imageActionBtn(
-                label: 'Reset',
-                icon: Icons.refresh_outlined,
-                onTap: _resetCustomImages,
-              ),
+              if (_chatImageFromSystem || _appIconFromCustom)
+                _imageActionBtn(
+                  label: 'Reset Gallery',
+                  icon: Icons.layers_clear_outlined,
+                  onTap: _resetCustomImages,
+                ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _packPreview({
-    required String label,
-    required String asset,
-    required String? customPath,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white10),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image(
-                image: _imageProviderFor(
-                  assetPath: asset,
-                  customPath: customPath,
-                ),
-                width: 34,
-                height: 34,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.image_not_supported_outlined,
-                  color: Colors.white24,
-                  size: 18,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.outfit(
-                  color: Colors.white70,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

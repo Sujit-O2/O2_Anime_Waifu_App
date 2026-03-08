@@ -16,7 +16,7 @@ class AssistantShortcutActivity : Activity() {
                 applicationContext,
                 status = "Zero Two",
                 transcript = "How can I help?",
-                autoHideMs = 3800L
+                autoHideMs = 300_000L
             )
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(

@@ -121,6 +121,26 @@ class GamesHubPage extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (_) => const NumberGuesserPage())),
                   ),
+                  _GameCard(
+                    title: 'Wordle',
+                    subtitle: 'Guess the anime word in 6 tries',
+                    icon: Icons.abc_rounded,
+                    gradient: const [Color(0xFF26C6DA), Color(0xFF00838F)],
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const WordleGamePage())),
+                  ),
+                  _GameCard(
+                    title: 'Anime Quiz',
+                    subtitle: 'Test your anime knowledge!',
+                    icon: Icons.quiz_rounded,
+                    gradient: const [Color(0xFFEC407A), Color(0xFF880E4F)],
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AnimeQuizPage())),
+                  ),
                 ],
               ),
             ),
@@ -359,42 +379,53 @@ class _SnakeGameState extends State<SnakeGamePage> {
                 padding: const EdgeInsets.all(12),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: CustomPaint(
-                    painter: _SnakePainter(_snake, _food, cols, rows),
-                    child: _dead || !_running
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_dead)
-                                  Text('Game Over!',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.redAccent,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900)),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.greenAccent,
-                                      foregroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20)),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 36, vertical: 14)),
-                                  onPressed: () {
-                                    setState(() => _resetGame());
-                                    _startGame();
-                                  },
-                                  child: Text(_dead ? 'Play Again' : 'Start',
-                                      style: GoogleFonts.outfit(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 16)),
-                                ),
-                              ],
-                            ),
-                          )
-                        : null,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SizedBox(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        child: CustomPaint(
+                          size:
+                              Size(constraints.maxWidth, constraints.maxHeight),
+                          painter: _SnakePainter(_snake, _food, cols, rows),
+                          child: _dead || !_running
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_dead)
+                                        Text('Game Over!',
+                                            style: GoogleFonts.outfit(
+                                                color: Colors.redAccent,
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.w900)),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.greenAccent,
+                                            foregroundColor: Colors.black,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 36, vertical: 14)),
+                                        onPressed: () {
+                                          setState(() => _resetGame());
+                                          _startGame();
+                                        },
+                                        child: Text(
+                                            _dead ? 'Play Again' : 'Start',
+                                            style: GoogleFonts.outfit(
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 16)),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox.expand(),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -1040,6 +1071,421 @@ class _NumberGuesserState extends State<NumberGuesserPage>
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// WORDLE GAME
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+class WordleGamePage extends StatefulWidget {
+  const WordleGamePage({super.key});
+  @override
+  State<WordleGamePage> createState() => _WordleGamePageState();
+}
+
+class _WordleGamePageState extends State<WordleGamePage> {
+  final List<String> _words = [
+    'ANIME',
+    'OTAKU',
+    'MANGA',
+    'WAIFU',
+    'KAWAI',
+    'NINJA',
+    'TITAN',
+    'TOKYO',
+    'GHOUL',
+    'MECHA'
+  ];
+  late String _targetWord;
+  final List<String> _guesses = [];
+  String _currentGuess = '';
+  final int _maxGuesses = 6;
+  bool _gameOver = false;
+  bool _won = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _reset();
+  }
+
+  void _reset() {
+    setState(() {
+      _targetWord = _words[Random().nextInt(_words.length)];
+      _guesses.clear();
+      _currentGuess = '';
+      _gameOver = false;
+      _won = false;
+    });
+  }
+
+  void _verifyGuess() {
+    if (_currentGuess.length != 5) return;
+    setState(() {
+      _guesses.add(_currentGuess);
+      if (_currentGuess == _targetWord) {
+        _won = true;
+        _gameOver = true;
+      } else if (_guesses.length >= _maxGuesses) {
+        _gameOver = true;
+      }
+      _currentGuess = '';
+    });
+  }
+
+  void _addLetter(String letter) {
+    if (_currentGuess.length < 5 && !_gameOver) {
+      setState(() => _currentGuess += letter);
+    }
+  }
+
+  void _removeLetter() {
+    if (_currentGuess.isNotEmpty && !_gameOver) {
+      setState(() =>
+          _currentGuess = _currentGuess.substring(0, _currentGuess.length - 1));
+    }
+  }
+
+  Widget _buildGridRow(String word, bool isSubmitted) {
+    List<Widget> boxes = [];
+    for (int i = 0; i < 5; i++) {
+      String char = i < word.length ? word[i] : '';
+      Color bgColor = Colors.black45;
+      Color borderColor = Colors.white24;
+      if (isSubmitted && char.isNotEmpty) {
+        if (_targetWord[i] == char) {
+          bgColor = Colors.green.shade600;
+          borderColor = Colors.green.shade600;
+        } else if (_targetWord.contains(char)) {
+          bgColor = Colors.orange.shade600;
+          borderColor = Colors.orange.shade600;
+        } else {
+          bgColor = Colors.grey.shade800;
+          borderColor = Colors.grey.shade800;
+        }
+      } else if (char.isNotEmpty) {
+        borderColor = Colors.white60;
+      }
+
+      boxes.add(Container(
+        width: 50,
+        height: 50,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: bgColor,
+          border: Border.all(color: borderColor, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          char,
+          style: GoogleFonts.outfit(
+              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ));
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: boxes.expand((b) => [b, const SizedBox(width: 8)]).toList()
+        ..removeLast(),
+    );
+  }
+
+  Widget _buildKeyboard() {
+    const rows = [
+      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+      ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL']
+    ];
+    return Column(
+      children: rows
+          .map((row) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: row.map((key) {
+                    final isAction = key == 'ENTER' || key == 'DEL';
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: Material(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(4),
+                        child: InkWell(
+                          onTap: () {
+                            if (key == 'ENTER') {
+                              _verifyGuess();
+                            } else if (key == 'DEL') {
+                              _removeLetter();
+                            } else {
+                              _addLetter(key);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isAction ? 12 : 10,
+                              vertical: 14,
+                            ),
+                            child: Text(
+                              key,
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isAction ? 12 : 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1A1A24),
+      appBar: AppBar(
+        title: Text('Anime Wordle',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  for (int i = 0; i < _maxGuesses; i++) ...[
+                    if (i < _guesses.length)
+                      _buildGridRow(_guesses[i], true)
+                    else if (i == _guesses.length)
+                      _buildGridRow(_currentGuess, false)
+                    else
+                      _buildGridRow('', false),
+                    const SizedBox(height: 8),
+                  ],
+                ],
+              ),
+            ),
+            if (_gameOver) ...[
+              Text(
+                _won ? 'Sugoi! You got it!' : 'Game Over! Word was ',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: _won ? Colors.greenAccent : Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _reset,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.greenAccent,
+                    foregroundColor: Colors.black),
+                child: const Text('Play Again'),
+              ),
+              const SizedBox(height: 20),
+            ],
+            if (!_gameOver) _buildKeyboard(),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// ANIME QUIZ GAME
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+class AnimeQuizPage extends StatefulWidget {
+  const AnimeQuizPage({super.key});
+  @override
+  State<AnimeQuizPage> createState() => _AnimeQuizPageState();
+}
+
+class _AnimeQuizPageState extends State<AnimeQuizPage> {
+  final List<Map<String, dynamic>> _questions = [
+    {
+      'q': 'Who is known as the One Punch Man?',
+      'opts': ['Goku', 'Saitama', 'Naruto', 'Deku'],
+      'ans': 1
+    },
+    {
+      'q': 'What is the name of the protagonist in Attack on Titan?',
+      'opts': ['Levi', 'Armin', 'Eren', 'Mikasa'],
+      'ans': 2
+    },
+    {
+      'q': 'Which anime features the Death Note?',
+      'opts': ['Bleach', 'Death Note', 'Tokyo Ghoul', 'Naruto'],
+      'ans': 1
+    },
+    {
+      'q': 'What fruit gives Luffy rubber powers?',
+      'opts': ['Gum-Gum Fruit', 'Mera Mera', 'Ope Ope', 'Gomu Gomu'],
+      'ans': 0
+    },
+    {
+      'q': "Who is Edward Elric's brother?",
+      'opts': ['Roy', 'Alphonse', 'Hughes', 'Winry'],
+      'ans': 1
+    },
+    {
+      // new added to meet requirement
+      'q': "In Darling in the Franxx, what is Zero Two's code?",
+      'opts': ['016', '002', '326', '666'],
+      'ans': 1
+    }
+  ];
+
+  int _currentQ = 0;
+  int _score = 0;
+  bool _answered = false;
+  int? _selectedIdx;
+  bool _gameOver = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions.shuffle();
+  }
+
+  void _answer(int idx) {
+    if (_answered) return;
+    setState(() {
+      _answered = true;
+      _selectedIdx = idx;
+      if (idx == _questions[_currentQ]['ans']) {
+        _score++;
+      }
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() {
+        if (_currentQ < _questions.length - 1) {
+          _currentQ++;
+          _answered = false;
+          _selectedIdx = null;
+        } else {
+          _gameOver = true;
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_gameOver) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF1A1A24),
+        appBar: AppBar(
+            title: const Text('Result'), backgroundColor: Colors.transparent),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Quiz Complete!',
+                  style: GoogleFonts.outfit(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+              const SizedBox(height: 20),
+              Text('Score: $_score / ${_questions.length}',
+                  style: GoogleFonts.outfit(
+                      fontSize: 24, color: Colors.greenAccent)),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent),
+                child: const Text('Back to Games',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final q = _questions[_currentQ];
+    return Scaffold(
+      backgroundColor: const Color(0xFF1A1A24),
+      appBar: AppBar(
+        title: Text('Anime Quiz',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Question ${_currentQ + 1} of ${_questions.length}',
+                style: GoogleFonts.outfit(color: Colors.white54, fontSize: 16)),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                q['q'],
+                style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.3),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 40),
+            ...List.generate(4, (i) {
+              final isTarget = i == q['ans'];
+              final isSelected = i == _selectedIdx;
+              Color btnColor = Colors.white12;
+              if (_answered) {
+                if (isTarget) {
+                  btnColor = Colors.green.shade600;
+                } else if (isSelected) {
+                  btnColor = Colors.red.shade600;
+                }
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: ElevatedButton(
+                  onPressed: () => _answer(i),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    backgroundColor: btnColor,
+                    alignment: Alignment.centerLeft,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      q['opts'][i],
+                      style:
+                          GoogleFonts.outfit(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),

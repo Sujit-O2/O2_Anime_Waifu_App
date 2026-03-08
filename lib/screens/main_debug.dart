@@ -152,8 +152,8 @@ extension _MainDebugExtension on _ChatHomePageState {
                   ),
 
                   _debugStatusCard(
-                    label: 'Image Pack',
-                    status: _imagePackLabel,
+                    label: 'Outfit Picker',
+                    status: _selectedOutfit.split('/').last,
                     color: Colors.purpleAccent,
                     icon: Icons.image_outlined,
                     extra:
@@ -518,7 +518,12 @@ extension _MainDebugExtension on _ChatHomePageState {
                           () => _setSleepMode(!_sleepModeEnabled)),
                       _debugActionBtn(
                           'Cycle Persona', Icons.theater_comedy_rounded, () {
-                        final personas = ['Zero Two', 'Rem', 'Miku', 'Custom'];
+                        final personas = [
+                          'Default',
+                          'Tsundere',
+                          'Shy',
+                          'Yandere'
+                        ];
                         final next = personas[
                             (personas.indexOf(_selectedPersona) + 1) %
                                 personas.length];

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_widget_service.dart';
@@ -16,6 +17,16 @@ class AffectionService extends ChangeNotifier {
 
   int get points => _affectionPoints;
 
+  static const String _keyStreak = 'daily_login_streak';
+  static const String _keyLastStreakDate = 'last_streak_date';
+
+  int _streakDays = 0;
+  int get streakDays => _streakDays;
+
+  // Stream to notify UI when a daily bonus is awarded
+  final _bonusStreamController = StreamController<int>.broadcast();
+  Stream<int> get onDailyLoginBonus => _bonusStreamController.stream;
+
   AffectionService._internal() {
     _init();
   }
@@ -24,6 +35,7 @@ class AffectionService extends ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     _affectionPoints =
         _prefs?.getInt(_keyAffection) ?? 100; // Start with 100 points
+    _streakDays = _prefs?.getInt(_keyStreak) ?? 0;
     final lastTimeMs = _prefs?.getInt(_keyLastInteraction);
     if (lastTimeMs != null) {
       _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(lastTimeMs);
@@ -86,10 +98,52 @@ class AffectionService extends ChangeNotifier {
 
   /// Records that the user interacted with the app today
   Future<void> recordInteraction() async {
+    // Check daily streak before updating interaction time
+    _checkDailyStreak();
+
     // Made async to await _save()
     _updateLastInteraction();
     await _save();
     await HomeWidgetService.updateAffectionWidget();
+  }
+
+  void _checkDailyStreak() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final lastStreakMs = _prefs?.getInt(_keyLastStreakDate);
+    if (lastStreakMs != null) {
+      final lastStreak = DateTime.fromMillisecondsSinceEpoch(lastStreakMs);
+      final diff = today.difference(lastStreak).inDays;
+
+      if (diff == 1) {
+        // Consecutive day
+        _streakDays++;
+        _grantDailyBonus(today);
+      } else if (diff > 1) {
+        // Streak broken
+        _streakDays = 1;
+        _grantDailyBonus(today);
+      }
+      // If diff == 0, already claimed today.
+    } else {
+      // First time ever
+      _streakDays = 1;
+      _grantDailyBonus(today);
+    }
+  }
+
+  void _grantDailyBonus(DateTime today) {
+    _prefs?.setInt(_keyLastStreakDate, today.millisecondsSinceEpoch);
+    _prefs?.setInt(_keyStreak, _streakDays);
+
+    // Calculate bonus: base 5 + 2 for every streak day (capped at 25)
+    int bonus = 5 + (_streakDays * 2);
+    if (bonus > 25) bonus = 25;
+
+    _affectionPoints += bonus;
+    _bonusStreamController.add(bonus); // Notify UI
+    notifyListeners();
   }
 
   void _updateLastInteraction() {
@@ -113,6 +167,11 @@ class AffectionService extends ChangeNotifier {
 
       // Update interaction time so we don't decay again until another day passes
       _updateLastInteraction();
+
+      // Also reset streak since it's definitely broken
+      _streakDays = 0;
+      _prefs?.setInt(_keyStreak, 0);
+
       await _save(); // Save after decay
       await HomeWidgetService
           .updateAffectionWidget(); // Update widget after decay
