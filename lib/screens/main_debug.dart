@@ -373,6 +373,15 @@ extension _MainDebugExtension on _ChatHomePageState {
                     extra: 'Tap SEARCH chip in chat header to activate',
                   ),
 
+                  _debugStatusCard(
+                    label: '⚔️ Quests Service',
+                    status: 'Active',
+                    color: Colors.pinkAccent,
+                    icon: Icons.flag_circle_outlined,
+                    extra:
+                        'Total daily quests: ${QuestsService.instance.quests.length}',
+                  ),
+
                   const SizedBox(height: 20),
 
                   // ── ACTION BUTTONS ──────────────────────────────────────────

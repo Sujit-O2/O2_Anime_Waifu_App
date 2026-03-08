@@ -80,6 +80,10 @@ class CommandsPage extends StatelessWidget {
         _Cmd('Daily summary',
             '"Give me my daily summary" — auto-triggers every morning'),
         _Cmd('Sleep mode', 'Automatically mutes between midnight and 7 AM'),
+        _Cmd('Daily Quests', '"What are my quests?" / "Show daily tasks"'),
+        _Cmd('Morning Routine', '"Start my morning routine"'),
+        _Cmd('Night Routine', '"Start my night routine" / "Time for bed"'),
+        _Cmd('Mood Tracker', '"Log my mood" / "I am feeling happy today"'),
       ],
     ),
     _CmdCat(
