@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
+import com.example.anime_waifu.AppLog as Log
 
 /**
  * Receives an AlarmManager broadcast scheduled by [AssistantForegroundService.onTaskRemoved]
