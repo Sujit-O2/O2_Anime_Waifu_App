@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'weather_service.dart';
@@ -11,6 +12,8 @@ import 'mood_service.dart';
 import 'quote_service.dart';
 import 'reminder_service.dart';
 import 'news_service.dart';
+import 'contacts_lookup_service.dart';
+import 'affection_service.dart';
 
 class OpenAppActionResult {
   final bool launched;
@@ -98,8 +101,23 @@ class OpenAppService {
       return const OpenAppActionResult(
           launched: false, assistantMessage: 'Who should I call, Darling?');
     }
-    final cleaned = number.replaceAll(RegExp(r'[^\d+\s\-()]'), '').trim();
-    final dialTarget = cleaned.isNotEmpty ? cleaned : number;
+
+    // Check if it's a name (no digits) — look up in contacts first
+    String dialTarget = number;
+    final isName = !RegExp(r'\d').hasMatch(number);
+    if (isName) {
+      final resolved = await ContactsLookupService.resolvePhoneNumber(number);
+      if (resolved != null && resolved.isNotEmpty) {
+        dialTarget = resolved;
+      } else {
+        // No contact found — dial raw (Android may handle name query)
+        dialTarget = number;
+      }
+    } else {
+      dialTarget = number.replaceAll(RegExp(r'[^\d+\s\-()]'), '').trim();
+      if (dialTarget.isEmpty) dialTarget = number;
+    }
+
     try {
       final uri = Uri(scheme: 'tel', path: dialTarget);
       if (await canLaunchUrl(uri)) {
@@ -343,11 +361,29 @@ class OpenAppService {
     final turnOn = _actionPattern('FLASHLIGHT_ON').hasMatch(reply);
     final turnOff = _actionPattern('FLASHLIGHT_OFF').hasMatch(reply);
     if (!turnOn && !turnOff) return null;
+
+    // Ensure CAMERA permission is granted (required for setTorchMode)
+    if (Platform.isAndroid) {
+      final status = await Permission.camera.status;
+      if (!status.isGranted) {
+        final result = await Permission.camera.request();
+        if (!result.isGranted) {
+          return OpenAppActionResult(
+              launched: false,
+              assistantMessage:
+                  'Camera permission is needed to control the flashlight. Please grant it in Settings.');
+        }
+      }
+    }
+
     try {
-      await _nativeChannel.invokeMethod('toggleFlashlight', {'on': turnOn});
-      return OpenAppActionResult(
-          launched: true,
-          assistantMessage: turnOn ? 'Flashlight on.' : 'Flashlight off.');
+      final ok = await _nativeChannel
+          .invokeMethod<bool>('toggleFlashlight', {'on': turnOn});
+      if (ok == true) {
+        return OpenAppActionResult(
+            launched: true,
+            assistantMessage: turnOn ? 'Flashlight on.' : 'Flashlight off.');
+      }
     } catch (_) {}
     return OpenAppActionResult(
         launched: false,
@@ -1039,5 +1075,45 @@ $reminderText''';
       final lower = word.toLowerCase();
       return '${lower[0].toUpperCase()}${lower.length > 1 ? lower.substring(1) : ''}';
     }).join(' ');
+  }
+
+  // ─── 42. MORNING_ROUTINE ──────────────────────────────────────────────────
+
+  static Future<OpenAppActionResult?> handleMorningRoutine(String reply) async {
+    if (!_actionPattern('MORNING_ROUTINE').hasMatch(reply)) return null;
+
+    String weatherInfo = "It looks nice outside.";
+    try {
+      final w = await WeatherService.getWeather("Bhubaneswar");
+      weatherInfo = w;
+    } catch (_) {}
+
+    String quoteInfo = "";
+    try {
+      final q = QuoteService.getDailyQuote();
+      quoteInfo = "\n\nQuote for today: \"$q\"";
+    } catch (_) {}
+
+    // Reward for checking in morning
+    await AffectionService.instance.addPoints(10);
+
+    return OpenAppActionResult(
+        launched: false,
+        assistantMessage:
+            "Good morning, Darling! ☀️\n\nWeather today: $weatherInfo$quoteInfo\n\nLet's make today wonderful!");
+  }
+
+  // ─── 43. NIGHT_ROUTINE ────────────────────────────────────────────────────
+
+  static Future<OpenAppActionResult?> handleNightRoutine(String reply) async {
+    if (!_actionPattern('NIGHT_ROUTINE').hasMatch(reply)) return null;
+
+    // Reward for checking in before bed
+    await AffectionService.instance.addPoints(10);
+
+    return OpenAppActionResult(
+        launched: false,
+        assistantMessage:
+            "Good night, Darling. 🌙 You did great today. Get some rest, and I'll be right here waiting for you tomorrow.");
   }
 }
