@@ -11,38 +11,35 @@ extension _GachaPageExtension on _ChatHomePageState {
                 minHeight: constraints.maxHeight,
                 minWidth: constraints.maxWidth,
               ),
-              child: IntrinsicHeight(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                      child: Text(
-                        'GACHA QUOTES',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2,
-                        ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: Text(
+                      'GACHA QUOTES',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Roll for a random Zero Two quote, Darling~ 🎲',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white54, fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Roll for a random Zero Two quote, Darling~ 🎲',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white54, fontSize: 12),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: _GachaRoller(),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Use a fixed flex or just let it occupy space
+                  _GachaRoller(),
+                ],
               ),
             ),
           );

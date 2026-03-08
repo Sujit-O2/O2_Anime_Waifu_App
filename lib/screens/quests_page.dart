@@ -41,9 +41,9 @@ class _QuestsPageState extends State<QuestsPage> {
     final completedCount = quests.where((q) => q.isCompleted).length;
     final progress = quests.isEmpty ? 0.0 : completedCount / quests.length;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
+    return Material(
+      color: Colors.transparent,
+      child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
