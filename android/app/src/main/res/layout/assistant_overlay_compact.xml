@@ -1,34 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/assistantOverlayRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Blurred dark scrim behind the sheet -->
+    <!-- Transparent scrim behind the sheet -->
     <View
         android:id="@+id/overlayScrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0"
-        android:background="#88000000" />
+        android:background="#00000000" />
 
     <!-- Main bottom sheet -->
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/assistantOverlaySheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:orientation="vertical"
         android:background="@drawable/assistant_overlay_compact_bg"
-        android:paddingStart="20dp"
-        android:paddingTop="0dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="20dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:elevation="28dp">
+        android:clipToOutline="true">
+
+        <!-- Background animated GIF -->
+        <pl.droidsonroids.gif.GifImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sidebar_bg" />
+
+        <!-- Content layout -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/assistant_overlay_compact_bg"
+            android:paddingStart="20dp"
+            android:paddingTop="0dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="20dp"
+            android:clickable="true"
+            android:focusable="true">
 
         <!-- Handle bar with expanded touch target for resizing -->
         <FrameLayout
@@ -191,5 +205,6 @@
                 android:tint="#FFFFFFFF" />
         </LinearLayout>
 
-    </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
 </FrameLayout>
