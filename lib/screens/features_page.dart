@@ -516,6 +516,36 @@ class FeaturesPage extends StatelessWidget {
         'Controller attach/detach lifecycle management for media playback',
         'Portrait orientation restoration after leaving landscape player',
       ]),
+      _AboutFeatureSection('Relationship & Affection System', [
+        'Affection points system tracking relationship with the AI companion',
+        'Earned through chatting, completing quests, and daily routines',
+        'Decay mechanic — 2+ days of inactivity reduces affection points',
+        'Six relationship tiers: Stranger → Acquaintance → Friend → Close Friend → Darling → Soulmate',
+        'Each tier has a distinct color and unlocks more expressive AI responses',
+        'Affection progress bar visible in the drawer and Settings page',
+        'Singleton AffectionService for global state access and widget sync',
+      ]),
+      _AboutFeatureSection('Home Screen Widgets (20)', [
+        '20 distinct Android AppWidget providers installed via home_widget plugin',
+        'Affection (Small + Large) — shows relationship tier and progress bar',
+        'Daily Quote and Zero Two Quote widgets for home screen inspiration',
+        'Quick Actions Row + Grid — 3–6 buttons to Talk, Routine, or Quests',
+        'Weather, Battery, Mood, and Next Alarm info widgets',
+        '1-tap toggle widgets: Flashlight, DND, Open Chat shortcuts',
+        'Morning and Night Routine shortcut widgets',
+        'Pomodoro Status, Memory Flashcard, and Daily Summary glance widgets',
+        'Waifu Greeting & Clock and Device Stats (Wi-Fi) widgets',
+        'All widgets sync data from Flutter SharedPreferences in real-time',
+      ]),
+      _AboutFeatureSection('Routines & Dynamic Alarms', [
+        'Morning Routine — weather + daily briefing + affection greeting on wake',
+        'Night Routine — wind-down message, quote, and reflection on sleep',
+        'Dynamic Alarm integration — alarm trigger launches AI morning greeting',
+        '"Wake me up at 7 AM" voice command sets a precise system alarm',
+        'Alarm event detected on app launch via SharedPreferences flag',
+        'Both routines award affection points and synced to home screen widgets',
+        'Routine activity can be triggered from settings, widgets, or chat',
+      ]),
     ];
   }
 }
