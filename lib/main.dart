@@ -4925,7 +4925,10 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       case 10:
         return _buildSecretNotesPage();
       case 11:
-        return QuestsPage(themeMode: themeNotifier.value);
+        return QuestsPage(
+          themeMode: themeNotifier.value,
+          onBack: () => setState(() => _navIndex = 0),
+        );
       default:
         return const SizedBox.shrink();
     }
