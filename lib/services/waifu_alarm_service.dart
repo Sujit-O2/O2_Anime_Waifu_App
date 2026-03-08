@@ -1,6 +1,7 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 /// Handles setting native Android alarms through the alarm manager plugin.
 class WaifuAlarmService {
@@ -63,9 +64,23 @@ class WaifuAlarmService {
   }
 
   @pragma('vm:entry-point')
-  static void _alarmCallback() {
-    // This runs in background — trigger a local notification.
-    // The actual TTS is done when the app is foregrounded from the notification.
+  static void _alarmCallback() async {
+    // This runs in background — flag it and launch the app
     debugPrint('WaifuAlarm: callback triggered!');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('alarm_triggered', true);
+
+      // We have SYSTEM_ALERT_WINDOW permission, so we can launch activities from background!
+      final intent = AndroidIntent(
+        action: 'android.intent.action.MAIN',
+        package: 'com.example.anime_waifu',
+        componentName: 'com.example.anime_waifu.MainActivity',
+        flags: <int>[268435456], // FLAG_ACTIVITY_NEW_TASK
+      );
+      await intent.launch();
+    } catch (e) {
+      debugPrint("Error launching app from alarm: \$e");
+    }
   }
 }
