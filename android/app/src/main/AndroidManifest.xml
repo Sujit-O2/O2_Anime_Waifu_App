@@ -14,9 +14,14 @@
 <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 <uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.FLASHLIGHT" />
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 <uses-permission android:name="android.permission.READ_CONTACTS" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+<uses-permission android:name="android.permission.READ_SMS" />
+<uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
 
 <!-- If targeting newer Android versions, you may also request android.permission.POST_NOTIFICATIONS at runtime if you use notifications -->
 
@@ -126,6 +131,182 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_assistant_info" />
         </receiver>
+
+
+        <!-- Home Screen Widgets -->
+        <receiver android:name=".WaifuAffectionWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_affection_widget_info" />
+        </receiver>
+
+        <receiver android:name=".WaifuQuoteWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_quote_widget_info" />
+        </receiver>
+
+
+        <receiver android:name=".WaifuAffectionLargeWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_affection_large_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuZtQuoteWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_zt_quote_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuActionsGridWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_actions_grid_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuWeatherWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_weather_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuBatteryWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_battery_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuMoodWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_mood_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuAlarmWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_alarm_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuFlashlightWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_flashlight_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuDndWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_dnd_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuChatShortcutWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_chat_shortcut_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuMorningShortcutWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_morning_shortcut_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuNightShortcutWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_night_shortcut_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuPomodoroWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_pomodoro_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuMemoryWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_memory_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuDailySummaryWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_daily_summary_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuClockWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_clock_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuDeviceStatsWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_device_stats_widget_info" />
+        </receiver>
+        <receiver android:name=".WaifuActionsWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/waifu_actions_widget_info" />
+        </receiver>
+
+        <!-- Notification Listener for READ_NOTIFICATIONS command -->
+        <service
+            android:name=".WaifuNotificationListenerService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
     <!-- Required to query activities that can process text, see:
