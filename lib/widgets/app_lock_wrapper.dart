@@ -73,18 +73,32 @@ class AppLockWrapperState extends State<AppLockWrapper>
   Future<void> _authenticate() async {
     bool authenticated = false;
     try {
-      authenticated = await _auth.authenticate(
-        localizedReason: 'Please authenticate to access Zero Two',
-      );
+      // If device has no lock screen configured at all, allow through
+      final isSupported = await _auth.isDeviceSupported();
+      if (!isSupported) {
+        authenticated = true;
+      } else {
+        // Default authenticate() allows PIN/pattern/password as fallback
+        authenticated = await _auth.authenticate(
+          localizedReason: 'Please authenticate to access Zero Two',
+        );
+      }
     } catch (e) {
-      // Fallback if no auth is set up on device
-      authenticated = true;
+      // Do NOT set authenticated = true here — any error (cancel, failed,
+      // locked out) keeps the lock screen showing and will re-prompt.
+      debugPrint('AppLock auth error: $e');
+      authenticated = false;
     }
 
     if (mounted) {
-      setState(() {
-        _isAuthenticated = authenticated;
-      });
+      setState(() => _isAuthenticated = authenticated);
+      // Re-prompt if still not authenticated (prevents stuck state)
+      if (!authenticated && _isLockEnabled) {
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (mounted && !_isAuthenticated) {
+          _authenticate();
+        }
+      }
     }
   }
 
