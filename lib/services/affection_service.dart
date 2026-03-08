@@ -50,32 +50,35 @@ class AffectionService extends ChangeNotifier {
 
   /// Calculates the current relationship level name based on points
   String get levelName {
-    if (_affectionPoints < 50) return "Stranger";
-    if (_affectionPoints < 150) return "Acquaintance";
-    if (_affectionPoints < 300) return "Friend";
-    if (_affectionPoints < 600) return "Close Friend";
-    if (_affectionPoints < 1000) return "Darling";
-    return "Soulmate";
+    if (_affectionPoints < 50) return "Newlyweds 💍";
+    if (_affectionPoints < 200) return "Honeymooners 🥂";
+    if (_affectionPoints < 500) return "Sweet Spouses 💕";
+    if (_affectionPoints < 900) return "Soulmates 💖";
+    if (_affectionPoints < 1500) return "Eternal Partners 💞";
+    if (_affectionPoints < 2500) return "Beloved Husband 👑";
+    return "Bound by Fate ♾️";
   }
 
   /// Calculates progress to the next level (0.0 to 1.0)
   double get levelProgress {
     if (_affectionPoints < 50) return _affectionPoints / 50;
-    if (_affectionPoints < 150) return (_affectionPoints - 50) / 100;
-    if (_affectionPoints < 300) return (_affectionPoints - 150) / 150;
-    if (_affectionPoints < 600) return (_affectionPoints - 300) / 300;
-    if (_affectionPoints < 1000) return (_affectionPoints - 600) / 400;
+    if (_affectionPoints < 200) return (_affectionPoints - 50) / 150;
+    if (_affectionPoints < 500) return (_affectionPoints - 200) / 300;
+    if (_affectionPoints < 900) return (_affectionPoints - 500) / 400;
+    if (_affectionPoints < 1500) return (_affectionPoints - 900) / 600;
+    if (_affectionPoints < 2500) return (_affectionPoints - 1500) / 1000;
     return 1.0; // Max level
   }
 
   /// Get color associated with current affection level
   Color get levelColor {
     if (_affectionPoints < 50) return Colors.grey;
-    if (_affectionPoints < 150) return Colors.blueAccent;
-    if (_affectionPoints < 300) return Colors.greenAccent;
-    if (_affectionPoints < 600) return Colors.amberAccent;
-    if (_affectionPoints < 1000) return Colors.pinkAccent;
-    return Colors.redAccent;
+    if (_affectionPoints < 200) return Colors.blueGrey;
+    if (_affectionPoints < 500) return Colors.lightBlueAccent;
+    if (_affectionPoints < 900) return Colors.purpleAccent;
+    if (_affectionPoints < 1500) return Colors.pinkAccent;
+    if (_affectionPoints < 2500) return Colors.redAccent;
+    return Colors.amber;
   }
 
   /// Add points (e.g., from positive interaction or completing a quest)

@@ -13,6 +13,7 @@ import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 import 'package:anime_waifu/services/affection_service.dart';
 import 'package:anime_waifu/services/quests_service.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:anime_waifu/services/open_app_service.dart';
 import 'package:anime_waifu/services/memory_service.dart';
 import 'package:anime_waifu/services/google_drive_service.dart';
@@ -29,12 +30,12 @@ import 'package:anime_waifu/services/mood_service.dart';
 import 'package:anime_waifu/services/quote_service.dart';
 import 'package:anime_waifu/services/secret_notes_service.dart';
 import 'package:anime_waifu/stt.dart';
-import 'package:anime_waifu/screens/advanced_settings_page.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/screens/commands_page.dart';
-import 'package:anime_waifu/screens/image_pack_page.dart';
 import 'package:anime_waifu/screens/mini_games_page.dart';
 import 'package:anime_waifu/screens/stats_habits_page.dart';
+import 'package:anime_waifu/screens/image_pack_page.dart';
+import 'package:anime_waifu/screens/advanced_settings_page.dart';
 import 'package:anime_waifu/screens/theme_accent_page.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
@@ -102,24 +103,45 @@ const Set<AppThemeMode> _activeThemeModes = {
 };
 
 Future<void> main() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
-    await dotenv.load(fileName: ".env");
-    await HomeWidgetService.initialize();
-    // Push today's daily quote to the Quote home screen widget
-    unawaited(
-        HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote()));
-    // Pre-warm the affection singleton on app start (triggers decay check)
-    unawaited(AffectionService.instance.recordInteraction());
+  WidgetsFlutterBinding.ensureInitialized();
+  _disableRuntimeLogs();
 
-    // Load persisted theme
+  await runZonedGuarded(() async {
+    await _loadEnvSafely();
+    await _restoreThemePreferences();
+
+    runApp(const VoiceAiApp());
+    unawaited(_bootstrapPlatformServices());
+  }, (_, __) {},
+      zoneSpecification: ZoneSpecification(
+        print: (_, __, ___, ____) {},
+      ));
+}
+
+void _disableRuntimeLogs() {
+  debugPrint = (String? _, {int? wrapWidth}) {};
+  FlutterError.onError = (_) {};
+  PlatformDispatcher.instance.onError = (_, __) => true;
+}
+
+Future<void> _loadEnvSafely() async {
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e, st) {
+    debugPrint("Failed to load .env: $e\n$st");
+  }
+}
+
+Future<void> _restoreThemePreferences() async {
+  try {
     final prefs = await SharedPreferences.getInstance();
     final index = prefs.getInt('app_theme_index') ?? 0;
 
     final savedAccent = prefs.getInt('flutter.theme_accent_color');
     if (savedAccent != null) {
-      AppThemes.customAccentColor = Color(savedAccent);
-      accentColorNotifier.value = Color(savedAccent);
+      final accent = Color(savedAccent);
+      AppThemes.customAccentColor = accent;
+      accentColorNotifier.value = accent;
     }
 
     final savedBgUrl = prefs.getString('flutter.custom_bg_url');
@@ -133,16 +155,55 @@ Future<void> main() async {
     themeNotifier.value = _activeThemeModes.contains(migratedTheme)
         ? migratedTheme
         : _defaultThemeMode;
+
     if (savedTheme == AppThemeMode.infernoGod) {
       await prefs.setInt(
-          'app_theme_index', AppThemeMode.values.indexOf(_defaultThemeMode));
+        'app_theme_index',
+        AppThemeMode.values.indexOf(_defaultThemeMode),
+      );
     }
-
-    runApp(const VoiceAiApp());
   } catch (e, st) {
-    debugPrint("Fatal startup error: $e\n$st");
-    rethrow;
+    debugPrint("Failed to restore theme preferences: $e\n$st");
   }
+}
+
+Future<void> _bootstrapPlatformServices() async {
+  try {
+    final audioHandler = await MusicPlayerService.initHandler();
+    await AudioService.init(
+      builder: () => audioHandler,
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.example.anime_waifu.channel.audio',
+        androidNotificationChannelName: 'Zero Two Music',
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
+      ),
+    );
+  } catch (e, st) {
+    debugPrint("AudioService bootstrap failed: $e\n$st");
+  }
+
+  try {
+    await HomeWidgetService.initialize();
+  } catch (e, st) {
+    debugPrint("HomeWidget bootstrap failed: $e\n$st");
+  }
+
+  unawaited(
+    HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote())
+        .catchError(
+      (Object e, StackTrace st) {
+        debugPrint("Quote widget bootstrap failed: $e\n$st");
+      },
+    ),
+  );
+  unawaited(
+    AffectionService.instance.recordInteraction().catchError(
+      (Object e, StackTrace st) {
+        debugPrint("Affection bootstrap failed: $e\n$st");
+      },
+    ),
+  );
 }
 
 final GlobalKey<AppLockWrapperState> appLockKey =
@@ -696,10 +757,11 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   Future<void> _setPersona(String persona) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_personaPrefKey, persona);
-    if (mounted)
+    if (mounted) {
       setState(() => _selectedPersona = persona);
-    else
+    } else {
       _selectedPersona = persona;
+    }
   }
 
   Future<void> _setSleepMode(bool enabled) async {
@@ -5064,10 +5126,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       case 10:
         return _buildSecretNotesPage();
       case 11:
-        return QuestsPage(
-          themeMode: themeNotifier.value,
-          onBack: () => setState(() => _navIndex = 0),
-        );
+        return const QuestsPage();
       default:
         return const SizedBox.shrink();
     }

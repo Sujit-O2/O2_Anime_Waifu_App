@@ -379,7 +379,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                     color: Colors.pinkAccent,
                     icon: Icons.flag_circle_outlined,
                     extra:
-                        'Total daily quests: ${QuestsService.instance.quests.length}',
+                        'Total daily quests: ${QuestsService.instance.dailyQuests.length}',
                   ),
 
                   const SizedBox(height: 20),
@@ -443,6 +443,39 @@ extension _MainDebugExtension on _ChatHomePageState {
                       // Notifications
                       _debugActionBtn('Test Notif', Icons.notifications_active,
                           () => _sendProactiveBackgroundNotification()),
+                      _debugActionBtn('Quick Test Notif', Icons.bolt_rounded,
+                          () {
+                        final testMessages = [
+                          'Miss me, honey? 💕',
+                          'Darling, come back to me~',
+                          'I\'m waiting for you~ 🌸',
+                          'Don\'t forget about me, okay? 😤',
+                        ];
+                        final msg = testMessages[
+                            DateTime.now().millisecond % testMessages.length];
+                        updateState(() {
+                          _notifHistory.insert(0, {
+                            'msg': msg,
+                            'ts': DateTime.now().toIso8601String(),
+                          });
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(children: [
+                              const Icon(Icons.notifications_active,
+                                  color: Colors.pinkAccent, size: 16),
+                              const SizedBox(width: 8),
+                              Text('Test notification added!',
+                                  style: GoogleFonts.outfit(fontSize: 12)),
+                            ]),
+                            backgroundColor: Colors.black87,
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                      }),
                       _debugActionBtn(
                           'Show In-App Notif',
                           Icons.announcement_outlined,

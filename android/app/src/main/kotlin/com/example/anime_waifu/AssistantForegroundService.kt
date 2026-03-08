@@ -22,7 +22,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
+import com.example.anime_waifu.AppLog as Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import java.io.BufferedReader

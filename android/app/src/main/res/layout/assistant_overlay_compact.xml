@@ -31,10 +31,14 @@
             android:scaleType="centerCrop"
             android:src="@drawable/sidebar_bg" />
 
+        <com.example.anime_waifu.FireDropParticlesView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <!-- Content layout -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:background="@drawable/assistant_overlay_compact_bg"
             android:paddingStart="20dp"

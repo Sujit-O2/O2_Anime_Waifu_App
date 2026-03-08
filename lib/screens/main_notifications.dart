@@ -70,69 +70,6 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                   Colors.orangeAccent,
                 ),
                 const Spacer(),
-                // Quick Test Notification button
-                GestureDetector(
-                  onTap: () {
-                    final testMessages = [
-                      'Miss me, honey? 💕',
-                      'Darling, come back to me~',
-                      'I\'m waiting for you~ 🌸',
-                      'Don\'t forget about me, okay? 😤',
-                    ];
-                    final msg = testMessages[
-                        DateTime.now().millisecond % testMessages.length];
-                    updateState(() {
-                      _notifHistory.insert(0, {
-                        'msg': msg,
-                        'ts': DateTime.now().toIso8601String(),
-                      });
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(children: [
-                          const Icon(Icons.notifications_active,
-                              color: Colors.pinkAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Text('Test notification added!',
-                              style: GoogleFonts.outfit(fontSize: 12)),
-                        ]),
-                        backgroundColor: Colors.black87,
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.pinkAccent.withValues(alpha: 0.3),
-                          Colors.purpleAccent.withValues(alpha: 0.2),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border:
-                          Border.all(color: Colors.pinkAccent.withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.bolt_rounded,
-                            color: Colors.pinkAccent, size: 14),
-                        const SizedBox(width: 4),
-                        Text('Quick Test',
-                            style: GoogleFonts.outfit(
-                                color: Colors.pinkAccent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -222,7 +159,8 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                               const SizedBox(height: 6),
                               Text(msg,
                                   style: GoogleFonts.outfit(
-                                      color: Colors.white.withValues(alpha: 0.87),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.87),
                                       fontSize: 13)),
                             ],
                           ),
@@ -1181,8 +1119,9 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                          color: Theme.of(context)
+                              .primaryColor
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                               color: Theme.of(context)
@@ -1293,12 +1232,16 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                     ),
                     decoration: BoxDecoration(
                       color: selected
-                          ? Theme.of(context).primaryColor.withValues(alpha: 0.16)
+                          ? Theme.of(context)
+                              .primaryColor
+                              .withValues(alpha: 0.16)
                           : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: selected
-                            ? Theme.of(context).primaryColor.withValues(alpha: 0.45)
+                            ? Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: 0.45)
                             : Colors.white10,
                       ),
                     ),

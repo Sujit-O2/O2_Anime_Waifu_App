@@ -403,12 +403,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         sectionHeader('SETTINGS'),
                         ...settingsItems
                             .map((e) => navItem(Map<String, dynamic>.from(e))),
-                        sectionHeader('DEVELOPER'),
-                        ...devItems
-                            .map((e) => navItem(Map<String, dynamic>.from(e))),
-                        sectionHeader('QUICK LAUNCH'),
+                        sectionHeader('GAMES & TOOLS'),
                         quickItem(
-                          'Game Zone',
+                          '🎮 Game Zone',
                           Icons.sports_esports_rounded,
                           Colors.cyanAccent,
                           () {
@@ -417,9 +414,10 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                 MaterialPageRoute(
                                     builder: (_) => const GamesHubPage()));
                           },
+                          badge: '7 Games',
                         ),
                         quickItem(
-                          'Music Player',
+                          '🎵 Music Player',
                           Icons.music_note_rounded,
                           Colors.purpleAccent,
                           () {
@@ -431,7 +429,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           },
                         ),
                         quickItem(
-                          'Commands',
+                          '⌨️ Commands',
                           Icons.terminal_rounded,
                           Colors.pinkAccent,
                           () {
@@ -443,8 +441,12 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           },
                           badge: '40+',
                         ),
+                        sectionHeader('DEVELOPER'),
+                        ...devItems
+                            .map((e) => navItem(Map<String, dynamic>.from(e))),
+                        sectionHeader('INFO'),
                         quickItem(
-                          'All Features',
+                          '✨ All Features',
                           Icons.auto_awesome_rounded,
                           Colors.amberAccent,
                           () {
@@ -455,8 +457,6 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                     builder: (_) => const FeaturesPage()));
                           },
                         ),
-                        // INFO — About always last
-                        sectionHeader('INFO'),
                         navItem({
                           'label': 'About',
                           'icon': Icons.info_outline,

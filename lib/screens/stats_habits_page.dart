@@ -61,22 +61,31 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
           final text = msg.content.toLowerCase();
           if (text.contains('anime') ||
               text.contains('manga') ||
-              text.contains('otaku')) topics['anime'] = topics['anime']! + 1;
+              text.contains('otaku')) {
+            topics['anime'] = topics['anime']! + 1;
+          }
           if (text.contains('music') ||
               text.contains('song') ||
-              text.contains('play')) topics['music'] = topics['music']! + 1;
+              text.contains('play')) {
+            topics['music'] = topics['music']! + 1;
+          }
           if (text.contains('game') ||
               text.contains('play') ||
               text.contains('wordle') ||
-              text.contains('quiz')) topics['games'] = topics['games']! + 1;
+              text.contains('quiz')) {
+            topics['games'] = topics['games']! + 1;
+          }
           if (text.contains('sad') ||
               text.contains('happy') ||
               text.contains('feel') ||
-              text.contains('love'))
+              text.contains('love')) {
             topics['feelings'] = topics['feelings']! + 1;
+          }
           if (text.contains('help') ||
               text.contains('how') ||
-              text.contains('what')) topics['help'] = topics['help']! + 1;
+              text.contains('what')) {
+            topics['help'] = topics['help']! + 1;
+          }
         } else if (msg.role == 'assistant') {
           aiMsg++;
         }
