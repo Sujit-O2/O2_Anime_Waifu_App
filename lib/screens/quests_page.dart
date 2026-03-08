@@ -2,10 +2,12 @@ part of '../main.dart';
 
 class QuestsPage extends StatefulWidget {
   final AppThemeMode themeMode;
+  final VoidCallback onBack;
 
   const QuestsPage({
     super.key,
     required this.themeMode,
+    required this.onBack,
   });
 
   @override
@@ -64,7 +66,7 @@ class _QuestsPageState extends State<QuestsPage> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new_rounded,
                           color: Colors.white, size: 20),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: widget.onBack,
                       padding: EdgeInsets.zero,
                       constraints:
                           const BoxConstraints(minWidth: 40, minHeight: 40),
