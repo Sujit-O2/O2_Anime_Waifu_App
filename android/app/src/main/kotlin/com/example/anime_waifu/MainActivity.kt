@@ -31,8 +31,9 @@ import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.ryanheise.audioservice.AudioServiceFragmentActivity
 
-class MainActivity : FlutterFragmentActivity() {
+class MainActivity : AudioServiceFragmentActivity() {
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"

@@ -1,10 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:audio_service/audio_service.dart';
 
-/// Singleton music player service using just_audio + on_audio_query.
-class MusicPlayerService {
+/// Singleton music player service using just_audio + audio_service for background media notification.
+class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   static final MusicPlayerService _instance = MusicPlayerService._();
+
+  static Future<MusicPlayerService> initHandler() async {
+    return _instance;
+  }
+
+  static MusicPlayerService get instance => _instance;
   factory MusicPlayerService() => _instance;
   MusicPlayerService._();
 
@@ -70,14 +77,45 @@ class MusicPlayerService {
     _player.positionStream.listen((pos) => position.value = pos);
     _player.durationStream
         .listen((dur) => duration.value = dur ?? Duration.zero);
+
+    // Broadcast state to audio_service
+    _player.playbackEventStream.listen(_broadcastState);
     _player.playerStateStream.listen((state) {
       isPlaying.value = state.playing;
       if (state.processingState == ProcessingState.completed) {
-        skipNext();
+        skipToNext(); // use BaseAudioHandler method
       }
     });
 
     _groupSongsByFolder();
+  }
+
+  void _broadcastState(PlaybackEvent event) {
+    playbackState.add(playbackState.value.copyWith(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (_player.playing) MediaControl.pause else MediaControl.play,
+        MediaControl.stop,
+        MediaControl.skipToNext,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+        MediaAction.seekForward,
+        MediaAction.seekBackward,
+      },
+      androidCompactActionIndices: const [0, 1, 3],
+      processingState: const {
+        ProcessingState.idle: AudioProcessingState.idle,
+        ProcessingState.loading: AudioProcessingState.loading,
+        ProcessingState.buffering: AudioProcessingState.buffering,
+        ProcessingState.ready: AudioProcessingState.ready,
+        ProcessingState.completed: AudioProcessingState.completed,
+      }[_player.processingState]!,
+      playing: _player.playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+      speed: _player.speed,
+    ));
   }
 
   void _groupSongsByFolder() {
@@ -109,9 +147,21 @@ class MusicPlayerService {
     currentSong.value = song;
     isMiniPlayerVisible.value = true;
     isMiniPlayerMinimized.value = false;
+
     try {
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(song.uri!)));
-      await _player.play();
+      if (song.uri != null) {
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(song.uri!)));
+        mediaItem.add(MediaItem(
+          id: song.id.toString(),
+          album: song.album ?? 'Unknown Album',
+          title: song.title,
+          artist: song.artist ?? 'Unknown Artist',
+          duration: Duration(milliseconds: song.duration ?? 0),
+          artUri: Uri.parse(
+              'content://media/external/audio/media/${song.id}/albumart'),
+        ));
+        await _player.play();
+      }
     } catch (e) {
       debugPrint('MusicPlayer play error: $e');
     }
@@ -147,24 +197,33 @@ class MusicPlayerService {
     }
   }
 
-  Future<void> playPause() async {
-    if (_player.playing) {
-      await _player.pause();
-    } else if (currentSong.value != null) {
-      await _player.play();
-    } else {
-      await playSongAt(0);
-    }
+  @override
+  Future<void> play() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> stop() async {
+    await _player.stop();
+    currentSong.value = null;
+    isPlaying.value = false;
+    await super.stop();
   }
 
-  Future<void> skipNext() async {
+  @override
+  Future<void> seek(Duration position) => _player.seek(position);
+
+  @override
+  Future<void> skipToNext() async {
     final list = _currentPlaylist ?? _songs;
     if (list.isEmpty) return;
     final next = (_currentIndex + 1) % list.length;
     await playSongAt(next, playlist: list);
   }
 
-  Future<void> skipPrevious() async {
+  @override
+  Future<void> skipToPrevious() async {
     final list = _currentPlaylist ?? _songs;
     if (list.isEmpty) return;
     if (position.value.inSeconds > 3) {
@@ -175,15 +234,19 @@ class MusicPlayerService {
     }
   }
 
-  Future<void> seekTo(Duration pos) async {
-    await _player.seek(pos);
+  Future<void> playPause() async {
+    if (_player.playing) {
+      await pause();
+    } else if (currentSong.value != null) {
+      await play();
+    } else {
+      await playSongAt(0);
+    }
   }
 
-  Future<void> stop() async {
-    await _player.stop();
-    currentSong.value = null;
-    isPlaying.value = false;
-  }
+  Future<void> skipNext() => skipToNext();
+  Future<void> skipPrevious() => skipToPrevious();
+  Future<void> seekTo(Duration pos) => seek(pos);
 
   void hideMiniPlayer() {
     isMiniPlayerVisible.value = false;

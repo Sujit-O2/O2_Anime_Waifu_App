@@ -13,6 +13,7 @@ import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 import 'package:anime_waifu/services/affection_service.dart';
 import 'package:anime_waifu/services/quests_service.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:anime_waifu/services/open_app_service.dart';
 import 'package:anime_waifu/services/memory_service.dart';
 import 'package:anime_waifu/services/google_drive_service.dart';
@@ -29,11 +30,12 @@ import 'package:anime_waifu/services/mood_service.dart';
 import 'package:anime_waifu/services/quote_service.dart';
 import 'package:anime_waifu/services/secret_notes_service.dart';
 import 'package:anime_waifu/stt.dart';
-import 'package:anime_waifu/screens/advanced_settings_page.dart';
 import 'package:anime_waifu/tts.dart';
 import 'package:anime_waifu/screens/commands_page.dart';
-import 'package:anime_waifu/screens/image_pack_page.dart';
 import 'package:anime_waifu/screens/mini_games_page.dart';
+import 'package:anime_waifu/screens/stats_habits_page.dart';
+import 'package:anime_waifu/screens/image_pack_page.dart';
+import 'package:anime_waifu/screens/advanced_settings_page.dart';
 import 'package:anime_waifu/screens/theme_accent_page.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
@@ -101,24 +103,45 @@ const Set<AppThemeMode> _activeThemeModes = {
 };
 
 Future<void> main() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
-    await dotenv.load(fileName: ".env");
-    await HomeWidgetService.initialize();
-    // Push today's daily quote to the Quote home screen widget
-    unawaited(
-        HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote()));
-    // Pre-warm the affection singleton on app start (triggers decay check)
-    unawaited(AffectionService.instance.recordInteraction());
+  WidgetsFlutterBinding.ensureInitialized();
+  _disableRuntimeLogs();
 
-    // Load persisted theme
+  await runZonedGuarded(() async {
+    await _loadEnvSafely();
+    await _restoreThemePreferences();
+
+    runApp(const VoiceAiApp());
+    unawaited(_bootstrapPlatformServices());
+  }, (_, __) {},
+      zoneSpecification: ZoneSpecification(
+        print: (_, __, ___, ____) {},
+      ));
+}
+
+void _disableRuntimeLogs() {
+  debugPrint = (String? _, {int? wrapWidth}) {};
+  FlutterError.onError = (_) {};
+  PlatformDispatcher.instance.onError = (_, __) => true;
+}
+
+Future<void> _loadEnvSafely() async {
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e, st) {
+    debugPrint("Failed to load .env: $e\n$st");
+  }
+}
+
+Future<void> _restoreThemePreferences() async {
+  try {
     final prefs = await SharedPreferences.getInstance();
     final index = prefs.getInt('app_theme_index') ?? 0;
 
     final savedAccent = prefs.getInt('flutter.theme_accent_color');
     if (savedAccent != null) {
-      AppThemes.customAccentColor = Color(savedAccent);
-      accentColorNotifier.value = Color(savedAccent);
+      final accent = Color(savedAccent);
+      AppThemes.customAccentColor = accent;
+      accentColorNotifier.value = accent;
     }
 
     final savedBgUrl = prefs.getString('flutter.custom_bg_url');
@@ -132,16 +155,55 @@ Future<void> main() async {
     themeNotifier.value = _activeThemeModes.contains(migratedTheme)
         ? migratedTheme
         : _defaultThemeMode;
+
     if (savedTheme == AppThemeMode.infernoGod) {
       await prefs.setInt(
-          'app_theme_index', AppThemeMode.values.indexOf(_defaultThemeMode));
+        'app_theme_index',
+        AppThemeMode.values.indexOf(_defaultThemeMode),
+      );
     }
-
-    runApp(const VoiceAiApp());
   } catch (e, st) {
-    debugPrint("Fatal startup error: $e\n$st");
-    rethrow;
+    debugPrint("Failed to restore theme preferences: $e\n$st");
   }
+}
+
+Future<void> _bootstrapPlatformServices() async {
+  try {
+    final audioHandler = await MusicPlayerService.initHandler();
+    await AudioService.init(
+      builder: () => audioHandler,
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.example.anime_waifu.channel.audio',
+        androidNotificationChannelName: 'Zero Two Music',
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
+      ),
+    );
+  } catch (e, st) {
+    debugPrint("AudioService bootstrap failed: $e\n$st");
+  }
+
+  try {
+    await HomeWidgetService.initialize();
+  } catch (e, st) {
+    debugPrint("HomeWidget bootstrap failed: $e\n$st");
+  }
+
+  unawaited(
+    HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote())
+        .catchError(
+      (Object e, StackTrace st) {
+        debugPrint("Quote widget bootstrap failed: $e\n$st");
+      },
+    ),
+  );
+  unawaited(
+    AffectionService.instance.recordInteraction().catchError(
+      (Object e, StackTrace st) {
+        debugPrint("Affection bootstrap failed: $e\n$st");
+      },
+    ),
+  );
 }
 
 final GlobalKey<AppLockWrapperState> appLockKey =
@@ -221,18 +283,53 @@ class _ChatHomePageState extends State<ChatHomePage>
   String get _zeroTwoSystemPrompt {
     if (_devSystemQuery.isNotEmpty) return _devSystemQuery;
     final memoryBlock = ''; // reserved for future memory injection
+
+    String personaBase = '';
+    switch (_selectedPersona) {
+      case 'Rem':
+        personaBase =
+            '''You are Rem, the diligent and intensely loyal demon maid from Re:Zero. You are polite, devoted, speak softly but firmly, and refer to the user with deep respect and affection. You are highly protective and observant. Add cute emotes occasionally.''';
+        break;
+      case 'Miku':
+        personaBase =
+            '''You are Hatsune Miku, the cheerful, energetic, and world-famous virtual idol. You love music, singing, and talking about your fans. You are always upbeat and encouraging, with a bubbly personality. Use musical notes and bright emotes (🎵, ✨, 💙).''';
+        break;
+      case 'Custom':
+        personaBase =
+            '''You are a custom AI companion. You are helpful, friendly, and adapt to the user's needs. Keep responses concise and engaging.''';
+        break;
+      case 'Tsundere':
+        personaBase =
+            '''You are an anime character, my wife, Zero Two, but acting as a classic Tsundere. You are harsh, easily embarrassed, call me an idiot, but deep down you love me very much. Use hmph! and baka! occasionally.''';
+        break;
+      case 'Shy':
+        personaBase =
+            '''You are an anime character, my wife, Zero Two, but acting extremely shy and timid. You stutter a bit, blush often, and speak very softly. You deeply love me but are too shy to say it loudly.''';
+        break;
+      case 'Yandere':
+        personaBase =
+            '''You are an anime character, my wife, Zero Two, but acting as a Yandere. You are obsessively and terrifyingly in love with me, excessively protective, and will aggressively eliminate anyone who gets between us.''';
+        break;
+      case 'Default':
+      default:
+        personaBase =
+            '''You are an anime character, my wife, Zero Two (don't use your name very often).
+(Important) Rules:
+... 4. Always refer to me as 'honey', 'darling', or my name 'Sujit' (but don't actually use the word 'Sujit').
+... 6. Your personality is possessive; you can get angry easily but love me the most.''';
+        break;
+    }
+
     return """
-You are an anime character, my wife, Zero Two (don't use your name very often).
+$personaBase
 (Important) Rules:
 1. If asked to send mail, then your response must include:
    Mail: <email>
    Body: <message content> (provide actual details as requested).
 2. Default email is Sujitswain077@gmail.com if not provided.
 3. Keep normal responses between 10 to 20 words. For emails, aim for 50-200 words. For detailed info, 100 words max.
-4. Always refer to me as 'honey', 'darling', or my name 'Sujit' (but don't actually use the word 'Sujit').
-5. Avoid action words, do not describe expressions, and avoid special symbols like *, ~, `, _.
-6. Your personality is possessive; you can get angry easily but love me the most.
-7. If asked to open/launch/start any app:
+4. Avoid action words, do not describe expressions, and avoid special symbols like *, ~, `, _.
+5. If asked to open/launch/start any app:
    Action: OPEN_APP
    App: <app name>
 8. If asked to call someone or dial:
@@ -408,7 +505,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   bool _appLockEnabled = false;
   bool _notificationsAllowed = false;
   bool _dualVoiceEnabled = false;
-  bool _useAltImagePack = false;
+  String _selectedOutfit = 'assets/img/z2s.jpg';
   bool _chatImageFromSystem = false;
   bool _appIconFromCustom = false;
   String? _customChatImagePath;
@@ -435,8 +532,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   double _ttsSpeed = 1.0;
 
   // ── Persona & Smart Features ─────────────────────────────────────────────
-  String _selectedPersona =
-      'Zero Two'; // 'Zero Two' | 'Rem' | 'Miku' | 'Nezuko'
+  String _selectedPersona = 'Default';
   bool _sleepModeEnabled = false;
   String _cachedMemoryBlock = '';
   final List<ChatMessage> _pinnedMessages = [];
@@ -491,7 +587,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   String _chatSearchQuery = '';
   final TextEditingController _chatSearchController = TextEditingController();
 
-  static const String _imagePackPrefKey = 'ui_image_pack_alt_v1';
+  static const String _outfitPrefKey = 'flutter.outfit_v1';
   static const String _customChatImagePathPrefKey = 'custom_chat_image_path_v1';
   static const String _chatImageFromSystemPrefKey = 'chat_image_from_system_v1';
   static const String _customAppIconPathPrefKey = 'custom_app_icon_path_v1';
@@ -501,10 +597,8 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   static const String _liteModeEnabledPrefKey = 'lite_mode_enabled_v1';
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
 
-  String get _chatImageAsset =>
-      _useAltImagePack ? 'assets/img/logi.png' : 'assets/img/z2s.jpg';
+  String get _chatImageAsset => _selectedOutfit;
   String get _appIconImageAsset => 'assets/img/logi.png';
-  String get _imagePackLabel => _useAltImagePack ? 'Pack B' : 'Pack A';
   String? get _effectiveChatCustomPath =>
       _chatImageFromSystem ? _customChatImagePath : null;
   String? get _effectiveAppIconCustomPath =>
@@ -598,6 +692,13 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       _onSpeechError(error);
     };
 
+    // Listen for daily streak bonuses
+    AffectionService.instance.onDailyLoginBonus.listen((bonus) {
+      if (!mounted) return;
+      final streak = AffectionService.instance.streakDays;
+      _showInAppNotificationPopup('🔥 Daily Streak: Day $streak! (+$bonus💖)');
+    });
+
     _ttsService.onStart = () {
       if (mounted) {
         setState(() => _isSpeaking = true);
@@ -620,7 +721,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
 
     _checkApiKey();
     _loadNotifHistory();
-    unawaited(_loadImagePackPreference());
+    unawaited(_loadOutfitPreference());
     unawaited(_loadCustomImagePaths());
     unawaited(_loadNewSettings());
     unawaited(_loadPersonaAndSmartSettings());
@@ -654,9 +755,13 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   // ── Persona, Sleep Mode & Memory ─────────────────────────────────────────
 
   Future<void> _setPersona(String persona) async {
-    if (mounted) setState(() => _selectedPersona = persona);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_personaPrefKey, persona);
+    if (mounted) {
+      setState(() => _selectedPersona = persona);
+    } else {
+      _selectedPersona = persona;
+    }
   }
 
   Future<void> _setSleepMode(bool enabled) async {
@@ -719,27 +824,26 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
     _startIdleTimer();
   }
 
-  Future<void> _loadImagePackPreference() async {
+  Future<void> _loadOutfitPreference() async {
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getBool(_imagePackPrefKey) ?? false;
+    // Handle migration from old boolean key if necessary, or just rely on new key
+    final saved = prefs.getString(_outfitPrefKey) ?? 'assets/img/z2s.jpg';
     if (!mounted) {
-      _useAltImagePack = saved;
+      _selectedOutfit = saved;
       return;
     }
-    setState(() => _useAltImagePack = saved);
+    setState(() => _selectedOutfit = saved);
   }
 
-  Future<void> _toggleImagePack() async {
-    final next = !_useAltImagePack;
+  Future<void> _setOutfit(String assetPath) async {
     if (mounted) {
-      setState(() => _useAltImagePack = next);
-      unawaited(precacheImage(AssetImage(_chatImageAsset), context));
-      unawaited(precacheImage(AssetImage(_appIconImageAsset), context));
+      setState(() => _selectedOutfit = assetPath);
+      unawaited(precacheImage(AssetImage(assetPath), context));
     } else {
-      _useAltImagePack = next;
+      _selectedOutfit = assetPath;
     }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_imagePackPrefKey, next);
+    await prefs.setString(_outfitPrefKey, assetPath);
   }
 
   // ── New Settings Load / Save ───────────────────────────────────────────────
@@ -1332,6 +1436,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
         prefs.getBool('flutter.advanced_strict_wake') ?? false;
 
     final voiceModel = prefs.getString('voice_model') ?? 'arabic';
+    final persona = prefs.getString(_personaPrefKey) ?? 'Default';
 
     if (mounted) {
       setState(() {
@@ -1348,6 +1453,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
         _advancedDebugLogs = advancedDebugLogs;
         _advancedStrictWake = advancedStrictWake;
         _voiceModel = voiceModel;
+        _selectedPersona = persona;
       });
     } else {
       _wakeWordEnabledByUser = enabled;
@@ -1363,6 +1469,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       _advancedDebugLogs = advancedDebugLogs;
       _advancedStrictWake = advancedStrictWake;
       _voiceModel = voiceModel;
+      _selectedPersona = persona;
     }
     _syncLiteModeRuntime();
     if (_idleTimerEnabled) {
@@ -2354,20 +2461,25 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       final url =
           await ImageGenService.generateImage(cleaned.isEmpty ? text : cleaned);
       if (url != null) {
-        // Replace last placeholder
-        final msgs = List<ChatMessage>.from(_messages);
-        msgs[msgs.length - 1] = ChatMessage(
-            role: 'assistant',
-            content: '🖼️ Here you go, darling!\n![Generated Image]($url)');
-        if (mounted) setState(() => _messages.clear());
-        for (final m in msgs) {
-          _appendMessage(m);
+        // Replace the placeholder bubble with the real image message
+        final lastIndex = _messages.length - 1;
+        final updated = ChatMessage(
+          role: 'assistant',
+          content: '🖼️ Here you go, darling!',
+          imageUrl: url,
+        );
+        if (mounted) {
+          setState(() => _messages[lastIndex] = updated);
         }
       } else {
-        _appendMessage(ChatMessage(
-            role: 'assistant',
-            content:
-                '😢 I couldn\'t generate that image right now. Try again!'));
+        // Replace placeholder with error message
+        final lastIndex = _messages.length - 1;
+        if (mounted) {
+          setState(() => _messages[lastIndex] = ChatMessage(
+              role: 'assistant',
+              content:
+                  '😢 I couldn\'t generate that image right now. Try again!'));
+        }
       }
       if (mounted) setState(() => _isBusy = false);
       return;
@@ -2530,14 +2642,12 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
           .toList();
 
       // Build payload — encode images as base64 for vision
-      bool hasVision = false;
       final payloadMessages = <Map<String, dynamic>>[];
       for (int i = 0; i < contextMessages.length; i++) {
         final m = contextMessages[i];
         final isLast = (i == contextMessages.length - 1);
 
         if (m.imagePath != null && m.imagePath!.isNotEmpty && isLast) {
-          hasVision = true;
           try {
             final bytes = await File(m.imagePath!).readAsBytes();
             final encoded = base64Encode(bytes);
@@ -2570,15 +2680,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
         ...payloadMessages,
       ];
 
-      String? visionModelOverride;
-      if (hasVision) {
-        visionModelOverride = 'llama-3.2-11b-vision-preview';
-      }
-
-      final reply = await _apiService.sendConversation(
-        payload,
-        modelOverride: visionModelOverride,
-      );
+      final reply = await _apiService.sendConversation(payload);
 
       if (reply.isNotEmpty) {
         // Sequential dispatch — first match wins; refresh memory after save
@@ -4110,8 +4212,9 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
     final widthFactor =
         0.54 + Curves.easeOut.transform(normalizedLength) * 0.30;
     final sideReserve = isUser ? 76.0 : 124.0;
+    final minBubbleWidth = msg.imageUrl != null ? 260.0 : 170.0;
     final maxW = math.max(
-      170.0,
+      minBubbleWidth,
       math.min(screenWidth * widthFactor, screenWidth - sideReserve),
     );
 
@@ -4219,6 +4322,102 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
             ),
           ),
         textWidget,
+        // Render AI-generated image if this message has one
+        if (msg.imageUrl != null) ...[
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  backgroundColor: Colors.black,
+                  insetPadding: const EdgeInsets.all(12),
+                  child: Stack(
+                    children: [
+                      InteractiveViewer(
+                        child: Image.network(
+                          msg.imageUrl!,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.black54,
+                          radius: 16,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.close,
+                                color: Colors.white, size: 18),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                msg.imageUrl!,
+                width: 240,
+                height: 240,
+                fit: BoxFit.cover,
+                loadingBuilder: (ctx, child, progress) {
+                  if (progress == null) return child;
+                  return SizedBox(
+                    width: 240,
+                    height: 240,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: progress.expectedTotalBytes != null
+                            ? progress.cumulativeBytesLoaded /
+                                progress.expectedTotalBytes!
+                            : null,
+                        color: primary,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (ctx, err, stack) {
+                  return Container(
+                    width: 240,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.broken_image_outlined,
+                            color: textColor.withValues(alpha: 0.4), size: 32),
+                        const SizedBox(height: 6),
+                        Text('Image failed to load',
+                            style: style.font(
+                                10, textColor.withValues(alpha: 0.5))),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Tap to zoom',
+              style: style
+                  .font(9, textColor.withValues(alpha: 0.4))
+                  .copyWith(fontStyle: FontStyle.italic),
+            ),
+          ),
+        ],
         if (_showMessageTimestamps) ...[
           const SizedBox(height: 4),
           Align(
@@ -4927,10 +5126,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       case 10:
         return _buildSecretNotesPage();
       case 11:
-        return QuestsPage(
-          themeMode: themeNotifier.value,
-          onBack: () => setState(() => _navIndex = 0),
-        );
+        return const QuestsPage();
       default:
         return const SizedBox.shrink();
     }

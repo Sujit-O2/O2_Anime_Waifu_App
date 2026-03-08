@@ -7,7 +7,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
+import com.example.anime_waifu.AppLog as Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -19,6 +19,7 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -228,24 +229,24 @@ object AssistantOverlayController {
             val dragHandle = root.findViewById<View>(R.id.overlayDragHandle)
 
             var initialY = 0f
-            var initialHeight = 0
+            var initialSheetHeight = 0
             dragHandle.setOnTouchListener { v, event ->
                 when (event.action) {
                     android.view.MotionEvent.ACTION_DOWN -> {
                         initialY = event.rawY
-                        initialHeight = transcriptScroll.height
+                        initialSheetHeight = sheet.height
                         true
                     }
                     android.view.MotionEvent.ACTION_MOVE -> {
                         val deltaY = initialY - event.rawY
-                        var newHeight = (initialHeight + deltaY).toInt()
-                        val minH = dpF(context, 140).toInt()
-                        val maxH = dpF(context, 600).toInt()
-                        newHeight = newHeight.coerceIn(minH, maxH)
-                        
-                        val lp = transcriptScroll.layoutParams as ViewGroup.LayoutParams
-                        lp.height = newHeight
-                        transcriptScroll.layoutParams = lp
+                        var newH = (initialSheetHeight + deltaY).toInt()
+                        val minH = dp(context, 220)
+                        val maxH = (context.resources.displayMetrics.heightPixels * 0.85f).toInt()
+                        newH = newH.coerceIn(minH, maxH)
+
+                        val lp = sheet.layoutParams as ViewGroup.LayoutParams
+                        lp.height = newH
+                        sheet.layoutParams = lp
                         true
                     }
                     android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
@@ -307,10 +308,12 @@ object AssistantOverlayController {
                 root.getWindowVisibleDisplayFrame(visibleRect)
                 val screenHeight = root.rootView.height
                 val keyboardHeight = screenHeight - visibleRect.bottom
-                val newY = if (keyboardHeight > screenHeight * 0.15f) keyboardHeight else 0
-                if (params.y != newY) {
-                    params.y = newY
-                    try { wm.updateViewLayout(root, params) } catch (_: Exception) {}
+                val newBottomMargin =
+                    if (keyboardHeight > screenHeight * 0.15f) keyboardHeight else 0
+                val sheetParams = sheet.layoutParams as FrameLayout.LayoutParams
+                if (sheetParams.bottomMargin != newBottomMargin) {
+                    sheetParams.bottomMargin = newBottomMargin
+                    sheet.layoutParams = sheetParams
                 }
             }
 
@@ -319,11 +322,11 @@ object AssistantOverlayController {
             sheet.translationY = dpF(context, 500)
             sheet.scaleX = 0.96f
 
-            // Set initial height to 40% of screen height
+            // Set initial sheet height to 40% of screen height
             val metrics = context.resources.displayMetrics
-            val lp = transcriptScroll.layoutParams as ViewGroup.LayoutParams
+            val lp = sheet.layoutParams as ViewGroup.LayoutParams
             lp.height = (metrics.heightPixels * 0.4f).toInt()
-            transcriptScroll.layoutParams = lp
+            sheet.layoutParams = lp
 
             attached = true
             visible = false
@@ -404,6 +407,34 @@ object AssistantOverlayController {
             dot.alpha = 1f
             dot.scaleX = 1f
             dot.scaleY = 1f
+        }
+
+        // ── Mic button pulse animation ────────────────────────────────────
+        val mic = micButtonView
+        if (mic != null) {
+            mic.animate().cancel()
+            if (isListening) {
+                // Loop: scale up → scale down, repeat indefinitely
+                val pulseUp = Runnable {
+                    mic.animate()
+                        .scaleX(1.25f).scaleY(1.25f).alpha(1f)
+                        .setDuration(500L)
+                        .setInterpolator(AccelerateDecelerateInterpolator())
+                        .withEndAction {
+                            mic.animate()
+                                .scaleX(1f).scaleY(1f).alpha(0.75f)
+                                .setDuration(500L)
+                                .setInterpolator(AccelerateDecelerateInterpolator())
+                                .start()
+                        }
+                        .start()
+                }
+                mainHandler.post(pulseUp)
+            } else {
+                mic.animate()
+                    .scaleX(1f).scaleY(1f).alpha(1f)
+                    .setDuration(200L).start()
+            }
         }
     }
 

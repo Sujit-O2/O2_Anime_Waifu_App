@@ -108,6 +108,83 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     const SizedBox(height: 12),
                                     _buildFeatureGuideButton(),
                                     const SizedBox(height: 28),
+                                    _buildSectionTitle('STATS & HABITS'),
+                                    const SizedBox(height: 12),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const StatsAndHabitsPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orangeAccent
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.orangeAccent
+                                                  .withValues(alpha: 0.4)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orangeAccent
+                                                    .withValues(alpha: 0.2),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                  Icons.bar_chart_rounded,
+                                                  color: Colors.orangeAccent,
+                                                  size: 20),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'My Stats & Habits',
+                                                    style: GoogleFonts.outfit(
+                                                      color:
+                                                          Colors.orangeAccent,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    'Check your relationship and daily habits',
+                                                    style: GoogleFonts.outfit(
+                                                      color: Colors.white60,
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const Icon(
+                                                Icons.arrow_forward_ios_rounded,
+                                                color: Colors.orangeAccent,
+                                                size: 14),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 28),
                                     _buildSectionTitle('FEATURE COVERAGE'),
                                     const SizedBox(height: 12),
                                     _buildFeatureCoverageGraph(),

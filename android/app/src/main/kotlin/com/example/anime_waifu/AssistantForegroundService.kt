@@ -22,7 +22,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
+import com.example.anime_waifu.AppLog as Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import java.io.BufferedReader
@@ -723,12 +723,11 @@ class AssistantForegroundService : Service() {
         val popupEnabled = isWakePopupEnabled()
         val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
         if (shouldShowPopup) {
-            val autoHideMs = 4200L
             AssistantOverlayController.show(
                 applicationContext,
                 status = "Zero Two",
                 transcript = content,
-                autoHideMs = autoHideMs
+                autoHideMs = 300_000L
             )
         }
 
@@ -807,7 +806,7 @@ class AssistantForegroundService : Service() {
     private fun syncOverlayStatus(
         status: String,
         transcript: String,
-        autoHideMs: Long = 12000L
+        autoHideMs: Long = 300_000L
     ) {
         AssistantOverlayController.update(
             applicationContext,
@@ -1104,8 +1103,7 @@ class AssistantForegroundService : Service() {
                     } else if (commandMode) {
                         syncOverlayStatus(
                             "Listening",
-                            "Didn't catch that clearly. Speak again.",
-                            autoHideMs = 6000L
+                            "Didn't catch that clearly. Speak again."
                         )
                     }
                 }
@@ -1156,8 +1154,7 @@ class AssistantForegroundService : Service() {
             if (commandMode) {
                 syncOverlayStatus(
                     "Setup needed",
-                    "Open app once and enable Background Assistant.",
-                    autoHideMs = 9000L
+                    "Open app once and enable Background Assistant."
                 )
             }
             return ""
@@ -1257,8 +1254,7 @@ class AssistantForegroundService : Service() {
                 stopWakeCaptureLoop()
                 syncOverlayStatus(
                     "Listening ended",
-                    "Mic timed out. Tap mic and try again.",
-                    autoHideMs = 8000L
+                    "Mic timed out. Tap mic and try again."
                 )
                 return
             }
@@ -1270,7 +1266,7 @@ class AssistantForegroundService : Service() {
             if (overlayListenSessionActive && !wakeModeEnabled) {
                 stopWakeCaptureLoop()
             }
-            syncOverlayStatus("You", spokenCommand, autoHideMs = 16000L)
+            syncOverlayStatus("You", spokenCommand)
             handleVoiceCommand(spokenCommand, speakReply = true)
             return
         }
@@ -1281,7 +1277,7 @@ class AssistantForegroundService : Service() {
 
         val inlineCommand = stripWakePhrases(normalized)
         if (inlineCommand.isNotBlank()) {
-            syncOverlayStatus("You", inlineCommand, autoHideMs = 16000L)
+            syncOverlayStatus("You", inlineCommand)
             handleVoiceCommand(inlineCommand, speakReply = true)
             return
         }
@@ -1294,7 +1290,7 @@ class AssistantForegroundService : Service() {
     private fun handleVoiceCommand(command: String, speakReply: Boolean = true) {
         val cleaned = command.trim()
         if (cleaned.isBlank()) return
-        syncOverlayStatus("You", cleaned, autoHideMs = 30000L)
+        syncOverlayStatus("You", cleaned)
         persistChatMessage("user", cleaned)
         fetchAndRespondToVoiceCommand(cleaned, speakReply)
     }
@@ -1311,8 +1307,7 @@ class AssistantForegroundService : Service() {
             }
             syncOverlayStatus(
                 "Queued",
-                "I'll handle this after the current request.",
-                autoHideMs = 14000L
+                "I'll handle this after the current request."
             )
             return
         }
@@ -1323,7 +1318,7 @@ class AssistantForegroundService : Service() {
             Log.e(TAG, "Cannot process voice command: apiKey or apiUrl missing")
             val setupMissing = "I need API setup to answer you."
             persistChatMessage("assistant", setupMissing)
-            syncOverlayStatus("Zero Two", setupMissing, autoHideMs = 28000L)
+            syncOverlayStatus("Zero Two", setupMissing)
             showWakeAlert(setupMissing, pulse = true)
             if (speakReply) {
                 queueWakeReplySpeech(setupMissing)
@@ -1334,8 +1329,7 @@ class AssistantForegroundService : Service() {
         commandGenerating = true
         syncOverlayStatus(
             "Processing",
-            "Working on: ${command.take(90)}",
-            autoHideMs = 35000L
+            "Working on: ${command.take(90)}"
         )
         executor.execute {
             try {
@@ -1376,7 +1370,7 @@ class AssistantForegroundService : Service() {
 
                 val finalReply = handleAssistantReplyAction(reply)
                 persistChatMessage("assistant", finalReply)
-                syncOverlayStatus("Zero Two", finalReply, autoHideMs = 30000L)
+                syncOverlayStatus("Zero Two", finalReply)
                 showWakeAlert(finalReply, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(finalReply)
@@ -1385,7 +1379,7 @@ class AssistantForegroundService : Service() {
                 Log.e(TAG, "Voice command error: ${e.message}")
                 val fallback = "I had trouble processing that. Try again."
                 persistChatMessage("assistant", fallback)
-                syncOverlayStatus("Zero Two", fallback, autoHideMs = 28000L)
+                syncOverlayStatus("Zero Two", fallback)
                 showWakeAlert(fallback, pulse = true)
                 if (speakReply) {
                     queueWakeReplySpeech(fallback)
