@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">S-002</string>
+    <string name="widget_dashboard_description">Waifu companion dashboard with affection level and quick actions</string>
+    <string name="widget_status_description">Real-time battery and memory monitor</string>
+    <string name="widget_weather_description">Anime-themed time and weather display</string>
+    <string name="widget_actions_description">Quick action shortcuts for your waifu app</string>
+    <string name="widget_quote_description">Daily motivational quote from your Waifu</string>
+</resources>
