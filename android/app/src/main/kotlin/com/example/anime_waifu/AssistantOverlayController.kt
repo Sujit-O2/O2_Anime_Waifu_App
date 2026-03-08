@@ -25,7 +25,7 @@ import android.widget.TextView
 
 object AssistantOverlayController {
     private const val TAG = "AssistantOverlay"
-    private const val DEFAULT_AUTO_HIDE_MS = 9000L
+    private const val DEFAULT_AUTO_HIDE_MS = 0L
     private const val DEDUPE_WINDOW_MS = 700L
 
     private const val ACTION_OVERLAY_SEND_TEXT = "OVERLAY_SEND_TEXT"
@@ -280,16 +280,12 @@ object AssistantOverlayController {
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_BLUR_BEHIND,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
                 y = 0
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    blurBehindRadius = 45
-                }
             }
 
             wm.addView(root, params)
@@ -322,6 +318,13 @@ object AssistantOverlayController {
             sheet.alpha = 0f
             sheet.translationY = dpF(context, 500)
             sheet.scaleX = 0.96f
+
+            // Set initial height to 40% of screen height
+            val metrics = context.resources.displayMetrics
+            val lp = transcriptScroll.layoutParams as ViewGroup.LayoutParams
+            lp.height = (metrics.heightPixels * 0.4f).toInt()
+            transcriptScroll.layoutParams = lp
+
             attached = true
             visible = false
             animatingOut = false
@@ -487,9 +490,9 @@ object AssistantOverlayController {
             sheet.scaleY = 0.88f
             scrim?.alpha = 0f
 
-            // Scrim fades in quickly
+            // Keep scrim transparent so the screen doesn't dim
             scrim?.animate()
-                ?.alpha(0.88f)
+                ?.alpha(0f)
                 ?.setDuration(260L)
                 ?.setInterpolator(DecelerateInterpolator(1.4f))
                 ?.start()

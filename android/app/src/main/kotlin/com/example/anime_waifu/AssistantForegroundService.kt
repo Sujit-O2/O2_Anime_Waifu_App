@@ -2,6 +2,7 @@ package com.example.anime_waifu
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -161,12 +162,28 @@ class AssistantForegroundService : Service() {
         }
     }
 
+    // BroadcastReceiver for swipe-gesture-triggered overlay
+    private val showOverlayReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(ctx: android.content.Context, intent: Intent) {
+            if (intent.action == "com.example.anime_waifu.SHOW_OVERLAY") {
+                handler.post { showWakeAlert("Say your command...", false) }
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         prefs = getSharedPreferences("assistant_prefs", Context.MODE_PRIVATE)
         flutterPrefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         loadConfig()
         createChannel()
+        // Register swipe-gesture overlay receiver
+        val filter = android.content.IntentFilter("com.example.anime_waifu.SHOW_OVERLAY")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(showOverlayReceiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(showOverlayReceiver, filter)
+        }
     }
 
     private fun loadConfig() {
@@ -651,6 +668,10 @@ class AssistantForegroundService : Service() {
 
     private fun showCheckInAlert(content: String) {
         persistProactiveMessage(content)
+        // Don't send a notification if the app is already open — Flutter will
+        // pick up the persisted message and show it in the chat directly.
+        if (isAppInForeground()) return
+
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(random.nextInt())
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
@@ -675,7 +696,6 @@ class AssistantForegroundService : Service() {
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setTimeoutAfter(25000)
             .addAction(
                 android.R.drawable.ic_menu_view,
                 "Open App",
@@ -687,6 +707,13 @@ class AssistantForegroundService : Service() {
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
+        // Never show popup/notification when the app is open and in foreground
+        if (isAppInForeground()) {
+            // App is visible — just update the persistent notification silently
+            updateNotification(content)
+            return
+        }
+
         val wakePrompt = isWakePrompt(content)
         val shouldPulse = if (wakePrompt) {
             pulse && isSoundOnWakeEnabled()
@@ -740,7 +767,6 @@ class AssistantForegroundService : Service() {
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setTimeoutAfter(14000)
             .addAction(
                 android.R.drawable.ic_menu_view,
                 "Open App",
@@ -753,6 +779,18 @@ class AssistantForegroundService : Service() {
 
     private fun isWakePopupEnabled(): Boolean {
         return flutterPrefs.getBoolean("flutter.wake_popup_enabled", true)
+    }
+
+    /** Returns true when our app process is currently visible to the user. */
+    private fun isAppInForeground(): Boolean {
+        return try {
+            val am = getSystemService(ACTIVITY_SERVICE) as? ActivityManager ?: return false
+            val runningApps = am.runningAppProcesses ?: return false
+            runningApps.any { proc ->
+                proc.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                    proc.processName == packageName
+            }
+        } catch (_: Exception) { false }
     }
 
     private fun isSoundOnWakeEnabled(): Boolean {
