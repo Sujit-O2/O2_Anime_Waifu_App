@@ -513,8 +513,12 @@ class MainActivity : AudioServiceFragmentActivity() {
         val openPendingIntent = buildLaunchPendingIntent(wakeEventNotificationId)
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
-        val body = if (transcript.isBlank()) {
+        val body = if (transcript.isBlank() && status.isBlank()) {
+            "Listening..."
+        } else if (transcript.isBlank()) {
             status
+        } else if (status.isBlank() || status.equals("Zero Two", ignoreCase = true)) {
+            transcript
         } else {
             "$status\n$transcript"
         }

@@ -4,13 +4,10 @@ import 'package:flutter/material.dart';
 class VisualEffectsOverlay extends StatelessWidget {
   final Widget child;
   final AppThemeMode themeMode;
-  final bool isSpeaking;
-
   const VisualEffectsOverlay({
     super.key,
     required this.child,
     required this.themeMode,
-    this.isSpeaking = false,
   });
 
   @override
@@ -24,11 +21,10 @@ class VisualEffectsOverlay extends StatelessWidget {
         RepaintBoundary(child: child),
 
         // Isolate the animated border so it doesn't force the chat UI to paint
-        if (intensity > 0 || isSpeaking)
+        if (intensity > 0)
           Positioned.fill(
             child: RepaintBoundary(
               child: _AnimatedGlowBorder(
-                isSpeaking: isSpeaking,
                 intensity: intensity,
                 theme: theme,
               ),
@@ -54,12 +50,10 @@ class VisualEffectsOverlay extends StatelessWidget {
 }
 
 class _AnimatedGlowBorder extends StatelessWidget {
-  final bool isSpeaking;
   final double intensity;
   final ThemeData theme;
 
   const _AnimatedGlowBorder({
-    required this.isSpeaking,
     required this.intensity,
     required this.theme,
   });
@@ -71,19 +65,11 @@ class _AnimatedGlowBorder extends StatelessWidget {
         duration: const Duration(milliseconds: 300),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSpeaking
-                ? theme.primaryColor.withValues(alpha: 0.8)
-                : theme.primaryColor.withValues(alpha: intensity * 0.08),
-            width: isSpeaking ? 3.0 : 1.5,
+            color: theme.primaryColor.withValues(alpha: intensity * 0.08),
+            width: 1.5,
           ),
           boxShadow: [
-            if (isSpeaking)
-              BoxShadow(
-                color: theme.primaryColor.withValues(alpha: 0.4),
-                blurRadius: 30,
-                spreadRadius: 2,
-              )
-            else if (intensity > 0)
+            if (intensity > 0)
               BoxShadow(
                 color: theme.primaryColor.withValues(alpha: intensity * 0.12),
                 blurRadius: 14,

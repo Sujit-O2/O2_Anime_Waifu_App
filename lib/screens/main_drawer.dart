@@ -405,7 +405,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                             .map((e) => navItem(Map<String, dynamic>.from(e))),
                         sectionHeader('GAMES & TOOLS'),
                         quickItem(
-                          '🎮 Game Zone',
+                          'Game Zone',
                           Icons.sports_esports_rounded,
                           Colors.cyanAccent,
                           () {
@@ -414,10 +414,10 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                 MaterialPageRoute(
                                     builder: (_) => const GamesHubPage()));
                           },
-                          badge: '7 Games',
+                          badge: '8 Games',
                         ),
                         quickItem(
-                          '🎵 Music Player',
+                          'Music Player',
                           Icons.music_note_rounded,
                           Colors.purpleAccent,
                           () {
@@ -429,7 +429,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           },
                         ),
                         quickItem(
-                          '⌨️ Commands',
+                          '⌨ Commands',
                           Icons.terminal_rounded,
                           Colors.pinkAccent,
                           () {
@@ -446,7 +446,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                             .map((e) => navItem(Map<String, dynamic>.from(e))),
                         sectionHeader('INFO'),
                         quickItem(
-                          '✨ All Features',
+                          'All Features',
                           Icons.auto_awesome_rounded,
                           Colors.amberAccent,
                           () {

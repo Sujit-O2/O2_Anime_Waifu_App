@@ -94,8 +94,26 @@ class ParticlePainter extends CustomPainter {
   final Color themeColor;
   final ParticleType type;
 
+  static Path? _sakuraPathCache;
+
   ParticlePainter(
       this.particles, this.animationValue, this.themeColor, this.type);
+
+  void _drawSakura(Canvas canvas, double x, double y, double r, Paint paint) {
+    if (_sakuraPathCache == null) {
+      final path = Path();
+      path.moveTo(0, -1.5);
+      path.cubicTo(1.2, -1.5, 1, 1, 0, 2);
+      path.cubicTo(-1, 1, -1.2, -1.5, 0, -1.5);
+      path.close();
+      _sakuraPathCache = path;
+    }
+    canvas.save();
+    canvas.translate(x, y);
+    canvas.scale(r);
+    canvas.drawPath(_sakuraPathCache!, paint);
+    canvas.restore();
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -123,16 +141,7 @@ class ParticlePainter extends CustomPainter {
               paint..strokeWidth = 1.0);
           break;
         case ParticleType.sakura:
-          // Premium Sakura petal shape
-          final path = Path();
-          final r = p.radius;
-          path.moveTo(p.x, p.y - r * 1.5);
-          path.cubicTo(
-              p.x + r * 1.2, p.y - r * 1.5, p.x + r, p.y + r, p.x, p.y + r * 2);
-          path.cubicTo(p.x - r, p.y + r, p.x - r * 1.2, p.y - r * 1.5, p.x,
-              p.y - r * 1.5);
-          path.close();
-          canvas.drawPath(path, paint);
+          _drawSakura(canvas, p.x, p.y, p.radius, paint);
           break;
         case ParticleType.embers:
           final r = p.radius;

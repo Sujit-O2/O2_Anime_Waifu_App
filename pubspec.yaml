@@ -29,7 +29,7 @@ dependencies:
   google_sign_in: ^7.2.0
   googleapis: ^16.0.0
   googleapis_auth: ^2.0.0
-  flutter_contacts: ^1.1.9+2
+  flutter_contacts: ^2.0.0
   android_alarm_manager_plus: ^5.0.0
   android_intent_plus: ^6.0.0
   just_audio: ^0.10.5

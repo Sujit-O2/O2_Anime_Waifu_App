@@ -14,7 +14,7 @@
         android:alpha="0.6" />
 
     <!-- Gradient overlay -->
-    <View
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/widget_gradient_overlay" />

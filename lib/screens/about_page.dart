@@ -81,199 +81,26 @@ extension _AboutPageExtension on _ChatHomePageState {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    _buildSectionTitle('DASHBOARD'),
+                                    const SizedBox(height: 12),
+                                    _buildSubNavigationDashboard(),
+                                    const SizedBox(height: 28),
                                     _buildSectionTitle('SYSTEM STATUS'),
                                     const SizedBox(height: 12),
                                     _buildStatusGrid(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('PROJECT INFO'),
+                                    _buildSectionTitle(
+                                        'DEVELOPER & PROJECT INFO'),
                                     const SizedBox(height: 12),
                                     _buildProjectInfoCard(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('FEATURE SNAPSHOT'),
-                                    const SizedBox(height: 12),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const FeaturesPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: _buildFeatureSnapshot(),
-                                    ),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('NEW FEATURE GUIDE'),
-                                    const SizedBox(height: 12),
-                                    _buildFeatureGuideButton(),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('STATS & HABITS'),
-                                    const SizedBox(height: 12),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const StatsAndHabitsPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 14),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orangeAccent
-                                              .withValues(alpha: 0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                              color: Colors.orangeAccent
-                                                  .withValues(alpha: 0.4)),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.orangeAccent
-                                                    .withValues(alpha: 0.2),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                  Icons.bar_chart_rounded,
-                                                  color: Colors.orangeAccent,
-                                                  size: 20),
-                                            ),
-                                            const SizedBox(width: 14),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'My Stats & Habits',
-                                                    style: GoogleFonts.outfit(
-                                                      color:
-                                                          Colors.orangeAccent,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    'Check your relationship and daily habits',
-                                                    style: GoogleFonts.outfit(
-                                                      color: Colors.white60,
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const Icon(
-                                                Icons.arrow_forward_ios_rounded,
-                                                color: Colors.orangeAccent,
-                                                size: 14),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('FEATURE COVERAGE'),
+                                    _buildSectionTitle('SYSTEM GRAPHS'),
                                     const SizedBox(height: 12),
                                     _buildFeatureCoverageGraph(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('RUNTIME GRAPH'),
-                                    const SizedBox(height: 12),
                                     _buildRuntimeGraph(),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('SIGNAL FLOW'),
-                                    const SizedBox(height: 12),
                                     _buildSignalFlowGraph(),
-                                    const SizedBox(height: 28),
-                                    _buildSectionTitle('CMD REFERENCE'),
-                                    const SizedBox(height: 12),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const CommandsPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(14),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              Colors.pinkAccent
-                                                  .withValues(alpha: 0.10),
-                                              Colors.purpleAccent
-                                                  .withValues(alpha: 0.08),
-                                            ],
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                              color: Colors.pinkAccent
-                                                  .withValues(alpha: 0.35)),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.pinkAccent
-                                                    .withValues(alpha: 0.15),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.terminal_rounded,
-                                                color: Colors.pinkAccent,
-                                                size: 22,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 14),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Example Commands',
-                                                    style: GoogleFonts.outfit(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w700),
-                                                  ),
-                                                  const SizedBox(height: 3),
-                                                  Text(
-                                                    'See all things your AI can do →',
-                                                    style: GoogleFonts.outfit(
-                                                        color: Colors.white54,
-                                                        fontSize: 12),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const Icon(
-                                                Icons.chevron_right_rounded,
-                                                color: Colors.white38,
-                                                size: 20),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -299,43 +126,74 @@ extension _AboutPageExtension on _ChatHomePageState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipOval(
-            child: Image(
-              image: _imageProviderFor(
-                assetPath: _chatImageAsset,
-                customPath: _effectiveChatCustomPath,
-              ),
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 96,
-                height: 96,
-                color: Colors.white10,
-                child: const Icon(Icons.face, color: Colors.white38, size: 40),
+          Container(
+            width: 110,
+            height: 110,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.pinkAccent.withValues(alpha: 0.4),
+                  blurRadius: 28,
+                  spreadRadius: 2,
+                ),
+                BoxShadow(
+                  color: Colors.purpleAccent.withValues(alpha: 0.4),
+                  blurRadius: 36,
+                  spreadRadius: -4,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image(
+                image: _imageProviderFor(
+                  assetPath: _chatImageAsset,
+                  customPath: _effectiveChatCustomPath,
+                ),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.white10,
+                  child:
+                      const Icon(Icons.face, color: Colors.white38, size: 40),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'O2-WAIFU',
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               color: Colors.white,
-              fontSize: 28,
+              fontSize: 30,
               fontWeight: FontWeight.w900,
-              letterSpacing: 3,
+              letterSpacing: 4,
+              shadows: [
+                Shadow(
+                  color: Colors.pinkAccent.withValues(alpha: 0.6),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            'STATE-AWARE VOICE COMPANION',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(
-              color: Colors.white54,
-              fontSize: 11,
-              letterSpacing: 2,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              'STATE-AWARE VOICE COMPANION',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 10,
+                letterSpacing: 2.5,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -351,6 +209,128 @@ extension _AboutPageExtension on _ChatHomePageState {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.transparent, Colors.white10, Colors.transparent],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubNavigationDashboard() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildDashboardCard(
+                title: 'Features',
+                subtitle: 'All capabilities',
+                icon: Icons.auto_awesome_rounded,
+                color: Colors.cyanAccent,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const FeaturesPage())),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDashboardCard(
+                title: 'Stats & Habits',
+                subtitle: 'Activity & bonds',
+                icon: Icons.insert_chart_rounded,
+                color: Colors.orangeAccent,
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const StatsAndHabitsPage())),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDashboardCard(
+                title: 'Commands',
+                subtitle: 'Voice syntax',
+                icon: Icons.terminal_rounded,
+                color: Colors.pinkAccent,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const CommandsPage())),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDashboardCard(
+                title: 'App Guide',
+                subtitle: 'How to use',
+                icon: Icons.menu_book_rounded,
+                color: Colors.greenAccent,
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (ctx) => _FeatureGuideDialog());
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboardCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.05),
+              blurRadius: 12,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: GoogleFonts.outfit(
+                color: Colors.white60,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -374,24 +354,31 @@ extension _AboutPageExtension on _ChatHomePageState {
       runSpacing: 8,
       children: [
         _statusChip('Wake', _wakeWordService.isRunning ? 'ACTIVE' : 'IDLE',
-            _wakeWordService.isRunning ? Colors.greenAccent : Colors.white38),
+            _wakeWordService.isRunning ? Colors.greenAccent : Colors.redAccent),
         _statusChip('Foreground', _isInForeground ? 'YES' : 'NO',
             _isInForeground ? Colors.cyanAccent : Colors.orangeAccent),
         _statusChip('Assistant', _assistantModeEnabled ? 'ON' : 'OFF',
-            _assistantModeEnabled ? Colors.pinkAccent : Colors.white38),
+            _assistantModeEnabled ? Colors.pinkAccent : Colors.white54),
         _statusChip('Idle Timer', _idleTimerEnabled ? 'ON' : 'OFF',
-            _idleTimerEnabled ? Colors.orangeAccent : Colors.white38),
+            _idleTimerEnabled ? Colors.yellowAccent : Colors.white54),
       ],
     );
   }
 
   Widget _statusChip(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 8,
+            spreadRadius: -2,
+          ),
+        ],
       ),
       child: RichText(
         text: TextSpan(
@@ -433,45 +420,79 @@ extension _AboutPageExtension on _ChatHomePageState {
   Widget _buildProjectInfoCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        color: Colors.lightBlueAccent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Colors.lightBlueAccent.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.lightBlueAccent.withValues(alpha: 0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('Version', '02'),
-          const SizedBox(height: 6),
-          _buildInfoRow('Dev By', 'Sujit 02'),
-          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildModernDevChip(
+                  Icons.code, 'Dev By', 'Sujit 02', Colors.pinkAccent),
+              const SizedBox(width: 10),
+              _buildModernDevChip(
+                  Icons.new_releases, 'Version', 'v02', Colors.cyanAccent),
+            ],
+          ),
+          const SizedBox(height: 16),
           InkWell(
             onTap: _openProjectGitHub,
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.link,
-                    color: Colors.cyanAccent,
-                    size: 16,
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.white10,
+                      shape: BoxShape.circle,
+                    ),
+                    child:
+                        const Icon(Icons.link, color: Colors.white, size: 18),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      _projectGitHubUrl,
-                      style: GoogleFonts.outfit(
-                        color: Colors.cyanAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.underline,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'GitHub Repository',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'Sujit-O2/O2_Anime_Waifu',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white54,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const Icon(Icons.open_in_new,
+                      color: Colors.white38, size: 16),
                 ],
               ),
             ),
@@ -481,28 +502,46 @@ extension _AboutPageExtension on _ChatHomePageState {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      children: [
-        Text(
-          '$label:',
-          style: GoogleFonts.outfit(
-            color: Colors.white54,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
+  Widget _buildModernDevChip(
+      IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
-        const SizedBox(width: 8),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
-          ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white54,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -608,165 +647,6 @@ extension _AboutPageExtension on _ChatHomePageState {
     ];
   }
 
-  Widget _buildFeatureSnapshot() {
-    final sections = _aboutFeatureSections();
-    final totalFeatures = sections.fold<int>(
-      0,
-      (sum, section) => sum + section.items.length,
-    );
-    final activeRuntimeFlags = [
-      _wakeWordService.isRunning,
-      _assistantModeEnabled,
-      _idleTimerEnabled,
-      _notificationsAllowed,
-    ].where((enabled) => enabled).length;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildSnapshotCard('Feature Groups', '${sections.length}',
-                  Icons.dashboard_customize_outlined, Colors.cyanAccent),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildSnapshotCard('Listed Features', '$totalFeatures',
-                  Icons.list_alt_outlined, Colors.greenAccent),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSnapshotCard('Navigation Panels', '11',
-                  Icons.space_dashboard, Colors.pinkAccent),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildSnapshotCard(
-                  'Runtime Flags',
-                  '$activeRuntimeFlags/4',
-                  Icons.speed_outlined,
-                  Colors.orangeAccent),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeatureGuideButton() {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (ctx) => _FeatureGuideDialog(),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.greenAccent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.greenAccent.withValues(alpha: 0.05),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.greenAccent.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.menu_book_rounded,
-                  color: Colors.greenAccent, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'How To Use App Features',
-                    style: GoogleFonts.outfit(
-                      color: Colors.greenAccent,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Tap to view the full instruction guide',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white60,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                color: Colors.greenAccent, size: 14),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSnapshotCard(
-      String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white60,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.7,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFeatureCoverageGraph() {
     final sections = _aboutFeatureSections();
     final maxFeaturesInGroup = sections
@@ -785,11 +665,18 @@ extension _AboutPageExtension on _ChatHomePageState {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        color: Colors.greenAccent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.greenAccent.withValues(alpha: 0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -873,11 +760,18 @@ extension _AboutPageExtension on _ChatHomePageState {
     final assistantRatio = _assistantModeEnabled ? 0.88 : 0.35;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        color: Colors.orangeAccent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orangeAccent.withValues(alpha: 0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Column(
         children: [

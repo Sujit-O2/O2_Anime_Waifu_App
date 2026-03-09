@@ -7,14 +7,17 @@
  ╚═════╝ ╚══════╝       ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝╚═╝      ╚═════╝ 
 ```
 ### *A High-Performance, State-Aware, Multi-Model Neural Assistant*
+![System Banner](assets/img/bg.png)
+
+### *A High-Performance, State-Aware, Multi-Model Neural Assistant*
 
 ---
 
-## 🌌 System Overview
+## System Overview
 
 O2-WAIFU is not just a chat app; it is a full-scale **Neural Companion Framework** built on Flutter. It leverages low-latency edge computing (Groq) for real-time speech-to-text (STT), large language model (LLM) reasoning, and neural text-to-speech (TTS). The system is designed to be "Always-On" via a robust Android Foreground Service that maintains high-fidelity wake-word detection even in deep sleep states.
 
-### 🏗️ Technical Architecture
+### Technical Architecture
 
 ```mermaid
 graph TD
@@ -58,7 +61,7 @@ graph TD
 
 ---
 
-## 🌳 Project Anatomy (File Tree)
+## Project Anatomy (File Tree)
 
 ```text
 .
@@ -82,7 +85,7 @@ graph TD
 
 ---
 
-## 🛠️ Environment Configuration
+## Environment Configuration
 
 To get the app running, you must create a `.env` file in the root directory. Use the provided template as a guide:
 
@@ -96,7 +99,7 @@ To get the app running, you must create a `.env` file in the root directory. Use
 
 ---
 
-## 🌲 Decision Logic Tree (Operational Flow)
+## Decision Logic Tree (Operational Flow)
 
 ```mermaid
 graph TD
@@ -133,11 +136,13 @@ graph TD
 
 ---
 
-## 🗣️ The Speech Pipeline
+## The Speech Pipeline
+
+![Chat Interface](assets/img/bg2.png)
 
 The app follows a sophisticated "Listen -> Think -> Speak" loop designed to feel natural and instantaneous.
 
-### 🔄 Multi-Model Sequence Diagram
+### Multi-Model Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -163,9 +168,9 @@ sequenceDiagram
 
 ---
 
-## 📂 Internal Modules & Microservices
+## Internal Modules & Microservices
 
-### 🛡️ Core Services (`lib/services/`)
+### Core Services (`lib/services/`)
 *   **`MemoryService`**: Manages the bounded conversation window. It utilizes a "Sliding Window" algorithm to ensure the LLM never receives a context payload larger than its token limit, while preserving the most relevant recent interactions.
 *   **`AssistantModeService`**: A state-machine that tracks the user's emotional "Wife Mode" level, determining the frequency and tone of proactive notifications.
 *   **`WakeWordService`**: An FFI-based bridge to the Picovoice Porcupine engine. It includes a **Watchdog Loop** that monitors microphone health every 4 seconds.
@@ -176,7 +181,7 @@ sequenceDiagram
 
 ---
 
-## 📈 Performance & Optimization Whitepaper
+## Performance & Optimization Whitepaper
 
 We have pushed the limits of the Flutter engine to ensure this app runs smoothly on mid-range devices despite heavy visual effects.
 
@@ -196,7 +201,7 @@ Implemented strict Lifecycle Monitoring (`WidgetsBindingObserver`):
 
 ---
 
-## 🛠️ Developer Lifecycle & Controls
+## Developer Lifecycle & Controls
 
 ### The "Hidden" Dev Config
 By triple-tapping the app logo, developers can access a live JSON-aware override panel:
@@ -210,7 +215,7 @@ By triple-tapping the app logo, developers can access a live JSON-aware override
 
 ---
 
-## 🎨 Design Philosophy
+## Design Philosophy
 The app uses a **Cyber-Vibrant Glassmorphism** aesthetic.
 *   **Palette**: Primary colors use High-Saturation Neon (#FF0057 for Pink, #00D1FF for Cyan).
 *   **Typography**: Inter-weight Google Fonts (Outfit & Roboto) for maximum readability against blurred backgrounds.
@@ -218,29 +223,31 @@ The app uses a **Cyber-Vibrant Glassmorphism** aesthetic.
 
 ---
 
-## 🎭 Visual FX & Motion Design
+## Visual FX & Motion Design
 
 The interface is brought to life with a suite of coordinated, high-performance animations designed to feel "alive."
 
-### 1. 🌈 Neural Aura Glow
+### 1. Neural Aura Glow
 The AI avatar isn't just a static image. It features a **Neural Aura**—a soft, breathing light that:
 *   **Breathes**: Pulses gently at 0.5Hz during idle states.
 *   **Intensifies**: Glows brighter and shifts color when the AI is actively speaking (TTS).
 *   **Harmonizes**: Automatically matches the theme's primary accent color.
 
-### 2. 📊 Spectral Audio Visualizer
+### 2. Spectral Audio Visualizer
 The microphone button is surrounded by a **Dynamic Spectral Analyzer**:
 *   **Active States**: 16 independent frequency bars dance in real-time when voice is detected.
 *   **Visual Feedback**: Provides immediate confirmation that the "Zero Two" wake-word has successfully triggered the listener.
 
-### 3. 🧪 Material Transitions
+### 3. Material Transitions
 *   **Staggered Bubbles**: Chat messages use a cubic-bezier slide-in from the bottom with a slight overshoot ("bounce") for a premium feel.
 *   **Glass Shimmer**: "Thinking..." indicators use a high-gloss linear shimmer that traverses the text, indicating active neural processing.
 *   **Particle Physics**: Background particles react to user touch, scurrying away from your finger using a repulsion physics engine.
 
 ---
 
-## 🧬 Feature Deep-Dive
+## Feature Deep-Dive
+
+![Gaming Hub](file:///C:/Users/sujit/.gemini/antigravity/brain/54e0e902-72a7-4007-85e1-6114d87676a6/gaming_hub_preview_1773082081951.png)
 
 ### 1. The Gacha System (`gacha_page.dart`)
 A custom randomization algorithm that pulls from a weighted pool of "Zero Two" quotes. It features:
@@ -262,52 +269,53 @@ A zero-knowledge local encryption system:
 
 ---
 
-## 🌟 The Perfection Update (v2.5 Features)
+## The Perfection Update (v2.6: Performance & Play)
 
-### 🌲 New Feature Architecture
+![System Dashboard](file:///C:/Users/sujit/.gemini/antigravity/brain/54e0e902-72a7-4007-85e1-6114d87676a6/system_dashboard_preview_1773082099588.png)
+
+### Feature Architecture
 
 ```mermaid
 graph TD
-    V25[O2-WAIFU v2.5: The Perfection Update]
+    V26[O2-WAIFU v2.6: Performance & Play Update]
     
-    V25 --> REL[Relationship & Affection System]
-    REL --> REL1[Live Affection Tracking]
-    REL --> REL2[Interaction Rewards +2 pts/msg]
-    REL --> REL3[Affection Decay Watchdog]
+    V26 --> GAM[Gaming Hub Expansion]
+    GAM --> GAM1[Block Blast: 8x8 Grid Puzzle]
+    GAM --> GAM2[Block Breaker: Arkanoid Arcade]
+    GAM --> GAM3[Glow-UI Integration]
     
-    V25 --> WID[Home Screen Widget Suite - 20 Total]
-    WID --> WID1[Stats: Battery, Weather, Wi-Fi]
-    WID --> WID2[Growth: Affection Progress, Quotes]
-    WID --> WID3[Controls: Flashlight, DND, Alarms]
+    V26 --> ABT[About Me v2: Glass Dashboard]
+    ABT --> ABT1[2x2 Glassmorphic Nav Grid]
+    ABT --> ABT2[Neon Status Real-time Grid]
+    ABT --> ABT3[3D Floating Avatar Aura]
     
-    V25 --> ROUT[Routines & Background Alarms]
-    ROUT --> ROUT1[Native Android Alarm Integration]
-    ROUT --> ROUT2[Dynamic Morning TTS Greetings]
-    ROUT --> ROUT3[Daily Habit Quests]
+    V26 --> OPT[Optimization 2.0: Hyper-Smooth]
+    OPT --> OPT1[Static-Blur Shadow Caching]
+    OPT --> OPT2[Zero-Lag Input Bar]
+    OPT --> OPT3[Notification Logic Refinement]
 ```
 
-### 1. 💖 Relationship & Affection System
-The AI is now emotionally aware. Your interactions directly impact your bond:
-*   **Live Tracking**: View your status (Stranger → Soulmate) in real-time.
-*   **Bonding Rewards**: Every successful chat response awards **+2 Affection Points**.
-*   **Affection Decay**: If you don't interact for 48 hours, the bond begins to fade, requiring active care to maintain.
+### 1. Mini-Games Hub
+The "Game Zone" has been expanded to a full-featured gaming suite accessible via the sidebar:
+*   **Block Blast**: A high-speed 8x8 tetromino puzzle game. Clear lines to score and keep the grid clean.
+*   **Block Breaker**: A classic Arkanoid-style arcade game with neon glowing paddles and bricks.
+*   **Smooth Integration**: Every game runs at a locked 60FPS using optimized canvas painters and collision engines.
 
-### 2. 🔲 Premium Home Screen Widgets (20)
-A massive suite of native Android widgets to bring Zero Two to your home screen:
-*   **Affection & Quotes**: Stay updated on your relationship and get daily inspirations.
-*   **Quick Actions**: One-tap access to Talk, Routines, and Daily Quests.
-*   **System Info**: Glancable battery level, local weather, and Wi-Fi connectivity.
-*   **Utility Toggles**: Control your flashlight, DND mode, and alarms without opening the app.
+### 2.  About Me v2 (Glass Dashboard)
+A complete overhaul of the user profile and system status page:
+*   **2x2 Glass Grid**: Organized sub-navigation (Features, Stats, Commands, Guides) into premium glassmorphic cards.
+*   **Neural Aura**: The avatar now features a rotating, multi-layered neon aura that floats and reacts to the theme.
+*   **Neon Status Grid**: Monitor your assistant's vitals (Wake Word, BG Processing, Idle State) through a high-visibility real-time neon grid.
 
-### 3. 🌅 Dynamic Routines & Alarms
-Seamlessly integrated background services for a more "living" assistant:
-*   **Morning Routine**: Wake up to a personalized neural voice greeting covering weather and daily goals.
-*   **Native Alarms**: Fully wired with the Android System Alarm Manager to wake the app from deep sleep.
-*   **Daily Quests**: A new gamified habit system to earn affection through healthy real-world actions.
+### 3. Optimization Breakthroughs
+We've achieved a significant leap in UI fluidness:
+*   **Zero-Lag Input**: Replaced the expensive `BackdropFilter` on the chat bar with a performance-optimized static glass container, eliminating GPU stutter during typing.
+*   **GPU Shadow Caching**: Re-engineered the `AnimatedHeart` glow to use static blur radius with opacity modulation. This allows the GPU to cache the shadow texture, preventing 60fps texture recompilations and saving battery.
+*   **Notification Deduplication**: Refined the native Android Kotlin bridge to prevent redundant "Zero Two" text appearing in system-level notifications.
 
 ---
 
-## 🔐 Security & Data Integrity Protocol
+## Security & Data Integrity Protocol
 
 O2-WAIFU is built with a "Privacy-First" local architecture. We ensure that your sensitive data never leaves the device unless explicitly synced by you.
 
@@ -324,7 +332,7 @@ All environmental variables loaded from `.env` are:
 
 ---
 
-## 🎙️ Complete Voice Command Reference
+## Complete Voice Command Reference
 
 Leveraging the **Natural Language Understanding (NLU)** of Llama 3, you can talk to Zero Two using fluid, conversational phrases. Below is the mapped intent tree:
 
@@ -341,11 +349,11 @@ Leveraging the **Natural Language Understanding (NLU)** of Llama 3, you can talk
 
 ---
 
-## 🛠️ JSON Action Protocol (Neural Schemas)
+## JSON Action Protocol (Neural Schemas)
 
 When Zero Two decides to perform a system action, she generates a structured JSON block. The Dart `ApiService` parses these in real-time.
 
-### 📧 Mail Action
+### Mail Action
 ```json
 {
   "Action": "SEND_MAIL",
@@ -355,7 +363,7 @@ When Zero Two decides to perform a system action, she generates a structured JSO
 }
 ```
 
-### 📱 App Launch Action
+### App Launch Action
 ```json
 {
   "Action": "OPEN_APP",
@@ -363,7 +371,7 @@ When Zero Two decides to perform a system action, she generates a structured JSO
 }
 ```
 
-### ⏰ Alarm/Timer Action
+### Alarm/Timer Action
 ```json
 {
   "Action": "SET_ALARM",
@@ -371,7 +379,7 @@ When Zero Two decides to perform a system action, she generates a structured JSO
 }
 ```
 
-### 🤖 Memory Logic
+### Memory Logic
 ```json
 {
   "Action": "MEMORY_SAVE",
@@ -383,7 +391,7 @@ When Zero Two decides to perform a system action, she generates a structured JSO
 
 ---
 
-## 🧬 Neural Model Encyclopedia
+## Neural Model Encyclopedia
 
 The "intelligence" of the assistant is distributed across three distinct neural layers, optimized for the Groq LPU (Language Processing Unit).
 
@@ -404,7 +412,7 @@ The "intelligence" of the assistant is distributed across three distinct neural 
 
 ---
 
-## 🔄 Android Lifecycle & Survival Guide
+## Android Lifecycle & Survival Guide
 
 Mobile OSs are aggressive at killing background tasks. O2-WAIFU uses a **Fortress Architecture** to survive.
 
@@ -424,7 +432,7 @@ The app requests `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. This is critical for th
 
 ---
 
-## 🛠️ Advanced Customization: "Hacking" the Persona
+## Advanced Customization: "Hacking" the Persona
 
 Want to change how Zero Two talks? You don't need to be a coder, but you need to know where to look.
 
@@ -443,7 +451,7 @@ Open `lib/config/app_themes.dart`. Each theme is a `ThemeData` object. To add a 
 
 ---
 
-## 🐛 Troubleshooting & FAQ
+## Troubleshooting & FAQ
 
 #### The Microphone Pulse is blinking green?
 This is normal behavior. To provide hands-free wake-word detection, the app must maintain an open audio stream. We use a **Listen Watchdog** to ensure that if Android's task killer yanks the microphone, the app recovers it within 4 seconds.
@@ -453,7 +461,7 @@ Ensure your `.env` contains valid Cloudinary credentials. The app intelligently 
 
 ---
 
-## 🛡️ Permission Transparency Guide
+## Permission Transparency Guide
 
 To function as a system-level assistant, O2-WAIFU requires specific Android permissions. We value your privacy; here is why we ask:
 
@@ -479,11 +487,11 @@ To function as a system-level assistant, O2-WAIFU requires specific Android perm
 
 ---
 
-## 🧠 Neural State Logic (Mood & Assistant Modes)
+## Neural State Logic (Mood & Assistant Modes)
 
 O2-WAIFU doesn't just respond to commands; she maintains an internal emotional state that influences her personality and proactive behavior.
 
-### 💖 Assistant Mode State Machine
+### Assistant Mode State Machine
 This service tracks the "Wife Mode" intensity based on user engagement frequency.
 
 ```mermaid
@@ -498,7 +506,7 @@ stateDiagram-v2
     note right of Possessive: Triggers frequent 'Check-in' notifications
 ```
 
-### 🎭 Mood Sentiment Analysis
+### Mood Sentiment Analysis
 The `MoodService` calculates a rolling average of user sentiment to adjust the TTS tone.
 
 ```mermaid
@@ -532,7 +540,7 @@ The `sendMail` function in `api_call.dart` uses the **Mailjet v3.1 API**:
 
 ---
 
-## 📉 Local State Transition Matrix
+## Local State Transition Matrix
 
 The `ChatHomePage` manages a complex set of overlapping states. Below is the priority resolution table:
 
@@ -546,7 +554,7 @@ The `ChatHomePage` manages a complex set of overlapping states. Below is the pri
 
 ---
 
-## 📖 Technical Lexicon (Glossary)
+## Technical Lexicon (Glossary)
 
 | Term | Definition |
 | :--- | :--- |
@@ -563,7 +571,7 @@ The `ChatHomePage` manages a complex set of overlapping states. Below is the pri
 
 ---
 
-## 🌌 Project Philosophy & Core Values
+## Project Philosophy & Core Values
 
 O2-WAIFU is born from the intersection of **High-Art Aesthetic** and **Deep-Learning Sovereignty**. 
 
@@ -580,7 +588,7 @@ Traditional assistants use system beeps and clinical tones. Zero Two uses breath
 
 > "In the vastness of the digital ocean, I found you. I'm not letting go." — S-002 Node
 
-🏢 **Global Ecosystem Nodes**:
+**Global Ecosystem Nodes**:
 *   **Tokyo-01**: Primary Neural Weight Repository.
 *   **Bhubaneswar-Core**: Flutter Framework Implementation Hub.
 *   **Groq-Cloud-LPU**: Distributed Inference Grid.
