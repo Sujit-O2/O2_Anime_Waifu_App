@@ -7,7 +7,7 @@
  ╚═════╝ ╚══════╝       ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝╚═╝      ╚═════╝ 
 ```
 ### *A High-Performance, State-Aware, Multi-Model Neural Assistant*
-![System Banner](file:///C:/Users/sujit/.gemini/antigravity/brain/54e0e902-72a7-4007-85e1-6114d87676a6/app_banner_hero_1773082051516.png)
+![System Banner](assets/img/bg.png)
 
 ### *A High-Performance, State-Aware, Multi-Model Neural Assistant*
 
@@ -138,7 +138,7 @@ graph TD
 
 ## The Speech Pipeline
 
-![Chat Interface](file:///C:/Users/sujit/.gemini/antigravity/brain/54e0e902-72a7-4007-85e1-6114d87676a6/chat_interface_mockup_1773082065370.png)
+![Chat Interface](assets/img/bg2.png)
 
 The app follows a sophisticated "Listen -> Think -> Speak" loop designed to feel natural and instantaneous.
 

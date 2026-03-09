@@ -1549,6 +1549,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
     } else {
       _wakeWordEnabledByUser = next;
     }
+    unawaited(_ensureWakeWordActive());
 
     if (!_wakeWordEnabledByUser) {
       _wakeWordReady = false;
@@ -2047,15 +2048,18 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
     }
 
     // While another mic/audio flow is active, keep wake engine paused.
+    // Fixed: Only stop if speechService is actually listening (STT active).
     if (_isAutoListening ||
         _isBusy ||
         _isSpeaking ||
         _suspendWakeWord ||
         _speechService.listening) {
-      if (_wakeWordService.isRunning) {
-        await _wakeWordService.stop();
+      if (_speechService.listening || _isSpeaking || _isBusy) {
+        if (_wakeWordService.isRunning) {
+          await _wakeWordService.stop();
+        }
+        return;
       }
-      return;
     }
 
     if (_wakeWordService.isRunning) {
@@ -2842,6 +2846,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
     } else {
       await _stopContinuousListening();
     }
+    unawaited(_ensureWakeWordActive());
   }
 
   Future<void> _toggleDualVoice() async {
@@ -3950,12 +3955,14 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
               final v = _floatController.value;
               final float = math.sin(v * 2 * math.pi) * 7.5;
               final tilt = math.sin(v * 2 * math.pi) * 0.025;
-              return Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..translate(0.0, float)
-                  ..rotateZ(tilt),
-                child: child,
+              return RepaintBoundary(
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()
+                    ..translate(0.0, float)
+                    ..rotateZ(tilt),
+                  child: child,
+                ),
               );
             },
             child: avatarWithPulse,
@@ -4119,13 +4126,15 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
   }
 
   Widget _buildChatList() {
-    final displayMessages = _chatSearchQuery.isEmpty
-        ? _messages
-        : _messages
-            .where((m) => m.content
-                .toLowerCase()
-                .contains(_chatSearchQuery.toLowerCase()))
-            .toList();
+    final List<ChatMessage> displayMessages;
+    if (_chatSearchQuery.isEmpty) {
+      displayMessages = _messages;
+    } else {
+      final query = _chatSearchQuery.toLowerCase();
+      displayMessages = _messages
+          .where((m) => m.content.toLowerCase().contains(query))
+          .toList();
+    }
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
