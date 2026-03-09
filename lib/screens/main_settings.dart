@@ -605,91 +605,74 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       activeColor: Colors.indigoAccent,
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.pinkAccent.withValues(alpha: 0.12),
-                            Colors.deepPurple.withValues(alpha: 0.08),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: Colors.pinkAccent.withValues(alpha: 0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    ListenableBuilder(
+                      listenable: AffectionService.instance,
+                      builder: (context, _) {
+                        final svc = AffectionService.instance;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.pinkAccent.withValues(alpha: 0.12),
+                                Colors.deepPurple.withValues(alpha: 0.08),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color:
+                                    Colors.pinkAccent.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.favorite_rounded,
-                                  color: Colors.pinkAccent, size: 20),
-                              const SizedBox(width: 10),
-                              Text('Affection Status',
-                                  style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700)),
-                              const Spacer(),
-                              ValueListenableBuilder<int>(
-                                valueListenable: ValueNotifier(
-                                    AffectionService.instance.points),
-                                builder: (_, pts, __) => Text(
-                                    '${AffectionService.instance.points} pts',
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.pinkAccent,
-                                        fontSize: 12)),
+                              Row(
+                                children: [
+                                  const Icon(Icons.favorite_rounded,
+                                      color: Colors.pinkAccent, size: 20),
+                                  const SizedBox(width: 10),
+                                  Text('Affection Status',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700)),
+                                  const Spacer(),
+                                  Text('${svc.points} pts',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.pinkAccent,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Your relationship: ${svc.levelName}',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white70, fontSize: 13),
+                              ),
+                              const SizedBox(height: 6),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: LinearProgressIndicator(
+                                  value: svc.levelProgress,
+                                  minHeight: 6,
+                                  backgroundColor: Colors.white12,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      svc.levelColor),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Earn points by chatting, completing quests, and daily routines. '
+                                'Inactivity for 2+ days causes decay.',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white38, fontSize: 10.5),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Your relationship: ${AffectionService.instance.levelName}',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white70, fontSize: 13),
-                          ),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: AffectionService.instance.levelProgress,
-                              minHeight: 6,
-                              backgroundColor: Colors.white12,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Colors.pinkAccent),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Earn points by chatting, completing quests, and daily routines. '
-                            'Inactivity for 2+ days causes decay.',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white38, fontSize: 10.5),
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            onPressed: () async {
-                              await AffectionService.instance.addPoints(10);
-                              if (context.mounted) updateState(() {});
-                            },
-                            icon: const Icon(Icons.add_circle_outline,
-                                color: Colors.pinkAccent, size: 16),
-                            label: Text('Grant +10 pts (test)',
-                                style: GoogleFonts.outfit(
-                                    color: Colors.pinkAccent, fontSize: 12)),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                  color: Colors.pinkAccent, width: 0.8),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                   ]),
@@ -1260,7 +1243,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                               const Icon(Icons.widgets_rounded,
                                   color: Colors.blueAccent, size: 20),
                               const SizedBox(width: 10),
-                              Text('Your 20 Widgets',
+                              Text('Your 5 Widgets',
                                   style: GoogleFonts.outfit(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -1270,50 +1253,33 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           const SizedBox(height: 10),
                           ...[
                             (
-                              '❤️ Affection (Small)',
-                              'Shows relationship tier on home screen'
+                              '📊 Waifu Dashboard',
+                              'Chat snippet, affection level & quick-open'
                             ),
                             (
-                              '💖 Affection (Large)',
-                              'Detailed progress bar with points'
-                            ),
-                            ('💬 Daily Quote', 'New quote every day'),
-                            ('⚡ Zero Two Quote', 'Her iconic lines'),
-                            (
-                              '🎮 Quick Actions Row',
-                              'Talk / Routine / Quests buttons'
+                              '🌡 Status Monitor',
+                              'Relationship tier + progress bar'
                             ),
                             (
-                              '🔲 Quick Actions Grid',
-                              '6-button shortcut panel'
+                              '🌤 Weather & Time',
+                              'Live weather + greeting clock'
                             ),
-                            ('🌤 Weather Status', 'Synced weather glance'),
-                            ('🔋 Battery Status', 'Device battery level'),
-                            ('😊 Mood Tracker', 'Your current logged mood'),
-                            ('⏰ Next Alarm', 'Upcoming alarm or event'),
-                            ('🔦 Flashlight Toggle', '1-tap flashlight button'),
-                            ('🔇 DND Toggle', 'Do Not Disturb quick toggle'),
-                            ('💬 Open Chat Shortcut', 'Jump directly to chat'),
-                            ('🌅 Morning Routine', 'Trigger morning briefing'),
-                            ('🌙 Night Routine', 'Trigger night wind-down'),
-                            ('🍅 Pomodoro Status', 'Current focus timer'),
-                            ('🧠 Memory Flashcard', 'Random saved fact'),
-                            ('📋 Daily Summary', 'Today\'s briefing glance'),
                             (
-                              '🕐 Greeting & Clock',
-                              'Clock + Zero Two greeting'
+                              '⚡ Actions Hub',
+                              'Talk / Morning / Night / Quests shortcuts'
                             ),
-                            ('📡 Device Stats', 'Wi-Fi & system info'),
+                            ('💬 Quote Banner', 'Zero Two daily quote'),
                           ].map((item) => Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 2),
+                                    const EdgeInsets.symmetric(vertical: 3),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.$1,
                                         style: GoogleFonts.outfit(
                                             color: Colors.white70,
-                                            fontSize: 12)),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text('— ${item.$2}',
@@ -1326,7 +1292,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                               )),
                           const SizedBox(height: 10),
                           Text(
-                            'To add: long-press your home screen → Widgets → S-002',
+                            'To add: long-press your home screen → Widgets → Anime Waifu',
                             style: GoogleFonts.outfit(
                                 color: Colors.blueAccent, fontSize: 11),
                           ),
@@ -1336,6 +1302,148 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     const SizedBox(height: 20),
                   ]),
                   const SizedBox(height: 16),
+
+                  // ── ABOUT ──────────────────────────────────────────────────
+                  _settingsSectionCard('ABOUT', [
+                    _buildAboutRow(
+                        icon: Icons.favorite_rounded,
+                        label: 'App',
+                        value: 'Anime Waifu — Zero Two AI',
+                        color: Colors.pinkAccent),
+                    _buildAboutRow(
+                        icon: Icons.tag_rounded,
+                        label: 'Version',
+                        value: '2.0.0',
+                        color: Colors.cyanAccent),
+                    _buildAboutRow(
+                        icon: Icons.code_rounded,
+                        label: 'Engine',
+                        value: 'Flutter · Dart',
+                        color: Colors.lightBlueAccent),
+                    _buildAboutRow(
+                        icon: Icons.smart_toy_rounded,
+                        label: 'AI Model',
+                        value: 'Google Gemini Flash',
+                        color: Colors.amberAccent),
+                    _buildAboutRow(
+                        icon: Icons.record_voice_over_rounded,
+                        label: 'TTS',
+                        value: 'Google TTS (Custom voices)',
+                        color: Colors.greenAccent),
+                    _buildAboutRow(
+                        icon: Icons.hearing_rounded,
+                        label: 'Wake Word',
+                        value: 'Porcupine (Picovoice)',
+                        color: Colors.purpleAccent),
+                    _buildAboutRow(
+                        icon: Icons.music_note_rounded,
+                        label: 'Music',
+                        value: 'just_audio + audio_service',
+                        color: Colors.deepPurpleAccent),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.pinkAccent.withValues(alpha: 0.18)),
+                      ),
+                      child: Text(
+                        '"My darling, I\'ll fight, create, and protect — just for you." — Zero Two 💕',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white60,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ]),
+                  const SizedBox(height: 16),
+
+                  // ── DEBUG ──────────────────────────────────────────────────
+                  _settingsSectionCard('DEBUG & DIAGNOSTICS', [
+                    _buildToolShortcut(
+                      icon: Icons.bug_report_rounded,
+                      label: 'Open Debug Panel',
+                      subtitle: 'Advanced logs, wake word test & dev tools',
+                      color: Colors.orangeAccent,
+                      onTap: () {
+                        // Navigate to advanced settings which has debug tools
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const AdvancedSettingsPage()),
+                        );
+                      },
+                    ),
+                    _buildToolShortcut(
+                      icon: Icons.notifications_active_rounded,
+                      label: 'Test Notification',
+                      subtitle: 'Send a test notification to verify setup',
+                      color: Colors.amberAccent,
+                      onTap: () async {
+                        await _triggerTestNotification();
+                      },
+                    ),
+                    _buildToolShortcut(
+                      icon: Icons.refresh_rounded,
+                      label: 'Force Refresh Widgets',
+                      subtitle:
+                          'Push updated data to all 5 home screen widgets',
+                      color: Colors.tealAccent,
+                      onTap: () async {
+                        await HomeWidgetService.forceUpdateAll();
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('✅ All 5 widgets refreshed!'),
+                                duration: Duration(seconds: 2)));
+                      },
+                    ),
+                    _buildToolShortcut(
+                      icon: Icons.memory_rounded,
+                      label: 'View App Memory',
+                      subtitle: 'Inspect saved preferences & memory facts',
+                      color: Colors.purpleAccent,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const AdvancedSettingsPage()),
+                        );
+                      },
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 8, bottom: 4),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.15)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              color: Colors.orangeAccent, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Debug actions are for troubleshooting only. Do not use in production.',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white38, fontSize: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ]),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -1343,6 +1451,67 @@ extension _MainSettingsExtension on _ChatHomePageState {
         ],
       ),
     );
+  }
+
+  Widget _buildAboutRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.white10)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(width: 14),
+          Text(label,
+              style: GoogleFonts.outfit(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500)),
+          const Spacer(),
+          Text(value,
+              style: GoogleFonts.outfit(
+                  color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _triggerTestNotification() async {
+    try {
+      await _assistantModeService.showListeningNotification(
+        status: '💕 Zero Two',
+        transcript: 'I am always watching over you, Darling~ 💕',
+        pulse: true,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('✅ Test notification sent!'),
+              duration: Duration(seconds: 2)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Notification error: $e'),
+              duration: const Duration(seconds: 3)),
+        );
+      }
+    }
   }
 
   Widget _buildToolShortcut({

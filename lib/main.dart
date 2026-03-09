@@ -175,8 +175,17 @@ Future<void> _bootstrapPlatformServices() async {
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'com.example.anime_waifu.channel.audio',
         androidNotificationChannelName: 'Zero Two Music',
-        androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
+        androidNotificationChannelDescription:
+            'Music player controls — play, pause, skip & seek',
+        // Uses mipmap/ic_launcher as the small notification icon
+        androidNotificationIcon: 'mipmap/ic_launcher',
+        // Keep notification visible while paused (like Spotify)
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
+        // Allow system to show the media session on lock screen
+        notificationColor: Color(0xFF9B59B6), // Purple accent
+        artDownscaleWidth: 512,
+        artDownscaleHeight: 512,
       ),
     );
   } catch (e, st) {
@@ -1952,7 +1961,8 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
         }
       } catch (_) {}
 
-      if (Platform.isAndroid && _wakePopupEnabled) {
+      // Don't show overlay when user is already on the chat screen — they can see/hear Akira directly
+      if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
         await _assistantModeService.showOverlay(
           status: "Wake word detected",
           transcript: wakeName.isNotEmpty ? wakeName : "Speak your command",
@@ -3794,7 +3804,6 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
                   child: (_navIndex == 0 && !_liteModeEnabled)
                       ? VisualEffectsOverlay(
                           themeMode: themeMode,
-                          isSpeaking: _isSpeaking,
                           child: _buildNavBody(),
                         )
                       : _buildNavBody(),
@@ -3978,6 +3987,7 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
             runSpacing: 8,
             children: [
               _buildHeroStatusChip(
+                // The user requested to revert back to showing exactly what the engine is doing
                 label: _wakeWordService.isRunning ? 'WAKE ON' : 'WAKE OFF',
                 active: _wakeWordService.isRunning,
                 accent: Colors.greenAccent,
@@ -4161,15 +4171,15 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
               ),
             Expanded(
               child: displayMessages.isEmpty
-                  ? Center(
-                      child: Text(
-                        _chatSearchQuery.isEmpty
-                            ? ''
-                            : 'No messages matching "$_chatSearchQuery"',
-                        style: const TextStyle(
-                            color: Colors.white38, fontSize: 13),
-                      ),
-                    )
+                  ? (_chatSearchQuery.isNotEmpty
+                      ? Center(
+                          child: Text(
+                            'No messages matching "$_chatSearchQuery"',
+                            style: const TextStyle(
+                                color: Colors.white38, fontSize: 13),
+                          ),
+                        )
+                      : _buildEmptyChatState())
                   : ListView.builder(
                       controller:
                           _isChatSearchActive ? null : _scrollController,
@@ -4192,6 +4202,126 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _sendSuggestion(String text) {
+    _textController.text = text;
+    unawaited(_handleTextInput());
+  }
+
+  Widget _buildEmptyChatState() {
+    final primary = Theme.of(context).primaryColor;
+    final suggestions = [
+      ('Good morning! 🌸', Icons.wb_sunny_rounded),
+      ('Tell me something cute 💕', Icons.favorite_rounded),
+      ('Play some music 🎵', Icons.music_note_rounded),
+      ('What can you do? ✨', Icons.auto_awesome_rounded),
+    ];
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _AnimatedHeart(),
+              const SizedBox(height: 20),
+              Text(
+                'Hey, Darling~ 💕',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  shadows: [
+                    Shadow(
+                        color: primary.withValues(alpha: 0.60), blurRadius: 14),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "I'm right here, waiting for you.\nJust type or say the wake word to start!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  color: Colors.white60,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 28),
+              // Divider-like subtle line
+              Container(
+                width: 48,
+                height: 1.5,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      primary.withValues(alpha: 0.60),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'QUICK START',
+                style: GoogleFonts.outfit(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: suggestions.map((s) {
+                  final (label, icon) = s;
+                  return GestureDetector(
+                    onTap: () => _sendSuggestion(label),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 9),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        color: primary.withValues(alpha: 0.10),
+                        border: Border.all(
+                          color: primary.withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon,
+                              size: 13, color: primary.withValues(alpha: 0.85)),
+                          const SizedBox(width: 6),
+                          Text(
+                            label,
+                            style: GoogleFonts.outfit(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -4857,8 +4987,11 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
 
     final inputWithBlur = _liteModeEnabled
         ? inputPanel
-        : BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        : Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(26),
+            ),
             child: inputPanel,
           );
 
@@ -5130,5 +5263,93 @@ ${memoryBlock}For ALL action responses above (rules 7-42): respond ONLY with the
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Animated Heart — heartbeat pulse + breathing glow for empty chat state
+// ─────────────────────────────────────────────────────────────────────────────
+class _AnimatedHeart extends StatefulWidget {
+  const _AnimatedHeart();
+  @override
+  State<_AnimatedHeart> createState() => _AnimatedHeartState();
+}
+
+class _AnimatedHeartState extends State<_AnimatedHeart>
+    with TickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+  late final AnimationController _glowCtrl;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _opacityAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    // Heartbeat double-pulse: dum-dum pause dum-dum…
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+
+    _scaleAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.22), weight: 18),
+      TweenSequenceItem(tween: Tween(begin: 1.22, end: 1.0), weight: 14),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.13), weight: 13),
+      TweenSequenceItem(tween: Tween(begin: 1.13, end: 1.0), weight: 55),
+    ]).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+
+    // Slow glow breathe
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    _opacityAnim = Tween<double>(begin: 0.30, end: 0.75)
+        .animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    _glowCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    return AnimatedBuilder(
+      animation: Listenable.merge([_pulseCtrl, _glowCtrl]),
+      builder: (_, __) => Transform.scale(
+        scale: _scaleAnim.value,
+        child: Container(
+          width: 90,
+          height: 90,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: primary.withValues(alpha: _opacityAnim.value * 0.55),
+                blurRadius: 20.0,
+                spreadRadius: 2.0,
+              ),
+            ],
+            gradient: RadialGradient(colors: [
+              primary.withValues(alpha: 0.22),
+              primary.withValues(alpha: 0.04),
+            ]),
+            border: Border.all(
+              color: primary.withValues(alpha: _opacityAnim.value * 0.65),
+              width: 1.8,
+            ),
+          ),
+          child: Icon(
+            Icons.favorite_rounded,
+            color: primary.withValues(alpha: 0.88),
+            size: 38,
+          ),
+        ),
+      ),
+    );
   }
 }

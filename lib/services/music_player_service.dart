@@ -91,10 +91,11 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   }
 
   void _broadcastState(PlaybackEvent event) {
+    final playing = _player.playing;
     playbackState.add(playbackState.value.copyWith(
       controls: [
         MediaControl.skipToPrevious,
-        if (_player.playing) MediaControl.pause else MediaControl.play,
+        if (playing) MediaControl.pause else MediaControl.play,
         MediaControl.stop,
         MediaControl.skipToNext,
       ],
@@ -102,7 +103,10 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
+        MediaAction.skipToNext,
+        MediaAction.skipToPrevious,
       },
+      // Show prev (0), play/pause (1), next (3) in compact view
       androidCompactActionIndices: const [0, 1, 3],
       processingState: const {
         ProcessingState.idle: AudioProcessingState.idle,
@@ -111,10 +115,11 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
         ProcessingState.ready: AudioProcessingState.ready,
         ProcessingState.completed: AudioProcessingState.completed,
       }[_player.processingState]!,
-      playing: _player.playing,
+      playing: playing,
       updatePosition: _player.position,
       bufferedPosition: _player.bufferedPosition,
       speed: _player.speed,
+      queueIndex: _currentIndex,
     ));
   }
 

@@ -6,35 +6,35 @@ class ContactsLookupService {
   /// match ranked: exact → starts-with → contains.
   static Future<String> findContact(String query) async {
     try {
-      final hasPermission =
-          await FlutterContacts.requestPermission(readonly: true);
-      if (!hasPermission) {
+      final status =
+          await FlutterContacts.permissions.request(PermissionType.read);
+      if (status != PermissionStatus.granted &&
+          status != PermissionStatus.limited) {
         return "I don't have permission to access your contacts. Please grant Contacts permission in Settings.";
       }
 
-      final contacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withPhoto: false,
+      final contacts = await FlutterContacts.getAll(
+        properties: {ContactProperty.phone, ContactProperty.email},
       );
 
       final q = query.toLowerCase().trim();
 
       // Rank: exact → exact word → starts-with → contains (all case-insensitive)
-      final exact =
-          contacts.where((c) => c.displayName.toLowerCase().trim() == q);
+      final exact = contacts
+          .where((c) => (c.displayName ?? '').toLowerCase().trim() == q);
       final exactWord = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         if (d == q) return false;
         return d.split(RegExp(r'\s+')).contains(q);
       });
       final startsWith = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         return d.startsWith(q) &&
             d != q &&
             !d.split(RegExp(r'\s+')).contains(q);
       });
       final contains = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         return d.contains(q) &&
             !d.startsWith(q) &&
             !d.split(RegExp(r'\s+')).contains(q);
@@ -50,7 +50,7 @@ class ContactsLookupService {
       final phones = contact.phones.map((p) => p.number).join(', ');
       final emails = contact.emails.map((e) => e.address).join(', ');
 
-      final parts = <String>[contact.displayName];
+      final parts = <String>[contact.displayName ?? ''];
       if (phones.isNotEmpty) parts.add('📞 $phones');
       if (emails.isNotEmpty) parts.add('📧 $emails');
 
@@ -65,32 +65,32 @@ class ContactsLookupService {
   /// ranked: exact → starts-with → contains). Returns null if not found.
   static Future<String?> resolvePhoneNumber(String query) async {
     try {
-      final hasPermission =
-          await FlutterContacts.requestPermission(readonly: true);
-      if (!hasPermission) return null;
+      final status =
+          await FlutterContacts.permissions.request(PermissionType.read);
+      if (status != PermissionStatus.granted &&
+          status != PermissionStatus.limited) return null;
 
-      final contacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withPhoto: false,
+      final contacts = await FlutterContacts.getAll(
+        properties: {ContactProperty.phone, ContactProperty.email},
       );
 
       final q = query.toLowerCase().trim();
 
-      final exact =
-          contacts.where((c) => c.displayName.toLowerCase().trim() == q);
+      final exact = contacts
+          .where((c) => (c.displayName ?? '').toLowerCase().trim() == q);
       final exactWord = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         if (d == q) return false;
         return d.split(RegExp(r'\s+')).contains(q);
       });
       final startsWith = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         return d.startsWith(q) &&
             d != q &&
             !d.split(RegExp(r'\s+')).contains(q);
       });
       final contains = contacts.where((c) {
-        final d = c.displayName.toLowerCase().trim();
+        final d = (c.displayName ?? '').toLowerCase().trim();
         return d.contains(q) &&
             !d.startsWith(q) &&
             !d.split(RegExp(r'\s+')).contains(q);
