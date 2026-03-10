@@ -68,7 +68,9 @@ class ContactsLookupService {
       final status =
           await FlutterContacts.permissions.request(PermissionType.read);
       if (status != PermissionStatus.granted &&
-          status != PermissionStatus.limited) return null;
+          status != PermissionStatus.limited) {
+        return null;
+      }
 
       final contacts = await FlutterContacts.getAll(
         properties: {ContactProperty.phone, ContactProperty.email},

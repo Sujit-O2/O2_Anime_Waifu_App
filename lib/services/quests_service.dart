@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'affection_service.dart';
+import 'firestore_service.dart';
 import '../api_call.dart';
 
-// ── Model ────────────────────────────────────────────────────────────────────
+// ── Model ─────────────────────────────────────────────────────────────────────
 
 class Quest {
   final String id;
@@ -13,7 +13,7 @@ class Quest {
   final String description;
   final int rewardPoints;
   final String emoji;
-  final bool isCustom; // user-created
+  final bool isCustom;
   bool isCompleted;
 
   Quest({
@@ -43,20 +43,15 @@ class Quest {
         rewardPoints: json['rewardPoints'] as int,
         emoji: (json['emoji'] as String?) ?? '⭐',
         isCustom: (json['isCustom'] as bool?) ?? false,
-        isCompleted: json['isCompleted'] as bool,
+        isCompleted: (json['isCompleted'] as bool?) ?? false,
       );
 }
 
-// ── Service ──────────────────────────────────────────────────────────────────
+// ── Service ────────────────────────────────────────────────────────────────────
 
 class QuestsService extends ChangeNotifier {
   static final QuestsService instance = QuestsService._internal();
 
-  static const String _keyQuests = 'daily_quests_v2';
-  static const String _keyCustom = 'custom_quests_v1';
-  static const String _keyLastQuestDate = 'last_quest_date_v2';
-
-  SharedPreferences? _prefs;
   List<Quest> _dailyQuests = [];
   List<Quest> _customQuests = [];
   bool _isGenerating = false;
@@ -71,7 +66,6 @@ class QuestsService extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    _prefs = await SharedPreferences.getInstance();
     await _loadCustomQuests();
     await _loadOrRefreshDailyQuests();
   }
@@ -79,11 +73,12 @@ class QuestsService extends ChangeNotifier {
   // ─── Daily quests ─────────────────────────────────────────────────────────
 
   Future<void> _loadOrRefreshDailyQuests() async {
-    final lastDateStr = _prefs?.getString(_keyLastQuestDate);
+    final data = await FirestoreService().loadQuests();
+    final lastDateStr = data['lastQuestDate'] as String?;
     final todayStr = DateTime.now().toIso8601String().split('T')[0];
 
     if (lastDateStr == todayStr) {
-      final stored = _prefs?.getString(_keyQuests);
+      final stored = data['dailyQuests'] as String?;
       if (stored != null) {
         final List<dynamic> decoded = jsonDecode(stored);
         _dailyQuests = decoded
@@ -93,40 +88,23 @@ class QuestsService extends ChangeNotifier {
         return;
       }
     }
-    // New day → generate fresh quests
     await generateAiQuests();
   }
 
-  /// Calls the AI to generate 5 daily quests. Falls back to built-in pool.
   Future<void> generateAiQuests() async {
     _isGenerating = true;
     notifyListeners();
-
     try {
       final api = ApiService();
       if (!api.hasApiKey) throw Exception('No API key');
-
       final todayStr = DateTime.now().toIso8601String().split('T')[0];
-
-      final prompt = '''You are Zero Two, a loving waifu AI.
-Generate EXACTLY 5 unique daily quests for Darling (the user) for today ($todayStr).
-These should be fun, achievable tasks related to self-care, love, productivity, and anime/relationship themes.
-Each quest should have a short punchy title, a sweet motivational description, a reward between 5-25 points, and a fitting emoji.
-
-Respond ONLY with valid JSON array, no other text:
-[
-  {"title":"...", "description":"...", "rewardPoints": 10, "emoji":"💧"},
-  ...
-]''';
-
+      final prompt =
+          '''You are Zero Two, a loving waifu AI.\nGenerate EXACTLY 5 unique daily quests for Darling (the user) for today ($todayStr).\nThese should be fun, achievable tasks related to self-care, love, productivity, and anime/relationship themes.\nEach quest should have a short punchy title, a sweet motivational description, a reward between 5-25 points, and a fitting emoji.\n\nRespond ONLY with valid JSON array, no other text:\n[\n  {"title":"...", "description":"...", "rewardPoints": 10, "emoji":"💧"},\n  ...\n]''';
       final response = await api.sendConversation([
         {'role': 'user', 'content': prompt}
       ]);
-
-      // Extract JSON from response
       final jsonMatch = RegExp(r'\[[\s\S]*\]').firstMatch(response);
-      if (jsonMatch == null) throw Exception('No JSON array in response');
-
+      if (jsonMatch == null) throw Exception('No JSON in response');
       final List<dynamic> parsed = jsonDecode(jsonMatch.group(0)!);
       _dailyQuests = parsed
           .asMap()
@@ -145,13 +123,11 @@ Respond ONLY with valid JSON array, no other text:
           })
           .take(5)
           .toList();
-
       await _saveDailyQuests(todayStr);
     } catch (e) {
-      debugPrint('AI quest generation failed, using fallback: $e');
+      debugPrint('AI quest generation failed: $e');
       _dailyQuests = _fallbackQuests();
-      final todayStr = DateTime.now().toIso8601String().split('T')[0];
-      await _saveDailyQuests(todayStr);
+      await _saveDailyQuests(DateTime.now().toIso8601String().split('T')[0]);
     } finally {
       _isGenerating = false;
       notifyListeners();
@@ -159,15 +135,15 @@ Respond ONLY with valid JSON array, no other text:
   }
 
   Future<void> _saveDailyQuests(String dateStr) async {
-    await _prefs?.setString(_keyLastQuestDate, dateStr);
-    await _prefs?.setString(
-        _keyQuests, jsonEncode(_dailyQuests.map((q) => q.toJson()).toList()));
+    await FirestoreService()
+        .saveDailyQuests(_dailyQuests.map((q) => q.toJson()).toList(), dateStr);
   }
 
   // ─── Custom quests ────────────────────────────────────────────────────────
 
   Future<void> _loadCustomQuests() async {
-    final stored = _prefs?.getString(_keyCustom);
+    final data = await FirestoreService().loadQuests();
+    final stored = data['customQuests'] as String?;
     if (stored != null) {
       final List<dynamic> decoded = jsonDecode(stored);
       _customQuests = decoded
@@ -192,6 +168,8 @@ Respond ONLY with valid JSON array, no other text:
     );
     _customQuests.add(quest);
     await _saveCustomQuests();
+    // Achievement: created first custom quest
+    await FirestoreService().unlockAchievement('first_custom_quest');
     notifyListeners();
   }
 
@@ -202,22 +180,25 @@ Respond ONLY with valid JSON array, no other text:
   }
 
   Future<void> _saveCustomQuests() async {
-    await _prefs?.setString(
-        _keyCustom, jsonEncode(_customQuests.map((q) => q.toJson()).toList()));
+    await FirestoreService()
+        .saveCustomQuests(_customQuests.map((q) => q.toJson()).toList());
   }
 
-  // ─── Complete a quest ─────────────────────────────────────────────────────
+  // ─── Complete quest ───────────────────────────────────────────────────────
 
   Future<void> completeQuest(String id) async {
-    final allLists = [_dailyQuests, _customQuests];
-    for (final list in allLists) {
+    for (final list in [_dailyQuests, _customQuests]) {
       final idx = list.indexWhere((q) => q.id == id);
       if (idx != -1 && !list[idx].isCompleted) {
         list[idx].isCompleted = true;
         await AffectionService.instance.addPoints(list[idx].rewardPoints);
         if (list == _dailyQuests) {
-          final todayStr = DateTime.now().toIso8601String().split('T')[0];
-          await _saveDailyQuests(todayStr);
+          await _saveDailyQuests(
+              DateTime.now().toIso8601String().split('T')[0]);
+          // Achievement for completing all daily quests
+          if (_dailyQuests.every((q) => q.isCompleted)) {
+            await FirestoreService().unlockAchievement('all_daily_quests');
+          }
         } else {
           await _saveCustomQuests();
         }
@@ -234,13 +215,13 @@ Respond ONLY with valid JSON array, no other text:
       Quest(
           id: 'f1',
           title: 'Morning Ritual',
-          description: 'Start your day with "Good morning, Zero Two!" in chat.',
+          description: 'Say "Good morning, Zero Two!" in chat.',
           rewardPoints: 10,
           emoji: '🌅'),
       Quest(
           id: 'f2',
           title: 'Stay Hydrated',
-          description: 'Drink 3 glasses of water today, Darling.',
+          description: 'Drink 3 glasses of water today.',
           rewardPoints: 5,
           emoji: '💧'),
       Quest(
@@ -252,8 +233,7 @@ Respond ONLY with valid JSON array, no other text:
       Quest(
           id: 'f4',
           title: 'Talk to Her',
-          description:
-              'Have a conversation of at least 10 messages with Zero Two.',
+          description: 'Have at least 10 messages with Zero Two.',
           rewardPoints: 15,
           emoji: '💬'),
       Quest(
@@ -265,14 +245,13 @@ Respond ONLY with valid JSON array, no other text:
       Quest(
           id: 'f6',
           title: 'Deep Breath',
-          description:
-              'Take 2 minutes for deep breathing — she wants you calm.',
+          description: 'Take 2 minutes for deep breathing.',
           rewardPoints: 5,
           emoji: '💨'),
       Quest(
           id: 'f7',
           title: 'Read Something',
-          description: 'Read an article or book chapter for 10 minutes.',
+          description: 'Read an article or book for 10 minutes.',
           rewardPoints: 12,
           emoji: '📖'),
       Quest(

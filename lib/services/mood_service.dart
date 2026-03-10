@@ -1,10 +1,7 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'firestore_service.dart';
 
-/// Tracks daily mood entries for the AI to reference.
+/// Tracks daily mood entries — now stored in Firestore.
 class MoodService {
-  static const _key = 'mood_tracker_v1';
-
   static const List<String> moods = [
     '😄 Happy',
     '😊 Good',
@@ -16,40 +13,26 @@ class MoodService {
     '😰 Anxious',
   ];
 
-  /// Save mood entry with timestamp
   static Future<void> saveMood(String mood) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
-    final List<Map<String, String>> entries = raw != null
-        ? List<Map<String, String>>.from((jsonDecode(raw) as List)
-            .map((e) => Map<String, String>.from(e as Map)))
-        : [];
+    final entries = await getAll();
     entries.add({
       'mood': mood,
       'ts': DateTime.now().toIso8601String(),
     });
     // Keep last 90 entries
-    if (entries.length > 90) entries.removeRange(0, entries.length - 90);
-    await prefs.setString(_key, jsonEncode(entries));
+    final capped =
+        entries.length > 90 ? entries.sublist(entries.length - 90) : entries;
+    await FirestoreService().saveMoodEntries(capped);
   }
 
-  /// Get all mood entries
-  static Future<List<Map<String, String>>> getAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
-    if (raw == null || raw.isEmpty) return [];
-    return List<Map<String, String>>.from((jsonDecode(raw) as List)
-        .map((e) => Map<String, String>.from(e as Map)));
-  }
+  static Future<List<Map<String, String>>> getAll() =>
+      FirestoreService().loadMoodEntries();
 
-  /// Get most recent mood
   static Future<String?> getLatestMood() async {
     final entries = await getAll();
-    if (entries.isEmpty) return null;
-    return entries.last['mood'];
+    return entries.isEmpty ? null : entries.last['mood'];
   }
 
-  /// Get mood summary string for AI context
   static Future<String> buildMoodContext() async {
     final entries = await getAll();
     if (entries.isEmpty) return '';
@@ -65,9 +48,5 @@ class MoodService {
     return '\n[Mood history (last 7 days)]: $lines\n';
   }
 
-  /// Clear all mood history
-  static Future<void> clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
-  }
+  static Future<void> clearAll() => FirestoreService().clearMoodEntries();
 }

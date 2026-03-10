@@ -1,29 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'firestore_service.dart';
 import 'home_widget_service.dart';
 
-/// Manages the affection/relationship system with the AI Companion
+/// Manages the affection/relationship system.
+/// All data persisted to Firestore — synced across reinstalls.
 class AffectionService extends ChangeNotifier {
-  static const String _keyAffection = 'affection_points';
-  static const String _keyLastInteraction = 'last_interaction_time';
-
-  // Singleton pattern
   static final AffectionService instance = AffectionService._internal();
 
-  SharedPreferences? _prefs;
   int _affectionPoints = 0;
+  int _streakDays = 0;
   DateTime? _lastInteractionTime;
+  int _lastStreakDateMs = 0;
 
   int get points => _affectionPoints;
-
-  static const String _keyStreak = 'daily_login_streak';
-  static const String _keyLastStreakDate = 'last_streak_date';
-
-  int _streakDays = 0;
   int get streakDays => _streakDays;
 
-  // Stream to notify UI when a daily bonus is awarded
   final _bonusStreamController = StreamController<int>.broadcast();
   Stream<int> get onDailyLoginBonus => _bonusStreamController.stream;
 
@@ -32,23 +24,21 @@ class AffectionService extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    _prefs = await SharedPreferences.getInstance();
-    _affectionPoints =
-        _prefs?.getInt(_keyAffection) ?? 100; // Start with 100 points
-    _streakDays = _prefs?.getInt(_keyStreak) ?? 0;
-    final lastTimeMs = _prefs?.getInt(_keyLastInteraction);
-    if (lastTimeMs != null) {
-      _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(lastTimeMs);
+    final data = await FirestoreService().loadAffection();
+    _affectionPoints = (data['points'] as int?) ?? 100;
+    _streakDays = (data['streakDays'] as int?) ?? 0;
+    _lastStreakDateMs = (data['lastStreakDateMs'] as int?) ?? 0;
+    final lastMs = data['lastInteractionMs'] as int?;
+    if (lastMs != null) {
+      _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(lastMs);
     }
-
-    // Check for daily decay if ignored
     _applyDecayIfNeeded();
-    await HomeWidgetService
-        .updateAffectionWidget(); // Call after initial affection is set and decay applied
+    await HomeWidgetService.updateAffectionWidget();
     notifyListeners();
   }
 
-  /// Calculates the current relationship level name based on points
+  // ── Level logic (unchanged) ───────────────────────────────────────────────
+
   String get levelName {
     if (_affectionPoints < 50) return "Newlyweds 💍";
     if (_affectionPoints < 200) return "Honeymooners 🥂";
@@ -59,7 +49,6 @@ class AffectionService extends ChangeNotifier {
     return "Bound by Fate ♾️";
   }
 
-  /// Calculates progress to the next level (0.0 to 1.0)
   double get levelProgress {
     if (_affectionPoints < 50) return _affectionPoints / 50;
     if (_affectionPoints < 200) return (_affectionPoints - 50) / 150;
@@ -67,10 +56,9 @@ class AffectionService extends ChangeNotifier {
     if (_affectionPoints < 900) return (_affectionPoints - 500) / 400;
     if (_affectionPoints < 1500) return (_affectionPoints - 900) / 600;
     if (_affectionPoints < 2500) return (_affectionPoints - 1500) / 1000;
-    return 1.0; // Max level
+    return 1.0;
   }
 
-  /// Get color associated with current affection level
   Color get levelColor {
     if (_affectionPoints < 50) return Colors.grey;
     if (_affectionPoints < 200) return Colors.blueGrey;
@@ -81,107 +69,94 @@ class AffectionService extends ChangeNotifier {
     return Colors.amber;
   }
 
-  /// Add points (e.g., from positive interaction or completing a quest)
+  // ── Public API ────────────────────────────────────────────────────────────
+
   Future<void> addPoints(int amount) async {
     _affectionPoints += amount;
     _updateLastInteraction();
     await _save();
+    await _checkAchievements();
     await HomeWidgetService.updateAffectionWidget();
     notifyListeners();
   }
 
-  /// Remove points (e.g., from ignoring or negative interaction)
   Future<void> removePoints(int amount) async {
-    _affectionPoints -= amount;
-    if (_affectionPoints < 0) _affectionPoints = 0;
+    _affectionPoints = (_affectionPoints - amount).clamp(0, 99999);
     await _save();
     await HomeWidgetService.updateAffectionWidget();
     notifyListeners();
   }
 
-  /// Records that the user interacted with the app today
   Future<void> recordInteraction() async {
-    // Check daily streak before updating interaction time
     _checkDailyStreak();
-
-    // Made async to await _save()
     _updateLastInteraction();
     await _save();
     await HomeWidgetService.updateAffectionWidget();
   }
 
+  // ── Streak logic ──────────────────────────────────────────────────────────
+
   void _checkDailyStreak() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-
-    final lastStreakMs = _prefs?.getInt(_keyLastStreakDate);
-    if (lastStreakMs != null) {
-      final lastStreak = DateTime.fromMillisecondsSinceEpoch(lastStreakMs);
+    if (_lastStreakDateMs != 0) {
+      final lastStreak = DateTime.fromMillisecondsSinceEpoch(_lastStreakDateMs);
       final diff = today.difference(lastStreak).inDays;
-
       if (diff == 1) {
-        // Consecutive day
         _streakDays++;
         _grantDailyBonus(today);
       } else if (diff > 1) {
-        // Streak broken
         _streakDays = 1;
         _grantDailyBonus(today);
       }
-      // If diff == 0, already claimed today.
     } else {
-      // First time ever
       _streakDays = 1;
       _grantDailyBonus(today);
     }
   }
 
   void _grantDailyBonus(DateTime today) {
-    _prefs?.setInt(_keyLastStreakDate, today.millisecondsSinceEpoch);
-    _prefs?.setInt(_keyStreak, _streakDays);
-
-    // Calculate bonus: base 5 + 2 for every streak day (capped at 25)
-    int bonus = 5 + (_streakDays * 2);
-    if (bonus > 25) bonus = 25;
-
+    _lastStreakDateMs = today.millisecondsSinceEpoch;
+    int bonus = (5 + (_streakDays * 2)).clamp(0, 25);
     _affectionPoints += bonus;
-    _bonusStreamController.add(bonus); // Notify UI
+    _bonusStreamController.add(bonus);
     notifyListeners();
   }
 
   void _updateLastInteraction() {
     _lastInteractionTime = DateTime.now();
-    _prefs?.setInt(
-        _keyLastInteraction, _lastInteractionTime!.millisecondsSinceEpoch);
   }
 
-  /// If the user hasn't interacted in more than 48 hours, decay affection.
   Future<void> _applyDecayIfNeeded() async {
-    // Made async to await _save() and HomeWidgetService
     if (_lastInteractionTime == null) return;
-    final now = DateTime.now();
-    final difference = now.difference(_lastInteractionTime!);
-
-    // Decay 10 points for every full day after the first 2 days of inactivity
-    if (difference.inDays > 2) {
-      final decayDays = difference.inDays - 2;
-      _affectionPoints -= (decayDays * 10);
-      if (_affectionPoints < 0) _affectionPoints = 0;
-
-      // Update interaction time so we don't decay again until another day passes
-      _updateLastInteraction();
-
-      // Also reset streak since it's definitely broken
+    final diff = DateTime.now().difference(_lastInteractionTime!);
+    if (diff.inDays > 2) {
+      _affectionPoints =
+          (_affectionPoints - (diff.inDays - 2) * 10).clamp(0, 99999);
       _streakDays = 0;
-      _prefs?.setInt(_keyStreak, 0);
-
-      await _save(); // Save after decay
-      await HomeWidgetService
-          .updateAffectionWidget(); // Update widget after decay
+      _updateLastInteraction();
+      await _save();
+      await HomeWidgetService.updateAffectionWidget();
     }
   }
 
+  /// Check & unlock milestone achievements
+  Future<void> _checkAchievements() async {
+    final fs = FirestoreService();
+    if (_affectionPoints >= 100) await fs.unlockAchievement('first_100_pts');
+    if (_affectionPoints >= 500) await fs.unlockAchievement('500_pts');
+    if (_affectionPoints >= 1000) await fs.unlockAchievement('1000_pts');
+    if (_streakDays >= 7) await fs.unlockAchievement('7_day_streak');
+    if (_streakDays >= 30) await fs.unlockAchievement('30_day_streak');
+  }
+
   Future<void> _save() async {
-    await _prefs?.setInt(_keyAffection, _affectionPoints);
+    await FirestoreService().saveAffection(
+      points: _affectionPoints,
+      streakDays: _streakDays,
+      lastInteractionMs: _lastInteractionTime?.millisecondsSinceEpoch ??
+          DateTime.now().millisecondsSinceEpoch,
+      lastStreakDateMs: _lastStreakDateMs,
+    );
   }
 }
