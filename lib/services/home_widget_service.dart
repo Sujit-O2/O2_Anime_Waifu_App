@@ -10,7 +10,7 @@ Future<void> interactiveCallback(Uri? data) async {
   }
 }
 
-/// All 5 new widget provider class names on the Android side
+/// All 5 widget provider class names on the Android side
 const _allProviders = [
   'WaifuDashboardWidgetProvider',
   'WaifuStatusMonitorWidgetProvider',
@@ -20,25 +20,36 @@ const _allProviders = [
 ];
 
 class HomeWidgetService {
-  static const String appGroupId = '<YOUR_APP_GROUP_ID>'; // iOS only
+  // Android: use package name as the group identifier
+  static const String appGroupId = 'com.example.anime_waifu';
   static const String androidProviderName = 'WaifuDashboardWidgetProvider';
 
   static Future<void> initialize() async {
-    await HomeWidget.setAppGroupId(appGroupId);
-    await HomeWidget.registerInteractivityCallback(interactiveCallback);
+    try {
+      await HomeWidget.setAppGroupId(appGroupId);
+    } catch (_) {}
+    try {
+      await HomeWidget.registerInteractivityCallback(interactiveCallback);
+    } catch (_) {}
   }
 
-  /// Save a key-value pair and trigger all widgets to refresh
+  /// Save a key-value pair
   static Future<void> _save<T>(String key, T value) async {
-    await HomeWidget.saveWidgetData<T>(key, value);
+    try {
+      await HomeWidget.saveWidgetData<T>(key, value);
+    } catch (e) {
+      debugPrint('HomeWidget save error for $key: $e');
+    }
   }
 
-  /// Trigger all 5 widget providers to redraw
+  /// Trigger all widget providers to redraw — failures are swallowed individually
   static Future<void> _triggerAll() async {
     for (final provider in _allProviders) {
       try {
         await HomeWidget.updateWidget(androidName: provider);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('HomeWidget update error for $provider: $e');
+      }
     }
   }
 
@@ -69,8 +80,7 @@ class HomeWidgetService {
   static Future<void> updateLatestMessage(String message) async {
     try {
       await _save<String>('latest_chat', message);
-      await HomeWidget.updateWidget(
-          androidName: 'WaifuDashboardWidgetProvider');
+      await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
     } catch (e) {
       debugPrint('Error updating latest message: $e');
     }
@@ -81,10 +91,25 @@ class HomeWidgetService {
     try {
       await _save<String>('weather_temp', temp);
       await _save<String>('weather_desc', description);
-      await HomeWidget.updateWidget(
-          androidName: 'WaifuWeatherTimeWidgetProvider');
+      await HomeWidget.updateWidget(androidName: 'WaifuWeatherTimeWidgetProvider');
     } catch (e) {
       debugPrint('Error updating Weather Widget: $e');
+    }
+  }
+
+  /// Pushes music player state to the Dashboard widget
+  static Future<void> updateMusicWidget({
+    required String title,
+    required String artist,
+    required bool isPlaying,
+  }) async {
+    try {
+      await _save<String>('music_title', title);
+      await _save<String>('music_artist', artist);
+      await _save<bool>('music_playing', isPlaying);
+      await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
+    } catch (e) {
+      debugPrint('Error updating Music Widget: $e');
     }
   }
 

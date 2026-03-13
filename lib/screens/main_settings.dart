@@ -95,139 +95,149 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       onChanged: (_) => _toggleIdleTimer(),
                       activeColor: Colors.orangeAccent,
                     ),
-                    if (_idleTimerEnabled)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                    'Idle (In-app): ${_formatCheckInDuration(_idleDurationSeconds)}',
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white70, fontSize: 13)),
-                                Text('Timer',
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white24, fontSize: 11)),
-                              ],
-                            ),
-                            Slider(
-                              value: _idleDurationSeconds.toDouble(),
-                              min: 60,
-                              max: 3600,
-                              divisions: 59,
-                              onChanged: (v) => _updateIdleDuration(v.toInt()),
-                              activeColor: Colors.orangeAccent,
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (_proactiveEnabled)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Check-in Mode',
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white70, fontSize: 13)),
-                                Text(
-                                    _proactiveRandomEnabled
-                                        ? 'Randomized'
-                                        : 'Manual',
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white24, fontSize: 11)),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children: [
-                                ChoiceChip(
-                                  label: Text('Manual',
-                                      style: GoogleFonts.outfit(
-                                        color: !_proactiveRandomEnabled
-                                            ? Colors.black
-                                            : Colors.white70,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      )),
-                                  selected: !_proactiveRandomEnabled,
-                                  selectedColor: Colors.redAccent,
-                                  backgroundColor: Colors.white10,
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      _setProactiveTimingMode(false);
-                                    }
-                                  },
-                                ),
-                                ChoiceChip(
-                                  label: Text('Random',
-                                      style: GoogleFonts.outfit(
-                                        color: _proactiveRandomEnabled
-                                            ? Colors.black
-                                            : Colors.white70,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      )),
-                                  selected: _proactiveRandomEnabled,
-                                  selectedColor: Colors.redAccent,
-                                  backgroundColor: Colors.white10,
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      _setProactiveTimingMode(true);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            if (!_proactiveRandomEnabled) ...[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: _idleTimerEnabled
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                      'Check-in (Background): ${_formatCheckInDuration(_proactiveIntervalSeconds)}',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.white70, fontSize: 13)),
-                                  Text('Manual interval',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.white24, fontSize: 11)),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                          'Idle (In-app): ${_formatCheckInDuration(_idleDurationSeconds)}',
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white70, fontSize: 13)),
+                                      Text('Timer',
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white24, fontSize: 11)),
+                                    ],
+                                  ),
+                                  Slider(
+                                    value: _idleDurationSeconds.toDouble(),
+                                    min: 60,
+                                    max: 3600,
+                                    divisions: 59,
+                                    onChanged: (v) => _updateIdleDuration(v.toInt()),
+                                    activeColor: Colors.orangeAccent,
+                                  ),
                                 ],
                               ),
-                              Slider(
-                                value: _proactiveIntervalSeconds.toDouble(),
-                                min: 60,
-                                max: 18000,
-                                divisions: 299,
-                                onChanged: (v) =>
-                                    _updateProactiveInterval(v.toInt()),
-                                activeColor: Colors.redAccent,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: _proactiveEnabled
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Check-in Mode',
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white70, fontSize: 13)),
+                                      Text(
+                                          _proactiveRandomEnabled
+                                              ? 'Randomized'
+                                              : 'Manual',
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white24, fontSize: 11)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      ChoiceChip(
+                                        label: Text('Manual',
+                                            style: GoogleFonts.outfit(
+                                              color: !_proactiveRandomEnabled
+                                                  ? Colors.black
+                                                  : Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            )),
+                                        selected: !_proactiveRandomEnabled,
+                                        selectedColor: Colors.redAccent,
+                                        backgroundColor: Colors.white10,
+                                        onSelected: (selected) {
+                                          if (selected) {
+                                            _setProactiveTimingMode(false);
+                                          }
+                                        },
+                                      ),
+                                      ChoiceChip(
+                                        label: Text('Random',
+                                            style: GoogleFonts.outfit(
+                                              color: _proactiveRandomEnabled
+                                                  ? Colors.black
+                                                  : Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            )),
+                                        selected: _proactiveRandomEnabled,
+                                        selectedColor: Colors.redAccent,
+                                        backgroundColor: Colors.white10,
+                                        onSelected: (selected) {
+                                          if (selected) {
+                                            _setProactiveTimingMode(true);
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  if (!_proactiveRandomEnabled) ...[
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                            'Check-in (Background): ${_formatCheckInDuration(_proactiveIntervalSeconds)}',
+                                            style: GoogleFonts.outfit(
+                                                color: Colors.white70, fontSize: 13)),
+                                        Text('Manual interval',
+                                            style: GoogleFonts.outfit(
+                                                color: Colors.white24, fontSize: 11)),
+                                      ],
+                                    ),
+                                    Slider(
+                                      value: _proactiveIntervalSeconds.toDouble(),
+                                      min: 60,
+                                      max: 18000,
+                                      divisions: 299,
+                                      onChanged: (v) =>
+                                          _updateProactiveInterval(v.toInt()),
+                                      activeColor: Colors.redAccent,
+                                    ),
+                                  ] else ...[
+                                    Text(
+                                      'Random pool: ${_proactiveRandomIntervalOptionsSeconds.map(_formatCheckInDuration).join(", ")}',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white70, fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Zero Two picks a different delay every cycle.',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white38, fontSize: 11),
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ] else ...[
-                              Text(
-                                'Random pool: ${_proactiveRandomIntervalOptionsSeconds.map(_formatCheckInDuration).join(", ")}',
-                                style: GoogleFonts.outfit(
-                                    color: Colors.white70, fontSize: 12),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Zero Two picks a different delay every cycle.',
-                                style: GoogleFonts.outfit(
-                                    color: Colors.white38, fontSize: 11),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                     _settingsTile(
                       icon: Icons.hearing_outlined,
                       label: 'Background Assistant',
@@ -677,6 +687,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     const SizedBox(height: 20),
                   ]),
                   const SizedBox(height: 16),
+                  _settingsSectionCard('WAIFU CUSTOMIZATION', [
+                    _buildWaifuCustomizationCard(),
+                  ]),
+                  const SizedBox(height: 16),
                   _settingsSectionCard('MEMORY & DATA', [
                     FutureBuilder<String>(
                       future: MemoryService.buildMemoryPromptBlock(),
@@ -740,9 +754,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     const SizedBox(height: 10),
 
-                    // Google Drive Backup UI
-                    _GoogleDriveBackupWidget(
-                        onRestoreComplete: () => updateState(() {})),
+                    // Cloud Sync Display
+                    const _GoogleDriveBackupWidget(),
 
                     const SizedBox(height: 16),
 
@@ -1443,6 +1456,116 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     const SizedBox(height: 8),
                   ]),
+                  const SizedBox(height: 16),
+                  // ── ACCOUNT ────────────────────────────────────────────────
+                  _settingsSectionCard('ACCOUNT', [
+                    // Current user display
+                    Builder(builder: (context) {
+                      final user = FirebaseAuth.instance.currentUser;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.08)),
+                        ),
+                        child: Row(children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                                color: Colors.white10, shape: BoxShape.circle),
+                            child: const Icon(Icons.person_outline,
+                                color: Colors.white70, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    user?.displayName ?? user?.email ?? 'Guest',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700)),
+                                Text(user?.email ?? 'Not signed in',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white38, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        ]),
+                      );
+                    }),
+                    GestureDetector(
+                      onTap: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: const Color(0xFF16161E),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            title: Text('Sign Out',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                            content: Text(
+                                'Are you sure you want to sign out?\nYour data is safely stored in the cloud and will be restored when you sign back in.',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white70, height: 1.4)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text('Cancel',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white54)),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text('Sign Out',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          try {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.clear();
+                          } catch (_) {}
+                          await FirebaseAuth.instance.signOut();
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.logout_rounded,
+                                color: Colors.redAccent, size: 20),
+                            const SizedBox(width: 10),
+                            Text('Sign Out',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.redAccent,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ]),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -1576,33 +1699,36 @@ extension _MainSettingsExtension on _ChatHomePageState {
   }
 
   Widget _settingsSectionCard(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
-          child: Text(title,
-              style: GoogleFonts.outfit(
-                  color: Colors.white38,
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.w600)),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+            child: Text(title,
+                style: GoogleFonts.outfit(
+                    color: Colors.white38,
+                    fontSize: 11,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w600)),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1804,6 +1930,202 @@ extension _MainSettingsExtension on _ChatHomePageState {
       ),
     );
   }
+
+  Widget _buildWaifuCustomizationCard() {
+    return Column(
+      children: [
+        // ── Custom Rules ──────────────────────────────────────────────────
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.deepPurpleAccent.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: Colors.deepPurpleAccent.withValues(alpha: 0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                const Icon(Icons.rule_rounded,
+                    color: Colors.deepPurpleAccent, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: Text('Custom Rules',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700))),
+                TextButton(
+                  onPressed: () => _showEditDialog(
+                    title: 'Custom Rules',
+                    hint: 'e.g. Always reply in Hindi. Never use emojis.',
+                    initial: _customRules,
+                    maxLines: 5,
+                    onSave: (val) async {
+                      await FirestoreService().saveCustomRules(val);
+                      updateState(() => _customRules = val);
+                    },
+                  ),
+                  child: Text('Edit',
+                      style: GoogleFonts.outfit(
+                          color: Colors.deepPurpleAccent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12)),
+                ),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                _customRules.trim().isEmpty
+                    ? 'No custom rules. Tap Edit to add rules applied to every message.'
+                    : _customRules.trim(),
+                style: GoogleFonts.outfit(
+                    color:
+                        _customRules.isEmpty ? Colors.white38 : Colors.white70,
+                    fontSize: 11,
+                    height: 1.4),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        // ── Full Prompt Override ──────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.pinkAccent.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                const Icon(Icons.auto_awesome_rounded,
+                    color: Colors.pinkAccent, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Full Prompt Override',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
+                      Text('Replaces the entire waifu system prompt',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white38, fontSize: 10)),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _showEditDialog(
+                    title: 'Waifu Prompt Override',
+                    hint:
+                        'Write your own full system prompt. Leave empty for default Zero Two.',
+                    initial: _waifuPromptOverride,
+                    maxLines: 10,
+                    onSave: (val) async {
+                      await FirestoreService().saveWaifuPromptOverride(val);
+                      updateState(() => _waifuPromptOverride = val);
+                    },
+                  ),
+                  child: Text('Edit',
+                      style: GoogleFonts.outfit(
+                          color: Colors.pinkAccent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12)),
+                ),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                _waifuPromptOverride.trim().isEmpty
+                    ? 'Using default Zero Two persona. Tap Edit to fully customize.'
+                    : '✅ Custom prompt active: "${_waifuPromptOverride.trim().substring(0, _waifuPromptOverride.trim().length.clamp(0, 60))}..."',
+                style: GoogleFonts.outfit(
+                    color: _waifuPromptOverride.isEmpty
+                        ? Colors.white38
+                        : Colors.greenAccent,
+                    fontSize: 11),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (_waifuPromptOverride.trim().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () async {
+                    await FirestoreService().saveWaifuPromptOverride('');
+                    updateState(() => _waifuPromptOverride = '');
+                  },
+                  child: Text('Clear & Use Default',
+                      style: GoogleFonts.outfit(
+                          color: Colors.redAccent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showEditDialog({
+    required String title,
+    required String hint,
+    required String initial,
+    required int maxLines,
+    required Future<void> Function(String) onSave,
+  }) {
+    final ctrl = TextEditingController(text: initial);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1028),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title,
+            style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 15)),
+        content: TextField(
+          controller: ctrl,
+          maxLines: maxLines,
+          style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.outfit(color: Colors.white24, fontSize: 12),
+            filled: true,
+            fillColor: Colors.white10,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel',
+                  style: GoogleFonts.outfit(color: Colors.white38))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pinkAccent,
+                foregroundColor: Colors.white),
+            onPressed: () async {
+              await onSave(ctrl.text.trim());
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: Text('Save to Cloud',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 Widget _settingsTile({
@@ -1854,45 +2176,8 @@ Widget _settingsTile({
   );
 }
 
-class _GoogleDriveBackupWidget extends StatefulWidget {
-  final VoidCallback onRestoreComplete;
-  const _GoogleDriveBackupWidget({required this.onRestoreComplete});
-
-  @override
-  State<_GoogleDriveBackupWidget> createState() =>
-      _GoogleDriveBackupWidgetState();
-}
-
-class _GoogleDriveBackupWidgetState extends State<_GoogleDriveBackupWidget> {
-  bool _isBackingUp = false;
-  bool _isRestoring = false;
-
-  Future<void> _performBackup() async {
-    setState(() => _isBackingUp = true);
-    final service = GoogleDriveService();
-    final success = await service.backupData();
-    if (!mounted) return;
-    setState(() => _isBackingUp = false);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(success ? 'Backup successful! 🎉' : 'Backup failed.'),
-      backgroundColor: success ? Colors.green.shade800 : Colors.red.shade800,
-    ));
-  }
-
-  Future<void> _performRestore() async {
-    setState(() => _isRestoring = true);
-    final service = GoogleDriveService();
-    final success = await service.restoreData();
-    if (!mounted) return;
-    setState(() => _isRestoring = false);
-    if (success) widget.onRestoreComplete();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(success
-          ? 'Restore completed!'
-          : 'Restore failed. No backup found or auth error.'),
-      backgroundColor: success ? Colors.blue.shade800 : Colors.orange.shade800,
-    ));
-  }
+class _GoogleDriveBackupWidget extends StatelessWidget {
+  const _GoogleDriveBackupWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -1912,59 +2197,17 @@ class _GoogleDriveBackupWidgetState extends State<_GoogleDriveBackupWidget> {
                 color: Colors.blueAccent, size: 20),
             const SizedBox(width: 12),
             Expanded(
-                child: Text('Cloud Sync',
+                child: Text('Cloud Sync (Active)',
                     style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600))),
           ]),
           const SizedBox(height: 8),
-          Text('Backup your Secret Notes and Settings to Google Drive.',
+          Text(
+              'Your chats and memories are automatically synced to Firebase Cloud Firestore.',
               style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _isBackingUp ? null : _performBackup,
-                icon: _isBackingUp
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.backup_rounded, size: 16),
-                label: Text(_isBackingUp ? 'Syncing...' : 'Backup',
-                    style: GoogleFonts.outfit(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent.withValues(alpha: 0.2),
-                  foregroundColor: Colors.blueAccent,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: _isRestoring ? null : _performRestore,
-                icon: _isRestoring
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.restore_rounded, size: 16),
-                label: Text(_isRestoring ? 'Downloading...' : 'Restore',
-                    style: GoogleFonts.outfit(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white10,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );

@@ -12,6 +12,9 @@ class ChatMessage {
   /// Whether this message has been pinned/starred by the user
   bool isPinned;
 
+  /// Emoji reaction on this message (e.g. '❤️', '😂', '🔥')
+  String? reaction;
+
   /// Optional local image path (for image-in-chat feature — user gallery photos)
   final String? imagePath;
 
@@ -23,9 +26,11 @@ class ChatMessage {
     required this.role,
     required this.content,
     this.isPinned = false,
+    this.reaction,
     this.imagePath,
     this.imageUrl,
-  }) : timestamp = DateTime.now();
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   /// Restore a chat message from stored JSON (preserves timestamp if present)
   factory ChatMessage.fromJson(Map<String, dynamic> map) {
@@ -33,8 +38,12 @@ class ChatMessage {
       role: (map['role'] ?? 'user').toString(),
       content: (map['content'] ?? '').toString(),
       isPinned: map['isPinned'] as bool? ?? false,
+      reaction: map['reaction'] as String?,
       imagePath: map['imagePath'] as String?,
       imageUrl: map['imageUrl'] as String?,
+      timestamp: map['timestamp'] != null
+          ? DateTime.tryParse(map['timestamp'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 
@@ -44,6 +53,7 @@ class ChatMessage {
         "content": content,
         "timestamp": timestamp.toIso8601String(),
         "isPinned": isPinned,
+        if (reaction != null) "reaction": reaction,
         if (imagePath != null) "imagePath": imagePath,
         if (imageUrl != null) "imageUrl": imageUrl,
       };

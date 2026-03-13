@@ -677,25 +677,31 @@ class AssistantForegroundService : Service() {
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("Zero Two Check-in")
+            .setContentTitle("💕 Zero Two misses you~")
             .setContentText(content)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("Zero Two Check-in")
+                    .setBigContentTitle("💕 Zero Two says:")
                     .bigText(content)
-                    .setSummaryText("Tap to open O2-WAIFU")
+                    .setSummaryText("Tap to chat with Zero Two")
             )
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setColor(0xFFFF5252.toInt())
+            .setColor(0xFFFF4081.toInt())   // Hot pink
             .setColorized(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOnlyAlertOnce(false)
-            .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
+            .setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+            .setLights(0xFFFF4081.toInt(), 400, 600)  // Pink LED: 400ms on / 600ms off
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .addAction(
+                android.R.drawable.sym_action_chat,
+                "Reply 💕",
+                pendingIntent
+            )
             .addAction(
                 android.R.drawable.ic_menu_view,
                 "Open App",
@@ -747,11 +753,11 @@ class AssistantForegroundService : Service() {
         }
 
         val notification = NotificationCompat.Builder(this, wakeChannel)
-            .setContentTitle("Zero Two Assistant")
+            .setContentTitle("🎤 Zero Two is listening~")
             .setContentText(content)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("Zero Two Assistant")
+                    .setBigContentTitle("🎤 Zero Two heard you~")
                     .bigText(content)
                     .setSummaryText("Tap to open O2-WAIFU")
             )
@@ -759,13 +765,19 @@ class AssistantForegroundService : Service() {
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setColor(0xFFFF5252.toInt())
+            .setColor(0xFF00E5FF.toInt())   // Cyan — Zero Two's eye color
             .setColorized(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOnlyAlertOnce(false)
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
+            .setLights(0xFF00E5FF.toInt(), 200, 400)  // Cyan LED pulse
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .addAction(
+                android.R.drawable.ic_btn_speak_now,
+                "Speak 🎤",
+                pendingIntent
+            )
             .addAction(
                 android.R.drawable.ic_menu_view,
                 "Open App",
