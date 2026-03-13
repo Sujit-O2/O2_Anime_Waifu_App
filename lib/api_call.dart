@@ -7,6 +7,10 @@ import 'package:http/http.dart' as http;
 
 /// Groq API
 class ApiService {
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
+
   final _defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
   static const Duration _chatTimeout = Duration(seconds: 25);
   static const Duration _mailTimeout = Duration(seconds: 20);
@@ -103,14 +107,23 @@ class ApiService {
     final timeContext =
         " [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]";
 
-    final payloadMessages = List<Map<String, dynamic>>.from(messages);
-    if (payloadMessages.isNotEmpty &&
-        payloadMessages.first['role'] == 'system') {
-      final oldContent = payloadMessages.first['content'].toString();
-      payloadMessages[0] = {
+    // Extract the valid user/assistant history
+    var historyMessages = messages.where((m) => m['role'] != 'system').toList();
+
+    // Limit to the last 15 messages max
+    if (historyMessages.length > 15) {
+      historyMessages = historyMessages.sublist(historyMessages.length - 15);
+    }
+
+    final payloadMessages = List<Map<String, dynamic>>.from(historyMessages);
+
+    // Re-insert or create the system message at the top
+    if (messages.isNotEmpty && messages.first['role'] == 'system') {
+      final oldContent = messages.first['content'].toString();
+      payloadMessages.insert(0, {
         'role': 'system',
         'content': oldContent + timeContext,
-      };
+      });
     } else {
       payloadMessages.insert(0, {
         "role": "system",

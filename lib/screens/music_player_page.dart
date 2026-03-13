@@ -296,49 +296,86 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             ),
 
             // Controls
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _ctrlBtn(Icons.skip_previous_rounded, 36,
-                    () => _service.skipPrevious()),
-                ValueListenableBuilder<bool>(
-                  valueListenable: _service.isPlaying,
-                  builder: (_, playing, __) => GestureDetector(
-                    onTap: () => _service.playPause(),
-                    child: Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF9B59B6), Color(0xFF3498DB)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purpleAccent.withValues(alpha: 0.5),
-                            blurRadius: 20,
-                            spreadRadius: 2,
+            ValueListenableBuilder<bool>(
+              valueListenable: _service.isShuffle,
+              builder: (_, shuffle, __) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _service.isRepeat,
+                  builder: (_, repeat, __) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Shuffle
+                        IconButton(
+                          icon: Icon(
+                            shuffle
+                                ? Icons.shuffle_on_rounded
+                                : Icons.shuffle_rounded,
+                            color: shuffle
+                                ? Colors.purpleAccent
+                                : Colors.white38,
+                            size: 24,
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        playing
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
-                  ),
-                ),
-                _ctrlBtn(
-                    Icons.skip_next_rounded, 36, () => _service.skipNext()),
-              ],
+                          onPressed: _service.toggleShuffle,
+                        ),
+                        _ctrlBtn(Icons.skip_previous_rounded, 36,
+                            () => _service.skipPrevious()),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _service.isPlaying,
+                          builder: (_, playing, __) => GestureDetector(
+                            onTap: () => _service.playPause(),
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF9B59B6), Color(0xFF3498DB)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.purpleAccent.withValues(alpha: 0.5),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                playing
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                color: Colors.white,
+                                size: 36,
+                              ),
+                            ),
+                          ),
+                        ),
+                        _ctrlBtn(
+                            Icons.skip_next_rounded, 36, () => _service.skipNext()),
+                        // Repeat
+                        IconButton(
+                          icon: Icon(
+                            repeat
+                                ? Icons.repeat_one_on_rounded
+                                : Icons.repeat_rounded,
+                            color: repeat
+                                ? Colors.purpleAccent
+                                : Colors.white38,
+                            size: 24,
+                          ),
+                          onPressed: _service.toggleRepeat,
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
 
             const SizedBox(height: 8),
+
           ],
         ),
       ),

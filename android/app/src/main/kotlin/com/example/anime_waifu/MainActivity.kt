@@ -183,6 +183,10 @@ class MainActivity : AudioServiceFragmentActivity() {
                         shareText(text)
                         result.success(true)
                     }
+                    "makePhoneCall" -> {
+                        val number = call.argument<String>("number") ?: ""
+                        result.success(makePhoneCall(number))
+                    }
                     "toggleFlashlight" -> {
                         val on = call.argument<Boolean>("on") ?: false
                         result.success(toggleFlashlight(on))
@@ -529,8 +533,9 @@ class MainActivity : AudioServiceFragmentActivity() {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)
-            .setSubText("Live status")
+            .setSubText("💕 Active")
             .setContentIntent(openPendingIntent)
+            .setColor(0xFFAD1457.toInt())  // Deep pink
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -545,17 +550,20 @@ class MainActivity : AudioServiceFragmentActivity() {
             val isWakeDetection = isWakeDetectionPulse(status, transcript)
             val pulseChannel = if (isWakeDetection) wakeVibrateChannelId else wakeEventChannelId
             val wakeNotification = NotificationCompat.Builder(this, pulseChannel)
-                .setContentTitle(if (status.isNotBlank()) status else "Wake word detected")
+                .setContentTitle(if (isWakeDetection) "🎤 Zero Two heard you~" else if (status.isNotBlank()) status else "Wake word detected")
                 .setContentText(if (transcript.isNotBlank()) transcript else "Zero Two is listening...")
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setSmallIcon(R.drawable.ic_stat_waifu)
                 .setLargeIcon(largeIcon)
                 .setSubText("Tap to open O2-WAIFU")
                 .setAutoCancel(true)
+                .setColor(0xFF00E5FF.toInt())  // Cyan
+                .setColorized(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOnlyAlertOnce(false)
                 .setContentIntent(openPendingIntent)
                 .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
+                .setLights(0xFF00E5FF.toInt(), 200, 400)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build()
@@ -575,41 +583,60 @@ class MainActivity : AudioServiceFragmentActivity() {
     private fun ensureNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
+
+            // Silent background service channel (no sound, no vibration)
             val assistantChannel = NotificationChannel(
                 assistantChannelId,
                 "Assistant Mode",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
+                description = "Background service keeping Zero Two alive. Silent."
                 setSound(null, null)
                 enableVibration(false)
+                enableLights(false)
             }
+
+            // Live status updates (listening indicator etc.) — silent
             val assistantStatusChannel = NotificationChannel(
                 assistantStatusChannelId,
                 "Assistant Status",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
+                description = "Live status while Zero Two is active. Silent, no vibration."
                 setSound(null, null)
                 enableVibration(false)
                 vibrationPattern = longArrayOf(0L)
+                enableLights(false)
             }
+
+            // Wake/message alerts — sound + pink LED
             val wakeEventChannel = NotificationChannel(
                 wakeEventChannelId,
-                "Wake Events (Alert)",
+                "Zero Two Messages 💕",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
+                description = "Zero Two check-ins and proactive messages ~ with pink LED."
                 setSound(notificationSoundUri(), notificationAudioAttributes())
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
+                vibrationPattern = longArrayOf(0L, 150L, 100L, 150L, 100L, 250L)
+                enableLights(true)
+                lightColor = 0xFFFF4081.toInt()  // Hot pink LED
             }
+
+            // Wake word detected — vibrate only + cyan LED
             val wakeVibrateChannel = NotificationChannel(
                 wakeVibrateChannelId,
-                "Wake Events (Vibrate)",
+                "Wake Word Detection 🎤",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
+                description = "Notifies when Zero Two hears her wake word. Vibrates + cyan LED."
                 setSound(null, null)
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0L, 180L, 120L, 180L)
+                vibrationPattern = longArrayOf(0L, 80L, 60L, 80L)
+                enableLights(true)
+                lightColor = 0xFF00E5FF.toInt()  // Cyan LED
             }
+
             manager?.createNotificationChannel(assistantChannel)
             manager?.createNotificationChannel(assistantStatusChannel)
             manager?.createNotificationChannel(wakeEventChannel)
@@ -675,6 +702,28 @@ class MainActivity : AudioServiceFragmentActivity() {
             }
             startActivity(chooser)
         } catch (_: Exception) {}
+    }
+
+    private fun makePhoneCall(number: String): Boolean {
+        if (number.isBlank()) return false
+        return try {
+            val intent = Intent(Intent.ACTION_CALL).apply {
+                data = Uri.parse("tel:${number.trim()}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            true
+        } catch (_: Exception) {
+            // Fallback: open dialer
+            try {
+                val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:${number.trim()}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(dialIntent)
+                true
+            } catch (_: Exception) { false }
+        }
     }
 
     private fun toggleFlashlight(on: Boolean): Boolean {

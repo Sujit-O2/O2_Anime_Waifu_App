@@ -102,28 +102,42 @@ class OpenAppService {
           launched: false, assistantMessage: 'Who should I call, Darling?');
     }
 
-    // Check if it's a name (no digits) — look up in contacts first
+    // Resolve name → phone number via contacts
     String dialTarget = number;
     final isName = !RegExp(r'\d').hasMatch(number);
     if (isName) {
       final resolved = await ContactsLookupService.resolvePhoneNumber(number);
       if (resolved != null && resolved.isNotEmpty) {
         dialTarget = resolved;
-      } else {
-        // No contact found — dial raw (Android may handle name query)
-        dialTarget = number;
       }
     } else {
       dialTarget = number.replaceAll(RegExp(r'[^\d+\s\-()]'), '').trim();
       if (dialTarget.isEmpty) dialTarget = number;
     }
 
+    // Request CALL_PHONE permission
+    final permStatus = await Permission.phone.request();
+    if (permStatus.isGranted) {
+      // Directly initiate the call via native channel (ACTION_CALL)
+      try {
+        final ok = await _nativeChannel.invokeMethod<bool>(
+            'makePhoneCall', {'number': dialTarget});
+        if (ok == true) {
+          return OpenAppActionResult(
+              launched: true,
+              assistantMessage: 'Calling $number now~ 📞');
+        }
+      } catch (_) {}
+    }
+
+    // Fallback: open dialer with number pre-filled (user taps call)
     try {
       final uri = Uri(scheme: 'tel', path: dialTarget);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
         return OpenAppActionResult(
-            launched: true, assistantMessage: 'Calling $number now.');
+            launched: true,
+            assistantMessage: 'Opening dialer for $number — tap call to dial~ 📞');
       }
     } catch (_) {}
     return OpenAppActionResult(

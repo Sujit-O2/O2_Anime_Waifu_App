@@ -1,28 +1,53 @@
-import 'package:flutter/foundation.dart';
+import 'dart:math';
 import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/material.dart';
+import 'home_widget_service.dart';
 
-/// Singleton music player service using just_audio + audio_service for background media notification.
+/// System-level music player using just_audio + audio_service.
+/// Shows a persistent notification with album art, play/pause/skip controls
+/// — visible in notification shade, lock screen, and Android media session.
 class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   static final MusicPlayerService _instance = MusicPlayerService._();
+  
+  // This holds the wrapped AudioHandler returned by AudioService.init()
+  static AudioHandler? _audioHandlerProxy;
 
-  static Future<MusicPlayerService> initHandler() async {
-    return _instance;
+  // Called in main.dart to setup the service
+  static Future<AudioHandler> initHandler() async {
+    _audioHandlerProxy = await AudioService.init(
+      builder: () => _instance,
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.example.anime_waifu.channel.audio',
+        androidNotificationChannelName: 'Zero Two Music',
+        androidNotificationChannelDescription: 'Music player controls',
+        androidNotificationIcon: 'mipmap/ic_launcher',
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
+        notificationColor: Color(0xFF9B59B6),
+      ),
+    );
+    return _audioHandlerProxy!;
   }
 
   static MusicPlayerService get instance => _instance;
+  // Expose the proxy so UI components can call `.play()` on it to trigger the OS notification
+  static AudioHandler? get handler => _audioHandlerProxy;
+
   factory MusicPlayerService() => _instance;
   MusicPlayerService._();
 
   final AudioPlayer _player = AudioPlayer();
-  final OnAudioQuery _query = OnAudioQuery();
+  OnAudioQuery? _queryInstance;
+  OnAudioQuery get _query => _queryInstance ??= OnAudioQuery();
+
 
   List<SongModel> _songs = [];
   int _currentIndex = 0;
   bool _initialized = false;
 
-  // Notifiers for the UI to listen to
+  // ── Notifiers for the UI ──────────────────────────────────────────────────
   final ValueNotifier<SongModel?> currentSong = ValueNotifier(null);
   final ValueNotifier<bool> isPlaying = ValueNotifier(false);
   final ValueNotifier<Duration> position = ValueNotifier(Duration.zero);
@@ -30,6 +55,9 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   final ValueNotifier<List<SongModel>> songList = ValueNotifier([]);
   final ValueNotifier<bool> isMiniPlayerVisible = ValueNotifier(false);
   final ValueNotifier<bool> isMiniPlayerMinimized = ValueNotifier(false);
+  final ValueNotifier<bool> isShuffle = ValueNotifier(false);
+  final ValueNotifier<bool> isRepeat = ValueNotifier(false);
+  final ValueNotifier<Map<String, List<SongModel>>> folders = ValueNotifier({});
 
   AudioPlayer get player => _player;
 
@@ -41,8 +69,11 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     if (_initialized) return;
     _initialized = true;
 
-    // Fetch all songs from device
+    // Small delay to ensure native plugin is fully bound
+    await Future.delayed(const Duration(seconds: 1));
+
     final hasPermission = await _query.permissionsStatus();
+
     if (!hasPermission) await _query.permissionsRequest();
 
     final allSongs = await _query.querySongs(
@@ -52,7 +83,7 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
       ignoreCase: true,
     );
 
-    // Filter out voice memos, whatsapp audio, and ringtones
+    // Filter out voice recordings, notifications, etc.
     _songs = allSongs.where((s) {
       if (s.isMusic != true) return false;
       final path = s.data.toLowerCase();
@@ -73,21 +104,22 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     }).toList();
 
     songList.value = _songs;
+    _groupSongsByFolder();
 
     _player.positionStream.listen((pos) => position.value = pos);
-    _player.durationStream
-        .listen((dur) => duration.value = dur ?? Duration.zero);
-
-    // Broadcast state to audio_service
+    _player.durationStream.listen((dur) => duration.value = dur ?? Duration.zero);
     _player.playbackEventStream.listen(_broadcastState);
     _player.playerStateStream.listen((state) {
       isPlaying.value = state.playing;
       if (state.processingState == ProcessingState.completed) {
-        skipToNext(); // use BaseAudioHandler method
+        if (isRepeat.value) {
+          _player.seek(Duration.zero);
+          _player.play();
+        } else {
+          skipToNext();
+        }
       }
     });
-
-    _groupSongsByFolder();
   }
 
   void _broadcastState(PlaybackEvent event) {
@@ -106,7 +138,6 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
         MediaAction.skipToNext,
         MediaAction.skipToPrevious,
       },
-      // Show prev (0), play/pause (1), next (3) in compact view
       androidCompactActionIndices: const [0, 1, 3],
       processingState: const {
         ProcessingState.idle: AudioProcessingState.idle,
@@ -126,7 +157,6 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   void _groupSongsByFolder() {
     final Map<String, List<SongModel>> groups = {};
     for (var song in _songs) {
-      // Get folder path from song.data
       final pathParts = song.data.split('/');
       if (pathParts.length > 1) {
         final folderPath = pathParts.sublist(0, pathParts.length - 1).join('/');
@@ -138,15 +168,13 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     folders.value = groups;
   }
 
-  final ValueNotifier<Map<String, List<SongModel>>> folders = ValueNotifier({});
+  List<SongModel>? _currentPlaylist;
 
   Future<void> playSongAt(int index, {List<SongModel>? playlist}) async {
-    final list = playlist ?? _songs;
+    final list = playlist ?? _currentPlaylist ?? _songs;
     if (list.isEmpty) return;
 
-    // If we're changing the active playlist, update current tracking
-    _currentPlaylist = playlist ?? _currentPlaylist ?? _songs;
-
+    _currentPlaylist = list;
     _currentIndex = index.clamp(0, list.length - 1);
     final song = list[_currentIndex];
     currentSong.value = song;
@@ -156,23 +184,36 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     try {
       if (song.uri != null) {
         await _player.setAudioSource(AudioSource.uri(Uri.parse(song.uri!)));
+
+        // Build MediaItem with album art URI for system notification
+        final artUri = Uri.parse(
+            'content://media/external/audio/media/${song.id}/albumart');
         mediaItem.add(MediaItem(
           id: song.id.toString(),
           album: song.album ?? 'Unknown Album',
           title: song.title,
           artist: song.artist ?? 'Unknown Artist',
           duration: Duration(milliseconds: song.duration ?? 0),
-          artUri: Uri.parse(
-              'content://media/external/audio/media/${song.id}/albumart'),
+          artUri: artUri,
+          extras: {
+            'songId': song.id,
+            'path': song.data,
+          },
         ));
+
         await _player.play();
+
+        // Push current song to home screen widget
+        HomeWidgetService.updateMusicWidget(
+          title: song.title,
+          artist: song.artist ?? 'Unknown',
+          isPlaying: true,
+        );
       }
     } catch (e) {
       debugPrint('MusicPlayer play error: $e');
     }
   }
-
-  List<SongModel>? _currentPlaylist;
 
   Future<void> playSongByName(String query) async {
     if (_songs.isEmpty) await init();
@@ -191,28 +232,46 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     final folderSongs =
         _songs.where((s) => s.data.toLowerCase().contains(lq)).toList();
     if (folderSongs.isNotEmpty) {
-      // Use _currentPlaylist to scope to this folder — do NOT overwrite _songs
-      // (that would permanently break full-library navigation).
       _currentPlaylist = folderSongs;
       songList.value = folderSongs;
       await playSongAt(0, playlist: folderSongs);
     } else {
-      // Fallback
       await playSongByName(folderName);
     }
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    await _player.play();
+    final song = currentSong.value;
+    if (song != null) {
+      HomeWidgetService.updateMusicWidget(
+        title: song.title,
+        artist: song.artist ?? 'Unknown',
+        isPlaying: true,
+      );
+    }
+  }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    await _player.pause();
+    final song = currentSong.value;
+    if (song != null) {
+      HomeWidgetService.updateMusicWidget(
+        title: song.title,
+        artist: song.artist ?? 'Unknown',
+        isPlaying: false,
+      );
+    }
+  }
 
   @override
   Future<void> stop() async {
     await _player.stop();
     currentSong.value = null;
     isPlaying.value = false;
+    isMiniPlayerVisible.value = false;
     await super.stop();
   }
 
@@ -223,7 +282,12 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
   Future<void> skipToNext() async {
     final list = _currentPlaylist ?? _songs;
     if (list.isEmpty) return;
-    final next = (_currentIndex + 1) % list.length;
+    int next;
+    if (isShuffle.value) {
+      next = Random().nextInt(list.length);
+    } else {
+      next = (_currentIndex + 1) % list.length;
+    }
     await playSongAt(next, playlist: list);
   }
 
@@ -247,6 +311,14 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
     } else {
       await playSongAt(0);
     }
+  }
+
+  void toggleShuffle() {
+    isShuffle.value = !isShuffle.value;
+  }
+
+  void toggleRepeat() {
+    isRepeat.value = !isRepeat.value;
   }
 
   Future<void> skipNext() => skipToNext();

@@ -4,7 +4,15 @@ extension _MainFeaturesExtension on _ChatHomePageState {
   // ── Chat Export ──────────────────────────────────────────────────────────────
   Future<String> _exportChatToFile() async {
     try {
-      final dir = await getTemporaryDirectory();
+      // Prefer external cache so Android share sheet can access it
+      Directory? dir;
+      try {
+        dir = await getExternalStorageDirectory();
+      } catch (_) {
+        dir = await getTemporaryDirectory();
+      }
+      dir ??= await getTemporaryDirectory();
+
       final now = DateTime.now();
       final fname =
           's002_chat_${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}.txt';
@@ -17,7 +25,7 @@ extension _MainFeaturesExtension on _ChatHomePageState {
       buffer.writeln();
 
       for (final msg in _messages) {
-        final role = msg.role == 'user' ? 'You' : 'S-002';
+        final role = msg.role == 'user' ? 'You' : 'Zero Two';
         final ts =
             '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}';
         buffer.writeln('[$ts] $role:');
@@ -29,7 +37,8 @@ extension _MainFeaturesExtension on _ChatHomePageState {
       await file.writeAsString(buffer.toString());
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject: 'S-002 Chat Export',
+        subject: 'Zero Two Chat Export ♥',
+        text: 'My chat with Zero Two 💕  exported ${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}',
       );
       return 'Chat exported! 📄 ${_messages.length} messages saved, Darling~';
     } catch (e) {
