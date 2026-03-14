@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
+import android.app.usage.UsageStatsManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
@@ -250,6 +251,40 @@ class MainActivity : AudioServiceFragmentActivity() {
                             true
                         } catch (e: Exception) { false }
                         result.success(sent)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.example.anime_waifu/apps")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "hasUsageStatsPermission" -> {
+                        val usm = getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
+                        val cal = java.util.Calendar.getInstance()
+                        cal.add(java.util.Calendar.MINUTE, -1)
+                        val stats = usm?.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, cal.timeInMillis, System.currentTimeMillis())
+                        result.success(stats != null && stats.isNotEmpty())
+                    }
+                    "openUsageAccessSettings" -> {
+                        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        result.success(true)
+                    }
+                    "getUsageStats" -> {
+                        try {
+                            val usm = getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
+                            val end = System.currentTimeMillis()
+                            val start = end - 24 * 60 * 60 * 1000L
+                            val stats = usm?.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end) ?: emptyList()
+                            val pm = packageManager
+                            val appList = stats
+                                .filter { it.totalTimeInForeground > 0 && it.packageName != packageName }
+                                .map { s ->
+                                    val appName = try { pm.getApplicationLabel(pm.getApplicationInfo(s.packageName, 0)).toString() } catch (_: Exception) { s.packageName }
+                                    mapOf("packageName" to s.packageName, "appName" to appName, "totalTimeMs" to s.totalTimeInForeground)
+                                }
+                            result.success(appList)
+                        } catch (e: Exception) { result.error("USAGE_ERROR", e.message, null) }
                     }
                     else -> result.notImplemented()
                 }

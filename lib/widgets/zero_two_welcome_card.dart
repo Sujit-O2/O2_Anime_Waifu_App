@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
+import 'launcher_clock_widget.dart';
+
 /// A vibrant Zero Two welcome card with floating hearts animation.
 /// Drop this anywhere in the app to add life and personality.
 class ZeroTwoWelcomeCard extends StatefulWidget {
@@ -174,20 +176,11 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
               const SizedBox(height: 12),
 
               // ── Greeting text ────────────────────────────────────────────
-              Text(
-                _greeting,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  shadows: [
-                    Shadow(
-                      color: const Color(0xFFFF4D8D).withOpacity(0.6),
-                      blurRadius: 12,
-                    ),
-                  ],
-                ),
+              ShimmerLabel(
+                text: _greeting,
+                primaryColor: const Color(0xFFFF4D8D),
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
               ),
 
               const SizedBox(height: 8),
@@ -258,13 +251,11 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _greeting,
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    ShimmerLabel(
+                      text: _greeting,
+                      primaryColor: const Color(0xFFFF4D8D),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                     Text(
                       widget.subtitle ?? 'Zero Two is ready, Darling~',

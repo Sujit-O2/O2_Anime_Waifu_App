@@ -206,6 +206,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   late AnimationController _controller;
   late List<Particle> particles;
   Offset? interactionPoint;
+  Offset _parallaxOffset = Offset.zero;
   AppThemeMode? _lastMode;
 
   int _particleCountForTheme(AppThemeMode mode) {
@@ -251,6 +252,16 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
     super.dispose();
   }
 
+  // Optional: add a smooth return-to-center for parallax
+  void _resetParallax() {
+    if (_parallaxOffset != Offset.zero) {
+      // We can just lerp it back to zero on the next frames or reset.
+      setState(() {
+        _parallaxOffset = Offset.zero;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -273,37 +284,86 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
             return GestureDetector(
               onPanUpdate: (details) {
-                setState(() => interactionPoint = details.localPosition);
+                setState(() {
+                  interactionPoint = details.localPosition;
+                  // Parallax effect
+                  _parallaxOffset += details.delta * 0.4;
+                  _parallaxOffset = Offset(
+                    _parallaxOffset.dx.clamp(-16.0, 16.0),
+                    _parallaxOffset.dy.clamp(-16.0, 16.0),
+                  );
+                });
               },
-              onPanEnd: (_) => setState(() => interactionPoint = null),
+              onPanEnd: (_) {
+                setState(() {
+                  interactionPoint = null;
+                });
+                _resetParallax();
+              },
+              onPanCancel: () {
+                setState(() {
+                  interactionPoint = null;
+                });
+                _resetParallax();
+              },
               child: Stack(
                 children: [
-                  // LAYER 1: Deep cinematic gradient base OR Custom Image Pack (STATIC, OUTSIDE ANIMATION LOOP)
-                  const Positioned.fill(
-                    child: RepaintBoundary(child: _StaticBackgroundLayer()),
-                  ),
-
-                  // LAYER 2: Particles on top (ONLY layer that rebuilds 60fps)
+                  // LAYER 1: Deep cinematic gradient base OR Custom Image Pack
                   Positioned.fill(
                     child: RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, _) {
-                          for (var p in particles) {
-                            p.update(
-                                Size(constraints.maxWidth,
-                                    constraints.maxHeight),
-                                interactionPoint);
-                          }
+                      child: Transform.translate(
+                        offset: _parallaxOffset * 0.3,
+                        child: const _StaticBackgroundLayer(),
+                      ),
+                    ),
+                  ),
 
-                          return CustomPaint(
-                            painter: ParticlePainter(
-                                particles, _controller.value, primary, pType),
-                            size: Size.infinite,
-                            isComplex: false,
-                            willChange: true,
-                          );
-                        },
+                  // LAYER 1.5: Morphing Blob Background (Aura)
+                  Positioned.fill(
+                    child: RepaintBoundary(
+                      child: Transform.translate(
+                        offset: _parallaxOffset * 0.6,
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, _) {
+                            return CustomPaint(
+                              painter: _MorphingBlobPainter(
+                                animationValue: _controller.value,
+                                themeColor: primary,
+                              ),
+                              isComplex: false,
+                              willChange: true,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // LAYER 2: Particles on top
+                  Positioned.fill(
+                    child: RepaintBoundary(
+                      child: Transform.translate(
+                        offset: _parallaxOffset,
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, _) {
+                            for (var p in particles) {
+                              p.update(
+                                  Size(constraints.maxWidth,
+                                      constraints.maxHeight),
+                                  interactionPoint);
+                            }
+
+                            return CustomPaint(
+                              painter: ParticlePainter(
+                                  particles, _controller.value, primary, pType),
+                              size: Size.infinite,
+                              isComplex: false,
+                              willChange: true,
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -314,6 +374,52 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
         );
       },
     );
+  }
+}
+
+class _MorphingBlobPainter extends CustomPainter {
+  final double animationValue;
+  final Color themeColor;
+
+  _MorphingBlobPainter({required this.animationValue, required this.themeColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Nova Launcher inspired animated background blob
+    final paint = Paint()
+      ..color = themeColor.withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 80);
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    final radius = size.width * 0.6;
+
+    final path = Path();
+    
+    // Create an organic morphing shape
+    final t = animationValue * math.pi * 2;
+    path.moveTo(
+      centerX + radius * math.cos(t),
+      centerY + radius * math.sin(t * 0.8),
+    );
+    path.cubicTo(
+      centerX + radius * 1.2 * math.cos(t + 2), centerY - radius * math.sin(t),
+      centerX - radius * math.cos(t - 1), centerY - radius * 1.5 * math.sin(t + 1),
+      centerX - radius * 0.8 * math.cos(t * 1.2), centerY + radius * math.sin(t - 2),
+    );
+    path.cubicTo(
+      centerX - radius * math.cos(t + 3), centerY + radius * 1.2 * math.sin(t),
+      centerX + radius * math.sin(t - 1), centerY + radius * math.cos(t + 1),
+      centerX + radius * math.cos(t), centerY + radius * math.sin(t * 0.8),
+    );
+    
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MorphingBlobPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue || oldDelegate.themeColor != themeColor;
   }
 }
 
