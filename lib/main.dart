@@ -41,6 +41,19 @@ import 'package:anime_waifu/screens/theme_accent_page.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:anime_waifu/widgets/visual_effects_overlay.dart';
+import 'package:anime_waifu/widgets/waifu_character_widget.dart';
+import 'package:anime_waifu/widgets/launcher_clock_widget.dart';
+import 'package:anime_waifu/widgets/app_drawer_sheet.dart';
+import 'package:anime_waifu/widgets/dock_bar.dart';
+import 'package:anime_waifu/widgets/quick_settings_panel.dart';
+import 'package:anime_waifu/widgets/gesture_shortcut_overlay.dart';
+import 'package:anime_waifu/widgets/context_cards_strip.dart';
+import 'package:anime_waifu/widgets/music_visualizer.dart';
+import 'package:anime_waifu/widgets/page_indicator.dart';
+import 'package:anime_waifu/services/groq_tts_service.dart';
+import 'package:anime_waifu/services/waifu_mood_service.dart';
+import 'package:anime_waifu/services/app_usage_service.dart';
+
 import 'package:anime_waifu/widgets/app_lock_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -751,6 +764,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   }
 
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final GlobalKey<DockBarState> _dockBarKey = GlobalKey<DockBarState>();
+  // Focus node for double-tap-to-chat
+  final FocusNode _chatInputFocus = FocusNode();
+  OverlayEntry? _quickSettingsEntry;
+  // Multi-page home screen
+  final PageController _homePageCtrl = PageController(initialPage: 1, viewportFraction: 1);
+  int _homePageIndex = 1;
+  // Music visualizer state
+  bool _musicPlaying = false;
+  String? _nowPlaying;
 
   @override
   void initState() {
@@ -800,6 +823,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         setState(() => _showOpeningOverlay = false);
       }
     });
+
+    // Fetch real weather (Open-Meteo, no API key) and update clock widget
+    WeatherService.instance.fetch().then((data) {
+      if (data != null && mounted) setState(() {});
+    });
+
+    // Init Groq TTS (opt-in voice mode using existing GROQ key)
+    GroqTtsService.instance.setEnabled(
+      dotenv.maybeGet('GROQ_TTS_ENABLED') == 'true',
+    );
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -4283,84 +4316,57 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 : _wakeWordService.isRunning
                     ? "SYSTEM READY"
                     : _apiKeyStatus.toUpperCase();
-    final avatarCore = Container(
-      width: 88,
-      height: 88,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white70,
-          width: 1.8,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: 0.26),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: Image(
-          image: _imageProviderFor(
-            assetPath: _chatImageAsset,
-            customPath: _effectiveChatCustomPath,
-          ),
-          width: 82,
-          height: 82,
-          fit: BoxFit.cover,
-          errorBuilder: (c, e, s) => Container(
-            width: 82,
-            height: 82,
-            color: Colors.white10,
-            child: const Icon(
-              Icons.person,
-              color: Colors.white24,
+    final weatherSummary = WeatherService.instance.current?.summary ?? QuoteService.getDailyQuote();
+
+
+    final avatarWidget = _liteModeEnabled
+        ? Container(
+            width: 88,
+            height: 88,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white70, width: 1.8),
             ),
-          ),
-        ),
-      ),
-    );
-    final avatarWithPulse = _liteModeEnabled
-        ? avatarCore
-        : ReactivePulse(
+            child: ClipOval(
+              child: Image(
+                image: _imageProviderFor(
+                  assetPath: _chatImageAsset,
+                  customPath: _effectiveChatCustomPath,
+                ),
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) => const Icon(Icons.person, color: Colors.white24),
+              ),
+            ),
+          )
+        : WaifuCharacterWidget(
+            imagePath: _chatImageAsset,
+            customImagePath: _effectiveChatCustomPath,
             isSpeaking: _isSpeaking,
             isListening: _speechService.listening,
-            baseColor: primary,
-            child: avatarCore,
-          );
-    final avatarWidget = _liteModeEnabled
-        ? avatarWithPulse
-        : AnimatedBuilder(
-            animation: _floatController,
-            builder: (context, child) {
-              final v = _floatController.value;
-              final float = math.sin(v * 2 * math.pi) * 7.5;
-              final tilt = math.sin(v * 2 * math.pi) * 0.025;
-              return RepaintBoundary(
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..translate(0.0, float)
-                    ..rotateZ(tilt),
-                  child: child,
-                ),
-              );
-            },
-            child: avatarWithPulse,
+            size: 110,
+            auraColor: primary,
           );
 
     return Padding(
       padding: EdgeInsets.fromLTRB(14, topInset, 14, 6),
       child: Column(
         children: [
+          if (!_liteModeEnabled) ...[
+            LauncherClockWidget(
+              externalFloatValue: _floatController.value,
+              weatherSummary: weatherSummary, // used here
+              primaryColor: primary,
+              secondaryColor: AppThemes.getTheme(themeNotifier.value).colorScheme.secondary,
+            ),
+            const SizedBox(height: 16),
+          ],
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _onLogoTap,
             child: avatarWidget,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             statusText,
             style: GoogleFonts.outfit(
@@ -5428,47 +5434,53 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
 
     if (!isUser) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: screenWidth - 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              ClipOval(
-                child: Image(
-                  image: _imageProviderFor(
-                    assetPath: _chatImageAsset,
-                    customPath: _effectiveChatCustomPath,
-                  ),
-                  width: 28,
-                  height: 28,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+      return _AnimatedChatBubble(
+        fromRight: false,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: screenWidth - 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ClipOval(
+                  child: Image(
+                    image: _imageProviderFor(
+                      assetPath: _chatImageAsset,
+                      customPath: _effectiveChatCustomPath,
+                    ),
                     width: 28,
                     height: 28,
-                    color: Colors.white10,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.face,
-                      size: 16,
-                      color: Colors.white54,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 28,
+                      height: 28,
+                      color: Colors.white10,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.face,
+                        size: 16,
+                        color: Colors.white54,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(child: bubbleWithSpacing),
-            ],
+                const SizedBox(width: 8),
+                Flexible(child: bubbleWithSpacing),
+              ],
+            ),
           ),
         ),
       );
     }
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: bubbleWithSpacing,
+    return _AnimatedChatBubble(
+      fromRight: true,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: bubbleWithSpacing,
+      ),
     );
   }
 
@@ -5871,23 +5883,279 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     await prefs.setStringList('notif_history', items);
   }
 
+  // ── Page 0: Stats Dashboard (Feature 2 — usage commentary) ────────────────
+  Widget _buildStatsDashboard(WaifuMoodData mood) {
+    final usage = AppUsageService.instance.todayUsage;
+    final commentary = AppUsageService.instance.getWaifuCommentary();
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(children: [
+            Icon(Icons.bar_chart_rounded, color: mood.auraColor, size: 22),
+            const SizedBox(width: 8),
+            Text('Today\'s Screen Time',
+                style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 8),
+          // Waifu commentary banner
+          if (commentary != null)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: mood.auraColor.withValues(alpha: 0.12),
+                border: Border.all(color: mood.auraColor.withValues(alpha: 0.3)),
+              ),
+              child: Text(commentary,
+                  style: GoogleFonts.outfit(
+                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+          // Usage bars
+          ...usage.take(6).map((a) {
+            final maxMins = usage.isNotEmpty
+                ? usage.first.totalTime.inMinutes.toDouble().clamp(1.0, double.infinity)
+                : 60.0;
+            final frac = a.totalTime.inMinutes / maxMins;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(a.appName,
+                        style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
+                    Text(
+                        '${a.totalTime.inHours > 0 ? "${a.totalTime.inHours}h " : ""}${a.totalTime.inMinutes % 60}m',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white38, fontSize: 11)),
+                  ]),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: frac.clamp(0.0, 1.0),
+                      minHeight: 6,
+                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                      valueColor: AlwaysStoppedAnimation(mood.auraColor),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          if (usage.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Colors.white24, size: 36),
+                    const SizedBox(height: 8),
+                    Text('Grant Usage Access in Settings\nto see screen time stats',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(color: Colors.white30, fontSize: 13)),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => AppUsageService.instance.openPermissionSettings(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          color: mood.auraColor.withValues(alpha: 0.2),
+                          border: Border.all(color: mood.auraColor.withValues(alpha: 0.4)),
+                        ),
+                        child: Text('Grant Permission',
+                            style: GoogleFonts.outfit(
+                                color: mood.auraColor, fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── Page 2: Top Apps Quick-Launch Grid ─────────────────────────────────────
+  Widget _buildTopAppsPage(WaifuMoodData mood) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(Icons.apps_rounded, color: mood.auraColor, size: 22),
+            const SizedBox(width: 8),
+            Text('Quick Launch',
+                style: GoogleFonts.outfit(
+                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 8),
+          Text('Swipe ↑ for all apps  •  Long-press an app to pin',
+              style: GoogleFonts.outfit(color: Colors.white30, fontSize: 11)),
+          const SizedBox(height: 16),
+          // 4×3 app grid populated from AppUsageService top apps
+          GestureDetector(
+            onTap: () => AppDrawerSheet.show(
+              context,
+              primaryColor: mood.auraColor,
+              onPin: (app) => _dockBarKey.currentState?.addApp(app),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: mood.auraColor.withValues(alpha: 0.08),
+                border: Border.all(color: mood.auraColor.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.grid_view_rounded, color: mood.auraColor, size: 36),
+                  const SizedBox(height: 8),
+                  Text('Open App Drawer',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                  Text('All ${AppUsageService.instance.todayUsage.length} tracked apps',
+                      style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 // ── Nav body switcher ─────────────────────────────────────────────────────
   Widget _buildNavBody() {
+
     switch (_navIndex) {
       case 0:
+        final mood = WaifuMoodService.current;
         return SlideTransition(
           position: _contentSlide,
           child: FadeTransition(
             opacity: _contentFade,
-            child: Column(
-              children: [
-                _buildAvatarArea(),
-                _buildChatList(),
-                _buildInputArea(),
-              ],
+            child: GestureShortcutOverlay(
+              primaryColor: mood.auraColor,
+              actions: {
+                // ○ Circle → Camera
+                GestureShape.circle: (ctx) => const MethodChannel('anime_waifu/assistant_mode')
+                    .invokeMethod('openCamera').catchError((_) {}),
+                // Z → Music player
+                GestureShape.zStroke: (_) => setState(() => _navIndex = 2),
+                // V → Notifications
+                GestureShape.vStroke: (_) => setState(() => _navIndex = 1),
+                // L → App drawer
+                GestureShape.lStroke: (ctx) => AppDrawerSheet.show(
+                    ctx, primaryColor: mood.auraColor,
+                    onPin: (app) => _dockBarKey.currentState?.addApp(app)),
+              },
+              child: Stack(
+                children: [
+                  // ── Feature 7: Music Visualizer background ──────────────
+                  Positioned.fill(
+                    child: MusicVisualizer(
+                      isPlaying: _musicPlaying,
+                      color: mood.auraColor,
+                      opacity: 0.14,
+                    ),
+                  ),
+                  // ── Feature 6: Multi-page PageView ─────────────────────
+                  Column(
+                    children: [
+                      // Page indicator dots
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: PageIndicator(
+                          count: 3,
+                          currentIndex: _homePageIndex,
+                          activeColor: mood.auraColor,
+                        ),
+                      ),
+                      Expanded(
+                        child: PageView(
+                          controller: _homePageCtrl,
+                          onPageChanged: (i) => setState(() => _homePageIndex = i),
+                          children: [
+                            // ── Page 0: Usage Stats Dashboard ─────────────
+                            _buildStatsDashboard(mood),
+                            // ── Page 1: Waifu + Chat (main) ────────────────
+                            GestureDetector(
+                              onDoubleTap: () => _chatInputFocus.requestFocus(),
+                              onVerticalDragEnd: (details) {
+                                if ((details.primaryVelocity ?? 0) > 400 &&
+                                    _quickSettingsEntry == null) {
+                                  _quickSettingsEntry =
+                                      QuickSettingsPanel.showOverlay(
+                                    context,
+                                    primaryColor: mood.auraColor,
+                                  );
+                                  Future.delayed(const Duration(seconds: 8),
+                                      () => _quickSettingsEntry = null);
+                                }
+                              },
+                              child: SwipeUpDrawerTrigger(
+                                primaryColor: mood.auraColor,
+                                child: Column(
+                                  children: [
+                                    _buildAvatarArea(),
+                                    // ── Feature 5: Context Cards ──────────
+                                    ContextCardsStrip(
+                                      primaryColor: mood.auraColor,
+                                      unreadNotifCount: _notifHistory.length,
+                                      nowPlaying: _nowPlaying,
+                                      onMusicTap: () =>
+                                          setState(() => _navIndex = 2),
+                                    ),
+                                    _buildChatList(),
+                                    _buildInputArea(),
+                                    // ── Feature 1: Dock ───────────────────
+                                    DockBar(
+                                      key: _dockBarKey,
+                                      primaryColor: mood.auraColor,
+                                    ),
+                                    // ── App drawer handle ─────────────────
+                                    GestureDetector(
+                                      onTap: () => AppDrawerSheet.show(
+                                        context,
+                                        primaryColor: mood.auraColor,
+                                        onPin: (app) =>
+                                            _dockBarKey.currentState
+                                                ?.addApp(app),
+                                      ),
+                                      child: DrawerHandleBar(
+                                        primaryColor: mood.auraColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // ── Page 2: Top Apps Quick-Launch ──────────────
+                            _buildTopAppsPage(mood),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
+
 
       case 1:
         return _buildNotificationsPage();
@@ -6188,4 +6456,126 @@ class _MiniMusicPlayerBarState extends State<_MiniMusicPlayerBar> {
   }
 }
 
+// ── Spring Button Widget ───────────────────────────────────────────────────
 
+/// Nova Launcher-inspired spring physics button wrapper.
+/// Tap down scales to 0.90, tap up springs back to 1.0.
+class _SpringButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _SpringButton({required this.child, required this.onTap});
+
+  @override
+  State<_SpringButton> createState() => _SpringButtonState();
+}
+
+class _SpringButtonState extends State<_SpringButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.90).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    if (mounted) _ctrl.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    if (mounted) {
+      _ctrl.reverse();
+      widget.onTap();
+    }
+  }
+
+  void _onTapCancel() {
+    if (mounted) _ctrl.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnim.value,
+          child: child,
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// ── Animated Chat Bubble (slide-in entry) ──────────────────────────────────
+
+/// Slides a chat bubble in from left (AI) or right (user) when first mounted.
+/// Uses easeOutCubic for a spring-like feel, matching Microsoft Launcher style.
+class _AnimatedChatBubble extends StatefulWidget {
+  final Widget child;
+  final bool fromRight;
+
+  const _AnimatedChatBubble({required this.child, required this.fromRight});
+
+  @override
+  State<_AnimatedChatBubble> createState() => _AnimatedChatBubbleState();
+}
+
+class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _slide = Tween<Offset>(
+      begin: Offset(widget.fromRight ? 0.35 : -0.35, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _fade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.7)),
+    );
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) => FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(position: _slide, child: child),
+      ),
+      child: widget.child,
+    );
+  }
+}

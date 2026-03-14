@@ -297,16 +297,10 @@ extension _MainDebugExtension on _ChatHomePageState {
 
                   _debugStatusCard(
                     label: 'Weather API',
-                    status: WeatherService.isConfigured
-                        ? 'Configured ✅'
-                        : 'Key missing ❌',
-                    color: WeatherService.isConfigured
-                        ? Colors.greenAccent
-                        : Colors.redAccent,
+                    status: 'Open-Meteo ✅',
+                    color: Colors.greenAccent,
                     icon: Icons.cloud_outlined,
-                    extra: WeatherService.isConfigured
-                        ? 'OPENWEATHER_API_KEY set in .env'
-                        : 'Add OPENWEATHER_API_KEY to .env file',
+                    extra: WeatherService.instance.current?.summary ?? 'Tap Test Weather to fetch',
                   ),
 
                   // ── NEW FEATURES STATUS ────────────────────────────────────
@@ -564,11 +558,10 @@ extension _MainDebugExtension on _ChatHomePageState {
                       // Feature Tests
                       _debugActionBtn('Test Weather', Icons.cloud_rounded,
                           () async {
-                        final result =
-                            await WeatherService.getWeather('Bhubaneswar');
+                        final data = await WeatherService.instance.fetch(forceRefresh: true);
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(result),
+                              content: Text(data?.summary ?? 'Weather fetch failed'),
                               duration: const Duration(seconds: 4)));
                         }
                       }),
