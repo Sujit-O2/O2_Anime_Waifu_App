@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api_call.dart';
 import '../services/affection_service.dart';
 import '../widgets/waifu_background.dart';
@@ -32,10 +33,8 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
   Future<void> _load() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      setState(() {
-        _loading = false;
-        _error = 'Please sign in to view Zero Two\'s diary 💕';
-      });
+      // Fallback: load from local storage instead of requiring Firebase login
+      await _loadLocal();
       return;
     }
     try {
@@ -57,16 +56,46 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         });
       }
     } catch (e) {
-      // Keep _entries empty, will show empty state below
+      // Firebase failed — try local fallback
+      await _loadLocal();
     }
     if (mounted) setState(() => _loading = false);
     await _generateTodayIfNeeded();
   }
 
-  Future<void> _generateTodayIfNeeded() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  /// Load diary entries from SharedPreferences (works without Firebase)
+  Future<void> _loadLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getStringList('zt_diary_entries') ?? [];
+      if (mounted) {
+        setState(() {
+          _entries = raw.map((s) {
+            final parts = s.split('|||');
+            return _DiaryEntry(
+              date: parts.isNotEmpty ? parts[0] : '',
+              content: parts.length > 1 ? parts[1] : '',
+            );
+          }).toList();
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+    await _generateTodayIfNeeded();
+  }
 
+  /// Save a diary entry locally via SharedPreferences
+  Future<void> _saveLocal(String date, String content) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList('zt_diary_entries') ?? [];
+    raw.removeWhere((s) => s.startsWith('$date|||'));
+    raw.insert(0, '$date|||$content');
+    await prefs.setStringList('zt_diary_entries', raw);
+  }
+
+  Future<void> _generateTodayIfNeeded() async {
     final today = DateTime.now();
     final todayStr =
         '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
@@ -86,16 +115,23 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         {'role': 'user', 'content': prompt}
       ]);
 
-      await FirebaseFirestore.instance
-          .collection('zt_diary')
-          .doc(user.uid)
-          .collection('entries')
-          .doc(todayStr)
-          .set({
-        'date': todayStr,
-        'content': reply,
-        'createdAt': FieldValue.serverTimestamp()
-      });
+      // Save to Firebase if signed in
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('zt_diary')
+            .doc(user.uid)
+            .collection('entries')
+            .doc(todayStr)
+            .set({
+          'date': todayStr,
+          'content': reply,
+          'createdAt': FieldValue.serverTimestamp()
+        });
+      }
+      
+      // Always save locally too
+      await _saveLocal(todayStr, reply);
 
       if (mounted) {
         setState(() {
@@ -110,8 +146,6 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
   }
 
   Future<void> _manualGenerate() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
     if (_generating) return;
     setState(() => _generating = true);
     try {
@@ -129,16 +163,23 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         {'role': 'user', 'content': prompt}
       ]);
 
-      await FirebaseFirestore.instance
-          .collection('zt_diary')
-          .doc(user.uid)
-          .collection('entries')
-          .doc(todayStr)
-          .set({
-        'date': todayStr,
-        'content': reply,
-        'createdAt': FieldValue.serverTimestamp()
-      });
+      // Save to Firebase if signed in
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('zt_diary')
+            .doc(user.uid)
+            .collection('entries')
+            .doc(todayStr)
+            .set({
+          'date': todayStr,
+          'content': reply,
+          'createdAt': FieldValue.serverTimestamp()
+        });
+      }
+      
+      // Always save locally too
+      await _saveLocal(todayStr, reply);
 
       if (mounted) {
         setState(() {

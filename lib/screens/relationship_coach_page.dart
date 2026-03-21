@@ -13,7 +13,7 @@ class RelationshipCoachPage extends StatefulWidget {
 class _RelationshipCoachPageState extends State<RelationshipCoachPage> with SingleTickerProviderStateMixin {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  List<Map<String, String>> _messages = [];
+  final List<Map<String, String>> _messages = [];
   bool _loading = false;
   late AnimationController _pulseCtrl;
 

@@ -33,6 +33,9 @@ import 'anniversary_page.dart';
 import 'late_night_mode_page.dart';
 import 'notifications_settings_page.dart';
 import 'star_map_page.dart';
+import 'manga_section_page.dart';
+import 'relationship_evolution_page.dart';
+import 'waifu_voice_call_screen.dart';
 
 // ─── Hub category model ──────────────────────────────────────────────────────
 class _HubCategory {
@@ -320,6 +323,34 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                 label: 'Anniversary',
                 icon: Icons.favorite_outlined,
                 builder: (_) => const AnniversaryPage()),
+          ],
+        ),
+        _HubCategory(
+          title: 'Manga Reader',
+          emoji: '📖',
+          description: 'Read manga powered by MangaDex',
+          color: const Color(0xFFBB52FF),
+          items: [
+            _HubItem(
+                label: 'Browse Manga',
+                icon: Icons.menu_book_rounded,
+                builder: (_) => const MangaSectionPage()),
+          ],
+        ),
+        _HubCategory(
+          title: 'Evolution',
+          emoji: '💖',
+          description: 'Relationship levels & daily bonus',
+          color: Colors.pinkAccent,
+          items: [
+            _HubItem(
+                label: 'Level Map',
+                icon: Icons.favorite_rounded,
+                builder: (_) => const RelationshipEvolutionPage()),
+            _HubItem(
+                label: 'Voice Call',
+                icon: Icons.phone_rounded,
+                builder: (_) => const WaifuVoiceCallScreen()),
           ],
         ),
         _HubCategory(
