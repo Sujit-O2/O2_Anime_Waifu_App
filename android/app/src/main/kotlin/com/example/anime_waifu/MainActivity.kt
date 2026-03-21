@@ -251,9 +251,46 @@ class MainActivity : AudioServiceFragmentActivity() {
                         } catch (e: Exception) { false }
                         result.success(sent)
                     }
+                    "getForegroundApp" -> {
+                        val pkg = getForegroundApp()
+                        result.success(pkg)
+                    }
+                    "getNowPlaying" -> {
+                        val info = getNowPlayingInfo()
+                        result.success(info)
+                    }
+                    "isCharging" -> {
+                        result.success(isCharging())
+                    }
+                    else -> result.notImplemented()
+
+                }
+            }
+
+        // PiP MethodChannel for anime player
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.animewaifu/pip")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enterPip" -> result.success(enterPipMode())
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private fun enterPipMode(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val params = android.app.PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(16, 9))
+                    .build()
+                enterPictureInPictureMode(params)
+                true
+            } else {
+                false
+            }
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun setLauncherIconVariant(variant: String): Boolean {
@@ -801,7 +838,44 @@ class MainActivity : AudioServiceFragmentActivity() {
         } catch (_: Exception) {}
     }
 
+    private fun getForegroundApp(): String? {
+        return try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) return null
+            val usm = getSystemService(Context.USAGE_STATS_SERVICE)
+                as android.app.usage.UsageStatsManager
+            val now = System.currentTimeMillis()
+            val stats = usm.queryUsageStats(
+                android.app.usage.UsageStatsManager.INTERVAL_DAILY,
+                now - 10_000, now)
+            stats?.maxByOrNull { it.lastTimeUsed }?.packageName
+        } catch (_: Exception) { null }
+    }
+
+    private fun getNowPlayingInfo(): String? {
+        return try {
+            val msm = getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+            val nlComponent = ComponentName(this,
+                "com.example.anime_waifu.NotificationListener")
+            val controllers = msm.getActiveSessions(nlComponent)
+            val ctrl = controllers.firstOrNull() ?: return null
+            val meta = ctrl.metadata ?: return null
+            val title  = meta.getString(android.media.MediaMetadata.METADATA_KEY_TITLE) ?: ""
+            val artist = meta.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST) ?: ""
+            if (title.isEmpty()) null else "$title,$artist"
+        } catch (_: Exception) { null }
+    }
+
+    private fun isCharging(): Boolean {
+        return try {
+            val bm = getSystemService(BATTERY_SERVICE) as android.os.BatteryManager
+            val status = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_STATUS)
+            status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == android.os.BatteryManager.BATTERY_STATUS_FULL
+        } catch (_: Exception) { false }
+    }
+
     private fun openResolvedIntent(action: String, category: String?): Boolean {
+
         return try {
             val intent = Intent(action).apply {
                 if (category != null) addCategory(category)
