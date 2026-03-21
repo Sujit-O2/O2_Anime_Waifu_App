@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firestore_service.dart';
 import 'home_widget_service.dart';
 
 /// Manages the affection/relationship system.
-/// All data persisted to Firestore — synced across reinstalls.
+/// All data persisted locally with SharedPreferences and synced to Firestore.
 class AffectionService extends ChangeNotifier {
   static final AffectionService instance = AffectionService._internal();
 
@@ -24,14 +25,45 @@ class AffectionService extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    final data = await FirestoreService().loadAffection();
-    _affectionPoints = (data['points'] as int?) ?? 100;
-    _streakDays = (data['streakDays'] as int?) ?? 0;
-    _lastStreakDateMs = (data['lastStreakDateMs'] as int?) ?? 0;
-    final lastMs = data['lastInteractionMs'] as int?;
-    if (lastMs != null) {
-      _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(lastMs);
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Default local
+    _affectionPoints = prefs.getInt('affectionPoints') ?? 100;
+    _streakDays = prefs.getInt('affectionStreakDays') ?? 0;
+    _lastStreakDateMs = prefs.getInt('affectionLastStreakDateMs') ?? 0;
+    final localLastMs = prefs.getInt('affectionLastInteractionMs');
+    if (localLastMs != null) {
+      _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(localLastMs);
     }
+
+    try {
+      if (FirestoreService().isSignedIn) {
+        final data = await FirestoreService().loadAffection();
+        if (data.isNotEmpty) {
+          final cloudPoints = data['points'] as int? ?? 100;
+          final cloudStreak = data['streakDays'] as int? ?? 0;
+          final cloudStreakMs = data['lastStreakDateMs'] as int? ?? 0;
+          final cloudLastMs = data['lastInteractionMs'] as int?;
+
+          // Use cloud data if it is newer or if local is basically empty
+          if (cloudLastMs != null && (localLastMs == null || cloudLastMs >= localLastMs)) {
+            _affectionPoints = cloudPoints;
+            _streakDays = cloudStreak;
+            _lastStreakDateMs = cloudStreakMs;
+            _lastInteractionTime = DateTime.fromMillisecondsSinceEpoch(cloudLastMs);
+            
+            // Mirror securely to local
+            await prefs.setInt('affectionPoints', _affectionPoints);
+            await prefs.setInt('affectionStreakDays', _streakDays);
+            await prefs.setInt('affectionLastInteractionMs', cloudLastMs);
+            await prefs.setInt('affectionLastStreakDateMs', _lastStreakDateMs);
+          }
+        }
+      }
+    } catch (_) {
+      // Offline or permission denied, stick to local variables loaded above
+    }
+
     _applyDecayIfNeeded();
     await HomeWidgetService.updateAffectionWidget();
     notifyListeners();
@@ -151,6 +183,14 @@ class AffectionService extends ChangeNotifier {
   }
 
   Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('affectionPoints', _affectionPoints);
+    await prefs.setInt('affectionStreakDays', _streakDays);
+    await prefs.setInt('affectionLastInteractionMs',
+        _lastInteractionTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch);
+    await prefs.setInt('affectionLastStreakDateMs', _lastStreakDateMs);
+
+    // Sync to cloud (may fail if unauthenticated, but local is now safe)
     await FirestoreService().saveAffection(
       points: _affectionPoints,
       streakDays: _streakDays,
