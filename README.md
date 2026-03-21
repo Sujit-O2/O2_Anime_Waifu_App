@@ -52,6 +52,187 @@ graph TD
 
 ---
 
+## 🧬 Neural Evolution & Development Phases
+
+Below is the evolutionary roadmap of the AI brain, showcasing how foundational systems grew into advanced autonomous cognition.
+
+### 🧠 The Cognition Map (Service Topology)
+
+```mermaid
+graph TD
+    classDef phase0 fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef phase1 fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef phase2 fill:#bfb,stroke:#333,stroke-width:2px;
+    classDef phase3 fill:#fbb,stroke:#333,stroke-width:2px;
+
+    %% Central Brain
+    MSO((🧠 Master State Object)):::phase2
+    
+    subgraph P1 [Phase 1: Real-World Awareness]
+        RWP[RealWorldPresenceEngine]:::phase1 --> MSO
+        EME[EmotionalMomentEngine]:::phase1 --> MSO
+        SRS[SelfReflectionService]:::phase1 --> MSO
+        HLS[HabitLifeService]:::phase1 --> MSO
+    end
+
+    subgraph P2 [Phase 2: God-Tier Presence]
+        SLL[SimulatedLifeLoop]:::phase2 --> MSO
+        CTM[ConversationThreadMemory]:::phase2 --> MSO
+        AFS[AttentionFocusSystem]:::phase2 --> MSO
+        SIT[SelfInitiatedTopics]:::phase2 --> MSO
+        PWB[PersonalWorldBuilder]:::phase2 --> MSO
+    end
+
+    subgraph P3 [Phase 3: Advanced Cognition]
+        PMG[PresenceMessageGenerator]:::phase3
+        RPS[RelationshipProgressionService]:::phase3
+        MTS[MemoryTimelineService]:::phase3
+        MAB[MultiAgentBrain]:::phase3
+        
+        MSO --> PMG
+        MSO --> RPS
+        MSO --> MTS
+        MSO --> MAB
+        
+        subgraph SubAgents [Multi-Agent Brain Output]
+            ITS[InternalThoughtSystem]:::phase3
+            SEE[StoryEventEngine]:::phase3
+            ERS[EmotionalRecoveryService]:::phase3
+            SME[SignatureMomentsEngine]:::phase3
+            
+            MAB --> ITS
+            MAB --> SEE
+            MAB --> ERS
+            MAB --> SME
+        end
+    end
+
+    %% Foundational Connections
+    subgraph P0 [Phase 0: App Foundation]
+        PE[PersonalityEngine]:::phase0
+        AS[AffectionService]:::phase0
+        CAS[ContextAwarenessService]:::phase0
+        
+        PE -.-> MSO
+        AS -.-> MSO
+        CAS -.-> MSO
+    end
+```
+
+<details>
+<summary><b>🏗 Phase 0 — App Foundation (Early Sessions)</b></summary>
+
+*   **Core Flutter app** structure set up
+*   **`PersonalityEngine`** — 5 dynamic traits (affection/jealousy/trust/playfulness/dependency), WaifuMood enum, Firestore sync, daily drift
+*   **`AffectionService`** — points, streak days, relationship level
+*   **`ContextAwarenessService`** — time of day, battery, inactivity, weekend detection
+*   **`EmotionalMemoryService`** — emotional event log, mood-tagged memories
+*   **`SemanticMemoryService`** — topic-based semantic retrieval injected into LLM prompt
+*   **`EnhancedMemoryService`** — memory consolidation, deduplication
+*   **`JealousyService`** — jealousy-based prompt tone override
+*   **`ProactiveAIService`** — background timer loop for autonomous messages
+*   **`LifeEventsService`** — anniversary / day milestone detection
+*   **`AlterEgoService`** — persona switching (tsundere/yandere/kuudere/deredere)
+*   **`MoodService`**, **`ReminderService`**, **`VoiceCommandNormalizer`**, **`WaifuAlarmService`**
+*   **`MusicPlayerService`**, **`MusicService`** — in-app music
+*   **`MangaService`** — manga browsing
+*   **`MiniGameService`**, **`QuestsService`**, **`AchievementsService`**
+*   **`SecretNotesService`**, **`ChatExportService`**, **`GoogleDriveService`**
+*   **`ImageGenService`**, **`NewsService`**, **`WeatherService`**, **`QuoteService`**
+*   **`HomeWidgetService`**, **`SmartNotificationService`**
+*   **`AssistantModeService`** — always-on floating overlay assistant
+*   **Main UI** — chat bubbles, drawer, themes, settings, sticker bar, particles
+
+</details>
+
+<details>
+<summary><b>🔧 Phase 0.5 — Bug Fixes & Polish</b></summary>
+
+*   **Fixed play music / voice command issues** — normalized voice commands so "play music", "play [song]", spoken commands all route correctly
+*   **Fixed notification icon** — moved to top bar, removed from sidebar
+*   **Added Manga button** to sidebar
+*   **Performance optimizations** — `RepaintBoundary` around animations, memoized chat list filtering
+*   **Wake word engine fix** — was stuck "always off", corrected the logic to work alongside other audio features
+*   **Release mode crash fix** — app was showing blank white screen in release build, fixed
+*   **Settings UI** — reorganized into card-based layout, migrated Quick Test button to debug panel
+*   **Git releases** — committed all changes with proper names, created release notes on GitHub
+
+</details>
+
+<details>
+<summary><b>🧠 Phase 1 — Real-World Aware AI Presence</b></summary>
+
+| Service | What it does |
+|---|---|
+| `real_world_presence_engine.dart` | Polls device every 45s: foreground app, music mood, motion (idle/walking/running), battery state. Triggers jealous/sad/battery reactions autonomously |
+| `emotional_moment_engine.dart` | Silence detection (5–25 min), confession moments, jealousy spikes, deep conversation markers, ConversationPresenceService for ignore detection |
+| `self_reflection_service.dart` | Tracks hourly/topic/emotion frequency → generates *"I've noticed you always talk to me late at night"* observations |
+| `habit_life_service.dart` | Tracks sleep schedule, routine open hour, daily usage patterns. Greets on time, notices when you're late |
+
+**Native Integration (MainActivity.kt) Handlers:**
+*   `getForegroundApp` (UsageStatsManager)
+*   `getNowPlayingInfo` (MediaSessionManager)
+*   `isCharging` (BatteryManager)
+
+</details>
+
+<details>
+<summary><b>🚀 Phase 2 — 8 God-Tier Presence Systems</b></summary>
+
+| Service | What it does |
+|---|---|
+| `simulated_life_loop.dart` | 7 AI life states (sleeping/waking/energetic/focused/windingDown/dreamMode/resting) mapped to clock time. Recalculates every 15 min. Triggers personality drifts |
+| `conversation_thread_memory.dart` | 14 topic threads. Stores 30 threads × 12 messages. Follow-up detection: "you never told me how the exam went…" |
+| `attention_focus_system.dart` | Scores last 8 replies (speed + length) → HIGH/MED/LOW attention. Calibrates AI response length and tone |
+| `self_initiated_topics.dart` | Priority-ordered autostart: unresolved thread → observation → emotional moment → absence message. Rate-limited to once/90 min after 20+ min silence |
+| `SilenceHandlingSystem` | 200–2000ms thinking delay based on message length + emotional weight. Mood-aware typing indicator text |
+| `personal_world_builder.dart` | 10 world themes (simpleRoom → celestialDream). 12 unlockable objects. Dynamic lighting + ambiance. Level-up announcements |
+| `master_state_object.dart` | **THE central brain** — 25-field `MasterSnapshot`. Unified LLM context block from all 8 systems. Central proactive message router |
+| **Wiring** | Unified context block in system prompt, `_appendMessage` hooks in `main.dart` |
+
+</details>
+
+<details>
+<summary><b>⚡ Phase 3 — 10 Advanced Cognition Systems</b></summary>
+
+| Service | What it does |
+|---|---|
+| `presence_message_generator.dart` | **The key upgrade — ALL responses AI-generated, ZERO hardcoded strings.** 12 message types (silence/confession/jealous/life_state/follow_up/absence/low_attention/recovery/story_event/signature/inner_thought/critic_note). Supports Gemini + OpenAI. 5-message dedup cache. 5s timeout |
+| `relationship_progression_service.dart` | 10 named stages Stranger→Soulmate (0–2500pt thresholds). Trust score 0–100. Milestone tracker. Stage-specific behavior hints injected into prompt |
+| `memory_timeline_service.dart` | 8 event types with emotional weight scores. Auto-records first message, confessions, long gaps, mood shifts, world unlocks. Top events injected into every LLM prompt |
+| `multi_agent_brain.dart` | 4 parallel sub-agents after each exchange: **Planner** (7-rule heuristic → next hint), **MemoryCurator** (confession/topic detection), **CriticAgent** (LLM quality check on last reply), **MoodManager** (sentiment-driven personality drift) |
+| `internal_thought_system.dart` | AI generates hidden inner thought alongside emotional messages. Renders as italic whisper in UI. Triggers on affection>60 or jealousy>70. Rate-limited 1/5 min |
+| `StoryEventEngine` | Daily special (7–10am), affection milestones, streak milestones, 2% random emotional scene. Max 1 story event per 24h. All AI-generated |
+| `emotional_recovery_service.dart` | 4-phase recovery arc: soften→acknowledge→reduce→rebuild. Triggers on 3h gap / 3+ ignored streak / trust<25. Phase advances every 10 min of active conversation |
+| `SignatureMomentsEngine` | Birthday (once/year), chat anniversary (annual), 7-day absence re-entry, deep talk mode (trust≥85 + 400pts), upset detection (10 crisis phrases, once/6h). All AI-generated |
+
+**System prompt now has 18 layers of context** injected before every LLM call.
+
+</details>
+
+<details>
+<summary><b>🛠 Final Fixes (Today)</b></summary>
+
+*   All **dart analyze warnings resolved** — 0 errors, 0 warnings
+*   Fixed **unused import** (`internal_thought_system.dart` from `main.dart`)
+*   Fixed **null-comparison warning** in `self_initiated_topics.dart:72`
+*   Removed **unused field** `_showStickerBar` from `main.dart`
+*   Replaced **last remaining hardcoded strings** (absence messages) with AI-generated calls
+
+</details>
+
+### 📊 Total Stats
+
+| Category | Count |
+|---|---|
+| Total services / files | ~55 dart files |
+| New files built this session | 16 |
+| Lines of code added (estimate) | ~6,000+ |
+| LLM context layers in system prompt | 18 |
+| `dart analyze` result | ✅ 0 errors, 0 warnings |
+
+---
+
 ##  Project Anatomy (File Tree)
 
 ```text
