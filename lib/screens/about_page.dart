@@ -44,8 +44,8 @@ extension _AboutPageExtension on _ChatHomePageState {
         SafeArea(
           child: Column(
             children: [
-              _buildAboutHeader(),
-              _buildHorizontalDivider(),
+              _AboutAnimatedItem(index: 0, child: _buildAboutHeader()),
+              _AboutAnimatedItem(index: 1, child: _buildHorizontalDivider()),
               Expanded(
                 child: Align(
                   alignment: Alignment.topCenter,
@@ -81,18 +81,21 @@ extension _AboutPageExtension on _ChatHomePageState {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildSectionTitle('DASHBOARD'),
+                                    _AboutAnimatedItem(index: 2, child: _buildSectionTitle('DASHBOARD')),
                                     const SizedBox(height: 12),
-                                    _buildSubNavigationDashboard(),
+                                    _AboutAnimatedItem(index: 3, child: _buildSubNavigationDashboard()),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle('SYSTEM STATUS'),
+                                    _AboutAnimatedItem(index: 4, child: _buildSectionTitle('SYSTEM STATUS')),
                                     const SizedBox(height: 12),
-                                    _buildStatusGrid(),
+                                    _AboutAnimatedItem(index: 5, child: _buildStatusGrid()),
                                     const SizedBox(height: 28),
-                                    _buildSectionTitle(
-                                        'DEVELOPER & PROJECT INFO'),
+                                    _AboutAnimatedItem(index: 6, child: _buildSectionTitle('DEVELOPER & PROJECT INFO')),
                                     const SizedBox(height: 12),
-                                    _buildProjectInfoCard(),
+                                    _AboutAnimatedItem(index: 7, child: _buildProjectInfoCard()),
+                                    const SizedBox(height: 28),
+                                    _AboutAnimatedItem(index: 8, child: _buildSectionTitle('WHAT\'S NEW IN V4')),
+                                    const SizedBox(height: 12),
+                                    _AboutAnimatedItem(index: 9, child: _buildV4FeaturesCard()),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -452,7 +455,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                   Icons.code, 'Dev By', 'Sujit 02', Colors.pinkAccent),
               const SizedBox(width: 10),
               _buildModernDevChip(
-                  Icons.new_releases, 'Version', 'v02', Colors.cyanAccent),
+                  Icons.new_releases, 'Version', 'v4.0.0', Colors.cyanAccent),
             ],
           ),
           const SizedBox(height: 16),
@@ -508,6 +511,64 @@ extension _AboutPageExtension on _ChatHomePageState {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildV4FeaturesCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.pinkAccent.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _v4FeatureRow(Icons.favorite, 'Proactive Wife Mode', 'She checks in on you without prompting'),
+          const SizedBox(height: 12),
+          _v4FeatureRow(Icons.record_voice_over, 'Voice Clone Capabilities', 'Multiple realistic dynamic voices'),
+          const SizedBox(height: 12),
+          _v4FeatureRow(Icons.tv_rounded, 'Anime & Manga/Doujin Hub', 'New vast streaming & reading integration'),
+          const SizedBox(height: 12),
+          _v4FeatureRow(Icons.psychology_rounded, 'Deep Memory Extraction', 'She permanently remembers facts about you'),
+          const SizedBox(height: 12),
+          _v4FeatureRow(Icons.star_rounded, 'Premium Aesthetics', 'Overhauled UI, glassmorphism, & animations'),
+        ],
+      ),
+    );
+  }
+
+  Widget _v4FeatureRow(IconData icon, String title, String desc) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+              color: Colors.pinkAccent.withValues(alpha: 0.1),
+              shape: BoxShape.circle),
+          child: Icon(icon, color: Colors.pinkAccent, size: 16),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text(desc,
+                  style: GoogleFonts.outfit(
+                      color: Colors.white60, fontSize: 11)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -709,6 +770,53 @@ class _AboutFireflyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AboutFireflyPainter oldDelegate) => true;
+}
+
+class _AboutAnimatedItem extends StatefulWidget {
+  final Widget child;
+  final int index;
+  const _AboutAnimatedItem({required this.child, required this.index});
+
+  @override
+  State<_AboutAnimatedItem> createState() => _AboutAnimatedItemState();
+}
+
+class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700));
+    _slide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+
+    Future.delayed(Duration(milliseconds: 120 * widget.index), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: widget.child,
+      ),
+    );
+  }
 }
 
 class _FeatureGuideDialog extends StatelessWidget {
