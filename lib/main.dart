@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:anime_waifu/api_call.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:anime_waifu/config/app_themes.dart';
 
 import 'package:anime_waifu/debug/wakeword_debug.dart';
@@ -42,6 +43,7 @@ import 'package:anime_waifu/widgets/animated_background.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:anime_waifu/widgets/visual_effects_overlay.dart';
 import 'package:anime_waifu/widgets/app_lock_wrapper.dart';
+import 'package:anime_waifu/widgets/gesture_control_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -51,76 +53,39 @@ import 'package:anime_waifu/screens/profile_screen.dart';
 import 'package:anime_waifu/screens/achievements_screen.dart';
 import 'package:anime_waifu/screens/pomodoro_page.dart';
 import 'package:anime_waifu/screens/virtual_date_page.dart';
-import 'package:anime_waifu/screens/daily_trivia_page.dart';
 import 'package:anime_waifu/screens/breathing_page.dart';
 import 'package:anime_waifu/screens/gratitude_journal_page.dart';
 import 'package:anime_waifu/screens/anime_recommender_page.dart';
-import 'package:anime_waifu/screens/countdown_timer_page.dart';
 import 'package:anime_waifu/screens/goal_tracker_page.dart';
-import 'package:anime_waifu/screens/wellness_reminders_page.dart';
 import 'package:anime_waifu/screens/daily_love_letter_page.dart';
-import 'package:anime_waifu/screens/story_adventure_page.dart';
-import 'package:anime_waifu/screens/bucket_list_page.dart';
 import 'package:anime_waifu/screens/truth_or_dare_page.dart';
-import 'package:anime_waifu/screens/virtual_gift_shop_page.dart';
 import 'package:anime_waifu/screens/budget_tracker_page.dart';
 import 'package:anime_waifu/screens/love_quiz_page.dart';
-import 'package:anime_waifu/screens/date_night_planner_page.dart';
-import 'package:anime_waifu/screens/kaomoji_picker_page.dart';
 import 'package:anime_waifu/screens/relationship_timeline_page.dart';
 import 'package:anime_waifu/screens/would_you_rather_page.dart';
-import 'package:anime_waifu/screens/poem_generator_page.dart';
 import 'package:anime_waifu/screens/daily_affirmations_page.dart';
-import 'package:anime_waifu/screens/daily_horoscope_page.dart';
 import 'package:anime_waifu/screens/book_recommender_page.dart';
-import 'package:anime_waifu/screens/memory_book_page.dart';
-import 'package:anime_waifu/screens/multiple_personas_page.dart';
-import 'package:anime_waifu/screens/conversation_summary_page.dart';
-import 'package:anime_waifu/screens/word_puzzle_page.dart';
-import 'package:anime_waifu/screens/recipe_recommender_page.dart';
 import 'package:anime_waifu/screens/workout_planner_page.dart';
-import 'package:anime_waifu/screens/language_translator_page.dart';
 import 'package:anime_waifu/screens/never_have_i_ever_page.dart';
 import 'package:anime_waifu/screens/habit_tracker_page.dart';
-import 'package:anime_waifu/screens/writing_helper_page.dart';
 import 'package:anime_waifu/screens/life_advice_page.dart';
 import 'package:anime_waifu/screens/quote_of_day_page.dart';
 import 'package:anime_waifu/screens/dream_journal_page.dart';
 import 'package:anime_waifu/screens/spinner_wheel_page.dart';
-import 'package:anime_waifu/screens/movie_recommender_page.dart';
 import 'package:anime_waifu/screens/notes_pad_page.dart';
-import 'package:anime_waifu/screens/relationship_advice_page.dart';
-import 'package:anime_waifu/screens/zero_two_facts_page.dart';
 import 'package:anime_waifu/screens/leaderboard_page.dart';
 import 'package:anime_waifu/screens/cloud_sync_page.dart';
-import 'package:anime_waifu/screens/anniversary_page.dart';
-import 'package:anime_waifu/screens/achievements_gallery_page.dart';
-import 'package:anime_waifu/screens/checkin_streak_page.dart';
-import 'package:anime_waifu/screens/scheduled_messages_page.dart';
 import 'package:anime_waifu/screens/pinned_messages_page.dart';
-import 'package:anime_waifu/screens/chat_statistics_page.dart';
-import 'package:anime_waifu/screens/sleep_mode_page.dart';
-import 'package:anime_waifu/screens/zero_two_calendar_page.dart';
-import 'package:anime_waifu/screens/mood_tracking_page.dart';
-import 'package:anime_waifu/screens/daily_challenge_page.dart';
-import 'package:anime_waifu/screens/tarot_reading_page.dart';
-import 'package:anime_waifu/screens/achievement_room_page.dart';
-import 'package:anime_waifu/screens/notifications_settings_page.dart';
 import 'package:anime_waifu/screens/global_quest_board_page.dart';
 import 'package:anime_waifu/screens/friends_page.dart';
 import 'package:anime_waifu/screens/zero_two_diary_page.dart';
 import 'package:anime_waifu/screens/fortune_cookie_page.dart';
 import 'package:anime_waifu/screens/roleplay_scenario_page.dart';
-import 'package:anime_waifu/screens/draw_lots_page.dart';
-import 'package:anime_waifu/screens/relationship_trivia_page.dart';
-import 'package:anime_waifu/screens/chat_analytics_page.dart';
 
-import 'package:anime_waifu/screens/relationship_level_map_page.dart';
-import 'package:anime_waifu/screens/year_in_review_page.dart';
 import 'package:anime_waifu/screens/late_night_mode_page.dart';
 import 'package:anime_waifu/screens/data_vault_page.dart';
-import 'package:anime_waifu/screens/hub_page.dart';
 import 'package:anime_waifu/screens/mini_games_page.dart';
+import 'package:anime_waifu/screens/web_streamers_hub_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -133,20 +98,65 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'screens/theme_switcher_page.dart';
 import 'screens/rock_paper_scissors_page.dart';
-import 'screens/love_letter_page.dart';
-import 'screens/memory_wall_page.dart';
 import 'screens/dream_interpreter_page.dart';
 import 'screens/tic_tac_toe_page.dart';
 import 'screens/word_association_page.dart';
 import 'screens/study_timer_page.dart';
 import 'screens/shared_bucket_list_page.dart';
-import 'screens/daily_couple_challenge_page.dart';
 import 'screens/twenty_questions_page.dart';
 import 'screens/story_mode_page.dart';
 import 'screens/relationship_coach_page.dart';
 import 'screens/voice_notes_page.dart';
+import 'screens/manga_section_page.dart';
+import 'screens/watchlist_page.dart';
+import 'screens/watch_history_page.dart';
+import 'screens/anime_quiz_page.dart';
+import 'screens/anime_ost_page.dart';
+import 'screens/anime_calendar_page.dart';
+import 'screens/app_icon_picker_page.dart';
+import 'screens/downloads_page.dart';
+import 'screens/mal_sync_page.dart';
+import 'screens/episode_alerts_page.dart';
+import 'services/semantic_memory_service.dart';
+import 'services/rag_embedding_service.dart';
+import 'services/voice_command_normalizer.dart';
+import 'screens/relationship_evolution_page.dart';
+import 'screens/waifu_voice_call_screen.dart';
+import 'screens/personality_settings_page.dart';
+import 'screens/memory_timeline_page.dart';
+import 'services/personality_engine.dart';
+import 'services/emotional_memory_service.dart';
+import 'services/context_awareness_service.dart';
+import 'services/jealousy_service.dart';
+import 'services/proactive_ai_service.dart';
+import 'services/alter_ego_service.dart';
+import 'services/life_events_service.dart';
+import 'services/real_world_presence_engine.dart';
+import 'services/emotional_moment_engine.dart';
+import 'services/self_reflection_service.dart';
+import 'services/habit_life_service.dart';
+import 'services/simulated_life_loop.dart';
+import 'services/conversation_thread_memory.dart';
+import 'services/attention_focus_system.dart';
+import 'services/personal_world_builder.dart';
+
+// NEW BATCH FEATURES
+import 'screens/ai_art_generator_page.dart';
+import 'screens/gacha_collector_page.dart';
+import 'screens/anime_wordle_page.dart';
+import 'screens/boss_battle_page.dart';
+import 'screens/manga_translator_page.dart';
+import 'screens/waifu_tier_list_page.dart';
+import 'screens/anime_watch_party_page.dart';
+import 'screens/anime_matchmaker_page.dart';
+import 'services/master_state_object.dart';
+import 'services/presence_message_generator.dart';
+import 'services/relationship_progression_service.dart';
+import 'services/memory_timeline_service.dart';
+import 'services/multi_agent_brain.dart';
+import 'services/emotional_recovery_service.dart';
+import 'widgets/liveliness_widgets.dart';
 
 part 'screens/main_drawer.dart';
 part 'screens/main_themes.dart';
@@ -208,7 +218,7 @@ Future<void> main() async {
     await _loadEnvSafely();
     await _restoreThemePreferences();
 
-    runApp(const VoiceAiApp());
+    runApp(const GestureControlOverlay(child: VoiceAiApp()));
     unawaited(_bootstrapPlatformServices());
   }, (_, __) {},
       zoneSpecification: ZoneSpecification(
@@ -377,6 +387,9 @@ class _ChatHomePageState extends State<ChatHomePage>
   bool _suspendWakeWord = false;
   bool _isManualMicSession = false;
 
+  // ── Phase 2: Live personality + memory extras injected before every LLM call
+  String _phase2PromptExtras = '';
+
   // Voice Model State
   String _voiceModel = 'english'; // 'english' or 'arabic'
   bool _wakeEffectVisible = false;
@@ -391,13 +404,31 @@ class _ChatHomePageState extends State<ChatHomePage>
   int _aboutTapCount = 0;
   DateTime? _aboutLastTap;
 
+  // ── Liveliness state ───────────────────────────────────────────────────
+  final _particleKey = GlobalKey<ParticleOverlayState>();
+  String _currentMoodLabel = 'Happy 😊';
+  final String _currentStickerEmotion = 'neutral';
+
+  static const _surpriseActivities = [
+    '🎮 Let\'s play Rock Paper Scissors!',
+    '📜 Tell me a story about us ~',
+    '🌙 Hit me with a midnight thought',
+    '💌 Write me a love letter~',
+    '🎙️ Sing me a line of a song~',
+    '🧘 Give me a motivational quote',
+    '🔮 Tell me my fortune today!',
+    '🌟 Let\'s do 20 questions!',
+    '📖 Tell me an anime recommendation',
+    '🦹 Rate my rizz out of 10 😂',
+  ];
+
   String get _zeroTwoSystemPrompt {
     if (_devSystemQuery.isNotEmpty) return _devSystemQuery;
     // Full override from cloud — user defined their own prompt
     if (_waifuPromptOverride.trim().isNotEmpty) {
       return _waifuPromptOverride.trim();
     }
-    final memoryBlock = ''; // reserved for future memory injection
+    final memoryBlock = _phase2PromptExtras; // Phase 2: personality + memory + context + jealousy
 
     String personaBase = '';
     switch (_selectedPersona) {
@@ -620,6 +651,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   bool _liteModeEnabled = false;
   bool _appLockEnabled = false;
   bool _notificationsAllowed = false;
+  bool _hasUnreadNotifs = false; // true = show red dot on bell icon
   bool _dualVoiceEnabled = false;
   String _selectedOutfit = 'assets/img/z2s.jpg';
   bool _chatImageFromSystem = false;
@@ -1276,6 +1308,315 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHASE 2: PERSONALITY ECOSYSTEM WIRING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Called once on app startup — initializes all Phase 2 services.
+  Future<void> _initPhase2() async {
+    try {
+      // Record activity for jealousy system (user opened app)
+      await JealousyService.instance.recordActivity();
+
+      // Initialize life events (first chat date tracking)
+      await LifeEventsService.instance.initializeIfNeeded();
+
+      // Check for jealousy message on return (show if absent 2h+)
+      final personaName = _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona;
+      final jealousyMsg = await JealousyService.instance.getJealousyMessage(personaName);
+      if (jealousyMsg != null && mounted) {
+        // Delay slightly so app is fully loaded
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted && !_isDisposed) {
+          _appendMessage(ChatMessage(role: 'assistant', content: jealousyMsg));
+          _scrollToBottom();
+        }
+      }
+
+      // Auto-detect alter ego mode from personality mood
+      await AlterEgoService.instance.autoDetectFromMood(PersonalityEngine.instance.mood);
+
+      // ── Next-Tier Presence Systems init ───────────────────────────
+      RealWorldPresenceEngine.instance.startPolling();
+      await HabitLifeService.instance.initialize();
+      await HabitLifeService.instance.recordAppOpen();
+      await SelfReflectionService.instance.loadModel();
+      SimulatedLifeLoop.instance.initialize();
+      await ConversationThreadMemory.instance.load();
+      await PersonalWorldBuilder.instance.load();
+      debugPrint('Phase 2: All presence systems initialized ✅');
+
+      // ── Phase 3: Advanced Cognition Systems ────────────────────────
+      await RelationshipProgressionService.instance.load();
+      await MemoryTimelineService.instance.load();
+      await MemoryTimelineService.instance.recordFirstMessageIfNeeded();
+      await EmotionalRecoveryService.instance.loadPhase();
+      await SignatureMomentsEngine.instance.recordFirstChatDate();
+      // PresenceMessageGenerator reads credentials from SharedPreferences automatically
+      await PresenceMessageGenerator.instance.initialize();
+      debugPrint('Phase 3: Advanced cognition systems initialized ✅');
+
+      // Check for life event milestone (anniversary / day milestone)
+      final milestoneBlock = await LifeEventsService.instance.checkAndTriggerMilestone();
+      if (milestoneBlock != null) {
+        // Will be included next time _refreshPhase2Extras runs
+        debugPrint('Phase 2: Life event milestone triggered!');
+      }
+
+      // Memory consolidation — rate-limited to once per 24h
+      final prefs = await SharedPreferences.getInstance();
+      final lastConsolMs = prefs.getInt('last_consolidation_ms') ?? 0;
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      if (nowMs - lastConsolMs > const Duration(hours: 24).inMilliseconds) {
+        unawaited(SemanticMemoryService.instance.consolidateMemories().then((_) {
+          prefs.setInt('last_consolidation_ms', nowMs);
+        }));
+      }
+
+      debugPrint('Phase 2 initialized ✅');
+    } catch (e) {
+      debugPrint('Phase 2 init error: $e');
+    }
+  }
+
+  /// Rebuilds the full context extras block — called before every LLM API call.
+  /// Gathers: personality traits, emotional memories, RAG retrieval, context awareness,
+  /// jealousy tone, alter ego mode, life events milestone.
+  Future<void> _refreshPhase2Extras() async {
+    try {
+      final buf = StringBuffer();
+
+      // 1. Personality traits + current mood
+      final personalityBlock = PersonalityEngine.instance.buildPersonalityPromptBlock();
+      if (personalityBlock.isNotEmpty) buf.write(personalityBlock);
+
+      // 2. Semantic memory retrieval — ranked by topic relevance to current message
+      final lastUserMsg = _messages.reversed.firstWhere(
+        (m) => m.role == 'user',
+        orElse: () => ChatMessage(role: 'user', content: ''),
+      );
+      final recentUserMsgs = _messages.reversed
+          .where((m) => m.role == 'user')
+          .take(5)
+          .map((m) => m.content)
+          .toList();
+      final memoryBlock = await SemanticMemoryService.instance.buildSemanticContextBlock(
+        currentMessage: lastUserMsg.content,
+        recentMessages: recentUserMsgs,
+        currentMood: PersonalityEngine.instance.mood,
+      );
+      if (memoryBlock.isNotEmpty) buf.write(memoryBlock);
+
+      // 2b. RAG Embedding retrieval + auto-ingest (single API call, 30s cooldown)
+      final ragBlock = await RagEmbeddingService.instance.buildRagContextBlock(
+        lastUserMsg.content,
+      );
+      if (ragBlock.isNotEmpty) buf.write(ragBlock);
+
+      // 3. Context awareness (time of day, battery, inactivity)
+      final contextBlock = await ContextAwarenessService.instance.getContextBlock();
+      if (contextBlock.isNotEmpty) buf.write(contextBlock);
+
+      // 3b-3h. Unified Master State context (all 8 presence systems)
+      final masterBlock = await MasterStateObject.instance.buildMasterContextBlock();
+      if (masterBlock.isNotEmpty) buf.write(masterBlock);
+
+      // 3i. Relationship progression (stage, trust)
+      buf.write(RelationshipProgressionService.instance.getProgressionContextBlock());
+
+      // 3j. Memory timeline (past significant moments)
+      buf.write(MemoryTimelineService.instance.getTimelineContextBlock());
+
+      // 3k. Emotional recovery phase hint
+      buf.write(EmotionalRecoveryService.instance.getRecoveryContextBlock());
+
+      // 3l. Multi-agent planner hint
+      buf.write(MultiAgentBrainService.instance.getPlanContextBlock());
+
+      // 3m. Critic note from last exchange (if AI quality issue detected)
+      {
+        final prefs = await SharedPreferences.getInstance();
+        final note = prefs.getString('mab_critic_note');
+        if (note != null && note.isNotEmpty) {
+          buf.writeln('// [CRITIC NOTE from last response — self-correct]: $note');
+          await prefs.remove('mab_critic_note');
+        }
+      }
+
+      // 4. Jealousy / absence tone override
+      final jealousyBlock = await JealousyService.instance.buildJealousyPromptBlock();
+      if (jealousyBlock.isNotEmpty) buf.write(jealousyBlock);
+
+      // 5. Alter ego mode override
+      final alterEgoBlock = AlterEgoService.instance.buildAlterEgoPromptBlock();
+      if (alterEgoBlock.isNotEmpty) buf.write(alterEgoBlock);
+
+      // 6. Life event milestone (anniversary, day milestone)
+      final milestoneBlock = await LifeEventsService.instance.checkAndTriggerMilestone();
+      if (milestoneBlock != null) buf.write(milestoneBlock);
+
+      _phase2PromptExtras = buf.toString();
+    } catch (e) {
+      debugPrint('Phase 2 extras refresh error: $e');
+      _phase2PromptExtras = '';
+    }
+  }
+
+  /// Called after every AI reply — saves emotional memory + updates personality.
+  Future<void> _phase2AfterReply(String assistantText) async {
+    try {
+      // Record activity (resets jealousy timer)
+      await JealousyService.instance.recordActivity();
+
+      // Auto-detect emotion in the reply and save as memory (if significant)
+      final (emotion, importance) = EmotionalMemoryService.detectEmotion(assistantText);
+      if (importance >= 0.5) {
+        // Only save emotionally significant moments
+        final waifuId = _selectedPersona == 'Default' ? 'zero_two' : _selectedPersona.toLowerCase();
+        await EmotionalMemoryService.instance.saveMemory(
+          text: assistantText.length > 200 ? assistantText.substring(0, 200) : assistantText,
+          emotion: emotion,
+          importance: importance,
+          waifuId: waifuId,
+        );
+      }
+
+      // Record user interaction in personality engine (normal positive chat)
+      await PersonalityEngine.instance.onUserInteracted(wasNice: true);
+
+      // Check for "I love you" in the last user message
+      final lastUserMsg = _messages.lastWhere(
+        (m) => m.role == 'user', orElse: () => ChatMessage(role: '', content: ''));
+      if (_containsLoveDeclaration(lastUserMsg.content)) {
+        await PersonalityEngine.instance.onUserInteracted(wasFlirty: true);
+        await LifeEventsService.instance.recordFirstLoveYou();
+      }
+    } catch (e) {
+      debugPrint('Phase 2 after-reply error: $e');
+    }
+  }
+
+  /// Checks if a message contains a love declaration.
+  bool _containsLoveDeclaration(String text) {
+    if (text.isEmpty) return false;
+    final lower = text.toLowerCase();
+    return lower.contains('i love you') ||
+        lower.contains('i luv you') ||
+        lower.contains('love u') ||
+        lower.contains('love you so much') ||
+        lower.contains('you mean everything') ||
+        lower.contains('mai tumse pyar karta') ||
+        lower.contains('i adore you');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── Phase 3: Slash command handler ──────────────────────────────────────────
+  /// Returns true if a slash command was handled (no LLM call needed).
+  Future<bool> _handlePhase3SlashCommand(String raw) async {
+    final parts = raw.split(' ');
+    final cmd = parts[0].toLowerCase();
+
+    switch (cmd) {
+      // /mood — show current personality state
+      case '/mood':
+        final pe = PersonalityEngine.instance;
+        final reply = '🧠 Current Mood: ${pe.mood.label}\n'
+            '❤️ Affection: ${pe.affection.round()}/100\n'
+            '😈 Jealousy: ${pe.jealousy.round()}/100\n'
+            '🤝 Trust: ${pe.trust.round()}/100\n'
+            '😜 Playfulness: ${pe.playfulness.round()}/100\n'
+            '💞 Dependency: ${pe.dependency.round()}/100';
+        _appendMessage(ChatMessage(role: 'assistant', content: reply));
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      // /mode [name] — switch alter ego
+      case '/mode':
+        final modeName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+        if (modeName.isEmpty) {
+          final currentMode = AlterEgoService.instance.currentMode;
+          _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '🎭 Current mode: ${currentMode.label}\n'
+                'Available: normal, tsundere, yandere, sleepy, assistant',
+          ));
+          if (mounted) setState(() => _isBusy = false);
+          return true;
+        }
+        final success = await AlterEgoService.instance.setModeByName(modeName);
+        if (success) {
+          final newMode = AlterEgoService.instance.currentMode;
+          final greeting = newMode.wakeGreeting.replaceAll('{name}', 'darling');
+          _appendMessage(ChatMessage(role: 'assistant', content: greeting));
+        } else {
+          _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '❓ Unknown mode. Try: normal, tsundere, yandere, sleepy, assistant',
+          ));
+        }
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      // /remember — pin the last AI memory forever
+      case '/remember':
+        final mems = await EmotionalMemoryService.instance.getAllMemories();
+        if (mems.isEmpty) {
+          _appendMessage(ChatMessage(role: 'assistant', content: '💭 No memories found yet.'));
+        } else {
+          await EmotionalMemoryService.instance.pinMemory(mems.first.id);
+          _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '📌 Pinned to my heart forever: "${mems.first.text}"',
+          ));
+        }
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      // /forget — delete the most recent emotional memory
+      case '/forget':
+        final mems = await EmotionalMemoryService.instance.getAllMemories();
+        if (mems.isEmpty) {
+          _appendMessage(ChatMessage(role: 'assistant', content: '💭 Nothing to forget.'));
+        } else {
+          final toForget = mems.first;
+          await EmotionalMemoryService.instance.forgetMemory(toForget.id);
+          _appendMessage(ChatMessage(
+            role: 'assistant',
+            content: '🌫️ Erased from my memory: "${toForget.text}"',
+          ));
+        }
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      // /dream — show today's dream from ProactiveAIService
+      case '/dream':
+        final mood = PersonalityEngine.instance.mood;
+        final dream = ProactiveAIService.generateDreamMessage(mood);
+        _appendMessage(ChatMessage(role: 'assistant', content: '🌙 $dream'));
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      // /help — show all available commands
+      case '/help':
+        const helpText = '✨ Phase 3 Chat Commands:\n\n'
+            '/mood — Show my current personality stats\n'
+            '/mode [name] — Switch personality mode (normal/tsundere/yandere/sleepy/assistant)\n'
+            '/remember — Pin the most recent memory forever\n'
+            '/forget — Delete the most recent memory\n'
+            '/dream — Show what I dreamed about last night\n'
+            '/help — Show this message';
+        _appendMessage(ChatMessage(role: 'assistant', content: helpText));
+        if (mounted) setState(() => _isBusy = false);
+        return true;
+
+      default:
+        return false; // Not a recognized command, fall through to normal AI
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+
   void _startProactiveTimer() {
     _proactiveMessageTimer?.cancel();
     _proactiveMessageTimer = Timer(_nextProactiveDelay, _proactiveTick);
@@ -1286,15 +1627,25 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     try {
       // Dart-side proactive generation (Check-in) ONLY if on OTHER screens.
-      // Background notifications are handled by Native AssistantForegroundService.
-      // Chat Screen idleness is handled by _onIdleTimeout.
       if (_proactiveEnabled &&
           _isInForeground &&
           _navIndex != 0 && // Only if NOT on chat screen
           !_isBusy) {
-        debugPrint(
-            "In-app Check-in (Other screen). Generating notification...");
-        await _sendProactiveBackgroundNotification();
+        debugPrint("In-app Check-in (Other screen). Generating notification...");
+
+        // ── Phase 2: Try mood-aware ProactiveAI message first ──
+        final proactiveMsg = await ProactiveAIService.instance.generateProactiveMessage(
+          personaName: _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona,
+          currentMood: PersonalityEngine.instance.mood,
+        );
+        if (proactiveMsg != null) {
+          await ProactiveAIService.instance.recordProactiveSent();
+          _appendMessage(ChatMessage(role: 'assistant', content: proactiveMsg.text));
+          _scrollToBottom();
+          unawaited(_speakAssistantText(proactiveMsg.text));
+        } else {
+          await _sendProactiveBackgroundNotification();
+        }
       }
     } catch (e) {
       debugPrint("Proactive tick error: $e");
@@ -1390,6 +1741,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       }
       unawaited(_drainPendingProactiveMessages());
       _startIdleTimer();
+
+      // ── Phase 2: Initialize personality ecosystem on startup ──
+      unawaited(_initPhase2());
+
       if (mounted) {
         const startupImages = [
           'assets/img/z2s.jpg',
@@ -1492,9 +1847,33 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   void _appendMessage(ChatMessage message) {
     if (_isDisposed || !mounted) return;
 
-    if (message.role == "user" && message.content.trim().isNotEmpty) {
+    if (message.role == 'user' && message.content.trim().isNotEmpty) {
       _userMessageCount += 1;
       _idleBlockedUntilUserMessage = false;
+      EmotionalMomentEngine.instance.recordUserMessage();
+      ConversationPresenceService.instance.onUserReplied();
+      AttentionFocusSystem.instance.onUserMessage(message.content);
+      final topic = _detectTopic(message.content);
+      unawaited(SelfReflectionService.instance.recordTopicMentioned(topic));
+      unawaited(ConversationThreadMemory.instance.addMessage(
+          role: 'user', content: message.content, topic: topic));
+    } else if (message.role == 'assistant') {
+      AttentionFocusSystem.instance.onAiMessageSent();
+      ConversationPresenceService.instance.onAiMessageSent();
+      // Update world state on each AI message
+      unawaited(MasterStateObject.instance.onExchangeComplete(
+          topic: _detectTopic(message.content)));
+      unawaited(ConversationThreadMemory.instance.addMessage(
+          role: 'assistant', content: message.content,
+          topic: _detectTopic(message.content)));
+    }
+
+    // ── Liveliness: trigger particles + mood update on AI messages
+    if (message.role == 'assistant' && message.content.isNotEmpty) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        _triggerParticles(message.content);
+        _updateMoodLabel();
+      });
     }
 
     // Ensure we are updating state for basic list additions
@@ -2733,9 +3112,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       _idleBlockedUntilUserMessage = false;
       _resetIdleTimer();
       _suspendWakeWord = true;
-      _appendMessage(ChatMessage(role: "user", content: text));
-      unawaited(_setBackgroundIdleNotification());
-      unawaited(_sendToApiAndReply(readOutReply: true));
+
+      // ── Voice Fast-Path: detect intent client-side (zero LLM cost) ──────────
+      final syntheticAction = VoiceCommandNormalizer.normalize(text);
+      if (syntheticAction != null) {
+        debugPrint('[VoiceNorm] Fast-path detected: $syntheticAction');
+        _appendMessage(ChatMessage(role: 'user', content: text));
+        unawaited(_setBackgroundIdleNotification());
+        // Execute the action directly and speak the response
+        unawaited(_handleVoiceFastPath(syntheticAction, readOut: true));
+      } else {
+        // Normal LLM path
+        _appendMessage(ChatMessage(role: "user", content: text));
+        unawaited(_setBackgroundIdleNotification());
+        unawaited(_sendToApiAndReply(readOutReply: true));
+      }
     } else {
       _suspendWakeWord = false;
       unawaited(_setBackgroundIdleNotification());
@@ -2743,6 +3134,84 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
 
     _scrollToBottom();
+  }
+
+  // ── Voice Fast-Path Executor ────────────────────────────────────────────────
+  /// Executes a synthetic action block detected by VoiceCommandNormalizer.
+  /// Covers all OpenAppService handlers — no LLM call needed.
+  Future<void> _handleVoiceFastPath(String syntheticAction, {bool readOut = false}) async {
+    if (_isBusy) return;
+    setState(() => _isBusy = true);
+    try {
+      OpenAppActionResult? result;
+
+      // Try all action handlers in priority order
+      result ??= await OpenAppService.handleMusicAction(syntheticAction);
+      result ??= await OpenAppService.handleAssistantReply(syntheticAction);
+      result ??= await OpenAppService.handleCallAction(syntheticAction);
+      result ??= await OpenAppService.handleWebSearchAction(syntheticAction);
+      result ??= await OpenAppService.handleYoutubeAction(syntheticAction);
+      result ??= await OpenAppService.handleMapsAction(syntheticAction);
+      result ??= await OpenAppService.handleSetAlarmAction(syntheticAction);
+      result ??= await OpenAppService.handleSetTimerAction(syntheticAction);
+      result ??= await OpenAppService.handleWeatherAction(syntheticAction);
+      result ??= await OpenAppService.handleBatteryAction(syntheticAction);
+      result ??= await OpenAppService.handleFlashlightAction(syntheticAction);
+      result ??= await OpenAppService.handleVolumeAction(syntheticAction);
+      result ??= await OpenAppService.handleWhatsAppAction(syntheticAction);
+      result ??= await OpenAppService.handleNewsAction(syntheticAction);
+      result ??= await OpenAppService.handleReminderAction(syntheticAction);
+      result ??= await OpenAppService.handleOpenCalendarAction(syntheticAction);
+      result ??= await OpenAppService.handleCalendarEventAction(syntheticAction);
+      result ??= await OpenAppService.handleWifiCheckAction(syntheticAction);
+      result ??= await OpenAppService.handleDndAction(syntheticAction);
+      result ??= await OpenAppService.handleShareAction(syntheticAction);
+      result ??= await OpenAppService.handleMorningRoutine(syntheticAction);
+      result ??= await OpenAppService.handleNightRoutine(syntheticAction);
+      result ??= await OpenAppService.handleTranslateAction(syntheticAction);
+      result ??= await OpenAppService.handleSummarizeChatAction(syntheticAction);
+      result ??= await OpenAppService.handleDailySummaryAction(syntheticAction);
+
+      // Handle SUMMARIZE_CHAT sentinel — inline because we need access to _messages
+      if (result?.assistantMessage == '__SUMMARIZE_CHAT__') {
+        final userMsgs = _messages.reversed
+            .where((m) => m.role == 'user')
+            .take(6)
+            .map((m) => m.content)
+            .toList()
+            .reversed
+            .join('\n• ');
+        result = OpenAppActionResult(
+          launched: true,
+          assistantMessage: userMsgs.isEmpty
+              ? "We haven't chatted much yet, Darling 💕. Start talking!"
+              : "Here's a recap of what we talked about:\n\n• $userMsgs",
+        );
+      }
+
+
+      final responseText = result?.assistantMessage ??
+          "I couldn't do that right now, Darling~ 🥺";
+
+      _appendMessage(ChatMessage(role: 'assistant', content: responseText));
+
+      if (readOut && mounted) {
+        unawaited(_ttsService.speak(responseText));
+      }
+
+      _scrollToBottom();
+
+      // Proactive: resume listening after action
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (mounted) {
+        setState(() => _isBusy = false);
+        _suspendWakeWord = false;
+        unawaited(_ensureWakeWordActive());
+      }
+    } catch (e) {
+      debugPrint('[VoiceFastPath] Error: $e');
+      if (mounted) setState(() => _isBusy = false);
+    }
   }
 
   Future<void> _handleTextInput() async {
@@ -2770,6 +3239,24 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     ));
 
     _scrollToBottom();
+
+    // ── Typed Command Fast-Path (same coverage as voice) ─────────────────
+    // Only apply for text-only messages (no image), since image needs LLM multi-modal
+    if (image == null) {
+      final syntheticAction = VoiceCommandNormalizer.normalize(text);
+      if (syntheticAction != null) {
+        debugPrint('[TypedNorm] Fast-path: $syntheticAction');
+        unawaited(_handleVoiceFastPath(syntheticAction, readOut: false));
+        return;
+      }
+    }
+
+    // ── Phase 3: Slash command intercepts ────────────────────────────────────
+    // Users can type commands directly in chat: /forget, /remember, /mode, /mood
+    if (text.startsWith('/')) {
+      final handled = await _handlePhase3SlashCommand(text.trim());
+      if (handled) return;
+    }
 
     // ── Keyword shortcut handlers (no API call needed) ──────────────────────
     final lowerText = text.toLowerCase();
@@ -3019,6 +3506,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     setState(() => _isBusy = true);
     await _speechService.stopListening();
 
+    // ── Phase 2: Refresh personality + memory + context block before each LLM call
+    await _refreshPhase2Extras();
+
     try {
       final contextMessages = _messages.reversed
           .take(_maxPayloadMessages)
@@ -3128,6 +3618,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         // ── Relationship System: every successful AI reply earns affection ──
         unawaited(AffectionService.instance.recordInteraction());
         unawaited(AffectionService.instance.addPoints(2));
+
+        // ── Phase 2: Auto-save emotional memory + record personality interaction ──
+        unawaited(_phase2AfterReply(assistantText));
 
         // Sync affection widget after chat
         unawaited(HomeWidgetService.updateAffectionWidget());
@@ -4147,7 +4640,47 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               ),
               titleSpacing: 0,
               centerTitle: true,
-              actions: const [],
+              actions: [
+                // 🔥 Streak Badge — only show when streak >= 2
+                if (AffectionService.instance.streakDays >= 2)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    child: StreakBadge(
+                      streak: AffectionService.instance.streakDays,
+                    ),
+                  ),
+                const SizedBox(width: 4),
+                // 🔔 Notification bell — top right
+                IconButton(
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications_outlined,
+                          color: Colors.white70, size: 24),
+                      // Red dot — only show if there are real unread notifications
+                      if (_navIndex != 1 && _hasUnreadNotifs)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFF4FA8),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  tooltip: 'Notifications',
+                  onPressed: () => setState(() {
+                    _navIndex = 1;
+                    _hasUnreadNotifs = false; // clear badge when user opens notifs
+                  }),
+                ),
+                const SizedBox(width: 4),
+              ],
             ),
             body: Stack(
               children: [
@@ -4188,6 +4721,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 ),
                 if (_inAppNotifText.isNotEmpty) _buildInAppNotificationPopup(),
                 if (_showOpeningOverlay) _buildOpeningOverlay(),
+                // ── Emotion Particle Overlay ──────────────────────────────────
+                Positioned.fill(
+                  child: ParticleOverlay(key: _particleKey),
+                ),
               ],
             ),
           ),
@@ -4720,11 +5257,11 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       }),
               ),
             ),
-            // Typing indicator
+            // ── Enhanced mood-aware typing indicator ───────────────────────
             if (_isBusy)
               Padding(
                 padding: const EdgeInsets.only(left: 14, bottom: 8),
-                child: _TypingIndicator(),
+                child: EnhancedTypingIndicator(moodLabel: _currentMoodLabel),
               ),
             if (_currentVoiceText.isNotEmpty)
               Padding(
@@ -4743,10 +5280,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: SingleChildScrollView(
-                    key: ValueKey(_quickReplies.join()),
+                    key: ValueKey(_quickReplies.join() + _currentStickerEmotion),
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _quickReplies.map((chip) {
+                      children: [
+                        // ── Surprise Me button (first chip slot) ──────────────
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: SurpriseMeButton(onPressed: _fireSurpriseMe),
+                        ),
+                        ..._quickReplies.map((chip) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: GestureDetector(
@@ -4774,7 +5317,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
+                      ],  // close outer children list
                     ),
                   ),
                 ),
@@ -4791,6 +5335,58 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   void _sendSuggestion(String text) {
     _textController.text = text;
     unawaited(_handleTextInput());
+  }
+
+  // ── Liveliness helpers ─────────────────────────────────────────────────────
+
+  /// Picks a random surprise activity and sends it to chat
+  void _fireSurpriseMe() {
+    final pick = _surpriseActivities[
+        DateTime.now().millisecondsSinceEpoch % _surpriseActivities.length];
+    _textController.text = pick;
+    unawaited(_handleTextInput());
+  }
+
+  /// Lightweight topic classifier for SelfReflectionService behaviour tracking.
+  String _detectTopic(String text) {
+    final t = text.toLowerCase();
+    if (_anyKw(t, ['music', 'song', 'playlist', 'spotify', 'youtube', 'sing'])) return 'music';
+    if (_anyKw(t, ['anime', 'manga', 'episode', 'watch', 'series'])) return 'anime';
+    if (_anyKw(t, ['game', 'play', 'level', 'gaming', 'match'])) return 'games';
+    if (_anyKw(t, ['work', 'study', 'exam', 'office', 'college', 'job'])) return 'work';
+    if (_anyKw(t, ['love', 'miss', 'feel', 'heart', 'emotion', 'crush'])) return 'feelings';
+    if (_anyKw(t, ['food', 'eat', 'cook', 'hungry', 'dinner'])) return 'food';
+    if (_anyKw(t, ['sleep', 'tired', 'rest', 'dream', 'night'])) return 'sleep';
+    if (_anyKw(t, ['travel', 'trip', 'going', 'visit', 'outside'])) return 'travel';
+    return 'general';
+  }
+  static bool _anyKw(String t, List<String> kw) => kw.any((k) => t.contains(k));
+
+  /// Syncs the current PersonalityEngine mood to _currentMoodLabel
+  void _updateMoodLabel() {
+    try {
+      final label = PersonalityEngine.instance.mood.label;
+      if (mounted && label != _currentMoodLabel) {
+        setState(() => _currentMoodLabel = label);
+      }
+    } catch (_) {}
+  }
+
+  /// Triggers floating particle animation based on message emotion
+  void _triggerParticles(String text) {
+    final emotion = EmotionBubbleTheme.detect(text);
+    if (emotion.glowColor.alpha == 0) return; // neutral — no particles
+    final emotionName = _emotionName(emotion);
+    _particleKey.currentState?.trigger(emotionName);
+  }
+
+  String _emotionName(EmotionBubbleTheme theme) {
+    if (theme.emoji == '💕') return 'love';
+    if (theme.emoji == '😂') return 'amused';
+    if (theme.emoji == '🥹') return 'sad';
+    if (theme.emoji == '😤') return 'angry';
+    if (theme.emoji == '✨') return 'excited';
+    return 'love';
   }
 
   Widget _buildEmptyChatState() {
@@ -5693,10 +6289,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       setState(() {
         _inAppNotifText = text;
         _showInAppNotif = true;
+        _hasUnreadNotifs = true; // light up the bell badge
       });
     } else {
       _inAppNotifText = text;
       _showInAppNotif = true;
+      _hasUnreadNotifs = true; // light up the bell badge
     }
 
     _inAppNotifHideTimer = Timer(const Duration(milliseconds: 2400), () {

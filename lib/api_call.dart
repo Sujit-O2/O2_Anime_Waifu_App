@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:anime_waifu/services/offline_ai_service.dart';
 
 /// Groq API
 class ApiService {
@@ -212,8 +213,15 @@ class ApiService {
       }
     }
 
-    throw Exception(
-        "All ${keys.length} API keys failed. Last error: ${errors.last}");
+    // --- Offline AI Fallback ---
+    // If all keys failed or timed out, assume offline/API down and use local fallback
+    debugPrint("All keys failed. Triggering Offline AI Mode fallback.");
+    try {
+      final lastUserMsg = messages.isNotEmpty ? messages.last['content'].toString() : '';
+      return await OfflineAiService.instance.generateLocalResponse(lastUserMsg, 'Normal');
+    } catch (fallbackErr) {
+      throw Exception("All ${keys.length} API keys failed. Last error: ${errors.last}. Offline fallback also failed: $fallbackErr");
+    }
   }
 
   Future<String> sendMail(String mailId, String body, String head) async {
