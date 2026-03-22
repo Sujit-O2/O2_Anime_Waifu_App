@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/image_gen_service.dart';
 
 /// AI Anime Art Generator — Generate custom waifu art via DALL-E API.
 /// User types a prompt → OpenAI DALL-E generates anime-style art.
@@ -57,48 +55,21 @@ class _AiArtGeneratorPageState extends State<AiArtGeneratorPage>
     HapticFeedback.mediumImpact();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final apiKey = prefs.getString('api_key') ?? '';
-      if (apiKey.isEmpty) {
-        setState(() { _error = 'No API key set. Go to Settings.'; _generating = false; });
-        return;
-      }
-
       final fullPrompt = '$prompt, $_selectedStyle, high quality, masterpiece';
+      final url = await ImageGenService.generateImage(fullPrompt);
 
-      final resp = await http.post(
-        Uri.parse('https://api.openai.com/v1/images/generations'),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'dall-e-3',
-          'prompt': fullPrompt,
-          'n': 1,
-          'size': '1024x1024',
-          'quality': 'standard',
-        }),
-      ).timeout(const Duration(seconds: 60));
-
-      if (resp.statusCode == 200) {
-        final data = jsonDecode(resp.body);
-        final url = data['data']?[0]?['url'] as String?;
-        final revisedPrompt = data['data']?[0]?['revised_prompt'] as String? ?? prompt;
-        if (url != null) {
-          setState(() {
-            _gallery.insert(0, _GeneratedArt(
-              url: url,
-              prompt: prompt,
-              revisedPrompt: revisedPrompt,
-              timestamp: DateTime.now(),
-            ));
-          });
-          HapticFeedback.heavyImpact();
-        }
+      if (url != null) {
+        setState(() {
+          _gallery.insert(0, _GeneratedArt(
+            url: url,
+            prompt: prompt,
+            revisedPrompt: fullPrompt,
+            timestamp: DateTime.now(),
+          ));
+        });
+        HapticFeedback.heavyImpact();
       } else {
-        final body = jsonDecode(resp.body);
-        setState(() => _error = body['error']?['message'] ?? 'Generation failed (${resp.statusCode})');
+        setState(() => _error = 'Generation failed. Please try again.');
       }
     } catch (e) {
       setState(() => _error = 'Failed: $e');
