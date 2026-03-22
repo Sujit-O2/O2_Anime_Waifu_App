@@ -113,7 +113,49 @@ class HomeWidgetService {
     }
   }
 
-  /// Force-refresh all 5 widgets
+  /// Update Anime of the Day widget
+  static Future<void> updateAnimeOfDay(String title, String imageUrl) async {
+    try {
+      await _save<String>('anime_of_day_title', title);
+      await _save<String>('anime_of_day_image', imageUrl);
+      await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
+    } catch (e) {
+      debugPrint('Error updating Anime of Day Widget: $e');
+    }
+  }
+
+  /// Update Streak and Mood widget (Home Screen)
+  static Future<void> updateStreakAndMood(int streak, String moodName, String moodEmoji) async {
+    try {
+      await _save<int>('user_login_streak', streak);
+      await _save<String>('waifu_mood_name', moodName);
+      await _save<String>('waifu_mood_emoji', moodEmoji);
+      await HomeWidget.updateWidget(androidName: 'WaifuStatusMonitorWidgetProvider');
+    } catch (e) {
+      debugPrint('Error updating Streak/Mood Widget: $e');
+    }
+  }
+
+  /// Lock Screen Live Activity: Update currently watching anime progress
+  static Future<void> updateLockScreenWatchProgress(String animeTitle, int currentEp, int totalEps, double progressPercent) async {
+    try {
+      // For iOS Live Activities / Android Media Style notifications
+      await _save<String>('lock_anime_title', animeTitle);
+      await _save<int>('lock_current_ep', currentEp);
+      await _save<int>('lock_total_eps', totalEps);
+      await _save<double>('lock_progress_pct', progressPercent);
+      
+      // Trigger a specific update for the lock screen activity provider
+      await HomeWidget.updateWidget(
+        androidName: 'WaifuWatchProgressWidgetProvider', 
+        iOSName: 'WaifuWatchProgressActivity'
+      );
+    } catch (e) {
+      debugPrint('Error updating Lock Screen Watch Progress: $e');
+    }
+  }
+
+  /// Force-refresh all widgets
   static Future<void> forceUpdateAll() async {
     await _triggerAll();
   }
