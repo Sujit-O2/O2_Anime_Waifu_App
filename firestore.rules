@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only authenticated users can read/write their own data
+    match /chats/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /vault/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /affection/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /memory/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /quests/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /mood/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /alarm/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /scores/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /achievements/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /user_data_sync/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /scheduled_messages/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
