@@ -1,40 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
+
+// ── Games & Fun ──
 import 'spinner_wheel_page.dart';
 import 'never_have_i_ever_page.dart';
 import 'draw_lots_page.dart';
 import 'relationship_trivia_page.dart';
 import 'would_you_rather_page.dart';
+import 'boss_battle_page.dart';
+import 'anime_wordle_page.dart';
+import 'gacha_collector_page.dart';
+import 'mini_games_page.dart';
+import 'tic_tac_toe_page.dart';
+import 'rock_paper_scissors_page.dart';
+import 'word_association_page.dart';
+import 'truth_or_dare_page.dart';
+import 'love_quiz_page.dart';
+import 'waifu_tier_list_page.dart';
+import 'twenty_questions_page.dart';
+import 'virtual_date_page.dart';
+import 'story_mode_page.dart';
+import 'roleplay_scenario_page.dart';
+
+// ── Daily & AI ──
 import 'zero_two_diary_page.dart';
 import 'fortune_cookie_page.dart';
-import 'roleplay_scenario_page.dart';
+import 'daily_love_letter_page.dart';
+import 'daily_affirmations_page.dart';
+import 'quote_of_day_page.dart';
+import 'daily_challenge_page.dart';
+import 'daily_horoscope_page.dart';
+import 'daily_trivia_page.dart';
+import 'checkin_streak_page.dart';
 import 'life_advice_page.dart';
 import 'writing_helper_page.dart';
 import 'relationship_advice_page.dart';
+import 'relationship_coach_page.dart';
+import 'dream_interpreter_page.dart';
+import 'ai_art_generator_page.dart';
+import 'manga_translator_page.dart';
+
+// ── Recommendations ──
 import 'anime_recommender_page.dart';
 import 'book_recommender_page.dart';
 import 'movie_recommender_page.dart';
-import 'quote_of_day_page.dart';
+
+// ── Tools & Productivity ──
 import 'notes_pad_page.dart';
 import 'dream_journal_page.dart';
+import 'voice_notes_page.dart';
+import 'goal_tracker_page.dart';
+import 'habit_tracker_page.dart';
+import 'budget_tracker_page.dart';
+import 'pomodoro_page.dart';
+import 'study_timer_page.dart';
+import 'shared_bucket_list_page.dart';
+import 'workout_planner_page.dart';
+import 'breathing_page.dart';
+import 'gratitude_journal_page.dart';
+
+// ── Anime & Media ──
+import 'manga_section_page.dart';
+import 'web_streamers_hub_page.dart';
+import 'anime_ost_page.dart';
+import 'anime_calendar_page.dart';
+import 'anime_watch_party_page.dart';
+import 'anime_matchmaker_page.dart';
+import 'watchlist_page.dart';
+import 'watch_history_page.dart';
+import 'downloads_page.dart';
+import 'mal_sync_page.dart';
+import 'episode_alerts_page.dart';
+
+// ── Social & Cloud ──
 import 'leaderboard_page.dart';
 import 'cloud_sync_page.dart';
 import 'friends_page.dart';
 import 'global_quest_board_page.dart';
 import 'pinned_messages_page.dart';
 import 'scheduled_messages_page.dart';
-import 'checkin_streak_page.dart';
+
+// ── Stats & Insights ──
 import 'chat_analytics_page.dart';
 import 'relationship_level_map_page.dart';
 import 'year_in_review_page.dart';
 import 'achievements_gallery_page.dart';
 import 'anniversary_page.dart';
-import 'late_night_mode_page.dart';
-import 'notifications_settings_page.dart';
 import 'star_map_page.dart';
-import 'manga_section_page.dart';
 import 'relationship_evolution_page.dart';
+
+// ── Settings ──
 import 'waifu_voice_call_screen.dart';
 
 // ─── Hub category model ──────────────────────────────────────────────────────
@@ -56,9 +112,14 @@ class _HubCategory {
 class _HubItem {
   final String label;
   final IconData icon;
-  final WidgetBuilder builder;
-  const _HubItem(
-      {required this.label, required this.icon, required this.builder});
+  final WidgetBuilder? builder;
+  final VoidCallback? onTap;
+  const _HubItem({
+    required this.label,
+    required this.icon,
+    this.builder,
+    this.onTap,
+  });
 }
 
 // ─── Sakura painter ──────────────────────────────────────────────────────────
@@ -111,7 +172,9 @@ class _Petal {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 class FeaturesHubPage extends StatefulWidget {
-  const FeaturesHubPage({super.key});
+  final VoidCallback? onBack;
+  final VoidCallback? onOpenCloudinary;
+  const FeaturesHubPage({super.key, this.onBack, this.onOpenCloudinary});
   @override
   State<FeaturesHubPage> createState() => _FeaturesHubPageState();
 }
@@ -157,216 +220,170 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
   }
 
   List<_HubCategory> _buildCategories() => [
+        // ── 🎮 GAMES & FUN ──────────────────────────────────────
         _HubCategory(
-          title: 'Games',
+          title: 'Games & Fun',
           emoji: '🎮',
-          description: 'Play mini-games and earn XP',
+          description: 'Play mini-games, earn XP, and have fun',
           color: Colors.pinkAccent,
           items: [
-            _HubItem(
-                label: 'Spin the Wheel',
-                icon: Icons.casino_outlined,
-                builder: (_) => const SpinnerWheelPage()),
-            _HubItem(
-                label: 'Never Have I Ever',
-                icon: Icons.emoji_people_outlined,
-                builder: (_) => const NeverHaveIEverPage()),
-            _HubItem(
-                label: 'Draw Lots',
-                icon: Icons.grass_outlined,
-                builder: (_) => const DrawLotsPage()),
-            _HubItem(
-                label: 'DITF Trivia',
-                icon: Icons.quiz_outlined,
-                builder: (_) => const RelationshipTriviaPage()),
-            _HubItem(
-                label: 'Would You Rather',
-                icon: Icons.compare_arrows_outlined,
-                builder: (_) => const WouldYouRatherPage()),
+            _HubItem(label: 'Boss Battle', icon: Icons.security_rounded, builder: (_) => const BossBattlePage()),
+            _HubItem(label: 'Anime Wordle', icon: Icons.grid_view_rounded, builder: (_) => const AnimeWordlePage()),
+            _HubItem(label: 'Gacha Cards', icon: Icons.card_giftcard_rounded, builder: (_) => const GachaCollectorPage()),
+            _HubItem(label: 'Mini Games', icon: Icons.sports_esports_rounded, builder: (_) => const GamesHubPage()),
+            _HubItem(label: 'Tic-Tac-Toe', icon: Icons.grid_3x3_rounded, builder: (_) => const TicTacToePage()),
+            _HubItem(label: 'Rock Paper', icon: Icons.back_hand_rounded, builder: (_) => const RockPaperScissorsPage()),
+            _HubItem(label: 'Word Game', icon: Icons.text_fields_rounded, builder: (_) => const WordAssociationPage()),
+            _HubItem(label: 'Spin Wheel', icon: Icons.casino_outlined, builder: (_) => const SpinnerWheelPage()),
+            _HubItem(label: 'Never Have I Ever', icon: Icons.emoji_people_outlined, builder: (_) => const NeverHaveIEverPage()),
+            _HubItem(label: 'Draw Lots', icon: Icons.grass_outlined, builder: (_) => const DrawLotsPage()),
+            _HubItem(label: 'DITF Trivia', icon: Icons.quiz_outlined, builder: (_) => const RelationshipTriviaPage()),
+            _HubItem(label: 'Would You Rather', icon: Icons.compare_arrows_outlined, builder: (_) => const WouldYouRatherPage()),
+            _HubItem(label: 'Truth or Dare', icon: Icons.local_fire_department_outlined, builder: (_) => const TruthOrDarePage()),
+            _HubItem(label: 'Love Quiz', icon: Icons.quiz_outlined, builder: (_) => const LoveQuizPage()),
+            _HubItem(label: 'Waifu Tier List', icon: Icons.format_list_numbered_rounded, builder: (_) => const WaifuTierListPage()),
+            _HubItem(label: '20 Questions', icon: Icons.help_rounded, builder: (_) => const TwentyQuestionsPage()),
+            _HubItem(label: 'Virtual Date', icon: Icons.favorite_outline_rounded, builder: (_) => const VirtualDatePage()),
+            _HubItem(label: 'Story Mode', icon: Icons.book_rounded, builder: (_) => const StoryModePage()),
+            _HubItem(label: 'Roleplay', icon: Icons.theater_comedy_outlined, builder: (_) => const RoleplayScenarioPage()),
           ],
         ),
+
+        // ── 💕 DAILY RITUALS ────────────────────────────────────
         _HubCategory(
-          title: 'AI & Story',
-          emoji: '🤖',
-          description: 'Stories, roleplay, and AI interactions',
-          color: Colors.deepPurpleAccent,
+          title: 'Daily Rituals',
+          emoji: '💕',
+          description: 'Daily actions, letters, and check-ins',
+          color: const Color(0xFFFF4FA8),
           items: [
-            _HubItem(
-                label: 'ZT\'s Diary',
-                icon: Icons.book_outlined,
-                builder: (_) => const ZeroTwoDiaryPage()),
-            _HubItem(
-                label: 'Fortune Cookie',
-                icon: Icons.cookie_outlined,
-                builder: (_) => const FortuneCookiePage()),
-            _HubItem(
-                label: 'Roleplay',
-                icon: Icons.theater_comedy_outlined,
-                builder: (_) => const RoleplayScenarioPage()),
-            _HubItem(
-                label: 'Life Advice',
-                icon: Icons.lightbulb_outline,
-                builder: (_) => const LifeAdvicePage()),
-            _HubItem(
-                label: 'Writing Helper',
-                icon: Icons.edit_note_outlined,
-                builder: (_) => const WritingHelperPage()),
-            _HubItem(
-                label: 'Relationship Advice',
-                icon: Icons.favorite_border_outlined,
-                builder: (_) => const RelationshipAdvicePage()),
+            _HubItem(label: 'ZT Diary', icon: Icons.book_outlined, builder: (_) => const ZeroTwoDiaryPage()),
+            _HubItem(label: 'Love Letter', icon: Icons.mail_outline_rounded, builder: (_) => const DailyLoveLetterPage()),
+            _HubItem(label: 'Affirmations', icon: Icons.self_improvement_outlined, builder: (_) => const DailyAffirmationsPage()),
+            _HubItem(label: 'Quote of Day', icon: Icons.format_quote_outlined, builder: (_) => const QuoteOfDayPage()),
+            _HubItem(label: 'Fortune Cookie', icon: Icons.cookie_outlined, builder: (_) => const FortuneCookiePage()),
+            _HubItem(label: 'Check-in Streak', icon: Icons.local_fire_department_outlined, builder: (_) => const CheckinStreakPage()),
+            _HubItem(label: 'Daily Challenge', icon: Icons.flag_rounded, builder: (_) => const DailyChallengePage()),
+            _HubItem(label: 'Daily Horoscope', icon: Icons.auto_awesome_rounded, builder: (_) => const DailyHoroscopePage()),
+            _HubItem(label: 'Daily Trivia', icon: Icons.lightbulb_outline, builder: (_) => const DailyTriviaPage()),
           ],
         ),
+
+        // ── 🧠 AI TOOLS ────────────────────────────────────────
+        _HubCategory(
+          title: 'AI Tools',
+          emoji: '🧠',
+          description: 'AI-powered assistants and generators',
+          color: Colors.cyanAccent,
+          items: [
+            _HubItem(label: 'AI Art Generator', icon: Icons.brush_rounded, builder: (_) => const AiArtGeneratorPage()),
+            _HubItem(label: 'Manga Translator', icon: Icons.translate_rounded, builder: (_) => const MangaTranslatorPage()),
+            _HubItem(label: 'Dream Interpreter', icon: Icons.bedtime_rounded, builder: (_) => const DreamInterpreterPage()),
+            _HubItem(label: 'Life Advice', icon: Icons.lightbulb_outline, builder: (_) => const LifeAdvicePage()),
+            _HubItem(label: 'Writing Helper', icon: Icons.edit_note_outlined, builder: (_) => const WritingHelperPage()),
+            _HubItem(label: 'Relationship Advice', icon: Icons.favorite_border_outlined, builder: (_) => const RelationshipAdvicePage()),
+            _HubItem(label: 'Relationship Coach', icon: Icons.psychology_rounded, builder: (_) => const RelationshipCoachPage()),
+          ],
+        ),
+
+        // ── 📚 RECOMMENDATIONS ──────────────────────────────────
         _HubCategory(
           title: 'Recommendations',
           emoji: '📚',
           description: 'Discover anime, books, and movies',
-          color: Colors.cyanAccent,
+          color: Colors.deepPurpleAccent,
           items: [
-            _HubItem(
-                label: 'Anime',
-                icon: Icons.live_tv_outlined,
-                builder: (_) => const AnimeRecommenderPage()),
-            _HubItem(
-                label: 'Books',
-                icon: Icons.menu_book_outlined,
-                builder: (_) => const BookRecommenderPage()),
-            _HubItem(
-                label: 'Movies',
-                icon: Icons.movie_outlined,
-                builder: (_) => const MovieRecommenderPage()),
-            _HubItem(
-                label: 'Quote of the Day',
-                icon: Icons.format_quote_outlined,
-                builder: (_) => const QuoteOfDayPage()),
+            _HubItem(label: 'Anime Picks', icon: Icons.live_tv_outlined, builder: (_) => const AnimeRecommenderPage()),
+            _HubItem(label: 'Book Picks', icon: Icons.menu_book_outlined, builder: (_) => const BookRecommenderPage()),
+            _HubItem(label: 'Movie Picks', icon: Icons.movie_outlined, builder: (_) => const MovieRecommenderPage()),
           ],
         ),
+
+        // ── 🛠️ PRODUCTIVITY ─────────────────────────────────────
         _HubCategory(
-          title: 'Tools',
+          title: 'Productivity',
           emoji: '🛠️',
-          description: 'Productivity and journaling apps',
+          description: 'Journals, trackers, and planning tools',
           color: Colors.amberAccent,
           items: [
-            _HubItem(
-                label: 'Notes Pad',
-                icon: Icons.note_alt_outlined,
-                builder: (_) => const NotesPadPage()),
-            _HubItem(
-                label: 'Dream Journal',
-                icon: Icons.nights_stay_outlined,
-                builder: (_) => const DreamJournalPage()),
+            _HubItem(label: 'Notes Pad', icon: Icons.note_alt_outlined, builder: (_) => const NotesPadPage()),
+            _HubItem(label: 'Dream Journal', icon: Icons.nights_stay_outlined, builder: (_) => const DreamJournalPage()),
+            _HubItem(label: 'Voice Notes', icon: Icons.mic_rounded, builder: (_) => const VoiceNotesPage()),
+            _HubItem(label: 'Goal Tracker', icon: Icons.track_changes_outlined, builder: (_) => const GoalTrackerPage()),
+            _HubItem(label: 'Habit Tracker', icon: Icons.check_circle_outline, builder: (_) => const HabitTrackerPage()),
+            _HubItem(label: 'Budget Tracker', icon: Icons.account_balance_wallet_outlined, builder: (_) => const BudgetTrackerPage()),
+            _HubItem(label: 'Pomodoro', icon: Icons.timer_outlined, builder: (_) => const PomodoroPage()),
+            _HubItem(label: 'Study Timer', icon: Icons.school_rounded, builder: (_) => const StudyTimerPage()),
+            _HubItem(label: 'Bucket List', icon: Icons.checklist_outlined, builder: (_) => const SharedBucketListPage()),
           ],
         ),
+
+        // ── 🧘 WELLNESS ─────────────────────────────────────────
         _HubCategory(
-          title: 'Firebase & Social',
-          emoji: '🌐',
-          description: 'Cloud, friends, and community features',
+          title: 'Wellness',
+          emoji: '🧘',
+          description: 'Breathing, gratitude, and fitness',
           color: Colors.greenAccent,
           items: [
-            _HubItem(
-                label: 'Leaderboard',
-                icon: Icons.leaderboard_outlined,
-                builder: (_) => const LeaderboardPage()),
-            _HubItem(
-                label: 'Cloud Sync',
-                icon: Icons.cloud_sync_outlined,
-                builder: (_) => const CloudSyncPage()),
-            _HubItem(
-                label: 'Friends',
-                icon: Icons.people_outline,
-                builder: (_) => const FriendsPage()),
-            _HubItem(
-                label: 'Global Quests',
-                icon: Icons.explore_outlined,
-                builder: (_) => const GlobalQuestBoardPage()),
-            _HubItem(
-                label: 'Pinned Messages',
-                icon: Icons.push_pin_outlined,
-                builder: (_) => const PinnedMessagesPage()),
-            _HubItem(
-                label: 'Scheduled Msgs',
-                icon: Icons.schedule_outlined,
-                builder: (_) => const ScheduledMessagesPage()),
-            _HubItem(
-                label: 'Check-in Streak',
-                icon: Icons.local_fire_department_outlined,
-                builder: (_) => const CheckinStreakPage()),
+            _HubItem(label: 'Breathing', icon: Icons.air_outlined, builder: (_) => const BreathingExercisePage()),
+            _HubItem(label: 'Gratitude Journal', icon: Icons.auto_awesome_outlined, builder: (_) => const GratitudeJournalPage()),
+            _HubItem(label: 'Workout Planner', icon: Icons.fitness_center_outlined, builder: (_) => const WorkoutPlannerPage()),
           ],
         ),
+
+        // ── 📺 ANIME & MEDIA ────────────────────────────────────
+        _HubCategory(
+          title: 'Anime & Media',
+          emoji: '📺',
+          description: 'Browse, stream, and track anime',
+          color: const Color(0xFFBB52FF),
+          items: [
+            _HubItem(label: 'Cloud Videos', icon: Icons.cloud_queue_rounded, onTap: widget.onOpenCloudinary),
+            _HubItem(label: 'Manga Reader', icon: Icons.menu_book_rounded, builder: (_) => const MangaSectionPage()),
+            _HubItem(label: 'Web Streamers', icon: Icons.travel_explore_rounded, builder: (_) => const WebStreamersHubPage()),
+            _HubItem(label: 'Anime Quiz', icon: Icons.quiz_rounded, builder: (_) => const AnimeQuizPage()),
+            _HubItem(label: 'Anime OST', icon: Icons.music_note_rounded, builder: (_) => const AnimeOstPage()),
+            _HubItem(label: 'Anime Calendar', icon: Icons.calendar_month_rounded, builder: (_) => const AnimeCalendarPage()),
+            _HubItem(label: 'Watch Party', icon: Icons.live_tv_rounded, builder: (_) => const AnimeWatchPartyPage()),
+            _HubItem(label: 'Matchmaker', icon: Icons.favorite_rounded, builder: (_) => const AnimeMatchmakerPage()),
+            _HubItem(label: 'Watchlist', icon: Icons.bookmark_outlined, builder: (_) => const WatchlistPage()),
+            _HubItem(label: 'Watch History', icon: Icons.history_rounded, builder: (_) => const WatchHistoryPage()),
+            _HubItem(label: 'Downloads', icon: Icons.download_rounded, builder: (_) => const DownloadsPage()),
+            _HubItem(label: 'MAL Sync', icon: Icons.sync_rounded, builder: (_) => const MalSyncPage()),
+            _HubItem(label: 'Episode Alerts', icon: Icons.notifications_active_rounded, builder: (_) => const EpisodeAlertsPage()),
+          ],
+        ),
+
+        // ── 🌐 SOCIAL & CLOUD ───────────────────────────────────
+        _HubCategory(
+          title: 'Social & Cloud',
+          emoji: '🌐',
+          description: 'Community, sync, and multiplayer',
+          color: Colors.orangeAccent,
+          items: [
+            _HubItem(label: 'Leaderboard', icon: Icons.leaderboard_outlined, builder: (_) => const LeaderboardPage()),
+            _HubItem(label: 'Cloud Sync', icon: Icons.cloud_sync_outlined, builder: (_) => const CloudSyncPage()),
+            _HubItem(label: 'Friends', icon: Icons.people_outline, builder: (_) => const FriendsPage()),
+            _HubItem(label: 'Global Quests', icon: Icons.explore_outlined, builder: (_) => const GlobalQuestBoardPage()),
+            _HubItem(label: 'Pinned Messages', icon: Icons.push_pin_outlined, builder: (_) => const PinnedMessagesPage()),
+            _HubItem(label: 'Scheduled Msgs', icon: Icons.schedule_outlined, builder: (_) => const ScheduledMessagesPage()),
+          ],
+        ),
+
+        // ── 📊 STATS & INSIGHTS ─────────────────────────────────
         _HubCategory(
           title: 'Stats & Insights',
           emoji: '📊',
           description: 'Track your relationship journey',
-          color: Colors.orangeAccent,
+          color: Colors.tealAccent,
           items: [
-            _HubItem(
-                label: 'Chat Analytics',
-                icon: Icons.bar_chart_outlined,
-                builder: (_) => const ChatAnalyticsPage()),
-            _HubItem(
-                label: 'Level Map',
-                icon: Icons.map_outlined,
-                builder: (_) => const RelationshipLevelMapPage()),
-            _HubItem(
-                label: 'Year in Review',
-                icon: Icons.calendar_month_outlined,
-                builder: (_) => const YearInReviewPage()),
-            _HubItem(
-                label: 'Achievements',
-                icon: Icons.emoji_events_outlined,
-                builder: (_) => const AchievementsGalleryPage()),
-            _HubItem(
-                label: 'Star Map',
-                icon: Icons.auto_awesome_outlined,
-                builder: (_) => const StarMapPage()),
-            _HubItem(
-                label: 'Anniversary',
-                icon: Icons.favorite_outlined,
-                builder: (_) => const AnniversaryPage()),
-          ],
-        ),
-        _HubCategory(
-          title: 'Manga Reader',
-          emoji: '📖',
-          description: 'Read manga powered by MangaDex',
-          color: const Color(0xFFBB52FF),
-          items: [
-            _HubItem(
-                label: 'Browse Manga',
-                icon: Icons.menu_book_rounded,
-                builder: (_) => const MangaSectionPage()),
-          ],
-        ),
-        _HubCategory(
-          title: 'Evolution',
-          emoji: '💖',
-          description: 'Relationship levels & daily bonus',
-          color: Colors.pinkAccent,
-          items: [
-            _HubItem(
-                label: 'Level Map',
-                icon: Icons.favorite_rounded,
-                builder: (_) => const RelationshipEvolutionPage()),
-            _HubItem(
-                label: 'Voice Call',
-                icon: Icons.phone_rounded,
-                builder: (_) => const WaifuVoiceCallScreen()),
-          ],
-        ),
-        _HubCategory(
-          title: 'Settings',
-          emoji: '⚙️',
-          description: 'Customize your experience',
-          color: Colors.blueAccent,
-          items: [
-            _HubItem(
-                label: 'Night Mode',
-                icon: Icons.nights_stay_outlined,
-                builder: (_) => const LateNightModePage()),
-            _HubItem(
-                label: 'Notifications',
-                icon: Icons.notifications_outlined,
-                builder: (_) => const NotificationsSettingsPage()),
+            _HubItem(label: 'Chat Analytics', icon: Icons.bar_chart_outlined, builder: (_) => const ChatAnalyticsPage()),
+            _HubItem(label: 'Level Map', icon: Icons.map_outlined, builder: (_) => const RelationshipLevelMapPage()),
+            _HubItem(label: 'Year in Review', icon: Icons.calendar_month_outlined, builder: (_) => const YearInReviewPage()),
+            _HubItem(label: 'Achievements', icon: Icons.emoji_events_outlined, builder: (_) => const AchievementsGalleryPage()),
+            _HubItem(label: 'Star Map', icon: Icons.auto_awesome_outlined, builder: (_) => const StarMapPage()),
+            _HubItem(label: 'Anniversary', icon: Icons.favorite_outlined, builder: (_) => const AnniversaryPage()),
+            _HubItem(label: 'Evolution', icon: Icons.trending_up_rounded, builder: (_) => const RelationshipEvolutionPage()),
+            _HubItem(label: 'Voice Call', icon: Icons.phone_rounded, builder: (_) => const WaifuVoiceCallScreen()),
           ],
         ),
       ];
@@ -418,7 +435,13 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new,
                         color: Colors.white70),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      if (widget.onBack != null) {
+                        widget.onBack!();
+                      } else if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
+                    },
                   ),
                   const SizedBox(width: 4),
                   Column(
@@ -583,8 +606,13 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                     final item = cat.items[j];
                     return InkWell(
                       borderRadius: BorderRadius.circular(14),
-                      onTap: () => Navigator.push(
-                          context, MaterialPageRoute(builder: item.builder)),
+                      onTap: () {
+                        if (item.onTap != null) {
+                          item.onTap!();
+                        } else if (item.builder != null) {
+                          Navigator.push(context, MaterialPageRoute(builder: item.builder!));
+                        }
+                      },
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),

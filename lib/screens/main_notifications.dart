@@ -212,19 +212,19 @@ extension _MainNotificationsExtension on _ChatHomePageState {
               'assets/gif/notification.gif',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
-              filterQuality: FilterQuality.low,
+              filterQuality: FilterQuality.high,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.32),
-                    Colors.black.withValues(alpha: 0.6),
-                  ],
-                ),
+                 gradient: LinearGradient(
+                   begin: Alignment.centerLeft,
+                   end: Alignment.centerRight,
+                   colors: [
+                     Colors.black.withValues(alpha: 0.1),
+                     Colors.black.withValues(alpha: 0.3),
+                   ],
+                 ),
               ),
             ),
             Padding(
@@ -1044,6 +1044,10 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
               children: [
                 IconButton(
                   onPressed: hasVideo ? _togglePlayPause : null,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
                   icon: Icon(
                     isEnded
                         ? Icons.replay_circle_filled
@@ -1051,38 +1055,63 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
                             ? Icons.pause_circle_filled
                             : Icons.play_circle_fill),
                     color: Colors.white,
-                    size: 30,
+                    size: 33,
                   ),
                 ),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: hasVideo
                       ? () => _seekBy(const Duration(seconds: -10))
                       : null,
-                  icon: const Icon(Icons.replay_10, color: Colors.white70),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  icon: const Icon(Icons.replay_10, color: Colors.white70, size: 27),
                 ),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: hasVideo && _selectedIndex > 0
                       ? _playPreviousEpisode
                       : null,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
                   icon: const Icon(Icons.skip_previous_rounded,
-                      color: Colors.white70),
+                      color: Colors.white70, size: 27),
                 ),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: hasVideo
                       ? () => _seekBy(const Duration(seconds: 10))
                       : null,
-                  icon: const Icon(Icons.forward_10, color: Colors.white70),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  icon: const Icon(Icons.forward_10, color: Colors.white70, size: 27),
                 ),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: hasVideo && _selectedIndex < _episodes.length - 1
                       ? () => _playNextEpisode(autoTriggered: false)
                       : null,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
                   icon: const Icon(Icons.skip_next_rounded,
-                      color: Colors.white70),
+                      color: Colors.white70, size: 27),
                 ),
+                const SizedBox(width: 6),
                 IconButton(
                   onPressed: hasVideo ? _openLandscapePlayer : null,
-                  icon: const Icon(Icons.fullscreen, color: Colors.white70),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  icon: const Icon(Icons.fullscreen, color: Colors.white70, size: 27),
                 ),
                 Expanded(
                   child: Text(
