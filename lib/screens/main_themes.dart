@@ -1,8 +1,24 @@
-part of '../main.dart';
+import 'dart:ui';
 
-extension _MainThemesExtension on _ChatHomePageState {
-// ── Page: Themes (inline version of theme selector) ───────────────────────
-  Widget _buildThemesPage() {
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/providers/settings_provider.dart';
+import '../config/app_themes.dart';
+import '../main.dart' show themeNotifier;
+
+/// ─────────────────────────────────────────────────────────────────────────────
+/// ThemesPage — standalone replacement for the old main_themes.dart part file
+/// ─────────────────────────────────────────────────────────────────────────────
+class ThemesPage extends StatelessWidget {
+  const ThemesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final sp = context.watch<SettingsProvider>();
+
     return SafeArea(
       child: Column(
         children: [
@@ -65,18 +81,18 @@ extension _MainThemesExtension on _ChatHomePageState {
                     const SizedBox(width: 8),
                     // Lite Mode chip
                     GestureDetector(
-                      onTap: _toggleLiteMode,
+                      onTap: () => sp.toggleLiteMode(),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _liteModeEnabled
+                          color: sp.liteModeEnabled
                               ? Colors.greenAccent.withValues(alpha: 0.18)
                               : Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: _liteModeEnabled
+                              color: sp.liteModeEnabled
                                   ? Colors.greenAccent.withValues(alpha: 0.45)
                                   : Colors.white12),
                         ),
@@ -84,19 +100,19 @@ extension _MainThemesExtension on _ChatHomePageState {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _liteModeEnabled
+                              sp.liteModeEnabled
                                   ? Icons.speed_rounded
                                   : Icons.auto_awesome,
-                              color: _liteModeEnabled
+                              color: sp.liteModeEnabled
                                   ? Colors.greenAccent
                                   : Colors.white38,
                               size: 12,
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              _liteModeEnabled ? 'Lite' : 'Full FX',
+                              sp.liteModeEnabled ? 'Lite' : 'Full FX',
                               style: GoogleFonts.outfit(
-                                color: _liteModeEnabled
+                                color: sp.liteModeEnabled
                                     ? Colors.greenAccent
                                     : Colors.white38,
                                 fontSize: 11,
