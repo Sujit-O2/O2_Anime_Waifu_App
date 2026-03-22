@@ -165,29 +165,6 @@ extension _MainDrawerExtension on _ChatHomePageState {
     }
 
 
-    Widget groupSubHeader(String title) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-        child: Row(children: [
-          Container(
-            width: 3, height: 14,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [Colors.pinkAccent, Colors.deepPurpleAccent],
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              ),
-              boxShadow: [BoxShadow(color: Colors.pinkAccent.withValues(alpha: 0.5), blurRadius: 6)],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(title.toUpperCase(),
-            style: GoogleFonts.jetBrainsMono(
-              color: Colors.white54, fontSize: 9, letterSpacing: 2.5, fontWeight: FontWeight.bold)),
-        ]),
-      );
-    }
-
 
     Widget hubAccordion(String title, IconData icon, Color color, List<Widget> children, {String? badge}) {
       return Container(
@@ -270,14 +247,14 @@ extension _MainDrawerExtension on _ChatHomePageState {
               child: Image.asset(
                   'assets/gif/sidebar_bg.gif',
                   fit: BoxFit.cover,
-                  filterQuality: FilterQuality.low,
+                  filterQuality: FilterQuality.high,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink()),
             ),
           ),
           // Frosted Glass Layer over the GIF for ultra-premium aesthetic
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+              filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
               child: Container(color: Colors.transparent),
             ),
           ),
@@ -514,127 +491,99 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       const SizedBox(height: 8),
 
                       _DrawerStaggerItem(index: 0, child: navItem('Chat', Icons.chat_bubble_outline, 0)),
-                      const SizedBox(height: 8),
-                      _DrawerStaggerItem(index: 1, child: navItem('Videos', Icons.videocam_outlined, 2)),
-                      
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 24, bottom: 4, top: 4),
-                        child: Text('HUBS', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold)),
-                      ),
+                      const SizedBox(height: 4),
+                      _DrawerStaggerItem(index: 1, child: navItem('Explore', Icons.explore_outlined, 2)),
 
-                      // ── QUICK ACCESS ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 2, child: hubAccordion('Quick Access', Icons.bolt_rounded, Colors.yellowAccent, [
+                      const SizedBox(height: 12),
+                      Divider(color: Colors.white.withValues(alpha: 0.06), height: 1, indent: 20, endIndent: 20),
+                      const SizedBox(height: 12),
+
+                      // ── ⚡ FAVORITES ───────────────────────────────────────
+                      _DrawerStaggerItem(index: 2, child: hubAccordion('Favorites', Icons.star_rounded, Colors.amber, [
                         drawerTile('Voice Call', Icons.call_rounded, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => WaifuVoiceCallScreen(waifuImageAsset: _chatImageAsset, waifuName: _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona, onMicPressed: () => unawaited(_startContinuousListening()),)))),
-                        drawerTile('Manga Reader', Icons.menu_book_rounded, const Color(0xFFBB52FF), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaSectionPage())), badge: 'All'),
-                        drawerTile('Web Streamers', Icons.travel_explore_rounded, Colors.lightBlueAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WebStreamersHubPage())), badge: '26 Sites'),
-                        drawerTile('My Watchlist', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WatchlistPage())), badge: '❤️'),
-                        drawerTile('Watch History', Icons.history_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WatchHistoryPage())), badge: '📊'),
-                        drawerTile('Anime Quiz', Icons.quiz_rounded, Colors.amber, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeQuizGamePage())), badge: '🎮'),
-                        drawerTile('Anime OST', Icons.music_note_rounded, Colors.tealAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeOstPage())), badge: '🎵'),
-                        drawerTile('Anime Calendar', Icons.calendar_month_rounded, Colors.indigoAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeCalendarPage())), badge: '📅'),
-                        drawerTile('Downloads', Icons.download_rounded, Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DownloadsPage())), badge: '📱'),
-                        drawerTile('MAL Sync', Icons.sync_rounded, const Color(0xFF2E51A2), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MalSyncPage())), badge: '🎭'),
-                        drawerTile('Episode Alerts', Icons.notifications_active_rounded, Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EpisodeAlertsPage())), badge: '🔔'),
-                        drawerTile('Our Story', Icons.timeline_rounded, const Color(0xFFFFD700), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RelationshipTimelinePage())), badge: 'Path'),
+                        drawerTile('Cloud Videos', Icons.cloud_queue_rounded, Colors.cyanAccent, () => updateState(() => _navIndex = 12), badge: 'HD'),
+                        drawerTile('Manga Reader', Icons.menu_book_rounded, const Color(0xFFBB52FF), () => Navigator.pushNamed(context, '/manga-section'), badge: 'All'),
+                        drawerTile('Web Streamers', Icons.travel_explore_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/web-streamers-hub'), badge: '26'),
+                        drawerTile('Music Player', Icons.music_note_rounded, Colors.tealAccent, () => updateState(() => _navIndex = 0)),
+                        drawerTile('My Watchlist', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/watchlist'), badge: '❤️'),
+                        drawerTile('Anime Quiz', Icons.quiz_rounded, Colors.amber, () => Navigator.pushNamed(context, '/anime-quiz'), badge: '🎮'),
                       ])),
 
-                      // ── WAIFU HUB ────────────────────────────────────────────
-                      _DrawerStaggerItem(index: 3, child: hubAccordion('Waifu Hub', Icons.auto_awesome_rounded, Colors.pinkAccent, [
-                        groupSubHeader('Daily Actions'),
-                        drawerTile('ZT Diary', Icons.book_outlined, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZeroTwoDiaryPage())), badge: 'Daily'),
-                        drawerTile('Fortune Cookie', Icons.cookie_outlined, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FortuneCookiePage())), badge: '🥠'),
-                        drawerTile('Daily Love Letter', Icons.mail_outline_rounded, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyLoveLetterPage()))),
-                        drawerTile('Affirmations', Icons.self_improvement_outlined, Colors.purpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyAffirmationsPage()))),
-                        drawerTile('Quote of Day', Icons.format_quote_outlined, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuoteOfDayPage()))),
-                        groupSubHeader('AI Assistants'),
-                        drawerTile('Manga Translator', Icons.translate_rounded, Colors.tealAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaTranslatorPage())), badge: 'NEW'),
-                        drawerTile('AI Art Generator', Icons.brush_rounded, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiArtGeneratorPage())), badge: 'NEW'),
-                        drawerTile('Anime Picks', Icons.movie_filter_outlined, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeRecommenderPage())), badge: 'AI'),
-                        drawerTile('Book Picks', Icons.menu_book_outlined, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookRecommenderPage())), badge: 'AI'),
-                        drawerTile('Dream Interpreter', Icons.bedtime_rounded, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DreamInterpreterPage())), badge: 'AI'),
-                        drawerTile('Relationship Coach', Icons.psychology_rounded, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RelationshipCoachPage())), badge: 'AI'),
-                        drawerTile('Life Advice', Icons.psychology_outlined, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LifeAdvicePage())), badge: 'AI'),
+                      // ── 💕 DAILY RITUALS ────────────────────────────────────
+                      _DrawerStaggerItem(index: 3, child: hubAccordion('Daily Rituals', Icons.wb_sunny_rounded, Colors.pinkAccent, [
+                        drawerTile('ZT Diary', Icons.book_outlined, Colors.pinkAccent, () => Navigator.pushNamed(context, '/zero-two-diary'), badge: 'Daily'),
+                        drawerTile('Love Letter', Icons.mail_outline_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/daily-love-letter')),
+                        drawerTile('Affirmations', Icons.self_improvement_outlined, Colors.purpleAccent, () => Navigator.pushNamed(context, '/daily-affirmations')),
+                        drawerTile('Quote of Day', Icons.format_quote_outlined, Colors.cyanAccent, () => Navigator.pushNamed(context, '/quote-of-day')),
+                        drawerTile('Fortune Cookie', Icons.cookie_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/fortune-cookie'), badge: '🥠'),
+                        drawerTile('Check-In', Icons.check_circle_outlined, Colors.greenAccent, () => Navigator.pushNamed(context, '/checkin-streak'), badge: '🔥'),
                       ], badge: 'Heart')),
 
-                      // ── GAMES & FUN ──────────────────────────────────────────
-                      _DrawerStaggerItem(index: 4, child: hubAccordion('Games & Fun', Icons.sports_esports_outlined, Colors.greenAccent, [
-                        groupSubHeader('Arcade Classics'),
-                        drawerTile('Boss Battles', Icons.security_rounded, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BossBattlePage())), badge: 'NEW'),
-                        drawerTile('Anime Wordle', Icons.grid_view_rounded, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeWordlePage())), badge: 'NEW'),
-                        drawerTile('Gacha Collector', Icons.card_giftcard_rounded, Colors.purpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GachaCollectorPage())), badge: 'NEW'),
-                        drawerTile('Arcade Games', Icons.sports_esports_rounded, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamesHubPage())), badge: '8 Games'),
-                        drawerTile('Tic-Tac-Toe', Icons.grid_3x3_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TicTacToePage())), badge: 'PvP'),
-                        drawerTile('Rock Paper', Icons.sports_esports_rounded, Colors.lightGreenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RockPaperScissorsPage())), badge: 'Mini'),
-                        drawerTile('Word Asscn', Icons.text_fields_rounded, Colors.tealAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WordAssociationPage())), badge: 'PvE'),
-                        groupSubHeader('Roleplay'),
-                        drawerTile('Scenarios', Icons.theater_comedy_outlined, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RoleplayScenarioPage()))),
-                        drawerTile('Story Mode', Icons.book_rounded, Colors.purpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StoryModePage()))),
-                        drawerTile('Virtual Date', Icons.favorite_outline_rounded, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VirtualDatePage()))),
-                        groupSubHeader('Party Games'),
-                        drawerTile('Waifu Tier List', Icons.format_list_numbered_rounded, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WaifuTierListPage())), badge: 'NEW'),
-                        drawerTile('20 Questions', Icons.help_rounded, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TwentyQuestionsPage()))),
-                        drawerTile('Truth / Dare', Icons.local_fire_department_outlined, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TruthOrDarePage()))),
-                        drawerTile('Never i Ever', Icons.casino_outlined, Colors.deepOrangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NeverHaveIEverPage()))),
-                        drawerTile('Would You Rather', Icons.help_outline_rounded, Colors.lightBlueAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WouldYouRatherPage()))),
-                        drawerTile('Love Quiz', Icons.quiz_outlined, Colors.purpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoveQuizPage()))),
-                        drawerTile('Spin Wheel', Icons.radio_button_checked_outlined, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpinnerWheelPage()))),
+                      // ── 🎮 FUN & GAMES ──────────────────────────────────────
+                      _DrawerStaggerItem(index: 4, child: hubAccordion('Fun & Games', Icons.sports_esports_rounded, Colors.greenAccent, [
+                        drawerTile('Boss Battles', Icons.security_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/boss-battle'), badge: 'NEW'),
+                        drawerTile('Anime Wordle', Icons.grid_view_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/anime-wordle'), badge: 'NEW'),
+                        drawerTile('Gacha Cards', Icons.card_giftcard_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/gacha-collector'), badge: 'NEW'),
+                        drawerTile('Mini Games', Icons.sports_esports_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/mini-games'), badge: '8+'),
+                        drawerTile('Story Mode', Icons.book_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/story-mode')),
+                        drawerTile('Virtual Date', Icons.favorite_outline_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/virtual-date')),
+                        drawerTile('Spin Wheel', Icons.radio_button_checked_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/spinner-wheel')),
                       ], badge: 'Play')),
 
-                      // ── TOOLS & LIFE ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 5, child: hubAccordion('Tools & Life', Icons.build_circle_outlined, Colors.tealAccent, [
-                        groupSubHeader('Productivity'),
-                        drawerTile('Goal Tracker', Icons.track_changes_outlined, Colors.lightGreenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalTrackerPage())), badge: 'XP'),
-                        drawerTile('Pomodoro', Icons.timer_outlined, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PomodoroPage()))),
-                        drawerTile('Study Timer', Icons.timer_rounded, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudyTimerPage()))),
-                        drawerTile('Habit Tracker', Icons.check_circle_outline, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HabitTrackerPage()))),
-                        drawerTile('Budget Tracker', Icons.account_balance_wallet_outlined, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetTrackerPage()))),
-                        groupSubHeader('Journal'),
-                        drawerTile('Notes Pad', Icons.note_alt_outlined, Colors.tealAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesPadPage()))),
-                        drawerTile('Voice Notes', Icons.mic_rounded, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VoiceNotesPage()))),
-                        drawerTile('Dream Journal', Icons.nights_stay_outlined, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DreamJournalPage()))),
-                        drawerTile('Bucket List', Icons.checklist_outlined, Colors.lightGreenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SharedBucketListPage()))),
-                        groupSubHeader('Wellness'),
-                        drawerTile('Breathing', Icons.air_outlined, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BreathingExercisePage()))),
-                        drawerTile('Gratitude', Icons.auto_awesome_outlined, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GratitudeJournalPage()))),
-                        drawerTile('Workout Planner', Icons.fitness_center_outlined, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkoutPlannerPage()))),
-                      ], badge: 'Util')),
+                      // ── 🧠 AI TOOLS ─────────────────────────────────────────
+                      _DrawerStaggerItem(index: 5, child: hubAccordion('AI Tools', Icons.psychology_rounded, Colors.cyanAccent, [
+                        drawerTile('AI Art Gen', Icons.brush_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/ai-art-generator'), badge: 'NEW'),
+                        drawerTile('Anime Picks', Icons.movie_filter_outlined, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/anime-recommender'), badge: 'AI'),
+                        drawerTile('Book Picks', Icons.menu_book_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/book-recommender'), badge: 'AI'),
+                        drawerTile('Dream Reader', Icons.bedtime_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/dream-interpreter'), badge: 'AI'),
+                        drawerTile('Life Coach', Icons.psychology_outlined, Colors.cyanAccent, () => Navigator.pushNamed(context, '/relationship-coach'), badge: 'AI'),
+                        drawerTile('Manga Translator', Icons.translate_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/manga-translator'), badge: 'NEW'),
+                      ], badge: 'Smart')),
 
-                      // ── SOCIAL & CLOUD ───────────────────────────────────────
-                      _DrawerStaggerItem(index: 6, child: hubAccordion('Social & Cloud', Icons.public_rounded, Colors.orangeAccent, [
-                        groupSubHeader('Community'),
-                        drawerTile('Anime Watch Party', Icons.live_tv_rounded, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeWatchPartyPage())), badge: 'NEW'),
-                        drawerTile('Matchmaker', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeMatchmakerPage())), badge: 'NEW'),
-                        drawerTile('Leaderboard', Icons.leaderboard_outlined, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardPage()))),
-                        drawerTile('Friends', Icons.people_outline_rounded, Colors.lightBlueAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FriendsPage()))),
-                        drawerTile('Global Quests', Icons.public_outlined, Colors.greenAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlobalQuestBoardPage()))),
-                        groupSubHeader('Cloud'),
-                        drawerTile('Cloud Sync', Icons.cloud_sync_outlined, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CloudSyncPage()))),
-                        drawerTile('Pinned MSGs', Icons.push_pin_outlined, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PinnedMessagesPage()))),
-                      ], badge: 'Social')),
-
-                      // ── CONFIGURATION & ARCHITECTURE ─────────────────────────
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 24, bottom: 4, top: 4),
-                        child: Text('SYSTEM ARCHITECTURE', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold)),
-                      ),
-                      
-                      _DrawerStaggerItem(index: 7, child: hubAccordion('Core Engines', Icons.memory_outlined, Colors.purpleAccent, [
-                        drawerTile('Relationship Evo', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RelationshipEvolutionPage()))),
-                        drawerTile('Personality Node', Icons.psychology_outlined, const Color(0xFFBB52FF), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PersonalitySettingsPage()))),
-                        drawerTile('Memory Bank', Icons.timeline_rounded, const Color(0xFFFF4FA8), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryTimelinePage()))),
-                      ], badge: 'Matrix')),
-
-                      _DrawerStaggerItem(index: 8, child: hubAccordion('Settings', Icons.settings_outlined, Colors.blueGrey, [
+                      // ── ⚙️ SETTINGS ─────────────────────────────────────────
+                      _DrawerStaggerItem(index: 6, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
                         drawerTile('App Settings', Icons.settings_rounded, Colors.white70, () => updateState(() => _navIndex = 3)),
                         drawerTile('Themes', Icons.palette_rounded, Colors.pinkAccent, () => updateState(() => _navIndex = 4)),
-                        drawerTile('App Icons', Icons.app_shortcut_rounded, Colors.deepPurpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppIconPickerPage())), badge: '🎨'),
-                        drawerTile('Late Night Mode', Icons.nights_stay_rounded, Colors.indigoAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LateNightModePage()))),
-                        drawerTile('My Profile', Icons.person_rounded, Colors.blueAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
-                        drawerTile('Achievements', Icons.emoji_events_rounded, Colors.amberAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen()))),
+                        drawerTile('My Profile', Icons.person_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/profile')),
+                        drawerTile('Achievements', Icons.emoji_events_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/achievements')),
+                        drawerTile('App Icons', Icons.app_shortcut_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/app-icon-picker'), badge: '🎨'),
                         drawerTile('Dev Config', Icons.terminal_rounded, Colors.greenAccent, () => updateState(() => _navIndex = 5)),
+                        drawerTile('About App', Icons.info_outline_rounded, Colors.grey, () => updateState(() => _navIndex = 7)),
                       ], badge: 'Config')),
+
+                      // ── SEE ALL FEATURES BUTTON ─────────────────────────────
+                      const SizedBox(height: 16),
+                      _DrawerStaggerItem(index: 7, child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                            updateState(() => _navIndex = 2);
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: [Colors.pinkAccent.withValues(alpha: 0.15), Colors.deepPurpleAccent.withValues(alpha: 0.15)],
+                              ),
+                              border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.explore_rounded, color: Colors.pinkAccent.withValues(alpha: 0.8), size: 18),
+                                const SizedBox(width: 8),
+                                Text('See All Features',
+                                  style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                const SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_ios_rounded, color: Colors.pinkAccent.withValues(alpha: 0.6), size: 14),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )),
                       
                       // ── ANIMATED BOTTOM STATUS STRIP ──────────────────
                       const SizedBox(height: 20),
