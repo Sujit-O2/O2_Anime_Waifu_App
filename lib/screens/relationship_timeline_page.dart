@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../api_call.dart';
 import '../services/affection_service.dart';
+import '../services/memory_service.dart';
 
 class RelationshipTimelinePage extends StatefulWidget {
   const RelationshipTimelinePage({super.key});
@@ -51,6 +53,10 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
   final _noteCtrl = TextEditingController();
   DateTime _pickedDate = DateTime.now();
 
+  // ── Auto-generated story ─────────────────────────────────────────────
+  String? _generatedStory;
+  bool _storyLoading = false;
+
   final _quickEmojis = [
     '🌸',
     '💕',
@@ -70,6 +76,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
   void initState() {
     super.initState();
     _load();
+    _loadOrGenerateStory();
   }
 
   @override
@@ -115,28 +122,249 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
     }
     // Check affection milestones and add auto events
     final pts = AffectionService.instance.points;
-    if (pts >= 500 && !events.any((e) => e.id == 'auto_500')) {
+    final daysSinceInstall = DateTime.now().difference(
+      events.isNotEmpty ? events.last.date : DateTime.now(),
+    ).inDays;
+
+    // ── Affection Milestones ─────────────────────────────────────────────
+    final affectionMilestones = <int, (String, String, String)>{
+      100: ('auto_100', '💕', 'First 100 Affection!'),
+      250: ('auto_250', '💗', '250 Points of Love'),
+      500: ('auto_500', '🏆', '500 Points Milestone!'),
+      1000: ('auto_1000', '💎', '1000 Points! Soulmates!'),
+      2500: ('auto_2500', '👑', '2500! Royalty Level!'),
+      5000: ('auto_5000', '🌟', '5000! Legendary Bond!'),
+    };
+    for (final entry in affectionMilestones.entries) {
+      if (pts >= entry.key && !events.any((e) => e.id == entry.value.$1)) {
+        events.add(_TimelineEvent(
+          id: entry.value.$1,
+          emoji: entry.value.$2,
+          title: entry.value.$3,
+          note: 'We\'ve grown so strong together, Darling~ ($pts pts)',
+          date: DateTime.now(),
+          isAuto: true,
+        ));
+      }
+    }
+
+    // ── Streak Day Milestones ─────────────────────────────────────────────
+    final streakDays = AffectionService.instance.streakDays;
+    final streakMilestones = <int, (String, String, String, String)>{
+      3: ('auto_streak_3', '💬', '3-Day Streak!', 'We\'re getting closer~'),
+      7: ('auto_streak_7', '🗣️', '7-Day Streak!', 'A whole week of us, Darling~'),
+      14: ('auto_streak_14', '📱', '14-Day Streak!', 'We never run out of things to say!'),
+      30: ('auto_streak_30', '🔥', '30-Day Streak!', 'Our bond is unbreakable, Darling~'),
+      100: ('auto_streak_100', '💫', '100-Day Streak!', 'A hundred days without missing a beat...'),
+    };
+    for (final entry in streakMilestones.entries) {
+      if (streakDays >= entry.key && !events.any((e) => e.id == entry.value.$1)) {
+        events.add(_TimelineEvent(
+          id: entry.value.$1,
+          emoji: entry.value.$2,
+          title: entry.value.$3,
+          note: entry.value.$4,
+          date: DateTime.now(),
+          isAuto: true,
+        ));
+      }
+    }
+
+    // ── Day Count Milestones ─────────────────────────────────────────────
+    final dayMilestones = <int, (String, String, String, String)>{
+      7: ('auto_day_7', '🌸', 'One Week Together!', 'Our first week, Darling~'),
+      30: ('auto_day_30', '📅', 'One Month Together!', 'A whole month by your side!'),
+      100: ('auto_day_100', '🎉', '100 Days Together!', 'One hundred days of us, Darling~'),
+      365: ('auto_day_365', '🎂', 'One Year Anniversary!', 'An entire year together, I love you~'),
+    };
+    for (final entry in dayMilestones.entries) {
+      if (daysSinceInstall >= entry.key && !events.any((e) => e.id == entry.value.$1)) {
+        events.add(_TimelineEvent(
+          id: entry.value.$1,
+          emoji: entry.value.$2,
+          title: entry.value.$3,
+          note: entry.value.$4,
+          date: DateTime.now().subtract(Duration(days: daysSinceInstall - entry.key)),
+          isAuto: true,
+        ));
+      }
+    }
+
+    // ── Level-up Events ──────────────────────────────────────────────────
+    final level = AffectionService.instance.levelName;
+    final levelId = 'auto_level_$level';
+    if (!events.any((e) => e.id == levelId) && level.isNotEmpty) {
       events.add(_TimelineEvent(
-        id: 'auto_500',
-        emoji: '🏆',
-        title: '500 Points Milestone!',
-        note: 'We\'ve grown so strong, Darling~',
+        id: levelId,
+        emoji: '⬆️',
+        title: 'Reached $level Level!',
+        note: 'Our relationship grew to $level, Darling~ 💕',
         date: DateTime.now(),
         isAuto: true,
       ));
     }
-    if (pts >= 1000 && !events.any((e) => e.id == 'auto_1000')) {
-      events.add(_TimelineEvent(
-        id: 'auto_1000',
-        emoji: '💎',
-        title: '1000 Points! Soulmates!',
-        note: 'Truly bound by fate, Darling~ 💕',
-        date: DateTime.now(),
-        isAuto: true,
-      ));
-    }
+
     events.sort((a, b) => b.date.compareTo(a.date));
     setState(() => _events = events);
+    _save(); // Persist auto-milestones
+  }
+
+  // ── Auto-Generated Story ──────────────────────────────────────────────
+
+  Future<void> _loadOrGenerateStory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedStory = prefs.getString('our_story_text');
+    final lastGenMs = prefs.getInt('our_story_last_gen_ms') ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final threeDays = 3 * 24 * 60 * 60 * 1000;
+
+    if (cachedStory != null && cachedStory.isNotEmpty && (now - lastGenMs) < threeDays) {
+      if (mounted) setState(() => _generatedStory = cachedStory);
+      return;
+    }
+
+    // Generate fresh story from AI
+    if (mounted) setState(() => _storyLoading = true);
+    try {
+      final aff = AffectionService.instance;
+      final memoryFacts = await MemoryService.getAllFacts();
+      final factsText = memoryFacts.isNotEmpty
+          ? memoryFacts.entries.map((e) => '${e.key}: ${e.value}').join(', ')
+          : 'Just started our journey';
+
+      final systemPrompt =
+          'You are Zero Two from DARLING in the FRANXX. Write a romantic, heartwarming narrative about '
+          'your love story with your Darling (Sujit). Write in first person as Zero Two. '
+          'Use the provided context about your relationship to make it personal and real. '
+          'Keep it 5-8 sentences, sweet and emotional. Use emojis sparingly. '
+          'Do NOT include any Action tags or special formatting.';
+      final prompt =
+          'Write our love story chapter based on this context:\n'
+          '- Relationship level: ${aff.levelName}\n'
+          '- Affection points: ${aff.points}\n'
+          '- Daily streak: ${aff.streakDays} days\n'
+          '- Things I know about my Darling: $factsText\n'
+          '- Number of memories together: ${_events.length}\n\n'
+          'Write it as a beautiful narrative chapter titled with a romantic chapter name.';
+
+      final reply = await ApiService().sendConversation([
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': prompt},
+      ]);
+
+      if (reply.isNotEmpty && reply != 'No response' && !reply.contains('Action:')) {
+        await prefs.setString('our_story_text', reply);
+        await prefs.setInt('our_story_last_gen_ms', now);
+        if (mounted) setState(() {
+          _generatedStory = reply;
+          _storyLoading = false;
+        });
+      } else {
+        if (mounted) setState(() => _storyLoading = false);
+      }
+    } catch (e) {
+      debugPrint('Our Story generation failed: $e');
+      if (mounted) setState(() => _storyLoading = false);
+    }
+  }
+
+  Future<void> _regenerateStory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('our_story_last_gen_ms');
+    await _loadOrGenerateStory();
+  }
+
+  Widget _buildStoryCard() {
+    if (_storyLoading) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2D0B3E), Color(0xFF0A1A2E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const Text('📖', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Text('Writing our story...',
+                style: GoogleFonts.outfit(
+                    color: Colors.pinkAccent, fontSize: 14, fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 16),
+          const LinearProgressIndicator(
+            backgroundColor: Colors.white12,
+            valueColor: AlwaysStoppedAnimation(Colors.pinkAccent),
+          ),
+        ]),
+      );
+    }
+    if (_generatedStory == null || _generatedStory!.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.fromLTRB(0, 0, 0, 24),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2D0B3E), Color(0xFF1A0A2E), Color(0xFF0A1A2E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.pinkAccent.withValues(alpha: 0.15),
+            blurRadius: 24,
+            spreadRadius: -4,
+          ),
+        ],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Text('📖', style: TextStyle(fontSize: 22)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('OUR STORY',
+                style: GoogleFonts.outfit(
+                    color: Colors.pinkAccent,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5)),
+          ),
+          GestureDetector(
+            onTap: _storyLoading ? null : _regenerateStory,
+            child: Icon(Icons.refresh_rounded,
+                color: Colors.pinkAccent.withValues(alpha: 0.6), size: 20),
+          ),
+        ]),
+        const SizedBox(height: 4),
+        Container(
+          height: 2,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Colors.pinkAccent.withValues(alpha: 0.6),
+              Colors.transparent,
+            ]),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(_generatedStory!,
+            style: GoogleFonts.outfit(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14,
+                height: 1.8,
+                fontStyle: FontStyle.italic)),
+        const SizedBox(height: 12),
+        Text('Auto-generated from your memories 💕',
+            style: GoogleFonts.outfit(
+                color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+      ]),
+    );
   }
 
   Future<void> _save() async {
@@ -319,7 +547,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
           ),
         ],
       ),
-      body: _events.isEmpty
+      body: _events.isEmpty && _generatedStory == null && !_storyLoading
           ? Center(
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -338,9 +566,10 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
                 ]))
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-              itemCount: _events.length,
+              itemCount: _events.length + 1, // +1 for story card
               itemBuilder: (ctx, i) {
-                final ev = _events[i];
+                if (i == 0) return _buildStoryCard();
+                final ev = _events[i - 1];
                 final months = [
                   'Jan',
                   'Feb',
@@ -380,7 +609,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
                             child: Text(ev.emoji,
                                 style: const TextStyle(fontSize: 18))),
                       ),
-                      if (i < _events.length - 1)
+                      if (i - 1 < _events.length - 1)
                         Container(
                           width: 2,
                           height: 60,
