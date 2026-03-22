@@ -1,9 +1,12 @@
-part of '../main.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/quote_service.dart';
 
-extension _GachaPageExtension on _ChatHomePageState {
-  Widget _buildGachaPage() {
-    return const _GachaView();
-  }
+// ─── Public widget (replaces the old _buildGachaPage extension) ─────────────
+class GachaPage extends StatelessWidget {
+  const GachaPage({super.key});
+  @override
+  Widget build(BuildContext context) => const _GachaView();
 }
 
 // ─── Gacha rarity tiers ───────────────────────────────────────────────────────

@@ -389,18 +389,18 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                         child: OutlinedButton(
                           onPressed: () {
                             updateState(() {
-                              _devApiKeyOverride = '';
-                              _devModelOverride = '';
-                              _devApiUrlOverride = '';
-                              _devSystemQuery = '';
-                              _devTtsVoiceOverride = '';
-                              _devTtsApiKeyOverride = '';
-                              _devTtsModelOverride = '';
-                              _devWakeKeyOverride = '';
-                              _devSttLangOverride = '';
-                              _devSttTimeoutOverride = 0;
-                              _devMailJetApiOverride = '';
-                              _devMailJetSecOverride = '';
+                              _sp.devApiKeyOverride = '';
+                              _sp.devModelOverride = '';
+                              _sp.devApiUrlOverride = '';
+                              _sp.devSystemQuery = '';
+                              _sp.devTtsVoiceOverride = '';
+                              _sp.devTtsApiKeyOverride = '';
+                              _sp.devTtsModelOverride = '';
+                              _sp.devWakeKeyOverride = '';
+                              _sp.devSttLangOverride = '';
+                              _sp.devSttTimeoutOverride = 0;
+                              _sp.devMailJetApiOverride = '';
+                              _sp.devMailJetSecOverride = '';
                             });
                             Navigator.pop(ctx);
                           },
@@ -422,19 +422,19 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                         child: ElevatedButton(
                           onPressed: () {
                             updateState(() {
-                              _devApiKeyOverride = apiKeyC.text.trim();
-                              _devModelOverride = modelC.text.trim();
-                              _devApiUrlOverride = apiUrlC.text.trim();
-                              _devSystemQuery = systemC.text.trim();
-                              _devTtsVoiceOverride = ttsVoiceC.text.trim();
-                              _devTtsApiKeyOverride = ttsApiKeyC.text.trim();
-                              _devTtsModelOverride = ttsModelC.text.trim();
-                              _devWakeKeyOverride = wakeKeyC.text.trim();
-                              _devSttLangOverride = sttLangC.text.trim();
-                              _devSttTimeoutOverride =
+                              _sp.devApiKeyOverride = apiKeyC.text.trim();
+                              _sp.devModelOverride = modelC.text.trim();
+                              _sp.devApiUrlOverride = apiUrlC.text.trim();
+                              _sp.devSystemQuery = systemC.text.trim();
+                              _sp.devTtsVoiceOverride = ttsVoiceC.text.trim();
+                              _sp.devTtsApiKeyOverride = ttsApiKeyC.text.trim();
+                              _sp.devTtsModelOverride = ttsModelC.text.trim();
+                              _sp.devWakeKeyOverride = wakeKeyC.text.trim();
+                              _sp.devSttLangOverride = sttLangC.text.trim();
+                              _sp.devSttTimeoutOverride =
                                   int.tryParse(sttTimeoutC.text.trim()) ?? 0;
-                              _devMailJetApiOverride = mjApiC.text.trim();
-                              _devMailJetSecOverride = mjSecC.text.trim();
+                              _sp.devMailJetApiOverride = mjApiC.text.trim();
+                              _sp.devMailJetSecOverride = mjSecC.text.trim();
                             });
                             Navigator.pop(ctx);
                           },
