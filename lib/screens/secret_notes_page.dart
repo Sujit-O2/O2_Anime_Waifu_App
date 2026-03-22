@@ -1,9 +1,12 @@
-part of '../main.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/secret_notes_service.dart';
 
-extension _SecretNotesPageExtension on _ChatHomePageState {
-  Widget _buildSecretNotesPage() {
-    return _SecretNotesView();
-  }
+// ─── Public widget (replaces the old _buildSecretNotesPage extension) ────────
+class SecretNotesPage extends StatelessWidget {
+  const SecretNotesPage({super.key});
+  @override
+  Widget build(BuildContext context) => _SecretNotesView();
 }
 
 class _SecretNotesView extends StatefulWidget {

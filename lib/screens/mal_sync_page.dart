@@ -7,10 +7,8 @@ class MalSyncPage extends StatefulWidget {
   const MalSyncPage({super.key});
   @override
   State<MalSyncPage> createState() => _MalSyncPageState();
-}
-
-class _MalSyncPageState extends State<MalSyncPage> {
-  final TextEditingController _clientIdCtrl = TextEditingController();
+}class _MalSyncPageState extends State<MalSyncPage> {
+  final TextEditingController _usernameCtrl = TextEditingController();
   bool _isEnabled = false;
   bool _loading = true;
   List<MalAnimeEntry> _malList = [];
@@ -24,36 +22,38 @@ class _MalSyncPageState extends State<MalSyncPage> {
   Future<void> _load() async {
     setState(() => _loading = true);
     _isEnabled = await MalSyncService.isEnabled();
-    final clientId = await MalSyncService.getClientId();
-    _clientIdCtrl.text = clientId ?? '';
-    if (_isEnabled) {
+    final username = await MalSyncService.getUsername();
+    _usernameCtrl.text = username ?? '';
+    if (_isEnabled && username != null && username.isNotEmpty) {
       _malList = await MalSyncService.getMyList(limit: 30);
     }
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _saveClientId() async {
-    await MalSyncService.setClientId(_clientIdCtrl.text.trim());
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('MAL Client ID saved ✅'),
-          backgroundColor: Colors.green),
-    );
-  }
-
-  Future<void> _startAuth() async {
-    final url = await MalSyncService.getAuthUrl();
-    if (url == null) {
+  Future<void> _saveUsernameAndSync() async {
+    final uname = _usernameCtrl.text.trim();
+    if (uname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Set your MAL Client ID first'),
-            backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please enter a username'), backgroundColor: Colors.red),
       );
       return;
     }
-    launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    
+    setState(() => _loading = true);
+    await MalSyncService.setUsername(uname);
+    await _load();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Synced $_malList items for $uname ✅'),
+            backgroundColor: Colors.green),
+      );
+    }
   }
 
   Future<void> _disconnect() async {
     await MalSyncService.disconnect();
+    _usernameCtrl.clear();
     setState(() { _isEnabled = false; _malList = []; });
   }
 
@@ -96,7 +96,7 @@ class _MalSyncPageState extends State<MalSyncPage> {
                     color: _isEnabled ? Colors.green : Colors.orange),
                   const SizedBox(width: 12),
                   Expanded(child: Text(
-                    _isEnabled ? 'Connected to MyAnimeList ✅'
+                    _isEnabled ? 'Connected as ${_usernameCtrl.text} ✅'
                         : 'Not connected yet',
                     style: TextStyle(color: _isEnabled ? Colors.green : Colors.orange,
                         fontWeight: FontWeight.w600))),
@@ -105,16 +105,16 @@ class _MalSyncPageState extends State<MalSyncPage> {
 
               const SizedBox(height: 20),
 
-              // Client ID input
-              Text('MAL API Client ID',
+              // Username input
+              Text('MyAnimeList Username',
                 style: TextStyle(color: Colors.grey.shade300,
                     fontWeight: FontWeight.w700, fontSize: 14)),
               const SizedBox(height: 8),
               TextField(
-                controller: _clientIdCtrl,
+                controller: _usernameCtrl,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Paste your Client ID here...',
+                  hintText: 'Enter your public MAL username...',
                   hintStyle: TextStyle(color: Colors.grey.shade600),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.06),
@@ -122,29 +122,23 @@ class _MalSyncPageState extends State<MalSyncPage> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.save, color: Color(0xFF2E51A2)),
-                    onPressed: _saveClientId),
+                    icon: const Icon(Icons.sync, color: Color(0xFF2E51A2)),
+                    onPressed: _saveUsernameAndSync),
                 ),
+                onSubmitted: (_) => _saveUsernameAndSync(),
               ),
               const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () => launchUrl(
-                  Uri.parse('https://myanimelist.net/apiconfig'),
-                  mode: LaunchMode.externalApplication,
-                ),
-                child: Text('Get your Client ID at myanimelist.net/apiconfig →',
-                  style: TextStyle(color: Colors.blue.shade300, fontSize: 11,
-                      decoration: TextDecoration.underline)),
-              ),
+              Text('No login required! Just your public username.',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
 
               const SizedBox(height: 20),
 
               // Auth buttons
               if (!_isEnabled)
                 ElevatedButton.icon(
-                  onPressed: _startAuth,
-                  icon: const Icon(Icons.login),
-                  label: const Text('Login with MyAnimeList'),
+                  onPressed: _saveUsernameAndSync,
+                  icon: const Icon(Icons.download),
+                  label: const Text('Fetch MyAnimeList'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E51A2),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -173,6 +167,10 @@ class _MalSyncPageState extends State<MalSyncPage> {
                 ..._malList.map((entry) => Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
+                     onTap: () => launchUrl(
+                      Uri.parse('https://myanimelist.net/anime/${entry.malId}'),
+                      mode: LaunchMode.externalApplication,
+                    ),
                     tileColor: Colors.white.withValues(alpha: 0.04),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -180,14 +178,14 @@ class _MalSyncPageState extends State<MalSyncPage> {
                       borderRadius: BorderRadius.circular(8),
                       child: entry.coverUrl.isNotEmpty
                         ? Image.network(entry.coverUrl, width: 42, height: 60,
-                            fit: BoxFit.cover)
-                        : Container(width: 42, height: 60,
-                            color: Colors.grey.shade900),
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) => Container(width: 42, height: 60, color: Colors.grey.shade900))
+                        : Container(width: 42, height: 60, color: Colors.grey.shade900),
                     ),
                     title: Text(entry.title,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text('${entry.status} · ${entry.episodesWatched} eps',
+                    subtitle: Text('${entry.status.replaceAll('_', ' ')} · ${entry.episodesWatched} eps',
                       style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
                     trailing: entry.score > 0
                       ? Row(mainAxisSize: MainAxisSize.min, children: [
