@@ -13,8 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  static final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  static final Future<void> _googleInit = _googleSignIn.initialize();
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -76,27 +75,23 @@ class _LoginScreenState extends State<LoginScreen>
       _errorMessage = null;
     });
     try {
-      await _googleInit;
-      final googleUser =
-          await _googleSignIn.authenticate(scopeHint: const ['email']);
-      final googleAuth = googleUser.authentication;
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled the sign-in
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+      final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled && mounted) {
-        setState(() => _isLoading = false);
-        return;
-      }
-      if (mounted) {
-        setState(() => _errorMessage = e.description ?? 'Google sign-in failed.');
-      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.message ?? 'Google sign-in failed.');
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Google sign-in failed. Try again.');
       }

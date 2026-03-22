@@ -604,16 +604,16 @@ extension _MainDebugExtension on _ChatHomePageState {
                           'Reset Dev Config', Icons.settings_backup_restore,
                           () {
                         updateState(() {
-                          _devApiKeyOverride = '';
-                          _devModelOverride = '';
-                          _devApiUrlOverride = '';
-                          _devSystemQuery = '';
-                          _devTtsVoiceOverride = '';
-                          _devTtsApiKeyOverride = '';
-                          _devTtsModelOverride = '';
-                          _devWakeKeyOverride = '';
-                          _devMailJetApiOverride = '';
-                          _devMailJetSecOverride = '';
+                          _sp.devApiKeyOverride = '';
+                          _sp.devModelOverride = '';
+                          _sp.devApiUrlOverride = '';
+                          _sp.devSystemQuery = '';
+                          _sp.devTtsVoiceOverride = '';
+                          _sp.devTtsApiKeyOverride = '';
+                          _sp.devTtsModelOverride = '';
+                          _sp.devWakeKeyOverride = '';
+                          _sp.devMailJetApiOverride = '';
+                          _sp.devMailJetSecOverride = '';
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
