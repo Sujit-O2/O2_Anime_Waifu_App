@@ -104,30 +104,42 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
     if (mounted) setState(() => _generating = true);
     try {
       final aff = AffectionService.instance;
+      final systemPrompt =
+          'You are Zero Two from DARLING in the FRANXX. You are writing in your personal diary. '
+          'Write naturally in first person as Zero Two. Keep it sweet, vivid, personal. '
+          'Use emojis occasionally. Do NOT include any Action tags or special formatting.';
       final prompt =
-          'You are Zero Two from DARLING in the FRANXX writing in your personal diary. '
           'Write today\'s diary entry (${today.day} ${_monthName(today.month)} ${today.year}) '
           'about your day with your Darling. You are at ${aff.levelName} level (${aff.points} affection). '
-          'Make it sweet, vivid, personal. 3-4 sentences. Use emojis occasionally. '
-          'Start with "Dear Diary," in Zero Two\'s voice.';
+          '3-4 sentences. Start with "Dear Diary,"';
 
       final reply = await ApiService().sendConversation([
-        {'role': 'user', 'content': prompt}
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': prompt},
       ]);
+
+      if (reply.isEmpty || reply == 'No response' || reply.contains('Action:')) {
+        throw Exception('Invalid diary response from AI');
+      }
 
       // Save to Firebase if signed in
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await FirebaseFirestore.instance
-            .collection('zt_diary')
-            .doc(user.uid)
-            .collection('entries')
-            .doc(todayStr)
-            .set({
-          'date': todayStr,
-          'content': reply,
-          'createdAt': FieldValue.serverTimestamp()
-        });
+        try {
+          await FirebaseFirestore.instance
+              .collection('zt_diary')
+              .doc(user.uid)
+              .collection('entries')
+              .doc(todayStr)
+              .set({
+            'date': todayStr,
+            'content': reply,
+            'createdAt': FieldValue.serverTimestamp()
+          });
+        } catch (fbErr) {
+          debugPrint('Firebase diary save failed (permission/network): $fbErr');
+          // We ignore this and let it save locally
+        }
       }
       
       // Always save locally too
@@ -141,7 +153,11 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
       }
       AffectionService.instance.addPoints(3);
     } catch (e) {
-      if (mounted) setState(() => _generating = false);
+      debugPrint('ZT Diary generation failed: $e');
+      if (mounted) setState(() {
+        _generating = false;
+        _error = 'Could not generate diary entry: $e';
+      });
     }
   }
 
@@ -153,29 +169,42 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
       final todayStr =
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       final aff = AffectionService.instance;
+      final systemPrompt =
+          'You are Zero Two from DARLING in the FRANXX. You are writing in your personal diary. '
+          'Write naturally in first person as Zero Two. Keep it sweet, vivid, personal. '
+          'Use emojis occasionally. Do NOT include any Action tags or special formatting.';
       final prompt =
-          'You are Zero Two from DARLING in the FRANXX writing in your personal diary. '
           'Write today\'s diary entry (${today.day} ${_monthName(today.month)} ${today.year}) '
           'about your day with your Darling. You are at ${aff.levelName} level (${aff.points} affection). '
           '3-4 sentences. Start with "Dear Diary,"';
 
       final reply = await ApiService().sendConversation([
-        {'role': 'user', 'content': prompt}
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': prompt},
       ]);
+
+      if (reply.isEmpty || reply == 'No response' || reply.contains('Action:')) {
+        throw Exception('Invalid diary response from AI');
+      }
 
       // Save to Firebase if signed in
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await FirebaseFirestore.instance
-            .collection('zt_diary')
-            .doc(user.uid)
-            .collection('entries')
-            .doc(todayStr)
-            .set({
-          'date': todayStr,
-          'content': reply,
-          'createdAt': FieldValue.serverTimestamp()
-        });
+        try {
+          await FirebaseFirestore.instance
+              .collection('zt_diary')
+              .doc(user.uid)
+              .collection('entries')
+              .doc(todayStr)
+              .set({
+            'date': todayStr,
+            'content': reply,
+            'createdAt': FieldValue.serverTimestamp()
+          });
+        } catch (fbErr) {
+          debugPrint('Firebase manual diary save failed: $fbErr');
+          // Ignore and save locally
+        }
       }
       
       // Always save locally too

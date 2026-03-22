@@ -3,15 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// MyAnimeList Sync — OAuth2 login + watch history sync.
-/// Note: Requires a MAL API Client ID registered at myanimelist.net/apiconfig.
+/// MyAnimeList Sync using Jikan API.
+/// Requires NO API Key or OAuth login — just a username!
 class MalSyncService {
-  static const String _clientIdKey = 'mal_client_id';
-  static const String _tokenKey = 'mal_access_token';
-  static const String _refreshTokenKey = 'mal_refresh_token';
+  static const String _usernameKey = 'mal_username';
   static const String _malStatusKey = 'mal_sync_enabled';
-
-  static const String _malApiBase = 'https://api.myanimelist.net/v2';
 
   /// Check if MAL sync is configured.
   static Future<bool> isEnabled() async {
@@ -19,149 +15,70 @@ class MalSyncService {
     return prefs.getBool(_malStatusKey) ?? false;
   }
 
-  /// Save MAL API Client ID.
-  static Future<void> setClientId(String clientId) async {
+  /// Save MAL Username.
+  static Future<void> setUsername(String username) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_clientIdKey, clientId);
+    await prefs.setString(_usernameKey, username.trim());
+    await prefs.setBool(_malStatusKey, username.trim().isNotEmpty);
   }
 
-  /// Get stored Client ID.
-  static Future<String?> getClientId() async {
+  /// Get stored Username.
+  static Future<String?> getUsername() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_clientIdKey);
-  }
-
-  /// Save access token from OAuth2 flow.
-  static Future<void> saveTokens(String accessToken, String refreshToken) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, accessToken);
-    await prefs.setString(_refreshTokenKey, refreshToken);
-    await prefs.setBool(_malStatusKey, true);
-  }
-
-  /// Get access token.
-  static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return prefs.getString(_usernameKey);
   }
 
   /// Logout / disconnect MAL.
   static Future<void> disconnect() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_refreshTokenKey);
+    await prefs.remove(_usernameKey);
     await prefs.setBool(_malStatusKey, false);
   }
 
-  /// Get the user's MAL anime list.
+  /// Get the user's MAL anime list via Jikan API v4.
   static Future<List<MalAnimeEntry>> getMyList({int limit = 50}) async {
-    final token = await getAccessToken();
-    if (token == null) return [];
+    final username = await getUsername();
+    if (username == null || username.isEmpty) return [];
 
     try {
       final resp = await http.get(
-        Uri.parse('$_malApiBase/users/@me/animelist?fields=list_status&limit=$limit'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'User-Agent': 'AnimeWaifuApp/3.0',
-        },
+        Uri.parse('https://api.jikan.moe/v4/users/$username/animelist'),
       ).timeout(const Duration(seconds: 12));
 
       if (resp.statusCode != 200) return [];
       final json = jsonDecode(resp.body) as Map<String, dynamic>;
       final data = json['data'] as List? ?? [];
 
-      return data.map((e) {
+      return data.take(limit).map((e) {
         final entry = e as Map<String, dynamic>;
-        final node = entry['node'] as Map<String, dynamic>? ?? {};
-        final listStatus = entry['list_status'] as Map<String, dynamic>? ?? {};
+        final anime = entry['anime'] as Map<String, dynamic>? ?? {};
+        final images = anime['images'] as Map<String, dynamic>? ?? {};
+        final jpg = images['jpg'] as Map<String, dynamic>? ?? {};
+        
+        // Map Jikan status int to MAL string
+        String statusStr = 'Unknown';
+        final statusCode = entry['watching_status'] as int? ?? 0;
+        switch (statusCode) {
+          case 1: statusStr = 'watching'; break;
+          case 2: statusStr = 'completed'; break;
+          case 3: statusStr = 'on_hold'; break;
+          case 4: statusStr = 'dropped'; break;
+          case 6: statusStr = 'plan_to_watch'; break;
+        }
+
         return MalAnimeEntry(
-          malId: node['id'] as int? ?? 0,
-          title: node['title'] as String? ?? '',
-          coverUrl: (node['main_picture'] as Map<String, dynamic>?)?['large'] ?? '',
-          status: listStatus['status'] as String? ?? '',
-          episodesWatched: listStatus['num_episodes_watched'] as int? ?? 0,
-          score: listStatus['score'] as int? ?? 0,
+          malId: anime['mal_id'] as int? ?? 0,
+          title: anime['title'] as String? ?? 'Unknown Anime',
+          coverUrl: jpg['large_image_url'] ?? jpg['image_url'] ?? '',
+          status: statusStr,
+          episodesWatched: entry['episodes_watched'] as int? ?? 0,
+          score: entry['score'] as int? ?? 0,
         );
       }).toList();
     } catch (e) {
       debugPrint('MAL list fetch failed: $e');
       return [];
     }
-  }
-
-  /// Update anime status on MAL.
-  static Future<bool> updateAnimeStatus({
-    required int malId,
-    required String status, // 'watching', 'completed', 'plan_to_watch', etc.
-    int? episodesWatched,
-    int? score,
-  }) async {
-    final token = await getAccessToken();
-    if (token == null) return false;
-
-    try {
-      final body = <String, String>{
-        'status': status,
-      };
-      if (episodesWatched != null) body['num_watched_episodes'] = '$episodesWatched';
-      if (score != null) body['score'] = '$score';
-
-      final resp = await http.patch(
-        Uri.parse('$_malApiBase/anime/$malId/my_list_status'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'AnimeWaifuApp/3.0',
-        },
-        body: body,
-      ).timeout(const Duration(seconds: 10));
-
-      return resp.statusCode == 200;
-    } catch (e) {
-      debugPrint('MAL update failed: $e');
-      return false;
-    }
-  }
-
-  /// Get OAuth2 authorization URL.
-  static Future<String?> getAuthUrl() async {
-    final clientId = await getClientId();
-    if (clientId == null || clientId.isEmpty) return null;
-    return 'https://myanimelist.net/v1/oauth2/authorize'
-        '?response_type=code&client_id=$clientId'
-        '&code_challenge=anime_waifu_challenge_string'
-        '&code_challenge_method=plain';
-  }
-
-  /// Exchange authorization code for tokens.
-  static Future<bool> exchangeCode(String code) async {
-    final clientId = await getClientId();
-    if (clientId == null) return false;
-
-    try {
-      final resp = await http.post(
-        Uri.parse('https://myanimelist.net/v1/oauth2/token'),
-        body: {
-          'client_id': clientId,
-          'grant_type': 'authorization_code',
-          'code': code,
-          'code_verifier': 'anime_waifu_challenge_string',
-        },
-      ).timeout(const Duration(seconds: 15));
-
-      if (resp.statusCode == 200) {
-        final json = jsonDecode(resp.body);
-        await saveTokens(
-          json['access_token'] as String,
-          json['refresh_token'] as String? ?? '',
-        );
-        return true;
-      }
-    } catch (e) {
-      debugPrint('Token exchange failed: $e');
-    }
-    return false;
   }
 }
 
@@ -173,7 +90,12 @@ class MalAnimeEntry {
   final int episodesWatched;
   final int score;
 
-  MalAnimeEntry({required this.malId, required this.title,
-    required this.coverUrl, required this.status,
-    required this.episodesWatched, required this.score});
+  MalAnimeEntry({
+    required this.malId,
+    required this.title,
+    required this.coverUrl,
+    required this.status,
+    required this.episodesWatched,
+    required this.score,
+  });
 }
