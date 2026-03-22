@@ -17,7 +17,7 @@ class MainBottomNav extends StatelessWidget {
 
   static const _items = [
     _NavItem(icon: Icons.chat_bubble_outline_rounded, activeIcon: Icons.chat_bubble_rounded, label: 'Chat'),
-    _NavItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome_rounded, label: 'Hub'),
+    _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
     _NavItem(icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book_rounded, label: 'Manga'),
     _NavItem(icon: Icons.music_note_outlined, activeIcon: Icons.music_note_rounded, label: 'Music'),
     _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'More'),
