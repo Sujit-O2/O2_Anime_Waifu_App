@@ -200,13 +200,15 @@ class _HiAnimeWebviewPageState extends State<HiAnimeWebviewPage> {
       case AnimeWebSource.hentaiWorld: titleString = '🔞 HentaiWorld '; accent = Colors.indigoAccent; break;
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) async {
+        if (didPop) return;
         if (_webViewController != null && await _webViewController!.canGoBack()) {
           _webViewController!.goBack();
-          return false; // Prevent Flutter from exiting the page
+        } else {
+          if (context.mounted) Navigator.of(context).pop();
         }
-        return true; // Allow Flutter to exit if WebView has no history
       },
       child: Scaffold(
         backgroundColor: Colors.black,

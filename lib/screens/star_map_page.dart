@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -222,7 +222,7 @@ class _StarFieldPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // ── Draw tiny background stars ──────────────────────────────────────────
-    final bgPaint = Paint()..color = Colors.white.withOpacity(0.3);
+    final bgPaint = Paint()..color = Colors.white.withValues(alpha: 0.3);
     for (final s in backgroundStars) {
       canvas.drawCircle(Offset(s.dx * size.width, s.dy * size.height), 1, bgPaint);
     }
@@ -242,9 +242,9 @@ class _StarFieldPainter extends CustomPainter {
         final conn = stars[connIdx];
         if (!conn.unlocked) continue;
         final to = Offset(conn.position.dx * size.width, conn.position.dy * size.height);
-        linePaint.color = s.color.withOpacity(0.25);
+        linePaint.color = s.color.withValues(alpha: 0.25);
         linePaint.shader = LinearGradient(
-          colors: [s.color.withOpacity(0.3), conn.color.withOpacity(0.3)],
+          colors: [s.color.withValues(alpha: 0.3), conn.color.withValues(alpha: 0.3)],
         ).createShader(Rect.fromPoints(from, to));
         canvas.drawLine(from, to, linePaint);
       }
@@ -262,32 +262,32 @@ class _StarFieldPainter extends CustomPainter {
       if (s.unlocked) {
         // Outer glow
         final glowPaint = Paint()
-          ..color = s.color.withOpacity(0.15 + (isTapped ? 0.2 : 0))
+          ..color = s.color.withValues(alpha: 0.15 + (isTapped ? 0.2 : 0))
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
         canvas.drawCircle(center, radius * 2.2, glowPaint);
 
         // Inner glow
         final innerGlow = Paint()
-          ..color = s.color.withOpacity(0.25)
+          ..color = s.color.withValues(alpha: 0.25)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
         canvas.drawCircle(center, radius * 1.4, innerGlow);
       }
 
       // Star circle
       final starPaint = Paint()
-        ..color = s.unlocked ? s.color.withOpacity(alpha) : Colors.white.withOpacity(0.15);
+        ..color = s.unlocked ? s.color.withValues(alpha: alpha) : Colors.white.withValues(alpha: 0.15);
       canvas.drawCircle(center, radius, starPaint);
 
       // Star core (bright center)
       if (s.unlocked) {
-        final corePaint = Paint()..color = Colors.white.withOpacity(0.6 + twinkleBoost);
+        final corePaint = Paint()..color = Colors.white.withValues(alpha: 0.6 + twinkleBoost);
         canvas.drawCircle(center, radius * 0.35, corePaint);
       }
 
       // Tap ring
       if (isTapped) {
         final ringPaint = Paint()
-          ..color = s.color.withOpacity(0.7)
+          ..color = s.color.withValues(alpha: 0.7)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
         canvas.drawCircle(center, radius * 2.5, ringPaint);
@@ -444,7 +444,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(colors: [
-                          const Color(0xFFFF4D8D).withOpacity(0.07),
+                          const Color(0xFFFF4D8D).withValues(alpha: 0.07),
                           Colors.transparent,
                         ]),
                       ),
@@ -459,7 +459,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(colors: [
-                          const Color(0xFF3498DB).withOpacity(0.06),
+                          const Color(0xFF3498DB).withValues(alpha: 0.06),
                           Colors.transparent,
                         ]),
                       ),
@@ -523,9 +523,9 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.07),
+                            color: Colors.white.withValues(alpha: 0.07),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.12)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                           ),
                           child: const Icon(Icons.arrow_back_ios_new,
                               color: Colors.white60, size: 16),
@@ -544,7 +544,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                                 fontWeight: FontWeight.w900,
                                 shadows: [
                                   Shadow(
-                                    color: const Color(0xFFFF4D8D).withOpacity(0.5),
+                                    color: const Color(0xFFFF4D8D).withValues(alpha: 0.5),
                                     blurRadius: 12,
                                   ),
                                 ],
@@ -569,7 +569,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF4D8D).withOpacity(0.4),
+                              color: const Color(0xFFFF4D8D).withValues(alpha: 0.4),
                               blurRadius: 10,
                             ),
                           ],
@@ -600,12 +600,12 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF4D8D).withOpacity(0.07),
+                            color: const Color(0xFFFF4D8D).withValues(alpha: 0.07),
                             blurRadius: 16,
                           ),
                         ],
@@ -657,8 +657,8 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                star.color.withOpacity(star.unlocked ? 0.15 : 0.05),
-                Colors.black.withOpacity(0.7),
+                star.color.withValues(alpha: star.unlocked ? 0.15 : 0.05),
+                Colors.black.withValues(alpha: 0.7),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -666,14 +666,14 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: star.unlocked
-                  ? star.color.withOpacity(0.5)
-                  : Colors.white.withOpacity(0.1),
+                  ? star.color.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.1),
               width: 1.5,
             ),
             boxShadow: [
               if (star.unlocked)
                 BoxShadow(
-                  color: star.color.withOpacity(0.25),
+                  color: star.color.withValues(alpha: 0.25),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -687,10 +687,10 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: star.color.withOpacity(star.unlocked ? 0.2 : 0.05),
+                  color: star.color.withValues(alpha: star.unlocked ? 0.2 : 0.05),
                   border: Border.all(
                     color: star.unlocked
-                        ? star.color.withOpacity(0.6)
+                        ? star.color.withValues(alpha: 0.6)
                         : Colors.white12,
                     width: 2,
                   ),
@@ -724,7 +724,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: star.color.withOpacity(0.2),
+                              color: star.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text('✓ Unlocked',
@@ -771,7 +771,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
             color: filled ? color : Colors.transparent,
             border: Border.all(color: color, width: 1.5),
             boxShadow: filled
-                ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6)]
+                ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)]
                 : null,
           ),
         ),

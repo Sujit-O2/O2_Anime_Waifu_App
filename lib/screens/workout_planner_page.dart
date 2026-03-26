@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -83,7 +83,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -93,14 +93,14 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
                 Text('WORKOUT PLANNER', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                 Text(_loading ? 'AI generating your workout…' : 'Zero Two-approved training 💪',
-                    style: GoogleFonts.outfit(color: Colors.redAccent.withOpacity(0.7), fontSize: 10)),
+                    style: GoogleFonts.outfit(color: Colors.redAccent.withValues(alpha: 0.7), fontSize: 10)),
               ])),
               if (_exercises.isNotEmpty) Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.12),
+                  color: Colors.redAccent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.redAccent.withOpacity(0.3))),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3))),
                 child: Text('${_completed.length}/${_exercises.length}',
                     style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w700)),
               ),
@@ -117,7 +117,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
               const SizedBox(height: 6),
               ClipRRect(borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(value: progress,
-                    backgroundColor: Colors.white.withOpacity(0.07),
+                    backgroundColor: Colors.white.withValues(alpha: 0.07),
                     valueColor: const AlwaysStoppedAnimation(Colors.redAccent), minHeight: 4)),
             ]),
           ),
@@ -153,8 +153,8 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: done ? Colors.greenAccent.withOpacity(0.07) : Colors.white.withOpacity(0.04),
-        border: Border.all(color: done ? Colors.greenAccent.withOpacity(0.3) : Colors.white.withOpacity(0.07))),
+        color: done ? Colors.greenAccent.withValues(alpha: 0.07) : Colors.white.withValues(alpha: 0.04),
+        border: Border.all(color: done ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.07))),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: GestureDetector(
@@ -164,8 +164,8 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
             width: 40, height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: done ? Colors.greenAccent.withOpacity(0.2) : Colors.redAccent.withOpacity(0.1),
-              border: Border.all(color: done ? Colors.greenAccent : Colors.redAccent.withOpacity(0.4))),
+              color: done ? Colors.greenAccent.withValues(alpha: 0.2) : Colors.redAccent.withValues(alpha: 0.1),
+              border: Border.all(color: done ? Colors.greenAccent : Colors.redAccent.withValues(alpha: 0.4))),
             child: Icon(done ? Icons.check_rounded : Icons.fitness_center_outlined,
                 color: done ? Colors.greenAccent : Colors.redAccent, size: 20)),
         ),
@@ -177,7 +177,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
           if (sets.isNotEmpty || reps.isNotEmpty) ...[
             const SizedBox(height: 2),
             Text('${sets.isNotEmpty ? "Sets: $sets" : ""}${reps.isNotEmpty ? " · Reps: $reps" : ""}',
-                style: GoogleFonts.outfit(color: Colors.redAccent.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.outfit(color: Colors.redAccent.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.w600)),
           ],
           if (muscle.isNotEmpty) ...[
             const SizedBox(height: 2),

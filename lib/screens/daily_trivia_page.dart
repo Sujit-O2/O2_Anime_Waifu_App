@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -106,7 +106,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                 child: Container(
                   width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -123,11 +123,11 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                   if (_loading)
                     Text('AI is crafting today\'s questions…',
                         style: GoogleFonts.outfit(
-                            color: Colors.amberAccent.withOpacity(0.6), fontSize: 10))
+                            color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10))
                   else if (!_finished && _questions.isNotEmpty)
                     Text('Question ${_idx + 1}/${_questions.length} · Score: $_score',
                         style: GoogleFonts.outfit(
-                            color: Colors.amberAccent.withOpacity(0.6), fontSize: 10)),
+                            color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10)),
                 ],
               )),
             ]),
@@ -164,7 +164,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: (_idx + 1) / _questions.length,
-            backgroundColor: Colors.white.withOpacity(0.07),
+            backgroundColor: Colors.white.withValues(alpha: 0.07),
             valueColor: const AlwaysStoppedAnimation(Colors.amberAccent),
             minHeight: 3,
           ),
@@ -174,8 +174,8 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.white.withOpacity(0.04),
-            border: Border.all(color: Colors.amberAccent.withOpacity(0.2)),
+            color: Colors.white.withValues(alpha: 0.04),
+            border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
           ),
           child: Text(q['q']?.toString() ?? 'Question',
               style: GoogleFonts.outfit(
@@ -184,16 +184,16 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
         const SizedBox(height: 16),
         ...List.generate(options.length, (i) {
           Color borderColor = Colors.white12;
-          Color bgColor = Colors.white.withOpacity(0.03);
+          Color bgColor = Colors.white.withValues(alpha: 0.03);
           Color textColor = Colors.white70;
           if (_answered) {
             if (i == correct) {
               borderColor = Colors.greenAccent;
-              bgColor = Colors.greenAccent.withOpacity(0.08);
+              bgColor = Colors.greenAccent.withValues(alpha: 0.08);
               textColor = Colors.greenAccent;
             } else if (i == _selected) {
               borderColor = Colors.redAccent;
-              bgColor = Colors.redAccent.withOpacity(0.08);
+              bgColor = Colors.redAccent.withValues(alpha: 0.08);
               textColor = Colors.redAccent;
             }
           }
@@ -213,8 +213,8 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                   width: 26, height: 26,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: borderColor.withOpacity(0.15),
-                    border: Border.all(color: borderColor.withOpacity(0.5)),
+                    color: borderColor.withValues(alpha: 0.15),
+                    border: Border.all(color: borderColor.withValues(alpha: 0.5)),
                   ),
                   child: Center(child: Text(String.fromCharCode(65 + i),
                       style: GoogleFonts.outfit(
@@ -237,8 +237,8 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                color: Colors.amberAccent.withOpacity(0.06),
-                border: Border.all(color: Colors.amberAccent.withOpacity(0.2)),
+                color: Colors.amberAccent.withValues(alpha: 0.06),
+                border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
               ),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('💡 ', style: TextStyle(fontSize: 16)),
@@ -252,11 +252,11 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
             child: ElevatedButton(
               onPressed: _next,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amberAccent.withOpacity(0.15),
+                backgroundColor: Colors.amberAccent.withValues(alpha: 0.15),
                 foregroundColor: Colors.amberAccent,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.amberAccent.withOpacity(0.4))),
+                    side: BorderSide(color: Colors.amberAccent.withValues(alpha: 0.4))),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),

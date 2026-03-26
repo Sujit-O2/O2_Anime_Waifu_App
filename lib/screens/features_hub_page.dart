@@ -153,7 +153,7 @@ class _SakuraPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SakuraPainter old) => true;
+  bool shouldRepaint(_SakuraPainter old) => old.t != t;
 }
 
 class _Petal {

@@ -41,7 +41,7 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
       ..repeat(reverse: true);
     _pulseAnim = Tween<double>(begin: 0.95, end: 1.05)
         .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
-    _remaining = _hours * 60 + _seconds;
+    _remaining = _hours * 3600 + _minutes * 60 + _seconds;
   }
 
   @override
@@ -158,7 +158,7 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white12)),
                     child: const Icon(Icons.arrow_back_ios_new,
@@ -189,10 +189,10 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
                     height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                           color: (_done ? Colors.pinkAccent : Colors.cyanAccent)
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                           width: 2),
                     ),
                     child: Stack(alignment: Alignment.center, children: [
@@ -201,7 +201,7 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
                         height: 210,
                         child: CircularProgressIndicator(
                           value: _running || _remaining > 0 ? _progress : 1.0,
-                          backgroundColor: Colors.white.withOpacity(0.06),
+                          backgroundColor: Colors.white.withValues(alpha: 0.06),
                           valueColor: AlwaysStoppedAnimation(
                               _done ? Colors.pinkAccent : Colors.cyanAccent),
                           strokeWidth: 6,
@@ -288,10 +288,10 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
                                     horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  color: Colors.cyanAccent.withOpacity(0.08),
+                                  color: Colors.cyanAccent.withValues(alpha: 0.08),
                                   border: Border.all(
                                       color:
-                                          Colors.cyanAccent.withOpacity(0.25)),
+                                          Colors.cyanAccent.withValues(alpha: 0.25)),
                                 ),
                                 child: Text(p['label'] as String,
                                     style: GoogleFonts.outfit(
@@ -338,8 +338,8 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
           height: 56,
           decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.12),
-              border: Border.all(color: color.withOpacity(0.4))),
+              color: color.withValues(alpha: 0.12),
+              border: Border.all(color: color.withValues(alpha: 0.4))),
           child: Icon(icon, color: color, size: 28),
         ),
       );

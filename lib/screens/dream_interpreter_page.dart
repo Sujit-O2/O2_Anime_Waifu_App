@@ -45,7 +45,7 @@ class _DreamInterpreterPageState extends State<DreamInterpreterPage>
           .orderBy('ts', descending: true).limit(20).get();
       if (mounted) {
         setState(() {
-          _history = snap.docs.map((d) => {
+          _history = snap.docs.map((d) => <String, String>{
             'dream': d['dream'] as String,
             'interpretation': d['interpretation'] as String,
           }).toList();

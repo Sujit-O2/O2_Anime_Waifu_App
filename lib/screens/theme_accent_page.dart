@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_themes.dart';
@@ -150,12 +150,12 @@ class _ThemeAccentPageState extends State<ThemeAccentPage> {
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOut,
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.8),
+                          color: color.withValues(alpha: 0.8),
                           shape: BoxShape.circle,
                           boxShadow: [
                             if (isSelected)
                               BoxShadow(
-                                color: color.withOpacity(0.6),
+                                color: color.withValues(alpha: 0.6),
                                 blurRadius: 15,
                                 spreadRadius: 4,
                               )

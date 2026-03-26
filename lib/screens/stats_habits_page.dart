@@ -112,7 +112,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
       try {
         final List<dynamic> decoded = jsonDecode(hString);
         setState(() {
-          _habits = decoded.cast<Map<String, dynamic>>();
+          _habits = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         });
         _checkHabitResets();
       } catch (e) {

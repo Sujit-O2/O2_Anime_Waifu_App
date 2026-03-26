@@ -52,7 +52,7 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
         setState(() {
           _docId = doc.id;
           _activeStarter = {'title': data['title'], 'icon': data['icon']};
-          _chapters = (data['chapters'] as List).cast<Map<String, dynamic>>();
+          _chapters = (data['chapters'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
         });
       }
     } catch (_) {}

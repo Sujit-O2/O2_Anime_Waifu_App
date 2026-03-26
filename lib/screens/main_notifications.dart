@@ -257,6 +257,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
     );
   }
 
+
 // ── Page: Coming Soon ─────────────────────────────────────────────────────
   Widget _buildComingSoonPage() {
     final episodes = _buildZeroTwoEpisodes();
@@ -470,7 +471,8 @@ class _ZeroTwoEpisodesPlayer extends StatefulWidget {
   State<_ZeroTwoEpisodesPlayer> createState() => _ZeroTwoEpisodesPlayerState();
 }
 
-class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
+class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   VoidCallback? _controllerListener;
   List<_EpisodeVideoItem> _episodes = const [];
@@ -484,9 +486,12 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
   bool _autoAdvancing = false;
   int _loadGeneration = 0;
 
+  bool _wasPlayingBeforePause = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _episodes = List<_EpisodeVideoItem>.from(widget.episodes);
     _sourceLabel = widget.usingExplicitIds
         ? 'CLOUDINARY_VIDEO_PUBLIC_IDS'
@@ -496,8 +501,26 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _detachController(disposeController: true);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App went to background — pause video to save bandwidth
+      _wasPlayingBeforePause = controller.value.isPlaying;
+      controller.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      // App came back — resume if it was playing before
+      if (_wasPlayingBeforePause) {
+        controller.play();
+      }
+    }
   }
 
   void _attachController(VideoPlayerController controller) {
@@ -672,26 +695,39 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     final auth = base64Encode(
       utf8.encode('${widget.cloudinaryApiKey}:${widget.cloudinaryApiSecret}'),
     );
-    final headers = <String, String>{'Authorization': 'Basic $auth'};
+    final headers = <String, String>{
+      'Authorization': 'Basic $auth',
+      'Content-Type': 'application/json',
+    };
     final resources = <Map<String, dynamic>>[];
-    String? nextCursor;
     final normalizedFolder = widget.cloudinaryFolder
         .replaceAll('\\', '/')
         .replaceAll(RegExp(r'^/+|/+$'), '');
 
+    // ── Strategy 1: Search API (folder: expression) ─────────────────────
+    // Cloudinary's "asset_folder" (the UI folder like "o2") is NOT the same
+    // as a public_id prefix. The Search API's folder: expression correctly
+    // matches the asset_folder, which is what we need.
+    String? nextCursor;
     do {
+      final bodyMap = <String, dynamic>{
+        'expression': normalizedFolder.isNotEmpty
+            ? 'folder:$normalizedFolder AND resource_type:video'
+            : 'resource_type:video',
+        'max_results': 100,
+        'sort_by': [{'public_id': 'asc'}],
+        if (nextCursor != null && nextCursor.isNotEmpty)
+          'next_cursor': nextCursor,
+      };
       final uri = Uri.https(
         'api.cloudinary.com',
-        '/v1_1/${widget.cloudName}/resources/video/upload',
-        <String, String>{
-          'max_results': '100',
-          if (nextCursor != null && nextCursor.isNotEmpty)
-            'next_cursor': nextCursor,
-        },
+        '/v1_1/${widget.cloudName}/resources/search',
       );
-      final response = await http.get(uri, headers: headers);
+      final response = await http.post(uri,
+          headers: headers, body: jsonEncode(bodyMap));
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('HTTP ${response.statusCode}');
+        throw Exception(
+            'Cloudinary Search HTTP ${response.statusCode}: ${response.body}');
       }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) break;
@@ -708,21 +744,43 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
     } while (
         nextCursor != null && nextCursor.isNotEmpty && resources.length < 500);
 
+    // ── Strategy 2: Fallback to Admin API without prefix ────────────────
+    if (resources.isEmpty) {
+      final fallbackHeaders = <String, String>{'Authorization': 'Basic $auth'};
+      String? fbCursor;
+      do {
+        final queryParams = <String, String>{
+          'max_results': '100',
+          'resource_type': 'video',
+          if (fbCursor != null && fbCursor.isNotEmpty) 'next_cursor': fbCursor,
+        };
+        final uri = Uri.https(
+          'api.cloudinary.com',
+          '/v1_1/${widget.cloudName}/resources/video/upload',
+          queryParams,
+        );
+        final response = await http.get(uri, headers: fallbackHeaders);
+        if (response.statusCode < 200 || response.statusCode >= 300) break;
+        final decoded = jsonDecode(response.body);
+        if (decoded is! Map<String, dynamic>) break;
+        final page = decoded['resources'];
+        if (page is List) {
+          for (final item in page) {
+            if (item is Map<String, dynamic>) resources.add(item);
+          }
+        }
+        fbCursor = (decoded['next_cursor'] as String?)?.trim();
+      } while (
+          fbCursor != null && fbCursor.isNotEmpty && resources.length < 500);
+    }
+
     final episodes = <_EpisodeVideoItem>[];
     for (final resource in resources) {
       final publicId = (resource['public_id'] ?? '').toString().trim();
       if (publicId.isEmpty) continue;
-      final assetFolder = (resource['asset_folder'] ?? '')
-          .toString()
-          .trim()
-          .replaceAll('\\', '/');
-      if (normalizedFolder.isNotEmpty &&
-          assetFolder != normalizedFolder &&
-          !assetFolder.startsWith('$normalizedFolder/') &&
-          !assetFolder.endsWith('/$normalizedFolder') &&
-          !publicId.startsWith('$normalizedFolder/')) {
-        continue;
-      }
+
+      final resourceType = (resource['resource_type'] ?? '').toString();
+      if (resourceType.isNotEmpty && resourceType != 'video') continue;
 
       final secureUrl = (resource['secure_url'] ?? '').toString().trim();
       final title = _buildDisplayTitle(
@@ -730,19 +788,18 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
         fallbackIndex: episodes.length + 1,
       );
       final urls = <String>[];
+      // secure_url from Cloudinary response is the most reliable — use it first
+      if (secureUrl.isNotEmpty) {
+        urls.add(secureUrl);
+      }
       urls.addAll(_buildCloudinaryCandidateUrls(
         cloudName: widget.cloudName,
         publicId: publicId,
       ));
-      if (secureUrl.isNotEmpty) urls.add(secureUrl);
-      final dedupedUrls = <String>[];
-      for (final u in urls) {
-        if (!dedupedUrls.contains(u)) dedupedUrls.add(u);
-      }
       episodes.add(_EpisodeVideoItem(
         title: title,
         publicId: publicId,
-        urls: dedupedUrls,
+        urls: urls,
       ));
     }
 
@@ -889,8 +946,9 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
       final u = currentItem.urls.isNotEmpty ? currentItem.urls.first : null;
       if (u == null || u.isEmpty) return;
 
-      final returnedPosition =
-          await navigator.pushReplacement<Duration, Duration>(
+      // Use push (not pushReplacement) so the returned position
+      // is correctly received by the awaiting parent context.
+      final returnedPosition = await navigator.push<Duration>(
         MaterialPageRoute(
           builder: (_) => _LandscapeEpisodePlayerPage(
             title: currentItem.title,
@@ -898,13 +956,11 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer> {
             startAt: startPosition,
             onNext: index < _episodes.length - 1
                 ? () {
-                    _loadEpisode(index + 1, autoplay: true);
                     openFullscreen(index + 1, Duration.zero);
                   }
                 : null,
             onPrevious: index > 0
                 ? () {
-                    _loadEpisode(index - 1, autoplay: true);
                     openFullscreen(index - 1, Duration.zero);
                   }
                 : null,
@@ -1351,6 +1407,8 @@ class _LandscapeEpisodePlayerPageState
 
   double _playbackSpeed = 1.0;
   bool _isLocked = false;
+  // Guard: prevents auto-next from firing more than once per episode
+  bool _endHandledLandscape = false;
 
   // Gesture State
   double _panStartX = 0.0;
@@ -1405,6 +1463,7 @@ class _LandscapeEpisodePlayerPageState
         await controller.dispose();
         return;
       }
+      _endHandledLandscape = false; // reset guard for new video
       _attachController(controller);
       setState(() {
         _loading = false;
@@ -1514,14 +1573,15 @@ class _LandscapeEpisodePlayerPageState
       if (!mounted) return;
       setState(() {});
 
-      // Auto-play next episode on completion
-      if (_controller != null && _controller!.value.isInitialized) {
-        if (_controller!.value.position >= _controller!.value.duration &&
-            _controller!.value.duration > Duration.zero) {
-          if (widget.onNext != null) {
-            widget.onNext!();
-          }
-        }
+      // Auto-play next episode on completion — guard prevents repeated calls
+      if (!_endHandledLandscape &&
+          _controller != null &&
+          _controller!.value.isInitialized &&
+          _controller!.value.duration > Duration.zero &&
+          _controller!.value.position >=
+              _controller!.value.duration - const Duration(milliseconds: 300)) {
+        _endHandledLandscape = true;
+        widget.onNext?.call();
       }
     };
     controller.addListener(_controllerListener!);
@@ -1748,10 +1808,10 @@ class _LandscapeEpisodePlayerPageState
     final position = hasVideo ? _safePosition(controller) : Duration.zero;
     final duration =
         hasVideo ? controller.value.duration : const Duration(minutes: 24);
-    return WillPopScope(
-      onWillPop: () async {
-        await _close();
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) async {
+        if (!didPop) await _close();
       },
       child: Scaffold(
         backgroundColor: Colors.black,

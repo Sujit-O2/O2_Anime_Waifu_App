@@ -128,7 +128,9 @@ class AssistantForegroundService : Service() {
     )
     private val wakeCaptureRunnable = object : Runnable {
         override fun run() {
-            val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+            // Disabled continuous background wake (wakeModeEnabled) to let Flutter ONNX handle it.
+            // Only allow background capture if it's an explicit overlay listen session.
+            val listeningAllowed = overlayListenSessionActive
             if (!isRunning || !listeningAllowed || !hasMicPermission()) {
                 return
             }
@@ -140,7 +142,7 @@ class AssistantForegroundService : Service() {
     private val wakeWatchdogRunnable = object : Runnable {
         override fun run() {
             if (!isRunning) return
-            if (wakeModeEnabled && !wakeLoopRunning && hasMicPermission()) {
+            if (overlayListenSessionActive && !wakeLoopRunning && hasMicPermission()) {
                 Log.w(TAG, "WakeWatchdog: wake loop dead — restarting via applyWakeRecognizerState")
                 applyWakeRecognizerState()
             }
@@ -613,7 +615,7 @@ class AssistantForegroundService : Service() {
                 conn.doOutput = true
 
                 val payload = JSONObject().apply {
-                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
+                    put("model", if (model.isNullOrEmpty()) "meta-llama/llama-4-scout-17b-16e-instruct" else model)
                     val messages = JSONArray().apply {
                         put(JSONObject().apply {
                             put("role", "system")
@@ -993,7 +995,7 @@ class AssistantForegroundService : Service() {
             stopWakeCaptureLoop()
             return
         }
-        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        val listeningAllowed = overlayListenSessionActive // ONNX handles continuous wake now
         if (listeningAllowed) {
             if (!hasMicPermission()) {
                 Log.w(TAG, "Wake mode requested without mic permission; disabling wake mode")
@@ -1146,7 +1148,7 @@ class AssistantForegroundService : Service() {
     }
 
     private fun scheduleNextWakeCapture(delayMs: Long) {
-        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        val listeningAllowed = overlayListenSessionActive // ONNX handles continuous wake now
         if (!wakeLoopRunning || !isRunning || !listeningAllowed) return
         handler.removeCallbacks(wakeCaptureRunnable)
         handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(80L))
@@ -1355,7 +1357,7 @@ class AssistantForegroundService : Service() {
                 conn.doOutput = true
 
                 val payload = JSONObject().apply {
-                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
+                    put("model", if (model.isNullOrEmpty()) "meta-llama/llama-4-scout-17b-16e-instruct" else model)
                     val messages = buildVoiceRequestMessages(command)
                     put("messages", messages)
                 }

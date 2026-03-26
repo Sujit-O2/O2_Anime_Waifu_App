@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/waifu_background.dart';
@@ -129,7 +129,7 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -150,7 +150,7 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
                               letterSpacing: 1.5)),
                       Text('Tap to copy any kaomoji~',
                           style: GoogleFonts.outfit(
-                              color: Colors.pinkAccent.withOpacity(0.6),
+                              color: Colors.pinkAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -160,10 +160,10 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.pinkAccent.withOpacity(0.1),
+                    color: Colors.pinkAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                     border:
-                        Border.all(color: Colors.pinkAccent.withOpacity(0.3)),
+                        Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
                   ),
                   child:
                       Text(_lastCopied!, style: const TextStyle(fontSize: 13)),
@@ -188,8 +188,8 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: sel
-                          ? Colors.pinkAccent.withOpacity(0.18)
-                          : Colors.white.withOpacity(0.04),
+                          ? Colors.pinkAccent.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                           color: sel ? Colors.pinkAccent : Colors.white12),
                     ),
@@ -228,12 +228,12 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       color: isCopied
-                          ? Colors.pinkAccent.withOpacity(0.1)
-                          : Colors.white.withOpacity(0.04),
+                          ? Colors.pinkAccent.withValues(alpha: 0.1)
+                          : Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                         color: isCopied
-                            ? Colors.pinkAccent.withOpacity(0.4)
-                            : Colors.white.withOpacity(0.08),
+                            ? Colors.pinkAccent.withValues(alpha: 0.4)
+                            : Colors.white.withValues(alpha: 0.08),
                       ),
                     ),
                     child: Center(

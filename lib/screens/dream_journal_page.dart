@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -145,8 +145,8 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                         shape: BoxShape.circle,
                                         color: mood == m
                                             ? Colors.purpleAccent
-                                                .withOpacity(0.2)
-                                            : Colors.white.withOpacity(0.04),
+                                                .withValues(alpha: 0.2)
+                                            : Colors.white.withValues(alpha: 0.04),
                                         border: Border.all(
                                             color: mood == m
                                                 ? Colors.purpleAccent
@@ -239,7 +239,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
+                          color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white12)),
                       child: const Icon(Icons.arrow_back_ios_new,
@@ -257,7 +257,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                             letterSpacing: 1.5)),
                     Text('${_entries.length} dreams logged ✨',
                         style: GoogleFonts.outfit(
-                            color: Colors.purpleAccent.withOpacity(0.6),
+                            color: Colors.purpleAccent.withValues(alpha: 0.6),
                             fontSize: 10)),
                   ])),
               GestureDetector(
@@ -303,7 +303,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(14),
                                       color:
-                                          Colors.redAccent.withOpacity(0.12)),
+                                          Colors.redAccent.withValues(alpha: 0.12)),
                                   child: const Icon(
                                       Icons.delete_outline_rounded,
                                       color: Colors.redAccent)),
@@ -316,10 +316,10 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  color: Colors.purpleAccent.withOpacity(0.04),
+                                  color: Colors.purpleAccent.withValues(alpha: 0.04),
                                   border: Border.all(
                                       color: Colors.purpleAccent
-                                          .withOpacity(0.15)),
+                                          .withValues(alpha: 0.15)),
                                 ),
                                 child: Column(
                                     crossAxisAlignment:

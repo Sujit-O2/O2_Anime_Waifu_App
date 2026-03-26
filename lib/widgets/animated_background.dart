@@ -190,7 +190,11 @@ class ParticlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant ParticlePainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.themeColor != themeColor ||
+        oldDelegate.type != type;
+  }
 }
 
 class AnimatedBackground extends StatefulWidget {
@@ -212,12 +216,12 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
     switch (AppThemes.getParticleType(mode)) {
       case ParticleType.rain:
       case ParticleType.snow:
-        return 18;
+        return 12;
       case ParticleType.stars:
       case ParticleType.bubbles:
-        return 20;
+        return 14;
       default:
-        return 24;
+        return 16;
     }
   }
 
@@ -296,12 +300,14 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                                 interactionPoint);
                           }
 
-                          return CustomPaint(
-                            painter: ParticlePainter(
-                                particles, _controller.value, primary, pType),
-                            size: Size.infinite,
-                            isComplex: false,
-                            willChange: true,
+                          return RepaintBoundary(
+                            child: CustomPaint(
+                              painter: ParticlePainter(
+                                  particles, _controller.value, primary, pType),
+                              size: Size.infinite,
+                              isComplex: true,
+                              willChange: true,
+                            ),
                           );
                         },
                       ),

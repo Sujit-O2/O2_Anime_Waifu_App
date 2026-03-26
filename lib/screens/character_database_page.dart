@@ -36,7 +36,7 @@ class _CharacterDatabasePageState extends State<CharacterDatabasePage> {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body)['data'] as List? ?? [];
         if (mounted) setState(() {
-          _characters = data.cast<Map<String, dynamic>>();
+          _characters = data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           _loading = false;
         });
       }
@@ -90,7 +90,7 @@ class _CharacterTile extends StatelessWidget {
 
     // Voice actors
     final voiceActors = data['voice_actors'] as List? ?? [];
-    final jpVA = voiceActors.cast<Map<String, dynamic>>().where(
+    final jpVA = voiceActors.map((e) => Map<String, dynamic>.from(e as Map)).where(
       (va) => va['language'] == 'Japanese').toList();
 
     return Container(
