@@ -64,7 +64,7 @@ class WakeWordService {
   static const double _detectFloor = 0.80;      
   static const int _confirmWindowSize = 5;
   static const int _confirmQuorum = 3;   // 3 out of 5 consecutive detections
-  static const double _varianceCap = 1.0;
+  static const double _varianceCap = 0.04;
   final List<double> _confidenceBuffer = [];
 
   // ── Energy gate — skip inference on silence/fan noise ────────────────────
@@ -334,6 +334,11 @@ class WakeWordService {
           if (probs.length == 1) { // Assuming single output for wake word probability
              wakeProb = (probs[0] as num).toDouble();
              _logVerbose('TM Prob: ${wakeProb.toStringAsFixed(3)}');
+          } else if (probs.length == 2) { // Standard binary classification [bg, wake]
+             double p0 = (probs[0] as num).toDouble();
+             double p1 = (probs[1] as num).toDouble();
+             wakeProb = p1; // Second class is wake word
+             _logVerbose('TM Probs (2-class): Bg=${p0.toStringAsFixed(3)}, Wake=${p1.toStringAsFixed(3)}');
           } else if (probs.length == 3) { // Fallback for 3-class softmax
              double p0 = (probs[0] as num).toDouble();
              double p1 = (probs[1] as num).toDouble();
