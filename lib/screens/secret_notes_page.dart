@@ -52,6 +52,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
 
   Future<void> _unlock() async {
     final ok = await SecretNotesService.verifyPin(_pinCtrl.text.trim());
+    if (!mounted) return;
     if (ok) {
       setState(() => _unlocked = true);
       await _loadNotes();
@@ -134,7 +135,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
 
   Future<void> _setPin() async {
     final ctlr = TextEditingController();
-    showDialog(
+    await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -180,6 +181,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
         ],
       ),
     );
+    ctlr.dispose(); // ✅ dispose after dialog closes
   }
 
   @override

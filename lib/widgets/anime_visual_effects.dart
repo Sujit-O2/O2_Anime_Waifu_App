@@ -162,7 +162,7 @@ class _ParticlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _ParticlePainter old) => true; // particles mutate in-place, must repaint on tick
 }
 
 /// Glassmorphic overlay — frosted glass effect for headers and cards.

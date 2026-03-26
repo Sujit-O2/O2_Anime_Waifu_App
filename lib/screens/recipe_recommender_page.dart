@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
 import '../widgets/waifu_background.dart';
@@ -68,7 +68,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -89,7 +89,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                               letterSpacing: 1.5)),
                       Text('TheMealDB • Real recipes 🍜',
                           style: GoogleFonts.outfit(
-                              color: Colors.orangeAccent.withOpacity(0.6),
+                              color: Colors.orangeAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -100,9 +100,9 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.orangeAccent.withOpacity(0.15),
+                    color: Colors.orangeAccent.withValues(alpha: 0.15),
                     border:
-                        Border.all(color: Colors.orangeAccent.withOpacity(0.4)),
+                        Border.all(color: Colors.orangeAccent.withValues(alpha: 0.4)),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.shuffle_rounded,
@@ -182,10 +182,10 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                                 Container(
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.05),
+                                    color: Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                        color: Colors.white.withOpacity(0.08)),
+                                        color: Colors.white.withValues(alpha: 0.08)),
                                   ),
                                   child: Row(children: [
                                     _tabBtn(
@@ -217,7 +217,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                                 color: Colors.orangeAccent
-                                                    .withOpacity(0.7),
+                                                    .withValues(alpha: 0.7),
                                               ),
                                             ),
                                             const SizedBox(width: 12),
@@ -251,9 +251,9 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(text,
           style: GoogleFonts.outfit(
@@ -271,7 +271,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             color: active
-                ? Colors.orangeAccent.withOpacity(0.15)
+                ? Colors.orangeAccent.withValues(alpha: 0.15)
                 : Colors.transparent,
           ),
           child: Center(

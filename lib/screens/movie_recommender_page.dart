@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
@@ -81,7 +81,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -108,9 +108,9 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
               ),
               child: Row(children: [
                 const SizedBox(width: 12),
@@ -141,7 +141,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.purpleAccent.withOpacity(0.15),
+                      color: Colors.purpleAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text('GO',
@@ -175,8 +175,8 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: sel
-                          ? Colors.purpleAccent.withOpacity(0.18)
-                          : Colors.white.withOpacity(0.04),
+                          ? Colors.purpleAccent.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                           color: sel ? Colors.purpleAccent : Colors.white12),
                     ),
@@ -238,8 +238,8 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.04),
-          border: Border.all(color: Colors.white.withOpacity(0.07)),
+          color: Colors.white.withValues(alpha: 0.04),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -251,13 +251,13 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                     fit: BoxFit.cover,
                     width: double.infinity,
                     errorBuilder: (_, __, ___) => Container(
-                      color: Colors.purpleAccent.withOpacity(0.1),
+                      color: Colors.purpleAccent.withValues(alpha: 0.1),
                       child: const Center(
                           child: Text('🎬', style: TextStyle(fontSize: 40))),
                     ),
                   )
                 : Container(
-                    color: Colors.purpleAccent.withOpacity(0.1),
+                    color: Colors.purpleAccent.withValues(alpha: 0.1),
                     child: const Center(
                         child: Text('🎬', style: TextStyle(fontSize: 40))),
                   ),
@@ -369,11 +369,11 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: Colors.purpleAccent.withOpacity(0.1),
+                                    color: Colors.purpleAccent.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: Colors.purpleAccent
-                                            .withOpacity(0.3)),
+                                            .withValues(alpha: 0.3)),
                                   ),
                                   child: Text(g,
                                       style: GoogleFonts.outfit(

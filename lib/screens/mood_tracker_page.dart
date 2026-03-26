@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -180,7 +180,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -201,7 +201,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                               letterSpacing: 1.5)),
                       Text('${_entries.length} entries synced to cloud',
                           style: GoogleFonts.outfit(
-                              color: Colors.greenAccent.withOpacity(0.6),
+                              color: Colors.greenAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -240,8 +240,8 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         color: sel
-                            ? Color(_moods[i]['color'] as int).withOpacity(0.2)
-                            : Colors.white.withOpacity(0.04),
+                            ? Color(_moods[i]['color'] as int).withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.04),
                         border: Border.all(
                           color: sel
                               ? Color(_moods[i]['color'] as int)
@@ -277,7 +277,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                   hintStyle:
                       GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.04),
+                  fillColor: Colors.white.withValues(alpha: 0.04),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -285,12 +285,12 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: Colors.greenAccent.withOpacity(0.2)),
+                        BorderSide(color: Colors.greenAccent.withValues(alpha: 0.2)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: Colors.greenAccent.withOpacity(0.5)),
+                        BorderSide(color: Colors.greenAccent.withValues(alpha: 0.5)),
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -347,7 +347,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.redAccent.withOpacity(0.15),
+                                  color: Colors.redAccent.withValues(alpha: 0.15),
                                 ),
                                 child: const Icon(Icons.delete_outline_rounded,
                                     color: Colors.redAccent),
@@ -358,9 +358,9 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.white.withOpacity(0.04),
+                                  color: Colors.white.withValues(alpha: 0.04),
                                   border: Border.all(
-                                      color: Colors.white.withOpacity(0.07)),
+                                      color: Colors.white.withValues(alpha: 0.07)),
                                 ),
                                 child: Row(children: [
                                   Text(e['emoji'] as String,

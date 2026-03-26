@@ -36,7 +36,7 @@ extension _MainFeaturesExtension on _ChatHomePageState {
 
       await file.writeAsString(buffer.toString());
       await Share.shareXFiles(
-        [XFile(file.path)],
+        [XFile(file.path, mimeType: 'text/plain')],
         subject: 'Zero Two Chat Export ♥',
         text: 'My chat with Zero Two 💕  exported ${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}',
       );

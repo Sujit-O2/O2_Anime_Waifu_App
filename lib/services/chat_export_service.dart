@@ -26,15 +26,19 @@ class ChatExportService {
       buffer.writeln();
     }
 
-    final dir = await getTemporaryDirectory();
-    final fileName = 'zerotwo_chat_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.txt';
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsString(buffer.toString());
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = 'zerotwo_chat_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.txt';
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsString(buffer.toString());
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      subject: title,
-      text: 'My chat history with Zero Two 💕',
-    );
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'text/plain')],
+        subject: title,
+        text: 'My chat history with Zero Two 💕',
+      );
+    } catch (e) {
+      print('Export error: $e');
+    }
   }
 }

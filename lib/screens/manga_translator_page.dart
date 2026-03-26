@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// AI Manga Translator — Pick or capture manga panels, OCR + GPT translates.
 class MangaTranslatorPage extends StatefulWidget {
@@ -41,9 +42,13 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final apiKey = prefs.getString('api_key') ?? '';
+      // First check dev override, then fall back to dotenv
+      String apiKey = prefs.getString('dev_api_key_override') ?? '';
       if (apiKey.isEmpty) {
-        setState(() { _error = 'No API key. Go to Settings.'; _translating = false; });
+        apiKey = dotenv.env['API_KEY'] ?? '';
+      }
+      if (apiKey.isEmpty) {
+        setState(() { _error = 'No API key configured. Go to Dev Config in Settings.'; _translating = false; });
         return;
       }
 
@@ -51,15 +56,20 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
       final bytes = await _image!.readAsBytes();
       final base64Img = base64Encode(bytes);
 
-      // Use GPT-4 Vision to OCR + translate the manga panel
+      // Use Groq API with vision-capable model
+      final apiUrl = prefs.getString('dev_api_url_override')?.trim() ?? '';
+      final endpoint = apiUrl.isNotEmpty
+          ? apiUrl
+          : 'https://api.groq.com/openai/v1/chat/completions';
+
       final resp = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        Uri.parse(endpoint),
         headers: {
           'Authorization': 'Bearer $apiKey',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'gpt-4o',
+          'model': 'llama-3.2-90b-vision-preview',
           'messages': [{
             'role': 'user',
             'content': [
@@ -72,7 +82,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
                 '4. If there are speech bubbles, number them in reading order\n'
                 '5. Include any sound effects (onomatopoeia) translations'},
               {'type': 'image_url',
-                'image_url': {'url': 'data:image/jpeg;base64,$base64Img', 'detail': 'high'}},
+                'image_url': {'url': 'data:image/jpeg;base64,$base64Img'}},
             ],
           }],
           'max_tokens': 1000,

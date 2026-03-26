@@ -147,7 +147,11 @@ class _ContinueCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   entry.animeCoverUrl.isNotEmpty
-                    ? Image.network(entry.animeCoverUrl, fit: BoxFit.cover)
+                    ? Image.network(
+                        entry.animeCoverUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
+                      )
                     : Container(color: Colors.grey.shade900),
                   // Progress bar
                   Positioned(
@@ -208,7 +212,12 @@ class _HistoryTile extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: entry.animeCoverUrl.isNotEmpty
-            ? Image.network(entry.animeCoverUrl, width: 45, height: 60, fit: BoxFit.cover)
+            ? Image.network(
+                entry.animeCoverUrl,
+                width: 45, height: 60,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(width: 45, height: 60, color: Colors.grey.shade900),
+              )
             : Container(width: 45, height: 60, color: Colors.grey.shade900),
         ),
         title: Text(entry.animeTitle,

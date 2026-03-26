@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -74,7 +74,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -85,7 +85,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                 Text(_loading ? 'AI generating cards…'
                     : '${_truths.length} truths • ${_dares.length} dares 🃏',
-                    style: GoogleFonts.outfit(color: Colors.purpleAccent.withOpacity(0.6), fontSize: 10)),
+                    style: GoogleFonts.outfit(color: Colors.purpleAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
             ]),
           ),
@@ -111,17 +111,17 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                       gradient: LinearGradient(
                         begin: Alignment.topLeft, end: Alignment.bottomRight,
                         colors: _isTruth
-                            ? [Colors.blueAccent.withOpacity(0.15), Colors.cyanAccent.withOpacity(0.05)]
-                            : [Colors.redAccent.withOpacity(0.15), Colors.pinkAccent.withOpacity(0.05)]),
+                            ? [Colors.blueAccent.withValues(alpha: 0.15), Colors.cyanAccent.withValues(alpha: 0.05)]
+                            : [Colors.redAccent.withValues(alpha: 0.15), Colors.pinkAccent.withValues(alpha: 0.05)]),
                       border: Border.all(color: _isTruth
-                          ? Colors.cyanAccent.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3))),
+                          ? Colors.cyanAccent.withValues(alpha: 0.3) : Colors.redAccent.withValues(alpha: 0.3))),
                     child: Column(children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withOpacity(0.15),
-                          border: Border.all(color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withOpacity(0.4))),
+                          color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withValues(alpha: 0.15),
+                          border: Border.all(color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withValues(alpha: 0.4))),
                         child: Text(_isTruth ? '💭 TRUTH' : '🔥 DARE',
                             style: GoogleFonts.outfit(
                                 color: _isTruth ? Colors.cyanAccent : Colors.redAccent,
@@ -151,8 +151,8 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                 child: Container(height: 56,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: Colors.cyanAccent.withOpacity(0.1),
-                    border: Border.all(color: Colors.cyanAccent.withOpacity(0.4))),
+                    color: Colors.cyanAccent.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.4))),
                   child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Text('💭', style: TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),
@@ -165,8 +165,8 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                 child: Container(height: 56,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: Colors.redAccent.withOpacity(0.1),
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.4))),
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4))),
                   child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Text('🔥', style: TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),

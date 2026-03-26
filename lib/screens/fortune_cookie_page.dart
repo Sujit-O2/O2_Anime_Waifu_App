@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -86,7 +86,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                 child: Container(
                   width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -100,7 +100,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                   Text('FORTUNE COOKIE', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   Text(_loading ? 'Loading AI fortunes…' : 'Tap to crack a cookie~ 🥠',
-                      style: GoogleFonts.outfit(color: Colors.amberAccent.withOpacity(0.6), fontSize: 10)),
+                      style: GoogleFonts.outfit(color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10)),
                 ],
               )),
               if (_fortune != null)
@@ -124,12 +124,12 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(colors: [
-                        Colors.amberAccent.withOpacity(0.2),
-                        Colors.orange.withOpacity(0.05),
+                        Colors.amberAccent.withValues(alpha: 0.2),
+                        Colors.orange.withValues(alpha: 0.05),
                       ]),
-                      border: Border.all(color: Colors.amberAccent.withOpacity(0.4), width: 2),
+                      border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.4), width: 2),
                       boxShadow: [BoxShadow(
-                        color: Colors.amberAccent.withOpacity(0.15),
+                        color: Colors.amberAccent.withValues(alpha: 0.15),
                         blurRadius: 30, spreadRadius: 5,
                       )],
                     ),
@@ -155,8 +155,8 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.amberAccent.withOpacity(0.06),
-                  border: Border.all(color: Colors.amberAccent.withOpacity(0.25)),
+                  color: Colors.amberAccent.withValues(alpha: 0.06),
+                  border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.25)),
                 ),
                 child: Text(
                   '"$_fortune"',

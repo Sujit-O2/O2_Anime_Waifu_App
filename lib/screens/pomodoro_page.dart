@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
@@ -160,7 +160,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white12)),
                     child: const Icon(Icons.arrow_back_ios_new,
@@ -180,7 +180,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                     Text(
                         '$_session sessions completed${_session >= 4 ? ' 🏆' : ''}',
                         style: GoogleFonts.outfit(
-                            color: _themeColor.withOpacity(0.7), fontSize: 10)),
+                            color: _themeColor.withValues(alpha: 0.7), fontSize: 10)),
                   ])),
             ]),
           ),
@@ -213,16 +213,16 @@ class _PomodoroPageState extends State<PomodoroPage>
                 height: 220,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.04),
+                    color: Colors.white.withValues(alpha: 0.04),
                     border: Border.all(
-                        color: _themeColor.withOpacity(0.4), width: 2)),
+                        color: _themeColor.withValues(alpha: 0.4), width: 2)),
                 child: Stack(alignment: Alignment.center, children: [
                   SizedBox(
                     width: 210,
                     height: 210,
                     child: CircularProgressIndicator(
                       value: _progress,
-                      backgroundColor: Colors.white.withOpacity(0.05),
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
                       valueColor: AlwaysStoppedAnimation(_themeColor),
                       strokeWidth: 8,
                     ),
@@ -265,9 +265,9 @@ class _PomodoroPageState extends State<PomodoroPage>
                         shape: BoxShape.circle,
                         color: i < (_session % 4)
                             ? Colors.pinkAccent
-                            : Colors.white.withOpacity(0.1),
+                            : Colors.white.withValues(alpha: 0.1),
                         border: Border.all(
-                            color: Colors.pinkAccent.withOpacity(0.4)),
+                            color: Colors.pinkAccent.withValues(alpha: 0.4)),
                       ),
                     )),
           ),
@@ -358,8 +358,8 @@ class _PomodoroPageState extends State<PomodoroPage>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: active
-              ? _themeColor.withOpacity(0.12)
-              : Colors.white.withOpacity(0.04),
+              ? _themeColor.withValues(alpha: 0.12)
+              : Colors.white.withValues(alpha: 0.04),
           border: Border.all(color: active ? _themeColor : Colors.white12),
         ),
         child: Text(label,
@@ -378,8 +378,8 @@ class _PomodoroPageState extends State<PomodoroPage>
           height: large ? 64 : 48,
           decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.12),
-              border: Border.all(color: color.withOpacity(large ? 0.5 : 0.3))),
+              color: color.withValues(alpha: 0.12),
+              border: Border.all(color: color.withValues(alpha: large ? 0.5 : 0.3))),
           child: Icon(icon, color: color, size: large ? 32 : 22),
         ),
       );
@@ -406,7 +406,7 @@ class _PomodoroPageState extends State<PomodoroPage>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.white.withOpacity(0.04),
+            color: Colors.white.withValues(alpha: 0.04),
             border: Border.all(color: Colors.white12),
           ),
           child: Text('$label: ${val}m',

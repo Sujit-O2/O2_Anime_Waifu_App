@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -69,7 +69,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -79,14 +79,14 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                 Text('NEVER HAVE I EVER', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                 Text(_loading ? 'AI generating prompts…' : 'Card ${_idx + 1} of ${_prompts.length}',
-                    style: GoogleFonts.outfit(color: Colors.deepOrangeAccent.withOpacity(0.6), fontSize: 10)),
+                    style: GoogleFonts.outfit(color: Colors.deepOrangeAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
               if (!_loading && _prompts.isNotEmpty) Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.deepOrangeAccent.withOpacity(0.1),
-                  border: Border.all(color: Colors.deepOrangeAccent.withOpacity(0.3))),
+                  color: Colors.deepOrangeAccent.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.deepOrangeAccent.withValues(alpha: 0.3))),
                 child: Text('$_haveCount / $_haventCount', style: GoogleFonts.outfit(
                     color: Colors.deepOrangeAccent, fontSize: 11, fontWeight: FontWeight.w700)),
               ),
@@ -112,10 +112,10 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                             gradient: LinearGradient(
                               begin: Alignment.topLeft, end: Alignment.bottomRight,
                               colors: [
-                                Colors.deepOrangeAccent.withOpacity(0.08),
-                                Colors.pinkAccent.withOpacity(0.04)]),
-                            border: Border.all(color: Colors.deepOrangeAccent.withOpacity(0.25)),
-                            boxShadow: [BoxShadow(color: Colors.deepOrangeAccent.withOpacity(0.06), blurRadius: 24, spreadRadius: -4)]),
+                                Colors.deepOrangeAccent.withValues(alpha: 0.08),
+                                Colors.pinkAccent.withValues(alpha: 0.04)]),
+                            border: Border.all(color: Colors.deepOrangeAccent.withValues(alpha: 0.25)),
+                            boxShadow: [BoxShadow(color: Colors.deepOrangeAccent.withValues(alpha: 0.06), blurRadius: 24, spreadRadius: -4)]),
                           child: Column(children: [
                             const Text('🎭', style: TextStyle(fontSize: 42)),
                             const SizedBox(height: 20),
@@ -134,11 +134,11 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                           ElevatedButton(
                             onPressed: _next,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrangeAccent.withOpacity(0.15),
+                              backgroundColor: Colors.deepOrangeAccent.withValues(alpha: 0.15),
                               foregroundColor: Colors.deepOrangeAccent,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  side: BorderSide(color: Colors.deepOrangeAccent.withOpacity(0.4))),
+                                  side: BorderSide(color: Colors.deepOrangeAccent.withValues(alpha: 0.4))),
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14)),
                             child: Text('Next Card →', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
@@ -156,8 +156,8 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color.withOpacity(0.4))),
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.4))),
       child: Text(label, style: GoogleFonts.outfit(color: color, fontSize: 14, fontWeight: FontWeight.w700)),
     ),
   );

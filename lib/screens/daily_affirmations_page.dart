@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -89,7 +89,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                     child: Container(
                       width: 36, height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -105,7 +105,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                           fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                       Text(_loading ? 'Zero Two is writing for you…' : 'Zero Two believes in you~ 💕',
                           style: GoogleFonts.outfit(
-                              color: Colors.pinkAccent.withOpacity(0.6), fontSize: 10)),
+                              color: Colors.pinkAccent.withValues(alpha: 0.6), fontSize: 10)),
                     ],
                   )),
                   if (!_loading)
@@ -115,7 +115,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                         duration: const Duration(milliseconds: 200),
                         width: 36, height: 36,
                         decoration: BoxDecoration(
-                          color: _liked ? Colors.pinkAccent.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                          color: _liked ? Colors.pinkAccent.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: _liked ? Colors.pinkAccent : Colors.white12),
                         ),
@@ -156,7 +156,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                         width: i == _idx ? 18 : 6, height: 6,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
-                          color: i == _idx ? Colors.pinkAccent : Colors.white.withOpacity(0.15),
+                          color: i == _idx ? Colors.pinkAccent : Colors.white.withValues(alpha: 0.15),
                         ),
                       );
                     }),
@@ -173,8 +173,8 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                         width: 80, height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.pinkAccent.withOpacity(0.1),
-                          border: Border.all(color: Colors.pinkAccent.withOpacity(0.3)),
+                          color: Colors.pinkAccent.withValues(alpha: 0.1),
+                          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
                         ),
                         child: Center(child: Text(
                           _liked ? '💕' : '💗',
@@ -186,10 +186,10 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
-                          color: Colors.white.withOpacity(0.04),
-                          border: Border.all(color: Colors.pinkAccent.withOpacity(0.2)),
+                          color: Colors.white.withValues(alpha: 0.04),
+                          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
                           boxShadow: [BoxShadow(
-                            color: Colors.pinkAccent.withOpacity(0.06),
+                            color: Colors.pinkAccent.withValues(alpha: 0.06),
                             blurRadius: 24, spreadRadius: -4,
                           )],
                         ),
@@ -220,9 +220,9 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                             height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             decoration: BoxDecoration(
-                              color: Colors.pinkAccent.withOpacity(0.12),
+                              color: Colors.pinkAccent.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.pinkAccent.withOpacity(0.3)),
+                              border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
                             ),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               const Icon(Icons.copy_outlined, color: Colors.pinkAccent, size: 16),
@@ -261,7 +261,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
       child: Container(
         width: 44, height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white12),
         ),

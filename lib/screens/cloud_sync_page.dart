@@ -36,7 +36,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
   Future<void> _loadLastSync() async {
     final prefs = await SharedPreferences.getInstance();
     final ts = prefs.getString('last_cloud_sync');
-    if (ts != null) {
+    if (ts != null && mounted) {
       setState(() => _lastSync = DateTime.tryParse(ts));
     }
   }

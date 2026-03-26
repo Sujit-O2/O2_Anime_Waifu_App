@@ -149,7 +149,7 @@ class _WaifuBackgroundState extends State<WaifuBackground>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFFFF4D8D).withOpacity(0.12 + v * 0.06),
+                      const Color(0xFFFF4D8D).withValues(alpha: 0.12 + v * 0.06),
                       Colors.transparent,
                     ],
                   ),
@@ -173,7 +173,7 @@ class _WaifuBackgroundState extends State<WaifuBackground>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF9B59B6).withOpacity(0.10 + v * 0.05),
+                      const Color(0xFF9B59B6).withValues(alpha: 0.10 + v * 0.05),
                       Colors.transparent,
                     ],
                   ),
@@ -225,9 +225,9 @@ class _WaifuBackgroundState extends State<WaifuBackground>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  widget.tint.withOpacity(0.65),
-                  widget.tint.withOpacity(0.45),
-                  widget.tint.withOpacity(0.78),
+                  widget.tint.withValues(alpha: 0.65),
+                  widget.tint.withValues(alpha: 0.45),
+                  widget.tint.withValues(alpha: 0.78),
                 ],
               ),
             ),

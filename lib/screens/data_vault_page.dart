@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -384,7 +384,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                   border: Border(
                     bottom: BorderSide(
                       color:
-                          Colors.redAccent.withOpacity(_glowAnim.value * 0.3),
+                          Colors.redAccent.withValues(alpha: _glowAnim.value * 0.3),
                     ),
                   ),
                 ),
@@ -395,7 +395,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -420,7 +420,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                                   shadows: [
                                     Shadow(
                                         color: Colors.redAccent
-                                            .withOpacity(_glowAnim.value * 0.6),
+                                            .withValues(alpha: _glowAnim.value * 0.6),
                                         blurRadius: 12)
                                   ],
                                 )),
@@ -438,7 +438,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white12),
                         ),
@@ -455,9 +455,9 @@ class _DataVaultPageState extends State<DataVaultPage>
               margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.08),
+                color: Colors.redAccent.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.redAccent.withOpacity(0.25)),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.25)),
               ),
               child: Row(children: [
                 const Text('⚠️', style: TextStyle(fontSize: 16)),
@@ -529,12 +529,12 @@ class _DataVaultPageState extends State<DataVaultPage>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: hasData
-            ? cat.def.color.withOpacity(0.06)
-            : Colors.white.withOpacity(0.02),
+            ? cat.def.color.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.02),
         border: Border.all(
           color: hasData
-              ? cat.def.color.withOpacity(0.25)
-              : Colors.white.withOpacity(0.06),
+              ? cat.def.color.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.06),
         ),
       ),
       child: Padding(
@@ -545,10 +545,10 @@ class _DataVaultPageState extends State<DataVaultPage>
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: cat.def.color.withOpacity(hasData ? 0.15 : 0.05),
+              color: cat.def.color.withValues(alpha: hasData ? 0.15 : 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                  color: cat.def.color.withOpacity(hasData ? 0.3 : 0.1)),
+                  color: cat.def.color.withValues(alpha: hasData ? 0.3 : 0.1)),
             ),
             child: Icon(cat.def.icon,
                 color: hasData ? cat.def.color : Colors.white24, size: 22),
@@ -575,7 +575,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: cat.def.color.withOpacity(0.12),
+                      color: cat.def.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -618,9 +618,9 @@ class _DataVaultPageState extends State<DataVaultPage>
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.12),
+                  color: Colors.redAccent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                 ),
                 child: const Icon(Icons.delete_outlined,
                     color: Colors.redAccent, size: 18),
@@ -631,9 +631,9 @@ class _DataVaultPageState extends State<DataVaultPage>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.03),
+                color: Colors.white.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white.withOpacity(0.06)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: const Icon(Icons.check_rounded,
                   color: Colors.white12, size: 18),

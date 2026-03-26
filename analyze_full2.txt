@@ -1,0 +1,197 @@
+﻿Analyzing anime_waifu...                                        
+
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:11:5 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:15:5 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:19:5 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:23:7 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:29:7 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - dump_hianime_url.dart:33:5 - avoid_print
+   info - Dangling library doc comment - lib\models\anime_models.dart:1:1 - dangling_library_doc_comments
+   info - The private field _openings could be 'final' - lib\screens\anime_ost_page.dart:16:29 - prefer_final_fields
+   info - The private field _endings could be 'final' - lib\screens\anime_ost_page.dart:17:29 - prefer_final_fields
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_ost_page.dart:34:22 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_ost_page.dart:59:22 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_player_page.dart:131:20 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_player_page.dart:222:20 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_section_page.dart:872:20 - curly_braces_in_flow_control_structures
+   info - Unnecessary use of string interpolation - lib\screens\anime_section_page.dart:901:16 - unnecessary_string_interpolations
+   info - The private field _viewersCount could be 'final' - lib\screens\anime_watch_party_page.dart:29:7 - prefer_final_fields
+   info - Statements in an if should be enclosed in a block - lib\screens\anime_wordle_page.dart:65:50 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\character_database_page.dart:38:22 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\downloads_page.dart:27:18 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:401:51 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:402:56 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:403:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:404:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:405:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:406:54 - curly_braces_in_flow_control_structures
+warning - The declaration '_buildComingSoonPage' isn't referenced - lib\screens\main_notifications.dart:261:10 - unused_element
+   info - Statements in an if should be enclosed in a block - lib\screens\relationship_timeline_page.dart:258:22 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\watch_history_page.dart:26:18 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\zero_two_diary_page.dart:157:20 - curly_braces_in_flow_control_structures
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\services\anime_providers\hianime_provider.dart:106:7 - prefer_conditional_assignment
+   info - Unnecessary use of getter and setter to wrap a field - lib\services\anime_service.dart:28:26 - unnecessary_getters_setters
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:69:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:70:31 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:71:31 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:72:31 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:80:28 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:81:26 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:89:27 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:90:25 - curly_braces_in_flow_control_structures
+   info - Unnecessary braces in a string interpolation - lib\services\rag_embedding_service.dart:116:43 - unnecessary_brace_in_string_interps
+   info - Statements in an if should be enclosed in a block - lib\services\self_initiated_topics.dart:103:30 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\self_initiated_topics.dart:104:27 - curly_braces_in_flow_control_structures
+   info - Missing type annotation - lib\widgets\anime_visual_effects.dart:40:18 - strict_top_level_inference
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:20:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:32:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_amvstrm.dart:35:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:9:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:14:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:17:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:22:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:25:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:27:15 - avoid_print
+   info - Don't invoke 'print' in production code - test_animedex.dart:34:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:6:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:17:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:21:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:23:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:27:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:32:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:42:33 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:46:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:55:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:60:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:64:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:67:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:71:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:87:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:89:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_live.dart:93:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:12:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:21:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:26:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:30:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:36:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:39:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:41:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:45:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:48:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:50:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:52:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_xi.dart:56:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:9:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:18:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:26:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_consumet_zoro.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hanime_api.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hanime_api.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hanime_api.dart:36:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hanime_api.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hanime_api.dart:42:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:12:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:27:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_2.dart:30:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:14:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:15:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:16:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:19:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:31:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:35:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:38:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:43:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:45:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:48:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:50:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:57:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:65:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:68:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:86:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:89:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:104:21 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:109:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:111:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:115:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:118:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:125:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:136:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:139:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:142:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:145:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:149:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:154:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:164:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:168:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:171:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:181:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:183:15 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:184:15 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:185:15 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:188:15 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:190:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:193:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:198:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:201:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_live.dart:204:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_search.dart:20:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_search.dart:31:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_search.dart:34:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_search.dart:38:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_hianime_search.dart:42:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:11:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:14:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:19:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:24:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:26:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:29:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:34:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_video_real_live.dart:36:5 - avoid_print
+
+flutter : 175 issues 
+found. (ran in 16.8s)
+At line:1 char:1
++ flutter analyze 
+--no-pub 2>&1 | 
+Out-File -FilePath 
+analyze_full2.txt  ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (175 issues fo   
+ und. (ran in 16.8s    
+):String) [], Remo    
+teException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 

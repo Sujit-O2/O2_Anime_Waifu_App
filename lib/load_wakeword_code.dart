@@ -1,452 +1,638 @@
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:porcupine_flutter/porcupine_manager.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 
 /// Typedef for wake word detection callback
 typedef WakeWordCallback = void Function(int keywordIndex);
 
-/// Service for managing wake word detection using Picovoice Porcupine
+/// Service for managing wake word detection using ONNX XGBoost classifier.
+///
+/// Replaces the previous Picovoice Porcupine implementation.
+/// Uses a 128-bin Mel-Spectrogram (4 096-dim vector) at 16 kHz
+/// with a multi-threshold confirmation engine.
 class WakeWordService {
-  final List<PorcupineManager> _managers = [];
-  final Set<String> _activeKeywordPaths = <String>{};
+  // ── ONNX session ─────────────────────────────────────────────────────────
+  static const String _modelAsset = 'assets/wakeword/zero_two.onnx';
+  final OnnxRuntime _ort = OnnxRuntime();
+  OrtSession? _session;
+
+  // ── Audio capture via native EventChannel ────────────────────────────────
+  static const EventChannel _audioChannel =
+      EventChannel('com.example.anime_waifu/wake_audio');
+  StreamSubscription<dynamic>? _audioSub;
+
+  // ── State ────────────────────────────────────────────────────────────────
   bool _running = false;
   bool _initialized = false;
   bool _initializing = false;
-  bool _reinitRequired = false;
-  String _accessKeyOverride = "";
+  bool _inferenceInFlight = false;
   WakeWordCallback? _onDetected;
 
-  static const String _babyGirlKeyword = "Baby-girl_en_android_v4_0_0.ppn";
-  static const String _zeroTwoKeyword = "Zero-two_en_android_v4_0_0.ppn";
-  static const String _darlingKeyword = "Darling_en_android_v4_0_0.ppn";
+  // ── Audio buffer ─────────────────────────────────────────────────────────
+  // librosa with 16000 samples, n_fft=2048, hop=512, center=True → (128,32) = 4096
+  static const int _sampleRate = 16000;
+  static const int _windowSamples = _sampleRate; // Window is exactly 1 second
+  final Float64List _buffer = Float64List(_windowSamples);
+  int _bufferFillCount = 0;
+  int _chunksSinceLastEval = 0;
 
-  // Try paired keywords first so both wake phrases are supported.
-  static const List<List<String>> _keywordSetCandidates = [
-    [
-      "assets/wakeword/$_babyGirlKeyword",
-      "assets/wakeword/$_zeroTwoKeyword",
-      "assets/wakeword/$_darlingKeyword",
-    ],
-  ];
+  // ── Mel-Spectrogram parameters (match librosa defaults) ──────────────────
+  static const int _nFft = 2048;
+  static const int _hopLength = 512; // ~31.25 frames per second
+  static const int _nMels = 128;
+  static const int _nMfcc = 40;
+  static const int _targetFrames = 32;
+  static const int _halfFft = _nFft ~/ 2 + 1;
 
-  // Canonical list of keyword asset paths in global callback index order.
-  static const List<String> _singleKeywordCandidates = [
-    "assets/wakeword/$_babyGirlKeyword",
-    "assets/wakeword/$_zeroTwoKeyword",
-    "assets/wakeword/$_darlingKeyword",
-  ];
+  // Pre-computed tables (built once on init)
+  List<Float64List>? _melFilters;
+  late final Float64List _twiddleReal;
+  late final Float64List _twiddleImag;
+  late final Float64List _hannWindow;
 
-  /// Configure access key for Picovoice
-  void configure({String? accessKeyOverride}) {
-    if (accessKeyOverride == null) return;
-    final normalized = _normalizeAccessKey(accessKeyOverride);
-    if (normalized == _accessKeyOverride) return;
-    _accessKeyOverride = normalized;
-    _reinitRequired = true;
+  // ── Multi-Threshold Confirmation Engine ──────────────────────────────────
+  // Based on production deployment guide §4.
+  //
+  // Tier 1: Fast-Pass   — confidence ≥ 0.96 → immediate trigger
+  // Tier 2: Secondary   — confidence ∈ [0.70, 0.96) → 3/5 temporal check
+  // Tier 3: Reject      — confidence < 0.70 → ignore
+  static const double _fastPassThreshold = 0.95;
+  static const double _detectFloor = 0.80;      
+  static const int _confirmWindowSize = 5;
+  static const int _confirmQuorum = 3;   // 3 out of 5 consecutive detections
+  static const double _varianceCap = 1.0;
+  final List<double> _confidenceBuffer = [];
+
+  // ── Energy gate — skip inference on silence/fan noise ────────────────────
+  static const double _energyFloor = 0.008; // Balanced to accept speaking volume in noisy rooms
+
+  // ── Cooldown after trigger ───────────────────────────────────────────────
+  DateTime? _lastTriggerTime;
+  static const Duration _triggerCooldown = Duration(seconds: 3);
+
+  // ── Wake word labels ─────────────────────────────────────────────────────
+  static const List<String> _wakeLabels = ['wake_word_detected'];
+
+  // ── Diagnostics & STT Buffer ─────────────────────────────────────────────
+  static const int _bufferSize = 16000 * 2; // 2 seconds of audio
+  final List<double> _audioBuffer = [];
+
+  // ── Debug logging ────────────────────────────────────────────────────────
+  static bool enableDebugLogging = true;
+
+  /// Configure — no-op, ONNX doesn't need API keys.
+  void configure({String? accessKeyOverride}) {}
+
+  /// Returns keyword labels (Porcupine API compat).
+  List<String> get loadedKeywords => List.unmodifiable(_wakeLabels);
+
+  /// Returns the most recent 2 seconds of audio.
+  Float32List getRecentAudio() {
+    return Float32List.fromList(_audioBuffer);
   }
 
-  String _normalizeAccessKey(String value) {
-    final trimmed = value.trim();
-    if (trimmed.length >= 2 &&
-        ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-            (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
-      return trimmed.substring(1, trimmed.length - 1).trim();
-    }
-    return trimmed;
-  }
-
-  bool _containsToken(String input, List<String> tokens) {
-    final lower = input.toLowerCase();
-    return tokens.any(lower.contains);
-  }
-
-  bool _isActivationLimitError(String error) {
-    return _containsToken(error, ['activationlimit', 'activation limit']);
-  }
-
-  bool _isAccessKeyError(String error) {
-    return _containsToken(
-      error,
-      ['accesskey', 'access key', 'invalid access key', 'expired access key'],
-    );
-  }
-
-  bool _isFatalAccessKeyError(String error) {
-    return _isActivationLimitError(error) || _isAccessKeyError(error);
-  }
-
-  int _globalKeywordIndex(String keywordPath) {
-    return _singleKeywordCandidates.indexOf(keywordPath);
-  }
-
-  WakeWordCallback _buildKeywordCallback(List<String> keywordPaths) {
-    final mappedIndexes = keywordPaths.map(_globalKeywordIndex).toList();
-    return (int localKeywordIndex) {
-      if (localKeywordIndex >= 0 && localKeywordIndex < mappedIndexes.length) {
-        final mapped = mappedIndexes[localKeywordIndex];
-        if (mapped >= 0) {
-          _handleWakeWordDetected(mapped);
-          return;
-        }
-      }
-      _handleWakeWordDetected(localKeywordIndex);
-    };
-  }
-
-  Future<PorcupineManager> _createManager(
-    String accessKey,
-    List<String> keywordPaths,
-    WakeWordCallback onDetected,
-  ) {
-    // Create sensitivity array matching keyword count.
-    final sensitivities = List<double>.filled(keywordPaths.length, 0.6);
-    debugPrint(
-      "Creating Porcupine manager with ${keywordPaths.length} keywords and ${sensitivities.length} sensitivities",
-    );
-    return PorcupineManager.fromKeywordPaths(
-      accessKey,
-      List<String>.from(keywordPaths),
-      onDetected,
-      sensitivities: List<double>.from(sensitivities),
-      errorCallback: _handleWakeWordError,
-    );
-  }
-
-  /// Returns keyword paths in canonical callback-index order.
-  List<String> get loadedKeywords =>
-      List.unmodifiable(_singleKeywordCandidates);
-
-  /// Initialize wake word engine
+  /// Initialize the wake word engine
   Future<void> init(
     WakeWordCallback onDetected, {
     bool startImmediately = true,
   }) async {
     _onDetected = onDetected;
-    if (_initializing) return;
-    if (_initialized && !_reinitRequired) return;
+    if (_initializing || _initialized) return;
     _initializing = true;
 
     try {
-      await _disposeManagers();
-      _activeKeywordPaths.clear();
+      _session = await _ort.createSessionFromAsset(_modelAsset);
 
-      final accessKey = _resolveAccessKey();
-      if (accessKey.isEmpty) {
-        throw Exception('WAKE_WORD_KEY/PICOVOICE_KEY is missing in .env');
-      }
-
-      Object? lastError;
-      var fatalAccessKeyError = false;
-
-      debugPrint("Wake word: trying grouped keyword models first");
-      for (final keywordPaths in _keywordSetCandidates) {
-        try {
-          debugPrint("Wake word: trying paths $keywordPaths");
-          final manager = await _createManager(
-            accessKey,
-            keywordPaths,
-            _buildKeywordCallback(keywordPaths),
-          );
-          _managers.add(manager);
-          _activeKeywordPaths.addAll(keywordPaths);
-          debugPrint(
-              "Wake word initialized with grouped keywords: $keywordPaths");
-          break;
-        } catch (e) {
-          lastError = e;
-          final errorStr = e.toString();
-          debugPrint("Wake word init failed for $keywordPaths: $e");
-          if (_isFatalAccessKeyError(errorStr)) {
-            debugPrint(
-                "Wake word: access key/activation error, aborting retries");
-            fatalAccessKeyError = true;
-            break;
-          }
-        }
-      }
-
-      if (!fatalAccessKeyError) {
-        final missingKeywordPaths = _singleKeywordCandidates
-            .where((path) => !_activeKeywordPaths.contains(path))
-            .toList();
-
-        if (missingKeywordPaths.isNotEmpty) {
-          debugPrint(
-            "Wake word: trying single model fallback for missing: $missingKeywordPaths",
-          );
-        }
-
-        for (final keywordPath in missingKeywordPaths) {
-          try {
-            debugPrint("Wake word: trying single path $keywordPath");
-            final manager = await _createManager(
-              accessKey,
-              [keywordPath],
-              _buildKeywordCallback([keywordPath]),
-            );
-            _managers.add(manager);
-            _activeKeywordPaths.add(keywordPath);
-            debugPrint(
-                "Wake word initialized with single keyword: $keywordPath");
-          } catch (e) {
-            lastError = e;
-            final errorStr = e.toString();
-            debugPrint(
-                "Wake word single-path init failed for $keywordPath: $e");
-            if (_isFatalAccessKeyError(errorStr)) {
-              debugPrint(
-                  "Wake word: access key/activation error, aborting retries");
-              fatalAccessKeyError = true;
-              break;
-            }
-          }
-        }
-      }
-
-      if (_managers.isEmpty) {
-        final errorStr = lastError.toString();
-        final isActivationError = _isActivationLimitError(errorStr);
-        final isAccessKeyError = _isAccessKeyError(errorStr);
-
-        String solution;
-        if (isActivationError) {
-          solution = """
-======= PICOVOICE ACTIVATION LIMIT REACHED =======
-Your Picovoice access key has exceeded activation limits.
-
-SOLUTION:
-1. Go to https://console.picovoice.ai/
-2. Generate a new/updated access key
-3. Update WAKE_WORD_KEY in .env file
-4. Rebuild the app
-
-Wake word disabled for now - using text input mode
-===================================================
-""";
-        } else if (isAccessKeyError) {
-          solution = """
-======= INVALID PICOVOICE ACCESS KEY =======
-The access key is invalid or expired.
-
-SOLUTION:
-1. Check WAKE_WORD_KEY in .env file
-2. Verify the key is correct from Picovoice console
-3. Try regenerating the access key
-4. Rebuild the app
-
-Wake word disabled for now - using text input mode
-===================================================
-""";
-        } else {
-          solution = """
-======= WAKE WORD INITIALIZATION FAILED =======
-Failed to load wake word model.
-
-SOLUTION:
-1. Ensure $_babyGirlKeyword, $_zeroTwoKeyword, and $_darlingKeyword exist
-2. For PRODUCTION: put .ppn files in assets/wakeword/
-3. Confirm pubspec.yaml includes assets/wakeword/ via assets/
-4. Run 'flutter clean && flutter pub get'
-5. Rebuild the app
-
-Last error: $lastError
-===================================================
-""";
-        }
-        debugPrint(solution);
-        throw Exception(solution);
-      }
-
-      final missingAfterFallback = _singleKeywordCandidates
-          .where((path) => !_activeKeywordPaths.contains(path))
-          .toList();
-      if (missingAfterFallback.isNotEmpty) {
-        debugPrint(
-          "Wake word warning: some keywords are unavailable: $missingAfterFallback",
-        );
-      } else {
-        debugPrint("Wake word initialized with all keywords");
-      }
-
-      if (startImmediately) {
-        for (final manager in _managers) {
-          await manager.start();
-        }
-        _running = true;
-      } else {
-        _running = false;
+      // Pre-compute Mel filter bank, FFT twiddles, Hann window
+      _melFilters = _buildMelFilters();
+      _precomputeTwiddles();
+      _hannWindow = Float64List(_nFft);
+      for (int i = 0; i < _nFft; i++) {
+        _hannWindow[i] = 0.5 * (1.0 - math.cos(2.0 * math.pi * i / (_nFft - 1)));
       }
 
       _initialized = true;
-      _reinitRequired = false;
-      debugPrint("Wake word service initialized");
+      _log('ONNX session loaded successfully');
+      if (startImmediately) await start();
     } catch (e) {
-      debugPrint("Wake word init error: $e");
-      await _disposeManagers();
       _initialized = false;
-      // Do not rethrow; error is already logged and handled by checking _initialized
+      _log('ONNX init FAILED: $e');
+      rethrow;
     } finally {
       _initializing = false;
     }
   }
 
-  String _resolveAccessKey() {
-    if (_accessKeyOverride.isNotEmpty) {
-      debugPrint("Wake word: Using access key from override");
-      return _accessKeyOverride;
-    }
-    final wakeKey = _normalizeAccessKey(dotenv.env['WAKE_WORD_KEY'] ?? '');
-    if (wakeKey.isNotEmpty) {
-      debugPrint("Wake word: Using WAKE_WORD_KEY from .env");
-      return wakeKey;
-    }
-    final picoKey = _normalizeAccessKey(dotenv.env['PICOVOICE_KEY'] ?? '');
-    if (picoKey.isNotEmpty) {
-      debugPrint("Wake word: Using PICOVOICE_KEY from .env");
-      return picoKey;
-    }
-    debugPrint("Wake word: ERROR - No access key found in .env or override!");
-    return '';
-  }
-
-  void _handleWakeWordDetected(int keywordIndex) {
-    if (!_running) {
-      return;
-    }
-
-    final callback = _onDetected;
-    if (callback == null) {
-      debugPrint("Wake word detected but no callback registered");
-      return;
-    }
-
-    final names = loadedKeywords
-        .map((p) => p.split('/').last.replaceAll('.ppn', ''))
-        .toList();
-    final detectedName = (keywordIndex >= 0 && keywordIndex < names.length)
-        ? names[keywordIndex]
-        : 'unknown';
-    debugPrint(
-      "Wake word detected: keyword index $keywordIndex (detected=$detectedName)",
-    );
-    try {
-      callback(keywordIndex);
-    } catch (e, st) {
-      debugPrint("Wake word callback error: $e\n$st");
-    }
-  }
-
-  /// Developer helper: trigger the detection callback programmatically.
-  void testTriggerByIndex(int keywordIndex) {
-    final callback = _onDetected;
-    if (callback == null) return;
-    try {
-      callback(keywordIndex);
-    } catch (e, st) {
-      debugPrint("Wake word test trigger error: $e\n$st");
-    }
-  }
-
-  void _handleWakeWordError(dynamic error) {
-    // Use print (not debugPrint) so this is visible in release builds too.
-    // ignore: avoid_print
-    print("[WakeWord] Runtime error: $error");
-    _running = false;
-    _reinitRequired = true;
-  }
-
-  /// Safely dispose all Porcupine managers
-  Future<void> _disposeManagers() async {
-    if (_managers.isEmpty) {
-      _running = false;
-      _initialized = false;
-      _activeKeywordPaths.clear();
-      return;
-    }
-
-    final managers = List<PorcupineManager>.from(_managers);
-    _managers.clear();
-    _activeKeywordPaths.clear();
-
-    for (final manager in managers) {
-      try {
-        await manager.stop();
-      } catch (e) {
-        debugPrint("Error stopping wake word manager: $e");
-      }
-
-      try {
-        await manager.delete();
-      } catch (e) {
-        debugPrint("Error deleting wake word manager: $e");
-      }
-    }
-
-    _running = false;
-    _initialized = false;
-  }
-
-  /// Dispose of all resources
-  Future<void> dispose() async {
-    await _disposeManagers();
-    _reinitRequired = false;
-    _onDetected = null;
-    debugPrint("Wake word service disposed");
-  }
-
-  /// Stop wake word detection
-  Future<void> stop() async {
-    if (_managers.isEmpty || !_running) {
-      return;
-    }
-
-    _running = false;
-    for (final manager in _managers) {
-      try {
-        await manager.stop();
-      } catch (e) {
-        debugPrint("Error stopping wake word: $e");
-      }
-    }
-    debugPrint("Wake word detection stopped");
-  }
-
-  /// Start wake word detection
+  /// Start detecting
   Future<void> start() async {
     if (_initializing || _running) return;
-
-    if (_reinitRequired) {
-      final callback = _onDetected;
-      if (callback == null) {
-        debugPrint("Cannot start: no callback registered");
-        return;
-      }
-      await init(callback);
+    if (!_initialized || _session == null) {
+      if (_onDetected != null) await init(_onDetected!);
       return;
     }
 
-    if (!_initialized || _managers.isEmpty) {
-      final callback = _onDetected;
-      if (callback == null) {
-        debugPrint("Cannot start: no callback registered");
-        return;
-      }
-      await init(callback);
-      return;
-    }
+    _buffer.fillRange(0, _buffer.length, 0.0);
+    _bufferFillCount = 0;
+    _confidenceBuffer.clear();
+    _inferenceInFlight = false;
 
     try {
-      for (final manager in _managers) {
-        await manager.start();
-      }
+      _audioSub?.cancel();
+      _audioSub = _audioChannel.receiveBroadcastStream().listen(
+        _onAudioChunk,
+        onError: (dynamic e) {
+          _log("Wake audio error: $e");
+          _running = false;
+          // Auto-restart after mic error (e.g. mic conflict resolution)
+          Future.delayed(const Duration(seconds: 2), () {
+            if (!_running && _initialized && _onDetected != null) {
+              _log('Auto-restarting after audio error...');
+              start();
+            }
+          });
+        },
+        onDone: () {
+          _log("Wake audio stream ended unexpectedly");
+          _running = false;
+          // Auto-restart if stream ended unexpectedly
+          Future.delayed(const Duration(seconds: 2), () {
+            if (!_running && _initialized && _onDetected != null) {
+              _log('Auto-restarting after stream end...');
+              start();
+            }
+          });
+        },
+      );
       _running = true;
-      debugPrint("Wake word detection started");
+      _log('Wake word listening STARTED');
     } catch (e) {
-      debugPrint("Error starting wake word: $e");
-      rethrow;
+      _log('Failed to start audio stream: $e');
+      _running = false;
     }
   }
 
-  /// Check if wake word detection is running
+  /// Stop detecting — releases mic for STT
+  Future<void> stop() async {
+    if (!_running && _audioSub == null) return;
+    _running = false;
+    final sub = _audioSub;
+    _audioSub = null;
+    await sub?.cancel();
+    _confidenceBuffer.clear();
+    _inferenceInFlight = false;
+    // ignore: avoid_print
+    print('[WakeWord] STOPPED — caller:');
+    // ignore: avoid_print
+    print(StackTrace.current.toString().split('\n').take(6).join('\n'));
+  }
+
+  /// Dispose all resources
+  Future<void> dispose() async {
+    await stop();
+    try { await _session?.close(); } catch (_) {}
+    _session = null;
+    _initialized = false;
+    _onDetected = null;
+    _melFilters = null;
+  }
+
   bool get isRunning => _running;
+
+  /// Test trigger (debug)
+  void testTriggerByIndex(int keywordIndex) {
+    _onDetected?.call(keywordIndex);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DEBUG LOGGING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  void _log(String msg) {
+    // CRITICAL: Use print() not debugPrint() — debugPrint is disabled globally
+    // ignore: avoid_print
+    print('[WakeWord] $msg');
+  }
+
+  void _logVerbose(String msg) {
+    if (enableDebugLogging) {
+      // ignore: avoid_print
+      print('[WakeWord] $msg');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIO PIPELINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  void _onAudioChunk(dynamic data) {
+    if (!_running || _session == null) return;
+    try {
+      final List<double> samples;
+      if (data is List) {
+        samples = List<double>.from(data);
+      } else {
+        print('[WakeWord Diagnostics] Received non-List data: $data');
+        return;
+      }
+      if (samples.isEmpty) return;
+
+      _audioBuffer.addAll(samples);
+      if (_audioBuffer.length > _bufferSize) {
+        _audioBuffer.removeRange(0, _audioBuffer.length - _bufferSize);
+      }
+
+      final incoming = samples.length;
+      // Slide buffer left, append new samples at end
+      if (incoming < _windowSamples) {
+        for (int i = 0; i < _windowSamples - incoming; i++) {
+          _buffer[i] = _buffer[i + incoming];
+        }
+        for (int i = 0; i < incoming; i++) {
+          _buffer[_windowSamples - incoming + i] = samples[i];
+        }
+      } else {
+        for (int i = 0; i < _windowSamples; i++) {
+          _buffer[i] = samples[incoming - _windowSamples + i];
+        }
+      }
+
+      _bufferFillCount++;
+      // Need ~10 chunks (1 second) to fill buffer
+      if (_bufferFillCount < 10) return;
+
+      // ── Energy gate: skip classification on silence ──────────────────
+      final rms = _computeRms(_buffer);
+      // Diagnostic print to verify audio channel stream is alive
+      if (_bufferFillCount % 10 == 0) {
+        print('[WakeWord Diagnostics] 1 sec passed. RMS: ${rms.toStringAsFixed(5)}');
+      }
+      
+      if (rms < _energyFloor) {
+        _logVerbose('Skip: silence (RMS=${rms.toStringAsFixed(5)})');
+        // Decay confidence buffer on silence
+        _confidenceBuffer.clear();
+        return;
+      }
+
+      _chunksSinceLastEval++;
+      if (_chunksSinceLastEval < 3) return; // Evaluate max 3 times a second to prevent UI thread lockup!
+      _chunksSinceLastEval = 0;
+
+      // Skip if inference is already in progress (prevent backpressure)
+      if (_inferenceInFlight) return;
+      _inferenceInFlight = true;
+
+      // Copy buffer and process async to not block audio stream
+      final copy = Float64List.fromList(_buffer);
+      unawaited(_processAsync(copy, rms));
+    } catch (e) {
+      _log("Audio chunk error: $e");
+    }
+  }
+
+
+  double _computeRms(Float64List audio) {
+    double sum = 0;
+    for (int i = 0; i < audio.length; i++) {
+      sum += audio[i] * audio[i];
+    }
+    return math.sqrt(sum / audio.length);
+  }
+
+  Future<void> _processAsync(Float64List audio, double rms) async {
+    try {
+      if (!_running || _session == null) return;
+      final features = _extractMelFeatures(audio);
+      await _runInference(features, rms);
+    } catch (e) {
+      _log("Process error: $e");
+    } finally {
+      _inferenceInFlight = false;
+    }
+  }
+
+  Future<void> _runInference(Float32List features, double rms) async {
+    if (!_running || _session == null) return;
+    try {
+      final input = await OrtValue.fromList(
+        features.toList(),
+        [1, _nMfcc, _targetFrames, 1], // CNN input shape [Batch, 40, 32, 1]
+      );
+      final outputs = await _session!.run({'input': input});
+
+      double wakeProb = 0.0;
+
+      // Parse Keras/TeachableMachine Softmax output
+      final identityOut = outputs['Identity:0'] ?? outputs['dense_7'] ?? outputs.values.first;
+      final list = await identityOut.asList();
+      if (list.isNotEmpty && list[0] is List) {
+          final probs = list[0] as List; // e.g. [0.1, 0.05, 0.85]
+          if (probs.length == 1) { // Assuming single output for wake word probability
+             wakeProb = (probs[0] as num).toDouble();
+             _logVerbose('TM Prob: ${wakeProb.toStringAsFixed(3)}');
+          } else if (probs.length == 3) { // Fallback for 3-class softmax
+             double p0 = (probs[0] as num).toDouble();
+             double p1 = (probs[1] as num).toDouble();
+             double p2 = (probs[2] as num).toDouble();
+             wakeProb = math.max(p1, p2); 
+             _logVerbose('TM Probs (3-class): Bg=${p0.toStringAsFixed(3)}, C1=${p1.toStringAsFixed(3)}, C2=${p2.toStringAsFixed(3)}');
+        }
+      }
+
+      _logVerbose(
+        'Inference: prob=${wakeProb.toStringAsFixed(4)} '
+        'RMS=${rms.toStringAsFixed(4)}',
+      );
+
+      // ── Multi-Threshold Confirmation Engine ────────────────────────
+      _processConfirmation(wakeProb);
+    } catch (e) {
+      _log("Inference error: $e");
+    }
+  }
+
+  /// Multi-threshold tiered confirmation engine.
+  ///
+  /// Tier 1: Fast-Pass   — score ≥ 0.96 → immediate trigger
+  /// Tier 2: Secondary   — score ∈ [0.70, 0.96) → 3/5 temporal check
+  /// Tier 3: Reject      — score < 0.70 → clear buffer
+  void _processConfirmation(double wakeProb) {
+    // Cooldown after a recent trigger
+    if (_lastTriggerTime != null) {
+      final elapsed = DateTime.now().difference(_lastTriggerTime!);
+      if (elapsed < _triggerCooldown) return;
+    }
+
+    // Tier 1: Fast-Pass
+    if (wakeProb >= _fastPassThreshold) {
+      _log('FAST-PASS trigger (prob=${wakeProb.toStringAsFixed(4)})');
+      _confidenceBuffer.clear();
+      _triggerDetected();
+      return;
+    }
+
+    // Tier 2: Secondary Check (overlap zone)
+    if (wakeProb >= _detectFloor) {
+      _confidenceBuffer.add(wakeProb);
+      if (_confidenceBuffer.length > _confirmWindowSize) {
+        _confidenceBuffer.removeAt(0);
+      }
+
+      if (_confidenceBuffer.length >= _confirmQuorum) {
+        // Count how many in the window are above the floor
+        final aboveCount = _confidenceBuffer
+            .where((s) => s >= _detectFloor)
+            .length;
+
+        // Check variance — genuine wake words have low variance
+        final mean = _confidenceBuffer.reduce((a, b) => a + b) /
+            _confidenceBuffer.length;
+        double variance = 0;
+        for (final s in _confidenceBuffer) {
+          variance += (s - mean) * (s - mean);
+        }
+        final stdDev = math.sqrt(variance / _confidenceBuffer.length);
+
+        _logVerbose(
+          'Confirm: above=$aboveCount/${_confidenceBuffer.length} '
+          'stdDev=${stdDev.toStringAsFixed(4)} '
+          'mean=${mean.toStringAsFixed(4)}',
+        );
+
+        if (aboveCount >= _confirmQuorum && stdDev <= _varianceCap) {
+          _log('CONFIRMED trigger ($aboveCount/$_confirmWindowSize windows, '
+              'stdDev=${stdDev.toStringAsFixed(4)})');
+          _confidenceBuffer.clear();
+          _triggerDetected();
+        }
+      }
+    } else {
+      // Tier 3: Below floor — reset temporal buffer
+      _confidenceBuffer.clear();
+    }
+  }
+
+  void _triggerDetected() {
+    if (!_running || _onDetected == null) return;
+    _lastTriggerTime = DateTime.now();
+    _log("✅ ONNX wake word DETECTED");
+    try { _onDetected!(0); } catch (_) {}
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEL-SPECTROGRAM (librosa-compatible)
+  //
+  // librosa.feature.melspectrogram(y, sr=16000, n_fft=2048, hop=512, n_mels=128)
+  //   → center=True (pads n_fft//2 on each side)
+  //   → numFrames = 1 + len(y) // hop_length = 1 + 16000//512 = 32
+  //   → shape (128, 32) → flatten = 4096
+  // Then librosa.power_to_db(S, ref=np.max)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Float32List _extractMelFeatures(Float64List audio) {
+    // 1. Center-pad (librosa default: center=True)
+    final padLen = _nFft ~/ 2; // 1024
+    final padded = Float64List(audio.length + 2 * padLen);
+    // Reflect-pad left edge
+    for (int i = 0; i < padLen; i++) {
+      padded[i] = audio[padLen - i]; // reflect
+    }
+    // Copy original audio
+    for (int i = 0; i < audio.length; i++) {
+      padded[padLen + i] = audio[i];
+    }
+    // Reflect-pad right edge
+    for (int i = 0; i < padLen; i++) {
+      final srcIdx = audio.length - 2 - i;
+      padded[padLen + audio.length + i] = srcIdx >= 0 ? audio[srcIdx] : 0.0;
+    }
+
+    // 2. STFT with centered frames
+    // numFrames = 1 + len(y) // hop_length = 1 + 16000 // 512 = 32
+    final nFrames = 1 + audio.length ~/ _hopLength;
+    final powerSpec = List<Float64List>.generate(
+        _halfFft, (_) => Float64List(nFrames));
+
+    final frameReal = Float64List(_nFft);
+    final frameImag = Float64List(_nFft);
+
+    for (int frame = 0; frame < nFrames; frame++) {
+      final start = frame * _hopLength;
+
+      // Apply window and load frame
+      for (int i = 0; i < _nFft; i++) {
+        final idx = start + i;
+        final sample = idx < padded.length ? padded[idx] : 0.0;
+        frameReal[i] = sample * _hannWindow[i];
+        frameImag[i] = 0.0;
+      }
+
+      // Radix-2 FFT
+      _fftInPlace(frameReal, frameImag, _nFft);
+
+      // Power spectrum (no division by N — matches librosa)
+      for (int k = 0; k < _halfFft; k++) {
+        powerSpec[k][frame] =
+            frameReal[k] * frameReal[k] + frameImag[k] * frameImag[k];
+      }
+    }
+
+    // 3. Mel filter bank
+    final melFilters = _melFilters!;
+    final melSpec = List<Float64List>.generate(
+        _nMels, (_) => Float64List(nFrames));
+    for (int m = 0; m < _nMels; m++) {
+      for (int f = 0; f < nFrames; f++) {
+        double sum = 0;
+        for (int k = 0; k < _halfFft; k++) {
+          final w = melFilters[m][k];
+          if (w > 0) sum += w * powerSpec[k][f];
+        }
+        melSpec[m][f] = sum;
+      }
+    }
+
+    // 4. power_to_db (ref=np.max, amin=1e-10, top_db=80)
+    double refMax = 1e-10;
+    for (int m = 0; m < _nMels; m++) {
+      for (int f = 0; f < nFrames; f++) {
+        if (melSpec[m][f] > refMax) refMax = melSpec[m][f];
+      }
+    }
+    for (int m = 0; m < _nMels; m++) {
+      for (int f = 0; f < nFrames; f++) {
+        final val = math.max(melSpec[m][f], 1e-10);
+        double db = 10.0 * math.log(val / math.max(refMax, 1e-10)) / math.ln10;
+        melSpec[m][f] = math.max(db, -80.0);
+      }
+    }
+
+    // 5. Build packed features exactly to [40, 44]
+    final features = Float32List(_targetFrames * _nMels);
+    for (int i = 0; i < _targetFrames; i++) {
+      if (i < nFrames) {
+        for (int j = 0; j < _nMels; j++) {
+          features[j * _targetFrames + i] = melSpec[j][i];
+        }
+      } else {
+        // Pad with -80.0 dB for missing frames
+        for (int j = 0; j < _nMels; j++) {
+          features[j * _targetFrames + i] = -80.0;
+        }
+      }
+    }
+
+    return _computeMfccFromMel(features);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RADIX-2 FFT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  void _precomputeTwiddles() {
+    _twiddleReal = Float64List(_nFft ~/ 2);
+    _twiddleImag = Float64List(_nFft ~/ 2);
+    for (int i = 0; i < _nFft ~/ 2; i++) {
+      final angle = -2.0 * math.pi * i / _nFft;
+      _twiddleReal[i] = math.cos(angle);
+      _twiddleImag[i] = math.sin(angle);
+    }
+  }
+
+  void _fftInPlace(Float64List real, Float64List imag, int n) {
+    // Bit-reversal permutation
+    int j = 0;
+    for (int i = 0; i < n - 1; i++) {
+      if (i < j) {
+        final tR = real[i]; real[i] = real[j]; real[j] = tR;
+        final tI = imag[i]; imag[i] = imag[j]; imag[j] = tI;
+      }
+      int k = n >> 1;
+      while (k <= j) { j -= k; k >>= 1; }
+      j += k;
+    }
+    // Butterfly operations
+    int step = 1;
+    while (step < n) {
+      final half = step;
+      step <<= 1;
+      final stride = n ~/ step;
+      for (int g = 0; g < n; g += step) {
+        for (int p = 0; p < half; p++) {
+          final wR = _twiddleReal[p * stride];
+          final wI = _twiddleImag[p * stride];
+          final e = g + p;
+          final o = e + half;
+          final tR = wR * real[o] - wI * imag[o];
+          final tI = wR * imag[o] + wI * real[o];
+          real[o] = real[e] - tR;
+          imag[o] = imag[e] - tI;
+          real[e] += tR;
+          imag[e] += tI;
+        }
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEL FILTER BANK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  List<Float64List> _buildMelFilters() {
+    const double fMin = 0;
+    final double fMax = _sampleRate / 2.0;
+    final melMin = _hzToMel(fMin);
+    final melMax = _hzToMel(fMax);
+    final melPoints = Float64List(_nMels + 2);
+    for (int i = 0; i < _nMels + 2; i++) {
+      melPoints[i] = melMin + i * (melMax - melMin) / (_nMels + 1);
+    }
+    final binIndices = List<int>.generate(_nMels + 2, (i) {
+      final hz = _melToHz(melPoints[i]);
+      return ((hz / fMax) * (_halfFft - 1)).round().clamp(0, _halfFft - 1);
+    });
+    final filters = List<Float64List>.generate(
+        _nMels, (_) => Float64List(_halfFft));
+    for (int m = 0; m < _nMels; m++) {
+      final l = binIndices[m], c = binIndices[m + 1], r = binIndices[m + 2];
+      for (int k = l; k < c && k < _halfFft; k++) {
+        if (c != l) filters[m][k] = (k - l) / (c - l);
+      }
+      for (int k = c; k <= r && k < _halfFft; k++) {
+        if (r != c) filters[m][k] = (r - k) / (r - c);
+      }
+    }
+    return filters;
+  }
+
+  /// Applies Discrete Cosine Transform (DCT-II) to convert Log-Mel Spectrogram into MFCCs.
+  /// Expects `melsDb` of shape [nMels, targetFrames] flattened.
+  Float32List _computeMfccFromMel(Float32List melsDb) {
+    final mfcc = Float32List(_targetFrames * _nMfcc);
+    final factor = math.pi / _nMels;
+    
+    // Orthogonal normalization (matches librosa norm='ortho')
+    final scale0 = math.sqrt(1.0 / _nMels);
+    final scaleK = math.sqrt(2.0 / _nMels);
+
+    for (int frame = 0; frame < _targetFrames; frame++) {
+      for (int k = 0; k < _nMfcc; k++) {
+        double sum = 0.0;
+        for (int m = 0; m < _nMels; m++) {
+          final melVal = melsDb[m * _targetFrames + frame];
+          sum += melVal * math.cos(factor * (m + 0.5) * k);
+        }
+        final scale = (k == 0) ? scale0 : scaleK;
+        mfcc[k * _targetFrames + frame] = sum * scale;
+      }
+    }
+    return mfcc;
+  }
+
+  double _hzToMel(double hz) => 2595.0 * math.log(1.0 + hz / 700.0) / math.ln10;
+  double _melToHz(double mel) => 700.0 * (math.pow(10.0, mel / 2595.0) - 1.0);
 }

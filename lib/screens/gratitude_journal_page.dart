@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -152,7 +152,7 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
+                          color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white12)),
                       child: const Icon(Icons.arrow_back_ios_new,
@@ -171,7 +171,7 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                     Text(
                         '${_entries.length} entries • streak: ${_calcStreak()} days 🔥',
                         style: GoogleFonts.outfit(
-                            color: Colors.orangeAccent.withOpacity(0.6),
+                            color: Colors.orangeAccent.withValues(alpha: 0.6),
                             fontSize: 10)),
                   ])),
               GestureDetector(
@@ -188,8 +188,8 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Colors.orangeAccent.withOpacity(0.07),
-                border: Border.all(color: Colors.orangeAccent.withOpacity(0.2)),
+                color: Colors.orangeAccent.withValues(alpha: 0.07),
+                border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.2)),
               ),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,14 +230,14 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                           hintStyle: GoogleFonts.outfit(
                               color: Colors.white30, fontSize: 12),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.04),
+                          fillColor: Colors.white.withValues(alpha: 0.04),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                  color: Colors.orangeAccent.withOpacity(0.2))),
+                                  color: Colors.orangeAccent.withValues(alpha: 0.2))),
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10)))),
@@ -248,10 +248,10 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                          color: Colors.orangeAccent.withOpacity(0.12),
+                          color: Colors.orangeAccent.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Colors.orangeAccent.withOpacity(0.4))),
+                              color: Colors.orangeAccent.withValues(alpha: 0.4))),
                       child: const Icon(Icons.send_rounded,
                           color: Colors.orangeAccent, size: 20))),
             ]),
@@ -290,7 +290,7 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
                                       color:
-                                          Colors.redAccent.withOpacity(0.12)),
+                                          Colors.redAccent.withValues(alpha: 0.12)),
                                   child: const Icon(
                                       Icons.delete_outline_rounded,
                                       color: Colors.redAccent)),
@@ -303,10 +303,10 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.orangeAccent.withOpacity(0.04),
+                                  color: Colors.orangeAccent.withValues(alpha: 0.04),
                                   border: Border.all(
                                       color: Colors.orangeAccent
-                                          .withOpacity(0.12)),
+                                          .withValues(alpha: 0.12)),
                                 ),
                                 child: Row(
                                     crossAxisAlignment:

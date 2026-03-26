@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -77,7 +77,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -88,7 +88,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                 Text(_loading ? 'AI generating dilemmas…'
                     : '${_idx + 1} / ${_questions.length} questions',
-                    style: GoogleFonts.outfit(color: Colors.cyanAccent.withOpacity(0.6), fontSize: 10)),
+                    style: GoogleFonts.outfit(color: Colors.cyanAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
             ]),
           ),
@@ -112,7 +112,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                           Container(width: 48, height: 48,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.06),
+                              color: Colors.white.withValues(alpha: 0.06),
                               border: Border.all(color: Colors.white12)),
                             child: Center(child: Text('VS', style: GoogleFonts.outfit(
                                 color: Colors.white38, fontSize: 12, fontWeight: FontWeight.w900))),
@@ -135,8 +135,8 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                                 ClipRRect(borderRadius: BorderRadius.circular(4),
                                   child: LinearProgressIndicator(
                                     value: _votesA / (_votesA + _votesB),
-                                    backgroundColor: Colors.pinkAccent.withOpacity(0.4),
-                                    valueColor: AlwaysStoppedAnimation(Colors.cyanAccent.withOpacity(0.7)),
+                                    backgroundColor: Colors.pinkAccent.withValues(alpha: 0.4),
+                                    valueColor: AlwaysStoppedAnimation(Colors.cyanAccent.withValues(alpha: 0.7)),
                                     minHeight: 6)),
                               ]),
                             ),
@@ -145,7 +145,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                               child: ElevatedButton(
                                 onPressed: _next,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.06),
+                                  backgroundColor: Colors.white.withValues(alpha: 0.06),
                                   foregroundColor: Colors.white70,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
@@ -174,20 +174,20 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: selected ? color.withOpacity(0.12)
-              : notSelected ? Colors.white.withOpacity(0.02) : Colors.white.withOpacity(0.05),
+          color: selected ? color.withValues(alpha: 0.12)
+              : notSelected ? Colors.white.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.05),
           border: Border.all(
-            color: selected ? color : notSelected ? Colors.white12 : color.withOpacity(0.3),
+            color: selected ? color : notSelected ? Colors.white12 : color.withValues(alpha: 0.3),
             width: selected ? 2 : 1)),
         child: Row(children: [
           Container(width: 40, height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(selected ? 0.2 : 0.08),
-              border: Border.all(color: color.withOpacity(selected ? 0.6 : 0.3))),
+              color: color.withValues(alpha: selected ? 0.2 : 0.08),
+              border: Border.all(color: color.withValues(alpha: selected ? 0.6 : 0.3))),
             child: Center(child: Text(idx == 0 ? 'A' : 'B',
                 style: GoogleFonts.outfit(
-                    color: selected ? color : color.withOpacity(0.6),
+                    color: selected ? color : color.withValues(alpha: 0.6),
                     fontSize: 16, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 14),
           Expanded(child: Text(text, style: GoogleFonts.outfit(

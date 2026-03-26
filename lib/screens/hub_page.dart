@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/waifu_background.dart';
@@ -162,9 +162,9 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: const Icon(Icons.arrow_back_ios_new,
                   color: Colors.white60, size: 16),
@@ -187,9 +187,9 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: widget.hubColor.withOpacity(0.15),
+              color: widget.hubColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: widget.hubColor.withOpacity(0.4)),
+              border: Border.all(color: widget.hubColor.withValues(alpha: 0.4)),
             ),
             child: Text(
               '$_totalFeatures Features',
@@ -211,12 +211,12 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _searchQuery.isNotEmpty
-                ? widget.hubColor.withOpacity(0.5)
-                : Colors.white.withOpacity(0.1),
+                ? widget.hubColor.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -308,19 +308,19 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: isOpen
-            ? group.accent.withOpacity(0.07)
-            : Colors.white.withOpacity(0.03),
+            ? group.accent.withValues(alpha: 0.07)
+            : Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isOpen
-              ? group.accent.withOpacity(0.4)
-              : Colors.white.withOpacity(0.08),
+              ? group.accent.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.08),
           width: isOpen ? 1.4 : 1.0,
         ),
         boxShadow: isOpen
             ? [
                 BoxShadow(
-                    color: group.accent.withOpacity(0.08),
+                    color: group.accent.withValues(alpha: 0.08),
                     blurRadius: 16,
                     spreadRadius: 2)
               ]
@@ -340,9 +340,9 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: group.accent.withOpacity(isOpen ? 0.2 : 0.1),
+                      color: group.accent.withValues(alpha: isOpen ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: group.accent.withOpacity(0.3)),
+                      border: Border.all(color: group.accent.withValues(alpha: 0.3)),
                     ),
                     child: Center(
                         child: Text(group.emoji,
@@ -363,7 +363,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                           '${group.features.length} features',
                           style: GoogleFonts.outfit(
                             color: isOpen
-                                ? group.accent.withOpacity(0.8)
+                                ? group.accent.withValues(alpha: 0.8)
                                 : Colors.white38,
                             fontSize: 11,
                           ),
@@ -403,7 +403,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Column(
         children: [
-          Divider(color: group.accent.withOpacity(0.2), height: 1),
+          Divider(color: group.accent.withValues(alpha: 0.2), height: 1),
           const SizedBox(height: 6),
           ...group.features.map((f) => _buildFeatureTile(f)),
         ],
@@ -427,9 +427,9 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: feature.color.withOpacity(0.12),
+                color: feature.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: feature.color.withOpacity(0.25)),
+                border: Border.all(color: feature.color.withValues(alpha: 0.25)),
               ),
               child: Icon(feature.icon, color: feature.color, size: 17),
             ),
@@ -446,9 +446,9 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: feature.color.withOpacity(0.12),
+                  color: feature.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: feature.color.withOpacity(0.3)),
+                  border: Border.all(color: feature.color.withValues(alpha: 0.3)),
                 ),
                 child: Text(feature.badge!,
                     style: GoogleFonts.outfit(

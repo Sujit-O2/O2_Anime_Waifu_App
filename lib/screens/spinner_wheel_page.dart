@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -121,7 +121,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -186,8 +186,8 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Colors.pinkAccent.withOpacity(0.1),
-                  border: Border.all(color: Colors.pinkAccent.withOpacity(0.3)),
+                  color: Colors.pinkAccent.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
                 ),
                 child:
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -212,7 +212,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pinkAccent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.pinkAccent.withOpacity(0.3),
+                  disabledBackgroundColor: Colors.pinkAccent.withValues(alpha: 0.3),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
@@ -243,7 +243,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                         hintStyle: GoogleFonts.outfit(
                             color: Colors.white30, fontSize: 12),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.05),
+                        fillColor: Colors.white.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
@@ -261,10 +261,10 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.pinkAccent.withOpacity(0.15),
+                        color: Colors.pinkAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: Colors.pinkAccent.withOpacity(0.4)),
+                            color: Colors.pinkAccent.withValues(alpha: 0.4)),
                       ),
                       child: const Icon(Icons.add_rounded,
                           color: Colors.pinkAccent, size: 20),
@@ -287,10 +287,10 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color:
-                            _segColors[i % _segColors.length].withOpacity(0.1),
+                            _segColors[i % _segColors.length].withValues(alpha: 0.1),
                         border: Border.all(
                             color: _segColors[i % _segColors.length]
-                                .withOpacity(0.3)),
+                                .withValues(alpha: 0.3)),
                       ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Text(_options[i],
@@ -301,7 +301,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                         const SizedBox(width: 4),
                         Icon(Icons.close,
                             color: _segColors[i % _segColors.length]
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                             size: 12),
                       ]),
                     ),
@@ -334,13 +334,13 @@ class _WheelPainter extends CustomPainter {
       final start = i * sweep - pi / 2;
       final color = colors[i % colors.length];
       final paint = Paint()
-        ..color = color.withOpacity(0.18)
+        ..color = color.withValues(alpha: 0.18)
         ..style = PaintingStyle.fill;
       canvas.drawArc(Rect.fromCircle(center: Offset(cx, cy), radius: r), start,
           sweep, true, paint);
       // Border
       final border = Paint()
-        ..color = color.withOpacity(0.4)
+        ..color = color.withValues(alpha: 0.4)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5;
       canvas.drawArc(Rect.fromCircle(center: Offset(cx, cy), radius: r), start,
@@ -370,7 +370,7 @@ class _WheelPainter extends CustomPainter {
         Offset(cx, cy),
         r,
         Paint()
-          ..color = Colors.white.withOpacity(0.1)
+          ..color = Colors.white.withValues(alpha: 0.1)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2);
   }

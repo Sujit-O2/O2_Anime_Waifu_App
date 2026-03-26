@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -190,7 +190,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
+                          color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white12),
                         ),
@@ -232,8 +232,8 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           color: sel
-                              ? Colors.pinkAccent.withOpacity(0.2)
-                              : Colors.white.withOpacity(0.04),
+                              ? Colors.pinkAccent.withValues(alpha: 0.2)
+                              : Colors.white.withValues(alpha: 0.04),
                           border: Border.all(
                               color: sel ? Colors.pinkAccent : Colors.white12),
                         ),
@@ -283,15 +283,15 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.pinkAccent.withOpacity(0.1),
-                                    Colors.purpleAccent.withOpacity(0.06),
+                                    Colors.pinkAccent.withValues(alpha: 0.1),
+                                    Colors.purpleAccent.withValues(alpha: 0.06),
                                   ],
                                 ),
                                 border: Border.all(
-                                    color: Colors.pinkAccent.withOpacity(0.25)),
+                                    color: Colors.pinkAccent.withValues(alpha: 0.25)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.pinkAccent.withOpacity(0.08),
+                                    color: Colors.pinkAccent.withValues(alpha: 0.08),
                                     blurRadius: 30,
                                     spreadRadius: 4,
                                   ),
@@ -303,7 +303,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                   Text('"',
                                       style: GoogleFonts.outfit(
                                           color: Colors.pinkAccent
-                                              .withOpacity(0.4),
+                                              .withValues(alpha: 0.4),
                                           fontSize: 60,
                                           height: 0.7,
                                           fontWeight: FontWeight.w900)),
@@ -313,7 +313,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                           ? 'Tap refresh to get a quote, Darling~'
                                           : _quote,
                                       style: GoogleFonts.outfit(
-                                          color: Colors.white.withOpacity(0.9),
+                                          color: Colors.white.withValues(alpha: 0.9),
                                           fontSize: 16,
                                           height: 1.65,
                                           fontWeight: FontWeight.w500)),
@@ -324,7 +324,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                         width: 32,
                                         height: 1,
                                         color:
-                                            Colors.pinkAccent.withOpacity(0.4),
+                                            Colors.pinkAccent.withValues(alpha: 0.4),
                                       ),
                                       const SizedBox(width: 10),
                                       Text('— $_author',
@@ -349,10 +349,10 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                   height: 48,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(14),
-                                    color: Colors.pinkAccent.withOpacity(0.12),
+                                    color: Colors.pinkAccent.withValues(alpha: 0.12),
                                     border: Border.all(
                                         color:
-                                            Colors.pinkAccent.withOpacity(0.3)),
+                                            Colors.pinkAccent.withValues(alpha: 0.3)),
                                   ),
                                   child: Row(
                                       mainAxisAlignment:
@@ -380,8 +380,8 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
                                   color: _liked
-                                      ? Colors.pinkAccent.withOpacity(0.2)
-                                      : Colors.white.withOpacity(0.06),
+                                      ? Colors.pinkAccent.withValues(alpha: 0.2)
+                                      : Colors.white.withValues(alpha: 0.06),
                                   border: Border.all(
                                       color: _liked
                                           ? Colors.pinkAccent
@@ -405,7 +405,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                 height: 48,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.white.withOpacity(0.06),
+                                  color: Colors.white.withValues(alpha: 0.06),
                                   border: Border.all(color: Colors.white12),
                                 ),
                                 child: const Icon(Icons.copy_rounded,
@@ -433,10 +433,10 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
-                                        color: Colors.white.withOpacity(0.03),
+                                        color: Colors.white.withValues(alpha: 0.03),
                                         border: Border.all(
                                             color:
-                                                Colors.white.withOpacity(0.07)),
+                                                Colors.white.withValues(alpha: 0.07)),
                                       ),
                                       child: Column(
                                           crossAxisAlignment:
@@ -454,7 +454,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                             Text('— ${h['author']}',
                                                 style: GoogleFonts.outfit(
                                                     color: Colors.pinkAccent
-                                                        .withOpacity(0.5),
+                                                        .withValues(alpha: 0.5),
                                                     fontSize: 11)),
                                           ]),
                                     )),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -87,7 +87,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -134,9 +134,9 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.purpleAccent.withOpacity(0.08),
+                  color: Colors.purpleAccent.withValues(alpha: 0.08),
                   border:
-                      Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                      Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
                 ),
                 child: Column(children: [
                   Text('✨ Result',
@@ -165,7 +165,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purpleAccent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.purpleAccent.withOpacity(0.3),
+                  disabledBackgroundColor: Colors.purpleAccent.withValues(alpha: 0.3),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
@@ -193,7 +193,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                     hintStyle:
                         GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
+                    fillColor: Colors.white.withValues(alpha: 0.05),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -212,10 +212,10 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.purpleAccent.withOpacity(0.15),
+                    color: Colors.purpleAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                     border:
-                        Border.all(color: Colors.purpleAccent.withOpacity(0.4)),
+                        Border.all(color: Colors.purpleAccent.withValues(alpha: 0.4)),
                   ),
                   child: const Icon(Icons.add_rounded,
                       color: Colors.purpleAccent, size: 20),
@@ -240,9 +240,9 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.purpleAccent.withOpacity(0.1),
+                    color: Colors.purpleAccent.withValues(alpha: 0.1),
                     border:
-                        Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                        Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
                   ),
                   child: Text(_options[i],
                       style: GoogleFonts.outfit(

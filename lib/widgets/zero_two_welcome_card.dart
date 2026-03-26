@@ -97,8 +97,8 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFFFF4D8D).withOpacity(0.25 + _glowCtrl.value * 0.12),
-                              const Color(0xFF9B59B6).withOpacity(0.10),
+                              const Color(0xFFFF4D8D).withValues(alpha: 0.25 + _glowCtrl.value * 0.12),
+                              const Color(0xFF9B59B6).withValues(alpha: 0.10),
                               Colors.transparent,
                             ],
                           ),
@@ -121,13 +121,13 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF4D8D).withOpacity(0.4 + _glowCtrl.value * 0.2),
+                              color: const Color(0xFFFF4D8D).withValues(alpha: 0.4 + _glowCtrl.value * 0.2),
                               blurRadius: 20 + _glowCtrl.value * 10,
                               spreadRadius: 2,
                             ),
                           ],
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 2,
                           ),
                         ),
@@ -183,7 +183,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                   fontWeight: FontWeight.w800,
                   shadows: [
                     Shadow(
-                      color: const Color(0xFFFF4D8D).withOpacity(0.6),
+                      color: const Color(0xFFFF4D8D).withValues(alpha: 0.6),
                       blurRadius: 12,
                     ),
                   ],
@@ -235,24 +235,24 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF4D8D).withOpacity(0.10),
-                const Color(0xFF9B59B6).withOpacity(0.10),
+                const Color(0xFFFF4D8D).withValues(alpha: 0.10),
+                const Color(0xFF9B59B6).withValues(alpha: 0.10),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFFF4D8D).withOpacity(0.25 + _glowCtrl.value * 0.1),
+              color: const Color(0xFFFF4D8D).withValues(alpha: 0.25 + _glowCtrl.value * 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF4D8D).withOpacity(0.06 + _glowCtrl.value * 0.04),
+                color: const Color(0xFFFF4D8D).withValues(alpha: 0.06 + _glowCtrl.value * 0.04),
                 blurRadius: 12,
               ),
             ],
           ),
           child: Row(
             children: [
-              Text('🌸', style: const TextStyle(fontSize: 28)),
+              const Text('🌸', style: TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -284,7 +284,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                   color: Colors.greenAccent,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.greenAccent.withOpacity(0.5),
+                      color: Colors.greenAccent.withValues(alpha: 0.5),
                       blurRadius: 6,
                     ),
                   ],
@@ -301,9 +301,9 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Text(
         label,

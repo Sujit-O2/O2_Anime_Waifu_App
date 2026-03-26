@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -185,7 +185,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
+                      color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -206,7 +206,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                                 letterSpacing: 1.5)),
                         Text('Free translation — no API key',
                             style: GoogleFonts.outfit(
-                                color: Colors.blueAccent.withOpacity(0.6),
+                                color: Colors.blueAccent.withValues(alpha: 0.6),
                                 fontSize: 10)),
                       ]),
                 ),
@@ -235,10 +235,10 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.blueAccent.withOpacity(0.1),
+                              color: Colors.blueAccent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                  color: Colors.blueAccent.withOpacity(0.3)),
+                                  color: Colors.blueAccent.withValues(alpha: 0.3)),
                             ),
                             child: const Icon(Icons.swap_horiz_rounded,
                                 color: Colors.blueAccent, size: 20),
@@ -258,9 +258,9 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          color: Colors.white.withOpacity(0.04),
+                          color: Colors.white.withValues(alpha: 0.04),
                           border: Border.all(
-                              color: Colors.blueAccent.withOpacity(0.25)),
+                              color: Colors.blueAccent.withValues(alpha: 0.25)),
                         ),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -308,7 +308,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                             backgroundColor: Colors.blueAccent,
                             foregroundColor: Colors.white,
                             disabledBackgroundColor:
-                                Colors.blueAccent.withOpacity(0.3),
+                                Colors.blueAccent.withValues(alpha: 0.3),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
@@ -334,9 +334,9 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.redAccent.withOpacity(0.08),
+                            color: Colors.redAccent.withValues(alpha: 0.08),
                             border: Border.all(
-                                color: Colors.redAccent.withOpacity(0.2)),
+                                color: Colors.redAccent.withValues(alpha: 0.2)),
                           ),
                           child: Text(_error!,
                               style: GoogleFonts.outfit(
@@ -356,9 +356,9 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
-                              color: Colors.blueAccent.withOpacity(0.06),
+                              color: Colors.blueAccent.withValues(alpha: 0.06),
                               border: Border.all(
-                                  color: Colors.blueAccent.withOpacity(0.25)),
+                                  color: Colors.blueAccent.withValues(alpha: 0.25)),
                             ),
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,10 +425,10 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(20),
                                       color:
-                                          Colors.blueAccent.withOpacity(0.08),
+                                          Colors.blueAccent.withValues(alpha: 0.08),
                                       border: Border.all(
                                           color: Colors.blueAccent
-                                              .withOpacity(0.25)),
+                                              .withValues(alpha: 0.25)),
                                     ),
                                     child: Text(k,
                                         style: GoogleFonts.outfit(
@@ -452,8 +452,8 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.04),
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.25)),
+        color: Colors.white.withValues(alpha: 0.04),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.25)),
       ),
       child: DropdownButton<String>(
         value: value,

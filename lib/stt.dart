@@ -39,12 +39,12 @@ class SpeechService {
   bool _hadVoiceSignal = false;
 
   // ── Timing constants ───────────────────────────────────────────────────────
-  static const Duration _maxListenDuration = Duration(seconds: 14);
-  static const Duration _silenceStopAfter = Duration(milliseconds: 1500);
+  static const Duration _maxListenDuration = Duration(seconds: 50);
+  static const Duration _silenceStopAfter = Duration(milliseconds: 4000);
   static const Duration _minListenBeforeSilenceCheck =
-      Duration(milliseconds: 500);
-  static const Duration _noSpeechAbortAfter = Duration(seconds: 3);
-  static const double _voiceThresholdDb = -40.0;
+      Duration(milliseconds: 1000);
+  static const Duration _noSpeechAbortAfter = Duration(seconds: 5);
+  static const double _voiceThresholdDb = -45.0; // slightly more sensitive
   static const Duration _transcriptionTimeout = Duration(seconds: 8);
   static const int _minUsefulAudioBytes = 1024;
 
