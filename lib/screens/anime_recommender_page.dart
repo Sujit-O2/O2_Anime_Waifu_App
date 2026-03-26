@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
@@ -91,7 +91,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
+                      color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -112,10 +112,10 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurpleAccent.withOpacity(0.15),
+                    color: Colors.deepPurpleAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Colors.deepPurpleAccent.withOpacity(0.3)),
+                        color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
                   ),
                   child: Text('JikanAPI 🌸',
                       style: GoogleFonts.outfit(
@@ -145,8 +145,8 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
                         color: sel
-                            ? Colors.deepPurpleAccent.withOpacity(0.2)
-                            : Colors.white.withOpacity(0.04),
+                            ? Colors.deepPurpleAccent.withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.04),
                         border: Border.all(
                             color:
                                 sel ? Colors.deepPurpleAccent : Colors.white12),
@@ -172,10 +172,10 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Colors.deepPurpleAccent.withOpacity(0.3)),
+                        color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
                   ),
                   child: Row(children: [
                     const SizedBox(width: 12),
@@ -206,7 +206,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.deepPurpleAccent.withOpacity(0.2),
+                          color: Colors.deepPurpleAccent.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text('GO',
@@ -282,8 +282,8 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.04),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          color: Colors.white.withValues(alpha: 0.04),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -295,13 +295,13 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                            color: Colors.deepPurpleAccent.withOpacity(0.1),
+                            color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
                             child: const Center(
                                 child:
                                     Text('🌸', style: TextStyle(fontSize: 40))),
                           ))
                   : Container(
-                      color: Colors.deepPurpleAccent.withOpacity(0.1),
+                      color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
                       child: const Center(
                           child: Text('🌸', style: TextStyle(fontSize: 40))),
                     ),
@@ -346,7 +346,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                 const SizedBox(height: 3),
                 Text(genres,
                     style: GoogleFonts.outfit(
-                        color: Colors.deepPurpleAccent.withOpacity(0.8),
+                        color: Colors.deepPurpleAccent.withValues(alpha: 0.8),
                         fontSize: 10),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
@@ -428,11 +428,11 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: Colors.deepPurpleAccent
-                                        .withOpacity(0.15),
+                                        .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: Colors.deepPurpleAccent
-                                            .withOpacity(0.3)),
+                                            .withValues(alpha: 0.3)),
                                   ),
                                   child: Text(g.toString(),
                                       style: GoogleFonts.outfit(
