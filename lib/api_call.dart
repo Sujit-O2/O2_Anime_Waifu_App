@@ -243,7 +243,7 @@ class ApiService {
         }).toList();
         fallbackPayload['messages'] = fallbackMessages;
 
-        final apiKey = keys.first;
+        final apiKey = keys[(DateTime.now().millisecondsSinceEpoch) % keys.length];
         final res = await http.post(
           Uri.parse(_effectiveUrl),
           headers: {
