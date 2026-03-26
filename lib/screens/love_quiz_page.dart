@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -96,7 +96,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
                 onTap: () => Navigator.pop(context),
                 child: Container(width: 36, height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -107,9 +107,9 @@ class _LoveQuizPageState extends State<LoveQuizPage>
               if (!_loading && !_finished && _questions.isNotEmpty) Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.pinkAccent.withOpacity(0.12),
+                  color: Colors.pinkAccent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.pinkAccent.withOpacity(0.3))),
+                  border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3))),
                 child: Text('${_currentQ + 1}/${_questions.length}',
                     style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 12, fontWeight: FontWeight.w700)),
               ),
@@ -141,26 +141,26 @@ class _LoveQuizPageState extends State<LoveQuizPage>
         ClipRRect(borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: (_currentQ + 1) / _questions.length,
-            backgroundColor: Colors.white.withOpacity(0.07),
+            backgroundColor: Colors.white.withValues(alpha: 0.07),
             valueColor: const AlwaysStoppedAnimation(Colors.pinkAccent), minHeight: 3)),
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.white.withOpacity(0.04),
-            border: Border.all(color: Colors.pinkAccent.withOpacity(0.2))),
+            color: Colors.white.withValues(alpha: 0.04),
+            border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2))),
           child: Text(q['q']?.toString() ?? 'Question', style: GoogleFonts.outfit(
               color: Colors.white, fontSize: 17, height: 1.6, fontWeight: FontWeight.w600)),
         ),
         const SizedBox(height: 20),
         ...List.generate(options.length, (i) {
           Color borderColor = Colors.white12;
-          Color bgColor = Colors.white.withOpacity(0.03);
+          Color bgColor = Colors.white.withValues(alpha: 0.03);
           Color textColor = Colors.white70;
           if (_answered) {
-            if (i == correct) { borderColor = Colors.greenAccent; bgColor = Colors.greenAccent.withOpacity(0.08); textColor = Colors.greenAccent; }
-            else if (i == _selectedOption) { borderColor = Colors.redAccent; bgColor = Colors.redAccent.withOpacity(0.08); textColor = Colors.redAccent; }
+            if (i == correct) { borderColor = Colors.greenAccent; bgColor = Colors.greenAccent.withValues(alpha: 0.08); textColor = Colors.greenAccent; }
+            else if (i == _selectedOption) { borderColor = Colors.redAccent; bgColor = Colors.redAccent.withValues(alpha: 0.08); textColor = Colors.redAccent; }
           }
           return GestureDetector(
             onTap: () => _answer(i),
@@ -174,8 +174,8 @@ class _LoveQuizPageState extends State<LoveQuizPage>
               child: Row(children: [
                 Container(width: 28, height: 28,
                   decoration: BoxDecoration(shape: BoxShape.circle,
-                    color: borderColor.withOpacity(0.15),
-                    border: Border.all(color: borderColor.withOpacity(0.5))),
+                    color: borderColor.withValues(alpha: 0.15),
+                    border: Border.all(color: borderColor.withValues(alpha: 0.5))),
                   child: Center(child: Text(String.fromCharCode(65 + i),
                       style: GoogleFonts.outfit(color: textColor, fontSize: 12, fontWeight: FontWeight.w700)))),
                 const SizedBox(width: 14),
@@ -195,10 +195,10 @@ class _LoveQuizPageState extends State<LoveQuizPage>
             child: ElevatedButton(
               onPressed: _next,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent.withOpacity(0.2),
+                backgroundColor: Colors.pinkAccent.withValues(alpha: 0.2),
                 foregroundColor: Colors.pinkAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.pinkAccent.withOpacity(0.4))),
+                    side: BorderSide(color: Colors.pinkAccent.withValues(alpha: 0.4))),
                 elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
               child: Text(_currentQ < _questions.length - 1 ? 'Next Question →' : 'See Results 💖',
                   style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
