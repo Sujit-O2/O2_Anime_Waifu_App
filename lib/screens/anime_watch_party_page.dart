@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 
 /// Anime Watch Party — Sync video playback with friends + live chat.
@@ -8,8 +9,8 @@ class AnimeWatchPartyPage extends StatefulWidget {
 
   const AnimeWatchPartyPage({
     super.key,
-    this.animeTitle = 'Demon Slayer: Entertainment District Arc - Ep 10',
-    this.videoUrl = 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4', 
+    this.animeTitle = 'Watch Party',
+    this.videoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', 
   });
 
   @override
@@ -19,6 +20,7 @@ class AnimeWatchPartyPage extends StatefulWidget {
 class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
   late VideoPlayerController _videoController;
   final TextEditingController _chatInput = TextEditingController();
+  final TextEditingController _urlInput = TextEditingController();
   final List<Map<String, String>> _messages = [
     {'user': 'Alex', 'msg': 'This animation is insane!! 🔥'},
     {'user': 'Sara', 'msg': 'Ufotable carrying as usual'},
@@ -27,19 +29,72 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
 
   bool _showControls = true;
   int _viewersCount = 4;
+  late String _currentUrl;
+  late String _currentTitle;
 
   @override
   void initState() {
     super.initState();
-    _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
-      ..initialize().then((_) {
-        setState(() {}); // Ensure the first frame is shown
-        _videoController.play();
-        _videoController.setLooping(true);
-      });
-
-    // Simulate arriving messages
+    _currentUrl = widget.videoUrl;
+    _currentTitle = widget.animeTitle;
+    _initVideo(_currentUrl);
     _startMockSync();
+  }
+
+  void _initVideo(String url) {
+    _videoController = VideoPlayerController.networkUrl(Uri.parse(url))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {});
+          _videoController.play();
+          _videoController.setLooping(true);
+        }
+      }).catchError((e) {
+        debugPrint('Watch Party video error: $e');
+      });
+  }
+
+  void _changeVideo() {
+    _urlInput.text = _currentUrl;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Enter Video URL', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: _urlInput,
+          style: const TextStyle(color: Colors.white, fontSize: 13),
+          decoration: InputDecoration(
+            hintText: 'Paste MP4 video URL...',
+            hintStyle: TextStyle(color: Colors.grey.shade600),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.08),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              final url = _urlInput.text.trim();
+              if (url.isNotEmpty) {
+                Navigator.pop(ctx);
+                _videoController.dispose();
+                setState(() => _currentUrl = url);
+                _initVideo(url);
+              }
+            },
+            child: const Text('Play', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startMockSync() async {
@@ -57,6 +112,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
   void dispose() {
     _videoController.dispose();
     _chatInput.dispose();
+    _urlInput.dispose();
     super.dispose();
   }
 
@@ -84,6 +140,11 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.video_library, color: Colors.white),
+            tooltip: 'Change Video',
+            onPressed: _changeVideo,
+          ),
           IconButton(
             icon: const Icon(Icons.people_alt, color: Colors.white),
             onPressed: () {
@@ -145,7 +206,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: const Color(0xFF16161E),
             width: double.infinity,
-            child: Text(widget.animeTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            child: Text(_currentTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
 
           // Chat Section
