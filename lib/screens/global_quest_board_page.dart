@@ -49,8 +49,10 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
         }).toList();
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('GlobalQuest load error: $e');
       setState(() => _loading = false);
+      if (mounted) _snack('Failed to load quests: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e}');
     }
   }
 
@@ -152,7 +154,9 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
         });
       }
       AffectionService.instance.addPoints((quest['xp'] as int?) ?? 30);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('GlobalQuest complete error: $e');
+    }
 
     if (mounted) {
       _snack('Quest complete! +${quest['xp']} XP 🎉');
