@@ -48,7 +48,7 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
         ).timeout(const Duration(seconds: 10));
         if (resp.statusCode == 200) {
           final data = jsonDecode(resp.body)['data'] as List? ?? [];
-          _schedule[day] = data.cast<Map<String, dynamic>>();
+          _schedule[day] = data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         }
         await Future.delayed(const Duration(milliseconds: 350)); // Rate limit
       }
