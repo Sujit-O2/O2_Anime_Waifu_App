@@ -32,7 +32,9 @@ class _PinnedMessagesPageState extends State<PinnedMessagesPage> {
           .get();
       if (snap.exists) {
         final list = ((snap.data() ?? {})['pins'] as List?) ?? [];
-        setState(() => _pins = list.cast<Map<String, dynamic>>());
+        setState(() => _pins = list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList());
       }
     } catch (_) {}
     setState(() => _loading = false);
