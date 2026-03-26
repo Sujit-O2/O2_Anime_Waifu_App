@@ -95,7 +95,7 @@ class FirestoreService {
         final msgs = data?['messages'] as List<dynamic>?;
         if (msgs != null) {
           return msgs
-              .cast<Map<String, dynamic>>()
+              .map((e) => Map<String, dynamic>.from(e as Map))
               .map(ChatMessage.fromJson)
               .toList();
         }
