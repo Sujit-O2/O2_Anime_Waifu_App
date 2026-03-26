@@ -52,7 +52,9 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         'level': aff.levelName,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Leaderboard publish error: $e');
+    }
   }
 
   Future<void> _load() async {
@@ -71,8 +73,15 @@ class _LeaderboardPageState extends State<LeaderboardPage>
           _loading = false;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      debugPrint('Leaderboard load error: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to load leaderboard: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e}'),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
