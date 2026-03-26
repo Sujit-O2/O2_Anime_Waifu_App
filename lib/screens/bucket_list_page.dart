@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -136,7 +136,7 @@ class _BucketListPageState extends State<BucketListPage>
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
+                          color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.white12)),
                       child: const Icon(Icons.arrow_back_ios_new,
@@ -154,7 +154,7 @@ class _BucketListPageState extends State<BucketListPage>
                             letterSpacing: 1.5)),
                     Text('$_done/${_items.length} completed 🌟',
                         style: GoogleFonts.outfit(
-                            color: Colors.amberAccent.withOpacity(0.6),
+                            color: Colors.amberAccent.withValues(alpha: 0.6),
                             fontSize: 10)),
                   ])),
             ]),
@@ -166,7 +166,7 @@ class _BucketListPageState extends State<BucketListPage>
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: _items.isEmpty ? 0 : _done / _items.length,
-                  backgroundColor: Colors.white.withOpacity(0.07),
+                  backgroundColor: Colors.white.withValues(alpha: 0.07),
                   valueColor: const AlwaysStoppedAnimation(Colors.amberAccent),
                   minHeight: 4,
                 ),
@@ -192,8 +192,8 @@ class _BucketListPageState extends State<BucketListPage>
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
                                     color: _selCat == i
-                                        ? Colors.amberAccent.withOpacity(0.12)
-                                        : Colors.white.withOpacity(0.04),
+                                        ? Colors.amberAccent.withValues(alpha: 0.12)
+                                        : Colors.white.withValues(alpha: 0.04),
                                     border: Border.all(
                                         color: _selCat == i
                                             ? Colors.amberAccent
@@ -221,7 +221,7 @@ class _BucketListPageState extends State<BucketListPage>
                             hintStyle: GoogleFonts.outfit(
                                 color: Colors.white30, fontSize: 12),
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.04),
+                            fillColor: Colors.white.withValues(alpha: 0.04),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none),
@@ -229,7 +229,7 @@ class _BucketListPageState extends State<BucketListPage>
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
                                     color:
-                                        Colors.amberAccent.withOpacity(0.2))),
+                                        Colors.amberAccent.withValues(alpha: 0.2))),
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 10)))),
@@ -240,10 +240,10 @@ class _BucketListPageState extends State<BucketListPage>
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                            color: Colors.amberAccent.withOpacity(0.12),
+                            color: Colors.amberAccent.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: Colors.amberAccent.withOpacity(0.4))),
+                                color: Colors.amberAccent.withValues(alpha: 0.4))),
                         child: const Icon(Icons.add_rounded,
                             color: Colors.amberAccent, size: 22))),
               ]),
@@ -284,7 +284,7 @@ class _BucketListPageState extends State<BucketListPage>
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(14),
                                       color:
-                                          Colors.redAccent.withOpacity(0.12)),
+                                          Colors.redAccent.withValues(alpha: 0.12)),
                                   child: const Icon(
                                       Icons.delete_outline_rounded,
                                       color: Colors.redAccent)),
@@ -302,13 +302,13 @@ class _BucketListPageState extends State<BucketListPage>
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(14),
                                     color: done
-                                        ? Colors.amberAccent.withOpacity(0.06)
-                                        : Colors.white.withOpacity(0.04),
+                                        ? Colors.amberAccent.withValues(alpha: 0.06)
+                                        : Colors.white.withValues(alpha: 0.04),
                                     border: Border.all(
                                         color: done
                                             ? Colors.amberAccent
-                                                .withOpacity(0.3)
-                                            : Colors.white.withOpacity(0.07)),
+                                                .withValues(alpha: 0.3)
+                                            : Colors.white.withValues(alpha: 0.07)),
                                   ),
                                   child: Row(children: [
                                     Icon(
@@ -340,7 +340,7 @@ class _BucketListPageState extends State<BucketListPage>
                                           Text(item['cat'] as String,
                                               style: GoogleFonts.outfit(
                                                   color: Colors.amberAccent
-                                                      .withOpacity(0.5),
+                                                      .withValues(alpha: 0.5),
                                                   fontSize: 10)),
                                         ])),
                                   ]),
