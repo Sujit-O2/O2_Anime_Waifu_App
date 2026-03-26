@@ -60,7 +60,8 @@ class FreeApisService {
         final data = jsonDecode(res.body);
         final list = data['data'] as List? ?? [];
         return list
-            .map<Map<String, dynamic>>((a) => {
+            .map<Map<String, dynamic>>((a) {
+              return <String, dynamic>{
                   'title': a['title'] ?? 'Unknown',
                   'score': (a['score'] ?? 0.0).toDouble(),
                   'synopsis': a['synopsis'] ?? '',
@@ -71,7 +72,8 @@ class FreeApisService {
                           ?.map((g) => g['name'] as String)
                           .toList() ??
                       [],
-                })
+              };
+            })
             .toList();
       }
     } catch (_) {}
@@ -91,7 +93,8 @@ class FreeApisService {
         final data = jsonDecode(res.body);
         final list = data['data'] as List? ?? [];
         return list
-            .map<Map<String, dynamic>>((a) => {
+            .map<Map<String, dynamic>>((a) {
+              return <String, dynamic>{
                   'title': a['title'] ?? 'Unknown',
                   'score': (a['score'] ?? 0.0).toDouble(),
                   'synopsis': a['synopsis'] ?? '',
@@ -101,7 +104,8 @@ class FreeApisService {
                           ?.map((g) => g['name'] as String)
                           .toList() ??
                       [],
-                })
+              };
+            })
             .toList();
       }
     } catch (_) {}
@@ -121,7 +125,8 @@ class FreeApisService {
         final data = jsonDecode(res.body);
         final list = data['data'] as List? ?? [];
         return list
-            .map<Map<String, dynamic>>((a) => {
+            .map<Map<String, dynamic>>((a) {
+              return <String, dynamic>{
                   'title': a['title'] ?? 'Unknown',
                   'score': (a['score'] ?? 0.0).toDouble(),
                   'synopsis': a['synopsis'] ?? '',
@@ -130,7 +135,8 @@ class FreeApisService {
                           ?.map((g) => g['name'] as String)
                           .toList() ??
                       [],
-                })
+              };
+            })
             .toList();
       }
     } catch (_) {}
@@ -244,12 +250,14 @@ class FreeApisService {
         final data = jsonDecode(res.body);
         final meals = data['meals'] as List? ?? [];
         return meals
-            .map<Map<String, dynamic>>((meal) => {
+            .map<Map<String, dynamic>>((meal) {
+              return <String, dynamic>{
                   'name': meal['strMeal'] ?? '',
                   'category': meal['strCategory'] ?? '',
                   'area': meal['strArea'] ?? '',
                   'image': meal['strMealThumb'] ?? '',
-                })
+              };
+            })
             .toList();
       }
     } catch (_) {}
