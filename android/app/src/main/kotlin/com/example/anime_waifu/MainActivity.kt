@@ -45,6 +45,12 @@ class MainActivity : AudioServiceFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        // Register wake-word audio capture EventChannel
+        io.flutter.plugin.common.EventChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            WakeAudioCapture.CHANNEL_NAME
+        ).setStreamHandler(WakeAudioCapture(applicationContext))
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
