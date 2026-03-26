@@ -32,7 +32,7 @@ class _AnimeOstPageState extends State<AnimeOstPage> {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body)['data'] as List;
         if (mounted) setState(() {
-          _results = data.cast<Map<String, dynamic>>();
+          _results = data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           _loading = false;
         });
       }
