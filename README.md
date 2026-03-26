@@ -484,6 +484,33 @@ Seamlessly integrated background services for a more "living" assistant:
 
 ---
 
+## 🚀 The Neural Awakening Update (v4.0.0 Major Release)
+
+### 1. 🧠 Primary Brain Upgrade: Llama 4 Scout
+*   **Next-Gen Intelligence:** Successfully migrated from Gemini/Kimi to the high-performance **meta-llama/llama-4-scout-17b-16e-instruct** model.
+*   **Enhanced Reasoning:** Improved contextual awareness, faster response times, and superior personality consistency.
+*   **Vision Support:** Fully integrated vision capabilities for describing and reacting to user-sent images in real-time.
+
+### 2. 🎙️ Privacy-First ONNX Wake Word
+*   **Bespoke Engine:** Deprecated Picovoice Porcupine in favor of a custom **ONNX-based Neural Classifier**.
+*   **Local Processing:** 100% on-device audio classification, ensuring "Zero Two" only hears what she's supposed to.
+*   **Foreground Survival:** Optimized for Android 12+, providing rock-solid background listening reliability through the `WakeAudioCapture` bridge.
+
+### 3. 📸 Smart Interactive Selfies
+*   **Zero Two Selfies:** A new **Safebooru-powered** image retrieval system. Use natural language commands like *"Show me yourself"* or *"Send a pic"* to trigger a Zero Two selfie.
+*   **Dual-Layer Intercept:** Combines AI-driven action detection (`[SELFIE]` tag) with early keyword matching for 100% trigger reliability.
+
+### 4. 📲 Unified Widget Ecosystem
+*   **Simultaneous Sync:** A new `_refreshAllWidgets()` protocol that updates Weather, Dashboard, Status Monitor, Actions Hub, and Quote Banner in one atomic operation.
+*   **30-Min Heartbeat:** Integrated a periodic auto-refresh timer in the app's root state, keeping your home screen data fresh even during long standby periods.
+*   **Weather Robustness:** Switched to direct JSON parsing for weather data, resolving fragile string-parsing bugs from previous versions.
+
+### 5. 🛠️ Stability & Error Visibility
+*   **The "No-Crash" Protocol:** Fixed critical set-literal and list-cast crashes in **Free APIs**, **Pinned Messages**, and **Leaderboards**.
+*   **Dev-Friendly Logs:** Added explicit `debugPrint` and snackbar error handling across **28+ feature screens** for transparent troubleshooting.
+
+---
+
 ## 🚀 The Harmony Update (v3.0 Features)
 
 ### 1. Neural Splash & Visual Entry
