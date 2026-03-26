@@ -37,17 +37,13 @@ extension _MainDebugExtension on _ChatHomePageState {
                   const SizedBox(height: 10),
 
                   _debugStatusCard(
-                    label: 'Wake Word Engine',
-                    status: _wakeWordActivationLimitHit
-                        ? 'Limit Hit'
-                        : _wakeWordReady
+                    label: 'Wake Word Engine (ONNX)',
+                    status: _wakeWordReady
                             ? 'Ready'
                             : _wakeInitInProgress
                                 ? 'Initializing...'
                                 : 'Offline',
-                    color: _wakeWordActivationLimitHit
-                        ? Colors.redAccent
-                        : _wakeWordReady
+                    color: _wakeWordReady
                             ? Colors.greenAccent
                             : _wakeInitInProgress
                                 ? Colors.orangeAccent
@@ -85,7 +81,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                         : Colors.redAccent,
                     icon: Icons.cloud_outlined,
                     extra:
-                        'Model: ${_devModelOverride.isNotEmpty ? _devModelOverride : "kimi-k2-instruct"} | Busy: $_isBusy',
+                        'Model: ${_devModelOverride.isNotEmpty ? _devModelOverride : "llama-4-scout"} | Busy: $_isBusy',
                   ),
 
                   _debugStatusCard(
@@ -713,6 +709,34 @@ extension _MainDebugExtension on _ChatHomePageState {
                                   'Preferences: $keys total keys stored in memory')));
                         }
                       }),
+                      _debugActionBtn('⚔️ Boss Battles', Icons.sports_martial_arts_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BossBattlePage()))),
+                      _debugActionBtn('🧩 Anime Wordle', Icons.grid_on_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeWordlePage()))),
+                      _debugActionBtn('🎴 Gacha Cards', Icons.style_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GachaPage()))),
+                      _debugActionBtn('🇯🇵 Manga Translate', Icons.translate_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaTranslatorPage()))),
+                      _debugActionBtn('🎨 AI Art Gen', Icons.brush_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiArtGeneratorPage()))),
+                      _debugActionBtn('🎥 Streamers Hub', Icons.live_tv_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WebStreamersHubPage()))),
+                      _debugActionBtn('📺 Anime Section', Icons.movie_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeSectionPage()))),
+                      _debugActionBtn('📚 Manga Section', Icons.menu_book_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaSectionPage()))),
+                      _debugActionBtn('🕸️ HiAnime Web', Icons.language_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime)))),
+                      _debugActionBtn('🎯 Anime Recommender', Icons.recommend_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeRecommenderPage()))),
+                      _debugActionBtn('🎮 Minigames Hub', Icons.videogame_asset_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamesHubPage()))),
+                      _debugActionBtn('📖 Story Adventure', Icons.auto_stories_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StoryAdventurePage()))),
+                      _debugActionBtn('💖 Virtual Date', Icons.favorite_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VirtualDatePage()))),
+                      _debugActionBtn('👥 Character DB', Icons.recent_actors_rounded,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CharacterDatabasePage(animeId: '1', animeTitle: 'Cowboy Bebop')))),
                     ],
                   ),
                 ],
