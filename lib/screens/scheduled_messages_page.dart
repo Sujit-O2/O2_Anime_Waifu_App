@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -82,7 +83,9 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
             .map((e) => _ScheduledMsg.fromMap(e as Map<String, dynamic>))
             .toList());
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('ScheduledMessages load error: $e');
+    }
     setState(() => _loading = false);
   }
 
