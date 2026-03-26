@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -141,7 +141,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
+                      color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white12)),
                   child: const Icon(Icons.arrow_back_ios_new,
@@ -203,7 +203,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: _spendPct,
-                  backgroundColor: Colors.white.withOpacity(0.07),
+                  backgroundColor: Colors.white.withValues(alpha: 0.07),
                   valueColor: AlwaysStoppedAnimation(
                       _spendPct > 0.8 ? Colors.redAccent : Colors.tealAccent),
                   minHeight: 5,
@@ -230,8 +230,8 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: _isExpense
-                          ? Colors.redAccent.withOpacity(0.15)
-                          : Colors.white.withOpacity(0.04),
+                          ? Colors.redAccent.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                           color:
                               _isExpense ? Colors.redAccent : Colors.white12),
@@ -259,8 +259,8 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: !_isExpense
-                          ? Colors.greenAccent.withOpacity(0.15)
-                          : Colors.white.withOpacity(0.04),
+                          ? Colors.greenAccent.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.04),
                       border: Border.all(
                           color: !_isExpense
                               ? Colors.greenAccent
@@ -294,8 +294,8 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         color: _selectedCat == i
-                            ? Colors.tealAccent.withOpacity(0.15)
-                            : Colors.white.withOpacity(0.04),
+                            ? Colors.tealAccent.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.04),
                         border: Border.all(
                             color: _selectedCat == i
                                 ? Colors.tealAccent
@@ -326,14 +326,14 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                     prefixText: '₹ ',
                     prefixStyle: GoogleFonts.outfit(color: Colors.white38),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.04),
+                    fillColor: Colors.white.withValues(alpha: 0.04),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none),
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                            color: Colors.tealAccent.withOpacity(0.2))),
+                            color: Colors.tealAccent.withValues(alpha: 0.2))),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 10),
@@ -350,7 +350,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                     hintStyle:
                         GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.04),
+                    fillColor: Colors.white.withValues(alpha: 0.04),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none),
@@ -366,10 +366,10 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                        color: Colors.tealAccent.withOpacity(0.15),
+                        color: Colors.tealAccent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: Colors.tealAccent.withOpacity(0.4))),
+                            color: Colors.tealAccent.withValues(alpha: 0.4))),
                     child: const Icon(Icons.add_rounded,
                         color: Colors.tealAccent, size: 22),
                   ),
@@ -404,7 +404,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                color: Colors.redAccent.withOpacity(0.15)),
+                                color: Colors.redAccent.withValues(alpha: 0.15)),
                             child: const Icon(Icons.delete_outline_rounded,
                                 color: Colors.redAccent),
                           ),
@@ -415,9 +415,9 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                                 horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              color: Colors.white.withOpacity(0.04),
+                              color: Colors.white.withValues(alpha: 0.04),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.07)),
+                                  color: Colors.white.withValues(alpha: 0.07)),
                             ),
                             child: Row(children: [
                               Text(t['cat'].toString().split(' ').first,
@@ -463,8 +463,8 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: color.withOpacity(0.07),
-            border: Border.all(color: color.withOpacity(0.25))),
+            color: color.withValues(alpha: 0.07),
+            border: Border.all(color: color.withValues(alpha: 0.25))),
         child: Column(children: [
           Text('₹${value.toStringAsFixed(0)}',
               style: GoogleFonts.outfit(
