@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -123,7 +123,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                       activeTrackColor: Colors.blueAccent,
                       inactiveTrackColor: Colors.white24,
                       thumbColor: Colors.white,
-                      overlayColor: Colors.blueAccent.withOpacity(0.2),
+                      overlayColor: Colors.blueAccent.withValues(alpha: 0.2),
                     ),
                     child: Slider(
                       value: _memoryLimit.toDouble(),
@@ -196,7 +196,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         color: Colors.white10,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-            color: value ? accentColor.withOpacity(0.5) : Colors.white12),
+            color: value ? accentColor.withValues(alpha: 0.5) : Colors.white12),
       ),
       child: Row(
         children: [
