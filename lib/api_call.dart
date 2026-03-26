@@ -34,7 +34,7 @@ class ApiService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
-    return "moonshotai/kimi-k2-instruct";
+    return "meta-llama/llama-4-scout-17b-16e-instruct";
   }
 
   String get _effectiveUrl {
@@ -135,6 +135,9 @@ class ApiService {
     final payload = {
       "model": modelOverride ?? _effectiveModel,
       "messages": payloadMessages,
+      "temperature": 0.9,
+      "max_completion_tokens": 1024,
+      "top_p": 1,
     };
 
     List<Exception> errors = [];
@@ -213,9 +216,62 @@ class ApiService {
       }
     }
 
+    // --- Model Fallback: try backup model before going offline ---
+    final usedModel = modelOverride ?? _effectiveModel;
+    const fallbackModels = [
+      'meta-llama/llama-4-scout-17b-16e-instruct',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+    ];
+    for (final fallback in fallbackModels) {
+      if (fallback == usedModel) continue; // skip the one that already failed
+      debugPrint("Trying fallback model: $fallback");
+      try {
+        final fallbackPayload = Map<String, dynamic>.from(payload);
+        fallbackPayload['model'] = fallback;
+        // Strip image content for non-vision fallback models
+        final fallbackMessages = (fallbackPayload['messages'] as List).map((m) {
+          if (m is Map && m['content'] is List) {
+            // Multimodal content — extract text only for text-only models
+            final textParts = (m['content'] as List)
+                .where((p) => p is Map && p['type'] == 'text')
+                .map((p) => p['text'].toString())
+                .join(' ');
+            return {'role': m['role'], 'content': textParts};
+          }
+          return m;
+        }).toList();
+        fallbackPayload['messages'] = fallbackMessages;
+
+        final apiKey = keys.first;
+        final res = await http.post(
+          Uri.parse(_effectiveUrl),
+          headers: {
+            "Authorization": "Bearer $apiKey",
+            "Content-Type": "application/json",
+          },
+          body: jsonEncode(fallbackPayload),
+        ).timeout(_chatTimeout);
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body) as Map<String, dynamic>;
+          final choices = data["choices"];
+          if (choices is List && choices.isNotEmpty) {
+            final content = (choices.first["message"]["content"] ?? "").toString().trim();
+            if (content.isNotEmpty) {
+              debugPrint("Fallback model $fallback succeeded!");
+              return content;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Fallback model $fallback failed: $e");
+      }
+    }
+
     // --- Offline AI Fallback ---
-    // If all keys failed or timed out, assume offline/API down and use local fallback
-    debugPrint("All keys failed. Triggering Offline AI Mode fallback.");
+    // If all models and keys failed, use local fallback
+    debugPrint("All models and keys failed. Triggering Offline AI Mode fallback.");
     try {
       final lastUserMsg = messages.isNotEmpty ? messages.last['content'].toString() : '';
       return await OfflineAiService.instance.generateLocalResponse(lastUserMsg, 'Normal');
