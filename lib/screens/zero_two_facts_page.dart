@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -89,7 +89,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                   onTap: () => Navigator.pop(context),
                   child: Container(width: 36, height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
+                      color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white12)),
                     child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
@@ -101,7 +101,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                   Text(_loading ? 'AI generating facts…' : _facts.isNotEmpty
                       ? 'Fact ${_currentIdx + 1} of ${_facts.length}'
                       : 'No facts available',
-                      style: GoogleFonts.outfit(color: Colors.pinkAccent.withOpacity(0.6), fontSize: 10)),
+                      style: GoogleFonts.outfit(color: Colors.pinkAccent.withValues(alpha: 0.6), fontSize: 10)),
                 ])),
                 if (!_loading) GestureDetector(
                   onTap: _toggleFavorite,
@@ -113,12 +113,12 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
               child: ClipRRect(borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(value: progress,
-                    backgroundColor: Colors.white.withOpacity(0.07),
+                    backgroundColor: Colors.white.withValues(alpha: 0.07),
                     valueColor: const AlwaysStoppedAnimation(Colors.pinkAccent), minHeight: 3)),
             ),
             Expanded(child: Stack(children: [
               Center(child: Text('02', style: GoogleFonts.outfit(
-                  color: Colors.pinkAccent.withOpacity(0.04), fontSize: 250, fontWeight: FontWeight.w900))),
+                  color: Colors.pinkAccent.withValues(alpha: 0.04), fontSize: 250, fontWeight: FontWeight.w900))),
               _loading
                   ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                       CircularProgressIndicator(strokeWidth: 2, color: Colors.pinkAccent),
@@ -133,9 +133,9 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                               Container(padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(24),
-                                  color: Colors.white.withOpacity(0.04),
-                                  border: Border.all(color: Colors.pinkAccent.withOpacity(0.25)),
-                                  boxShadow: [BoxShadow(color: Colors.pinkAccent.withOpacity(0.08), blurRadius: 24, spreadRadius: -4)]),
+                                  color: Colors.white.withValues(alpha: 0.04),
+                                  border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.25)),
+                                  boxShadow: [BoxShadow(color: Colors.pinkAccent.withValues(alpha: 0.08), blurRadius: 24, spreadRadius: -4)]),
                                 child: Column(children: [
                                   const Text('🌸', style: TextStyle(fontSize: 36)),
                                   const SizedBox(height: 16),
@@ -160,9 +160,9 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                                   child: Container(height: 44,
                                     padding: const EdgeInsets.symmetric(horizontal: 20),
                                     decoration: BoxDecoration(
-                                      color: Colors.pinkAccent.withOpacity(0.12),
+                                      color: Colors.pinkAccent.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: Colors.pinkAccent.withOpacity(0.3))),
+                                      border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3))),
                                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                                       const Icon(Icons.copy_outlined, color: Colors.pinkAccent, size: 16),
                                       const SizedBox(width: 8),
@@ -189,7 +189,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
     onTap: onTap,
     child: Container(width: 44, height: 44,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12)),
       child: Icon(icon, color: Colors.white54, size: 18)),
