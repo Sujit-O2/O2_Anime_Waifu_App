@@ -236,7 +236,10 @@ extension _MainDrawerExtension on _ChatHomePageState {
       );
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final drawerWidth = (screenWidth * 0.82).clamp(0.0, 320.0);
     return Drawer(
+      width: drawerWidth,
       backgroundColor: const Color(0xFF0F1014), // Deep cinematic dark layout
       child: Stack(
         children: [
@@ -251,13 +254,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   errorBuilder: (_, __, ___) => const SizedBox.shrink()),
             ),
           ),
-          // Frosted Glass Layer over the GIF for ultra-premium aesthetic
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
+          // Removed Frosted Glass Layer over the GIF to drastically improve scroll performance and eliminate drawer open lag.
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -283,16 +280,12 @@ extension _MainDrawerExtension on _ChatHomePageState {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Dynamic Cover Image
-                    Image(
-                      image: const AssetImage('assets/img/z2s.jpg'),
+                    // Dynamic Animated Cover Image (sidebartop.gif)
+                    Image.asset(
+                      'assets/gif/sidebar_top.gif',
                       fit: BoxFit.cover,
                       alignment: const Alignment(0, -0.2), // Focus on face/eyes
-                      errorBuilder: (_, __, ___) => Image.asset(
-                        'assets/gif/sidebar_top.gif', 
-                        fit: BoxFit.cover,
-                        alignment: const Alignment(0, -0.2),
-                      ),
+                      gaplessPlayback: true, // Prevents flickering
                     ),
                     
                     // Deep Vignette + Fade to Black (seamless merge)
@@ -504,7 +497,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Cloud Videos', Icons.cloud_queue_rounded, Colors.cyanAccent, () => updateState(() => _navIndex = 12), badge: 'HD'),
                         drawerTile('Manga Reader', Icons.menu_book_rounded, const Color(0xFFBB52FF), () => Navigator.pushNamed(context, '/manga-section'), badge: 'All'),
                         drawerTile('Web Streamers', Icons.travel_explore_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/web-streamers-hub'), badge: '26'),
-                        drawerTile('Music Player', Icons.music_note_rounded, Colors.tealAccent, () => updateState(() => _navIndex = 0)),
+                        drawerTile('Music Player', Icons.music_note_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/music-player'), badge: '🎵'),
                         drawerTile('My Watchlist', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/watchlist'), badge: '❤️'),
                         drawerTile('Anime Quiz', Icons.quiz_rounded, Colors.amber, () => Navigator.pushNamed(context, '/anime-quiz'), badge: '🎮'),
                       ])),
@@ -538,16 +531,79 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Dream Reader', Icons.bedtime_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/dream-interpreter'), badge: 'AI'),
                         drawerTile('Life Coach', Icons.psychology_outlined, Colors.cyanAccent, () => Navigator.pushNamed(context, '/relationship-coach'), badge: 'AI'),
                         drawerTile('Manga Translator', Icons.translate_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/manga-translator'), badge: 'NEW'),
+                        drawerTile('Movie Picks', Icons.movie_outlined, Colors.orangeAccent, () => Navigator.pushNamed(context, '/movie-recommender'), badge: 'AI'),
+                        drawerTile('Poem Generator', Icons.edit_note_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/poem-generator'), badge: 'AI'),
+                        drawerTile('Writing Helper', Icons.edit_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/writing-helper'), badge: 'AI'),
+                        drawerTile('Recipe Picks', Icons.restaurant_rounded, Colors.green, () => Navigator.pushNamed(context, '/recipe-recommender'), badge: 'AI'),
+                        drawerTile('Language Tool', Icons.language_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/language-translator'), badge: 'AI'),
                       ], badge: 'Smart')),
 
+                      // ── 📊 ANALYTICS & STATS ──────────────────────────────────
+                      _DrawerStaggerItem(index: 6, child: hubAccordion('Analytics', Icons.analytics_rounded, Colors.cyanAccent, [
+                        drawerTile('Chat Analytics', Icons.bar_chart_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/chat-analytics'), badge: '📊'),
+                        drawerTile('Stats & Habits', Icons.insights_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/stats-habits')),
+                        drawerTile('Mood Tracking', Icons.mood_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/mood-tracking')),
+                        drawerTile('Relationship Map', Icons.map_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/relationship-level-map')),
+                        drawerTile('Love Timeline', Icons.timeline_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/relationship-timeline')),
+                        drawerTile('Year In Review', Icons.calendar_today_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/year-in-review'), badge: '📅'),
+                        drawerTile('Leaderboard', Icons.leaderboard_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/leaderboard'), badge: '🏆'),
+                      ], badge: 'Data')),
+
+                      // ── 📝 PRODUCTIVITY ────────────────────────────────────────
+                      _DrawerStaggerItem(index: 7, child: hubAccordion('Productivity', Icons.task_alt_rounded, Colors.blueAccent, [
+                        drawerTile('Notes Pad', Icons.note_alt_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/notes-pad'), badge: '📝'),
+                        drawerTile('Pomodoro', Icons.timer_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/pomodoro')),
+                        drawerTile('Study Timer', Icons.school_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/study-timer')),
+                        drawerTile('Goal Tracker', Icons.flag_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/goal-tracker')),
+                        drawerTile('Habit Tracker', Icons.checklist_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/habit-tracker')),
+                        drawerTile('Budget Tracker', Icons.account_balance_wallet_rounded, Colors.green, () => Navigator.pushNamed(context, '/budget-tracker')),
+                        drawerTile('Countdown Timer', Icons.hourglass_bottom_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/countdown-timer')),
+                        drawerTile('Workout Planner', Icons.fitness_center_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/workout-planner')),
+                        drawerTile('Scheduled Msgs', Icons.schedule_send_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/scheduled-messages')),
+                      ], badge: 'Focus')),
+
+                      // ── 💫 SOCIAL & SHARE ──────────────────────────────────────
+                      _DrawerStaggerItem(index: 8, child: hubAccordion('Social', Icons.people_rounded, Colors.lightBlueAccent, [
+                        drawerTile('Voice Notes', Icons.mic_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/voice-notes'), badge: '🎤'),
+                        drawerTile('Friends', Icons.group_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/friends')),
+                        drawerTile('Watch Party', Icons.live_tv_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/anime-watch-party'), badge: 'LIVE'),
+                        drawerTile('Waifu Tier List', Icons.format_list_numbered_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/waifu-tier-list')),
+                        drawerTile('Global Quests', Icons.public_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/global-quest-board'), badge: '🌍'),
+                        drawerTile('Anime Calendar', Icons.calendar_month_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/anime-calendar')),
+                        drawerTile('Episode Alerts', Icons.notifications_active_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/episode-alerts'), badge: '🔔'),
+                      ], badge: 'Connect')),
+
+                      // ── 📖 MEMORY & JOURNAL ────────────────────────────────────
+                      _DrawerStaggerItem(index: 9, child: hubAccordion('Memory', Icons.auto_stories_rounded, Colors.deepPurpleAccent, [
+                        drawerTile('Memory Book', Icons.photo_album_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/memory-book'), badge: '📸'),
+                        drawerTile('Memory Wall', Icons.dashboard_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/memory-wall')),
+                        drawerTile('Memory Timeline', Icons.timeline_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/memory-timeline')),
+                        drawerTile('Dream Journal', Icons.nightlight_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/dream-journal')),
+                        drawerTile('Gratitude Journal', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/gratitude-journal')),
+                        drawerTile('Pinned Messages', Icons.push_pin_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/pinned-messages')),
+                        drawerTile('Data Vault', Icons.lock_rounded, Colors.blueGrey, () => Navigator.pushNamed(context, '/data-vault'), badge: '🔒'),
+                      ], badge: 'Keep')),
+
+                      // ── 🧘 WELLNESS ────────────────────────────────────────────
+                      _DrawerStaggerItem(index: 10, child: hubAccordion('Wellness', Icons.spa_rounded, Colors.tealAccent, [
+                        drawerTile('Breathing', Icons.air_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/breathing')),
+                        drawerTile('Sleep Mode', Icons.bedtime_outlined, Colors.indigoAccent, () => Navigator.pushNamed(context, '/sleep-mode')),
+                        drawerTile('Late Night', Icons.nightlight_round, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/late-night-mode')),
+                        drawerTile('Wellness Tips', Icons.health_and_safety_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/wellness-reminders')),
+                        drawerTile('Daily Horoscope', Icons.auto_awesome_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/daily-horoscope'), badge: '⭐'),
+                        drawerTile('Tarot Reading', Icons.style_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/tarot-reading'), badge: '🔮'),
+                        drawerTile('Star Map', Icons.stars_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/star-map')),
+                      ], badge: 'Zen')),
+
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 6, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
+                      _DrawerStaggerItem(index: 11, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
                         drawerTile('App Settings', Icons.settings_rounded, Colors.white70, () => updateState(() => _navIndex = 3)),
                         drawerTile('Themes', Icons.palette_rounded, Colors.pinkAccent, () => updateState(() => _navIndex = 4)),
                         drawerTile('My Profile', Icons.person_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/profile')),
                         drawerTile('Achievements', Icons.emoji_events_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/achievements')),
                         drawerTile('App Icons', Icons.app_shortcut_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/app-icon-picker'), badge: '🎨'),
                         drawerTile('Dev Config', Icons.terminal_rounded, Colors.greenAccent, () => updateState(() => _navIndex = 5)),
+                        drawerTile('Debug Panel', Icons.bug_report_rounded, Colors.orangeAccent, () => updateState(() => _navIndex = 6), badge: '🛠'),
                         drawerTile('About App', Icons.info_outline_rounded, Colors.grey, () => updateState(() => _navIndex = 7)),
                       ], badge: 'Config')),
 
@@ -584,16 +640,14 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           ),
                         ),
                       )),
-                      
-                      // ── ANIMATED BOTTOM STATUS STRIP ──────────────────
                       const SizedBox(height: 20),
-                      _DrawerStatusFooter(),
-                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
               ),
-              
+              // ── STATIC BOTTOM STATUS STRIP (always visible) ──────────
+              const _DrawerStatusFooter(),
+              const SizedBox(height: 16),
             ],
           ),
           // Stack children end
@@ -701,7 +755,7 @@ class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
                       style: GoogleFonts.jetBrainsMono(
                         color: Colors.greenAccent.withValues(alpha: 0.8),
                         fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                    Text('ZERO TWO  v2.02',
+                    Text('ZERO TWO  002',
                       style: GoogleFonts.jetBrainsMono(
                         color: Colors.white30, fontSize: 8, letterSpacing: 1.5)),
                   ],
