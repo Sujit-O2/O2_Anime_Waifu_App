@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -68,7 +69,9 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
             }
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('GoalTracker load Firestore error: $e');
+      }
     }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString('goals_data') ?? '[]';
@@ -76,7 +79,9 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
       _goals = (jsonDecode(raw) as List)
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('GoalTracker load local error: $e');
+    }
     if (mounted) {
       setState(() => _loading = false);
       _fadeCtrl.forward();
@@ -93,7 +98,9 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
           'goals': encoded,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('GoalTracker save Firestore error: $e');
+      }
     }
   }
 
@@ -158,7 +165,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -180,7 +187,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                       Text(
                           '${_goals.where((g) => g['done'] == true).length}/${_goals.length} goals achieved',
                           style: GoogleFonts.outfit(
-                              color: Colors.amberAccent.withOpacity(0.6),
+                              color: Colors.amberAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -212,8 +219,8 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           color: sel
-                              ? Colors.amberAccent.withOpacity(0.15)
-                              : Colors.white.withOpacity(0.04),
+                              ? Colors.amberAccent.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.04),
                           border: Border.all(
                               color: sel ? Colors.amberAccent : Colors.white12),
                         ),
@@ -241,14 +248,14 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                       hintStyle: GoogleFonts.outfit(
                           color: Colors.white30, fontSize: 12),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.04),
+                      fillColor: Colors.white.withValues(alpha: 0.04),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                            color: Colors.amberAccent.withOpacity(0.2)),
+                            color: Colors.amberAccent.withValues(alpha: 0.2)),
                       ),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(
@@ -263,10 +270,10 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.amberAccent.withOpacity(0.15),
+                      color: Colors.amberAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: Colors.amberAccent.withOpacity(0.4)),
+                          color: Colors.amberAccent.withValues(alpha: 0.4)),
                     ),
                     child: const Icon(Icons.add_rounded,
                         color: Colors.amberAccent, size: 22),
@@ -316,7 +323,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                                 margin: const EdgeInsets.only(bottom: 10),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(14),
-                                    color: Colors.redAccent.withOpacity(0.15)),
+                                    color: Colors.redAccent.withValues(alpha: 0.15)),
                                 child: const Icon(Icons.delete_outline_rounded,
                                     color: Colors.redAccent),
                               ),
@@ -328,12 +335,12 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   color: done
-                                      ? catColor.withOpacity(0.08)
-                                      : Colors.white.withOpacity(0.04),
+                                      ? catColor.withValues(alpha: 0.08)
+                                      : Colors.white.withValues(alpha: 0.04),
                                   border: Border.all(
                                     color: done
-                                        ? catColor.withOpacity(0.4)
-                                        : Colors.white.withOpacity(0.08),
+                                        ? catColor.withValues(alpha: 0.4)
+                                        : Colors.white.withValues(alpha: 0.08),
                                   ),
                                 ),
                                 child: Column(
@@ -347,10 +354,10 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(8),
-                                            color: catColor.withOpacity(0.12),
+                                            color: catColor.withValues(alpha: 0.12),
                                             border: Border.all(
                                                 color:
-                                                    catColor.withOpacity(0.3)),
+                                                    catColor.withValues(alpha: 0.3)),
                                           ),
                                           child: Text(g['category'] as String,
                                               style: GoogleFonts.outfit(
@@ -388,12 +395,12 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                                           child: SliderTheme(
                                             data: SliderThemeData(
                                               activeTrackColor:
-                                                  catColor.withOpacity(0.7),
+                                                  catColor.withValues(alpha: 0.7),
                                               inactiveTrackColor: Colors.white
-                                                  .withOpacity(0.08),
+                                                  .withValues(alpha: 0.08),
                                               thumbColor: catColor,
                                               overlayColor:
-                                                  catColor.withOpacity(0.1),
+                                                  catColor.withValues(alpha: 0.1),
                                               thumbShape:
                                                   const RoundSliderThumbShape(
                                                       enabledThumbRadius: 8),
