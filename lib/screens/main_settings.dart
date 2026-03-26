@@ -1326,7 +1326,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     _buildAboutRow(
                         icon: Icons.tag_rounded,
                         label: 'Version',
-                        value: '2.0.0',
+                        value: '4.0.0',
                         color: Colors.cyanAccent),
                     _buildAboutRow(
                         icon: Icons.code_rounded,
@@ -1336,7 +1336,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     _buildAboutRow(
                         icon: Icons.smart_toy_rounded,
                         label: 'AI Model',
-                        value: 'Google Gemini Flash',
+                        value: 'Llama 4 Scout (meta)',
                         color: Colors.amberAccent),
                     _buildAboutRow(
                         icon: Icons.record_voice_over_rounded,
