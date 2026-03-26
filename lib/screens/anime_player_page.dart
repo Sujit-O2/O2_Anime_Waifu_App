@@ -183,7 +183,7 @@ class _AnimePlayerPageState extends State<AnimePlayerPage> {
         showControls: true,
         materialProgressColors: ChewieProgressColors(
           playedColor: progressColor,
-          handleColor: progressColor.shade200,
+          handleColor: progressColor.withValues(alpha: 0.6),
           backgroundColor: Colors.grey.shade800,
           bufferedColor: Colors.grey.shade600,
         ),
