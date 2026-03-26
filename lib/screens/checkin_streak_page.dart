@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -55,7 +56,9 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
           _totalCheckins = history.length;
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('CheckIn load error: $e');
+    }
     setState(() => _loading = false);
   }
 
@@ -139,7 +142,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
         );
       }
     } catch (e) {
-      _snack('Check-in failed: $e');
+      _snack('Check-in failed: ${e.toString().length > 80 ? e.toString().substring(0, 80) : e}');
     } finally {
       if (mounted) setState(() => _checking = false);
     }
