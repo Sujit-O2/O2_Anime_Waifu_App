@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:anime_waifu/core/providers/app_providers.dart';
 import 'package:anime_waifu/core/providers/theme_provider.dart';
@@ -14,7 +16,6 @@ import 'package:anime_waifu/api_call.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/config/app_themes.dart';
-
 import 'package:anime_waifu/load_wakeword_code.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
@@ -60,7 +61,6 @@ import 'package:anime_waifu/screens/features_hub_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 import 'screens/mood_tracker_page.dart';
@@ -98,7 +98,19 @@ import 'screens/gacha_page.dart';
 import 'screens/secret_notes_page.dart';
 import 'screens/quests_page.dart';
 import 'screens/main_themes.dart';
-
+import 'screens/boss_battle_page.dart';
+import 'screens/anime_wordle_page.dart';
+import 'screens/manga_translator_page.dart';
+import 'screens/ai_art_generator_page.dart';
+import 'screens/web_streamers_hub_page.dart';
+import 'screens/anime_section_page.dart';
+import 'screens/manga_section_page.dart';
+import 'screens/hianime_webview_page.dart';
+import 'screens/anime_recommender_page.dart';
+import 'screens/mini_games_page.dart';
+import 'screens/story_adventure_page.dart';
+import 'screens/virtual_date_page.dart';
+import 'screens/character_database_page.dart';
 part 'screens/main_drawer.dart';
 part 'screens/main_dev_config.dart';
 part 'screens/main_notifications.dart';
@@ -233,13 +245,83 @@ Future<void> _bootstrapPlatformServices() async {
       },
     ),
   );
+  // Push ALL widget data (weather, streak, affection, quote)
   unawaited(
-    AffectionService.instance.recordInteraction().catchError(
+    _refreshAllWidgets().catchError(
       (Object e, StackTrace st) {
-        debugPrint("Affection bootstrap failed: $e\n$st");
+        debugPrint("Widget bootstrap failed: $e\n$st");
       },
     ),
   );
+}
+
+/// Fetches weather directly from OpenWeatherMap and pushes to widget
+Future<void> _refreshWeatherWidget() async {
+  if (!WeatherService.isConfigured) {
+    debugPrint('Weather widget: OPENWEATHER_API_KEY not set, skipping');
+    return;
+  }
+  try {
+    // Call API directly to get structured JSON instead of parsing formatted string
+    final apiKey = dotenv.env['OPENWEATHER_API_KEY']?.replaceAll('"', '').trim() ?? '';
+    if (apiKey.isEmpty) return;
+    final uri = Uri.parse(
+      'https://api.openweathermap.org/data/2.5/weather?q=Bhubaneswar&appid=$apiKey&units=metric&lang=en');
+    final res = await http.get(uri).timeout(const Duration(seconds: 10));
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      final main = data['main'] as Map<String, dynamic>?;
+      final weather = (data['weather'] as List?)?.first as Map<String, dynamic>?;
+      final temp = main?['temp']?.toStringAsFixed(0) ?? '?';
+      final desc = weather?['description'] ?? 'unknown';
+      // Capitalize first letter of description
+      final descCap = desc.toString().isNotEmpty
+          ? '${desc.toString()[0].toUpperCase()}${desc.toString().substring(1)}'
+          : 'Unknown';
+      await HomeWidgetService.updateWeather('$temp°C', descCap);
+      debugPrint('Weather widget updated: $temp°C, $descCap');
+    } else {
+      debugPrint('Weather API returned ${res.statusCode}');
+      await HomeWidgetService.updateWeather('--°', 'Unable to fetch');
+    }
+  } catch (e) {
+    debugPrint('Weather widget refresh error: $e');
+  }
+}
+
+/// Refreshes ALL widget data — called on startup and periodically
+Future<void> _refreshAllWidgets() async {
+  // Weather
+  await _refreshWeatherWidget();
+  // Streak & Mood
+  try {
+    final svc = AffectionService.instance;
+    await HomeWidgetService.updateStreakAndMood(
+      svc.streakDays,
+      svc.levelName,
+      svc.levelName.contains('💍') ? '💍'
+          : svc.levelName.contains('🥂') ? '🥂'
+          : svc.levelName.contains('💕') ? '💕'
+          : svc.levelName.contains('💖') ? '💖'
+          : svc.levelName.contains('💞') ? '💞'
+          : svc.levelName.contains('👑') ? '👑'
+          : '♾️',
+    );
+  } catch (e) {
+    debugPrint('Streak/Mood widget update error: $e');
+  }
+  // Affection
+  try {
+    await HomeWidgetService.updateAffectionWidget();
+  } catch (e) {
+    debugPrint('Affection widget update error: $e');
+  }
+  // Quote
+  try {
+    await HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote());
+  } catch (e) {
+    debugPrint('Quote widget update error: $e');
+  }
 }
 
 final GlobalKey<AppLockWrapperState> appLockKey =
@@ -537,6 +619,9 @@ $personaBase
     Action: MORNING_ROUTINE
 42. If asked for a "good night" or evening routine:
     Action: NIGHT_ROUTINE
+43. If the user asks you to send a pic, photo, picture, image, selfie, or wants to see you in any way:
+    Action: SELFIE
+    (Do NOT send mail or do anything else — ONLY respond with "Action: SELFIE")
 43. Response length preference: $_responseLengthInstruction
 
 CRITICAL: NEVER use Action tags (WEB_SEARCH, OPEN_URL, etc.) unless the user EXPLICITLY requests a device action. If the user asks a question like "what is X?", "tell me about Y", "how does Z work?", answer it directly — DO NOT redirect to a web search. Only use action tags when the user clearly wants you to perform a device operation.
@@ -591,8 +676,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   bool _isDisposed = false;
   bool get _wakeWordEnabledByUser => _vp.wakeWordEnabledByUser;
   set _wakeWordEnabledByUser(bool v) => _vp.wakeWordEnabledByUser = v;
-  bool get _wakeWordActivationLimitHit => _vp.wakeWordActivationLimitHit;
-  set _wakeWordActivationLimitHit(bool v) => _vp.wakeWordActivationLimitHit = v;
+
   bool get _pendingReplyDispatch => _vp.pendingReplyDispatch;
   set _pendingReplyDispatch(bool v) => _vp.pendingReplyDispatch = v;
   bool get _pendingReplyNeedsVoice => _vp.pendingReplyNeedsVoice;
@@ -725,6 +809,11 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     WidgetsBinding.instance.addObserver(this);
     _startWakeWatchdog();
     _startScheduledMsgTimer();
+
+    // Periodic widget refresh (every 30 mins)
+    Timer.periodic(const Duration(minutes: 30), (timer) {
+      _refreshAllWidgets();
+    });
 
     _animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
@@ -1624,10 +1713,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   // ── API Retry with Exponential Backoff ─────────────────────────────────────
   Future<String> _sendWithRetry(List<Map<String, dynamic>> payload,
-      {int maxAttempts = 3}) async {
+      {int maxAttempts = 3, String? modelOverride}) async {
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        final reply = await _apiService.sendConversation(payload);
+        final reply = await _apiService.sendConversation(payload, modelOverride: modelOverride);
         if (reply.isNotEmpty) return reply;
       } catch (e) {
         if (attempt == maxAttempts) rethrow;
@@ -2158,7 +2247,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             : "https://api.groq.com/openai/v1/chat/completions",
         model: _devModelOverride.trim().isNotEmpty
             ? _devModelOverride.trim()
-            : "moonshotai/kimi-k2-instruct",
+            : "meta-llama/llama-4-scout-17b-16e-instruct",
         systemPrompt: _zeroTwoSystemPrompt,
         ttsApiKey: _effectiveTtsApiKey,
         ttsModel: _voiceModel == 'arabic' || _voiceModel == 'lulwa'
@@ -2182,7 +2271,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       await _assistantModeService.setWakeMode(
         _backgroundWakeEnabled && hasMic && _wakeWordEnabledByUser,
       );
-      await _wakeWordService.stop();
+      // We no longer stop the Flutter ONNX wake word engine in the background.
+      // The native service will keep the process alive, and Dart will handle wake word.
     } catch (e) {
       debugPrint("Background wake start error: $e");
     }
@@ -2196,22 +2286,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
   }
 
-  bool _containsToken(String input, List<String> tokens) {
-    final lower = input.toLowerCase();
-    return tokens.any(lower.contains);
-  }
-
-  bool _isWakeActivationLimitError(String error) {
-    return _containsToken(error, ['activationlimit', 'activation limit']);
-  }
-
-  bool _isWakeAccessKeyError(String error) {
-    return _containsToken(
-      error,
-      ['accesskey', 'access key', 'invalid access key', 'expired access key'],
-    );
-  }
-
   Future<void> _initWakeWord() async {
     if (_isDisposed || _wakeWordReady || _wakeInitInProgress) {
       return;
@@ -2219,86 +2293,40 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (!_wakeWordEnabledByUser) {
       return;
     }
-    if (_wakeWordActivationLimitHit) {
-      debugPrint("_initWakeWord: Skipped - Porcupine activation limit reached");
-      // Background wake (Groq Whisper) still works — don't block it.
-      _ensureBackgroundWakeIfEnabled();
-      return;
-    }
     final hasMic = await _ensureMicPermission(requestIfNeeded: false);
     if (!hasMic) {
-      _wakeWordReady = false;
+      // Intentionally NOT setting _wakeWordReady = false to prevent UI flap on transient background permission errors
       return;
     }
     _wakeInitInProgress = true;
     try {
-      debugPrint("_initWakeWord: Starting Porcupine initialization...");
+      // ignore: avoid_print
+      print("_initWakeWord: Starting ONNX wake word initialization...");
       await _wakeWordService.init(_onWakeWordDetected);
       _wakeWordReady = true;
       _wakeInitRetryTimer?.cancel();
-      _wakeWordActivationLimitHit = false;
-      debugPrint("_initWakeWord: SUCCESS");
+      // ignore: avoid_print
+      print("_initWakeWord: SUCCESS");
     } catch (e, st) {
-      _wakeWordReady = false;
-      final errorStr = e.toString();
-      debugPrint("_initWakeWord: FAILED - $e");
+      // Intentionally NOT setting _wakeWordReady = false to prevent UI flap during crash loops
+      // ignore: avoid_print
+      print("_initWakeWord: FAILED - $e\n$st");
 
-      // Porcupine activation limit or invalid key:
-      // Mark the Porcupine engine as failed IN MEMORY ONLY.
-      // Do NOT touch SharedPreferences or disable the background Groq-Whisper wake.
-      if (_isWakeActivationLimitError(errorStr) ||
-          _isWakeAccessKeyError(errorStr)) {
-        _wakeWordActivationLimitHit = true;
-        // Note: _wakeWordEnabledByUser stays true so background wake remains active.
-        _wakeInitRetryTimer?.cancel();
-        final msg = _isWakeActivationLimitError(errorStr)
-            ? "Picovoice activation limit reached. Background wake (Groq) still active."
-            : "Invalid Picovoice key in .env → WAKE_WORD_KEY. Background wake (Groq) still active.";
-        debugPrint("_initWakeWord: $msg");
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(msg),
-              duration: const Duration(seconds: 5),
-              backgroundColor: Colors.orange.shade700,
-            ),
-          );
+      // Retry after delay
+      _wakeInitRetryTimer?.cancel();
+      _wakeInitRetryTimer = Timer(const Duration(seconds: 8), () {
+        if (mounted && !_wakeWordReady) {
+          // ignore: avoid_print
+          print("_initWakeWord: Retrying after 8 seconds");
+          unawaited(_initWakeWord());
         }
-        // Ensure background Groq-Whisper wake is still activated.
-        _ensureBackgroundWakeIfEnabled();
-        return;
-      }
-
-      // File not found - retry with longer delay
-      if (errorStr.contains('IOException') || errorStr.contains('File')) {
-        _wakeInitRetryTimer?.cancel();
-        _wakeInitRetryTimer = Timer(const Duration(seconds: 12), () {
-          if (mounted && !_wakeWordReady && !_wakeWordActivationLimitHit) {
-            debugPrint("_initWakeWord: Retrying after 12 seconds");
-            unawaited(_initWakeWord());
-          }
-        });
-        return;
-      }
-
-      // Other errors - single retry only
-      debugPrint("_initWakeWord: Other error - $e\n$st");
+      });
     } finally {
       _wakeInitInProgress = false;
     }
   }
 
-  /// Activates background Groq-Whisper wake word via the native service,
-  /// even if Porcupine (foreground wake engine) failed to initialize.
-  void _ensureBackgroundWakeIfEnabled() {
-    if (!_assistantModeEnabled || _isInForeground) return;
-    unawaited(() async {
-      final hasMic = await _ensureMicPermission(requestIfNeeded: false);
-      if (hasMic && _wakeWordEnabledByUser) {
-        await _assistantModeService.setWakeMode(true);
-      }
-    }());
-  }
+
 
   Future<void> _onWakeWordDetected(int keywordIndex) async {
     try {
@@ -2312,25 +2340,54 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (_isBusy || _isSpeaking || _speechService.listening) {
         return;
       }
+
+      // --- STAGE 2 VERIFICATION (Optional Groq Whisper Bypass for Anti-False Alarms) ---
+      // Re-enabled to categorically eliminate all false-positive triggers from background noise.
+      const bool useSmartVerification = true;
+      
+      if (useSmartVerification) {
+        final audioData = _wakeWordService.getRecentAudio();
+        if (audioData.isNotEmpty) {
+          if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+            await _assistantModeService.showOverlay(
+              status: "Verifying...",
+              transcript: "Checking wake word...",
+            );
+          }
+          
+          final isValid = await _verifyWakeWordWithGroq(audioData);
+          if (!isValid) {
+            if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+              await _assistantModeService.hideOverlay();
+            }
+            return; // False alarm rejected by STT!
+          }
+        }
+      }
+      // ---------------------------------------------------------------------
+
       _lastWakeDetectedAt = now;
       _showWakeEffect();
 
-      // Map keywordIndex to actual loaded keyword name when available
+      // Map keywordIndex to wake word label
       String wakeName = "";
       try {
         final loaded = _wakeWordService.loadedKeywords;
         if (keywordIndex >= 0 && keywordIndex < loaded.length) {
-          wakeName =
-              loaded[keywordIndex].split('/').last.replaceAll('.ppn', '');
+          wakeName = loaded[keywordIndex];
         }
       } catch (_) {}
 
-      // Don't show overlay when user is already on the chat screen — they can see/hear Akira directly
-      if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+      // Don't show overlay when user is already on the chat screen, UNLESS the app is backgrounded.
+      bool isBackground = _appLifecycleState != AppLifecycleState.resumed;
+      if (Platform.isAndroid && _wakePopupEnabled && (_navIndex != 0 || isBackground)) {
         await _assistantModeService.showOverlay(
           status: "Wake word detected",
           transcript: wakeName.isNotEmpty ? wakeName : "Speak your command",
         );
+      } else if (isBackground) {
+        // If they disabled the popup but are in the background, force the app to the front so they can interact.
+        await _assistantModeService.bringToFront();
       }
 
       await _showBackgroundListeningNotification(
@@ -2346,13 +2403,120 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         await _startSttFromWake();
       }
     } catch (e) {
-      debugPrint("Wake word callback error: $e");
+      // ignore: avoid_print
+      print("Wake word callback error: $e");
       await _showBackgroundListeningNotification(
         status: "Mic error",
         transcript: "Retrying wake word...",
       );
       await _ensureWakeWordActive();
     }
+  }
+
+  Future<bool> _verifyWakeWordWithGroq(Float32List pcmData) async {
+    final keys = [
+      ...(_devApiKeyOverride.trim().split(',').map((k) => k.trim())),
+      ...(dotenv.env['API_KEY'] ?? '').split(',').map((k) => k.trim()),
+      ...(dotenv.env['GROQ_API_KEY_VOICE'] ?? '').split(',').map((k) => k.trim()),
+    ].where((k) => k.isNotEmpty).toList();
+    
+    if (keys.isEmpty) return true; // allow if no key (fallback to broken ONNX)
+    final apiKey = keys.first;
+
+    try {
+      final wavBytes = _pcmToWav(pcmData, 16000);
+      var request = http.MultipartRequest('POST', Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions'));
+      request.headers['Authorization'] = 'Bearer $apiKey';
+      request.fields['model'] = 'whisper-large-v3-turbo';
+      request.fields['language'] = 'en';
+      request.fields['prompt'] = 'zero two darling'; 
+      request.files.add(http.MultipartFile.fromBytes('file', wavBytes, filename: 'wake.wav'));
+      
+      final response = await request.send().timeout(const Duration(seconds: 4));
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final json = jsonDecode(respStr);
+        final text = (json['text'] as String?)?.toLowerCase() ?? '';
+        final cleanText = text.replaceAll(RegExp(r'[^a-z0-9]'), '');
+        
+        // ignore: avoid_print
+        print('[WakeGuard] STT Transcript: "$text"');
+        
+        if (cleanText.contains('zerotwo') || 
+            cleanText.contains('02') ||
+            cleanText.contains('darling') ||
+            cleanText.contains('akira')) {
+          return true; // Confirmed!
+        }
+        // ignore: avoid_print
+        print('[WakeGuard] False trigger REJECTED: "$cleanText"');
+        return false;
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[WakeGuard] STT verifier failed: $e');
+    }
+    return false; // REJECT if network verification failed — safety first!
+  }
+
+  Uint8List _pcmToWav(Float32List pcmData, int sampleRate) {
+    var maxVal = 0.0;
+    for (var s in pcmData) {
+      if (s.abs() > maxVal) maxVal = s.abs();
+    }
+    var multiplier = 1.0;
+    if (maxVal > 0 && maxVal < 0.5) multiplier = 0.8 / maxVal;
+
+    final channels = 1;
+    final byteRate = sampleRate * channels * 2;
+    final dataSize = pcmData.length * 2;
+    final fileSize = 36 + dataSize;
+    
+    final builder = BytesBuilder();
+    builder.add(ascii.encode('RIFF'));
+    
+    final Uint8List b4 = Uint8List(4);
+    b4.buffer.asByteData().setInt32(0, fileSize, Endian.little);
+    builder.add(b4);
+    
+    builder.add(ascii.encode('WAVE'));
+    builder.add(ascii.encode('fmt '));
+    
+    b4.buffer.asByteData().setInt32(0, 16, Endian.little);
+    builder.add(b4);
+    
+    final Uint8List b2 = Uint8List(2);
+    b2.buffer.asByteData().setInt16(0, 1, Endian.little);
+    builder.add(b2); 
+    
+    b2.buffer.asByteData().setInt16(0, channels, Endian.little);
+    builder.add(b2);
+    
+    b4.buffer.asByteData().setInt32(0, sampleRate, Endian.little);
+    builder.add(b4);
+    
+    b4.buffer.asByteData().setInt32(0, byteRate, Endian.little);
+    builder.add(b4);
+    
+    b2.buffer.asByteData().setInt16(0, channels * 2, Endian.little);
+    builder.add(b2); 
+    
+    b2.buffer.asByteData().setInt16(0, 16, Endian.little);
+    builder.add(b2);
+    
+    builder.add(ascii.encode('data'));
+    
+    b4.buffer.asByteData().setInt32(0, dataSize, Endian.little);
+    builder.add(b4);
+    
+    for (final sample in pcmData) {
+      var s = ((sample * multiplier) * 32767).round();
+      if (s > 32767) s = 32767;
+      if (s < -32768) s = -32768;
+      b2.buffer.asByteData().setInt16(0, s, Endian.little);
+      builder.add(b2);
+    }
+    return builder.toBytes();
   }
 
   void _showWakeEffect() {
@@ -2396,33 +2560,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     if (!_wakeWordEnabledByUser) {
       if (_wakeWordService.isRunning) {
+        // ignore: avoid_print
+        print('[WakeGuard] Stopping: user disabled wake word');
         await _wakeWordService.stop();
       }
       _wakeWordReady = false;
       return;
     }
 
-    // In background assistant mode, native service handles wake/STT for closed-app reliability.
-    if (_assistantModeEnabled && !_isInForeground) {
+    // In background assistant mode, native service handles foreground priority for closed-app reliability.
+    // The Flutter ONNX model will continue running to detect wake words.
+    // (We removed the old behavior of stopping _wakeWordService here).
+
+    // While another mic/audio flow is active, keep wake engine paused.
+    // NOTE: Do NOT check _speechService.listening here — the speech_to_text
+    // plugin's MediaRecorder initialization briefly sets listening=true,
+    // which falsely kills our AudioRecord. The app-level flags below already
+    // cover all real STT usage (wake→STT sets _suspendWakeWord, auto-listen
+    // sets _isAutoListening, etc.)
+    if (_isSpeaking || _isBusy || _isAutoListening) {
+      // ignore: avoid_print
+      print('[WakeGuard] Blocked: speaking=$_isSpeaking busy=$_isBusy autoListen=$_isAutoListening');
       if (_wakeWordService.isRunning) {
         await _wakeWordService.stop();
       }
       return;
     }
 
-    // While another mic/audio flow is active, keep wake engine paused.
-    // Fixed: Only stop if speechService is actually listening (STT active).
-    if (_isAutoListening ||
-        _isBusy ||
-        _isSpeaking ||
-        _suspendWakeWord ||
-        _speechService.listening) {
-      if (_speechService.listening || _isSpeaking || _isBusy) {
-        if (_wakeWordService.isRunning) {
-          await _wakeWordService.stop();
-        }
-        return;
-      }
+    // Auto-clear suspend flag when no audio flow is active — prevents
+    // the flag from getting stuck after a wake→STT→response cycle.
+    if (_suspendWakeWord) {
+      // ignore: avoid_print
+      print('[WakeGuard] Auto-clearing _suspendWakeWord');
+      _suspendWakeWord = false;
     }
 
     if (_wakeWordService.isRunning) {
@@ -2431,22 +2601,34 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     final hasMic = await _ensureMicPermission(requestIfNeeded: false);
     if (!hasMic) {
-      _wakeWordReady = false;
+      // ignore: avoid_print
+      print('[WakeGuard] No mic permission');
+      // Intentionally NOT setting _wakeWordReady = false to prevent the UI icon from randomly flapping
+      // if the OS temporarily hides microphone permission during background checks.
       return;
     }
 
     if (!_wakeWordReady) {
+      // ignore: avoid_print
+      print('[WakeGuard] Initializing wake word...');
       await _initWakeWord();
       if (!_wakeWordReady) {
+        // ignore: avoid_print
+        print('[WakeGuard] Init failed, giving up');
         return;
       }
     }
 
     try {
+      // ignore: avoid_print
+      print('[WakeGuard] Starting wake word service...');
       await _wakeWordService.start();
+      // ignore: avoid_print
+      print('[WakeGuard] Wake word service started OK');
     } catch (e) {
-      _wakeWordReady = false;
-      debugPrint("Wake word start error: $e");
+      // Intentionally NOT setting _wakeWordReady = false to prevent UI flap on transient start errors.
+      // ignore: avoid_print
+      print("Wake word start error: $e");
       _wakeInitRetryTimer?.cancel();
       _wakeInitRetryTimer = Timer(const Duration(seconds: 4), () {
         if (mounted && !_isDisposed) {
@@ -2704,7 +2886,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           : "https://api.groq.com/openai/v1/chat/completions";
       final model = _devModelOverride.trim().isNotEmpty
           ? _devModelOverride.trim()
-          : "moonshotai/kimi-k2-instruct";
+          : "meta-llama/llama-4-scout-17b-16e-instruct";
 
       debugPrint("Starting AssistantModeService (enabled=true)");
       await _assistantModeService.start(
@@ -2921,6 +3103,73 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     _scrollToBottom();
 
+    // ── Zero Two Selfie: intercept BEFORE fast-path/API ─────────────────
+    final _lowerForSelfie = text.toLowerCase();
+    // Check if user is asking for an image/photo of Zero Two
+    final _hasImageWord = _lowerForSelfie.contains('pic') ||
+        _lowerForSelfie.contains('photo') ||
+        _lowerForSelfie.contains('picture') ||
+        _lowerForSelfie.contains('image') ||
+        _lowerForSelfie.contains('img') ||
+        _lowerForSelfie.contains('selfie') ||
+        _lowerForSelfie.contains('snap') ||
+        _lowerForSelfie.contains('foto');
+    final _hasTriggerWord = _lowerForSelfie.contains('send') ||
+        _lowerForSelfie.contains('show') ||
+        _lowerForSelfie.contains('your') ||
+        _lowerForSelfie.contains('give');
+    if ((_hasImageWord && _hasTriggerWord) ||
+        _lowerForSelfie.contains('selfie') ||
+        _lowerForSelfie.contains('show me yourself')) {
+      if (mounted) setState(() => _isBusy = true);
+      try {
+        // Use Safebooru API with Zero Two specific tag — only Zero Two images!
+        final randomPage = DateTime.now().millisecondsSinceEpoch % 50;
+        final resp = await http.get(Uri.parse(
+          'https://safebooru.org/index.php?page=dapi&s=post&q=index'
+          '&tags=zero_two_(darling_in_the_franxx)+solo'
+          '&json=1&limit=20&pid=$randomPage'))
+            .timeout(const Duration(seconds: 10));
+        if (resp.statusCode == 200) {
+          final List<dynamic> posts = jsonDecode(resp.body);
+          if (posts.isNotEmpty) {
+            final randomPost = posts[DateTime.now().second % posts.length];
+            final url = randomPost['file_url'] as String? ?? '';
+            if (url.isNotEmpty) {
+              final flirtyReplies = [
+                'Here you go, Darling~ 💕 Just for you!',
+                'Ta-da! How do I look? 💋',
+                'Only because you asked so nicely, Darling~ 🌸',
+                'Here\'s a special one just for you! 💕✨',
+                'Miss me that much, huh? Here~ 💋',
+                'Don\'t stare too long, Darling~ 😘',
+              ];
+              final reply = flirtyReplies[DateTime.now().second % flirtyReplies.length];
+              _appendMessage(ChatMessage(
+                role: 'assistant',
+                content: reply,
+                imageUrl: url,
+              ));
+              _scrollToBottom();
+              if (mounted) setState(() => _isBusy = false);
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Zero Two selfie error: $e');
+      }
+      // If Safebooru fails, show a friendly message — DON'T fall through to AI
+      // (AI misinterprets "send me a pic" as a mail/send command)
+      _appendMessage(ChatMessage(
+        role: 'assistant',
+        content: 'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again in a moment!',
+      ));
+      _scrollToBottom();
+      if (mounted) setState(() => _isBusy = false);
+      return;
+    }
+
     // ── Typed Command Fast-Path (same coverage as voice) ─────────────────
     // Only apply for text-only messages (no image), since image needs LLM multi-modal
     if (image == null) {
@@ -2967,6 +3216,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (mounted) setState(() => _isBusy = false);
       return;
     }
+
 
     // Mini-Games: Answer trivia if one is pending
     if (MiniGameService.hasPendingTrivia()) {
@@ -3236,7 +3486,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ...payloadMessages,
       ];
 
-      final reply = await _sendWithRetry(payload);
+      // Use vision model if the last user message has an image
+      final hasImageInLastMsg = contextMessages.isNotEmpty &&
+          contextMessages.last.imagePath != null &&
+          contextMessages.last.imagePath!.isNotEmpty;
+      final visionModel = hasImageInLastMsg
+          ? 'meta-llama/llama-4-scout-17b-16e-instruct'
+          : null;
+
+      final reply = await _sendWithRetry(payload, modelOverride: visionModel);
 
       if (reply.isNotEmpty) {
         // Sequential dispatch — first match wins; refresh memory after save
@@ -3291,6 +3549,48 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           assistantText = await _exportChatToFile();
         } else if (assistantText == '__SUMMARIZE_CHAT__') {
           assistantText = await _summarizeConversation();
+        }
+
+        // ── Intercept [SELFIE] action from AI response ───────────────
+        if (assistantText.contains('Action: SELFIE') || assistantText.contains('SELFIE')) {
+          try {
+            final randomPage = DateTime.now().millisecondsSinceEpoch % 50;
+            final selfieResp = await http.get(Uri.parse(
+              'https://safebooru.org/index.php?page=dapi&s=post&q=index'
+              '&tags=zero_two_(darling_in_the_franxx)+solo'
+              '&json=1&limit=20&pid=$randomPage'))
+                .timeout(const Duration(seconds: 10));
+            if (selfieResp.statusCode == 200) {
+              final List<dynamic> posts = jsonDecode(selfieResp.body);
+              if (posts.isNotEmpty) {
+                final randomPost = posts[DateTime.now().second % posts.length];
+                final selfieUrl = randomPost['file_url'] as String? ?? '';
+                if (selfieUrl.isNotEmpty) {
+                  final flirtyReplies = [
+                    'Here you go, Darling~ 💕 Just for you!',
+                    'Ta-da! How do I look? 💋',
+                    'Only because you asked so nicely, Darling~ 🌸',
+                    'Here\'s a special one just for you! 💕✨',
+                    'Miss me that much, huh? Here~ 💋',
+                    'Don\'t stare too long, Darling~ 😘',
+                  ];
+                  assistantText = flirtyReplies[DateTime.now().second % flirtyReplies.length];
+                  _appendMessage(ChatMessage(
+                    role: 'assistant',
+                    content: assistantText,
+                    imageUrl: selfieUrl,
+                  ));
+                  _scrollToBottom();
+                  if (mounted) setState(() => _isBusy = false);
+                  return;
+                }
+              }
+            }
+          } catch (e) {
+            debugPrint('AI SELFIE intercept error: $e');
+          }
+          // If Safebooru fails, show text-only response
+          assistantText = 'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again!';
         }
 
         _appendMessage(ChatMessage(role: "assistant", content: assistantText));
@@ -3489,7 +3789,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           : "https://api.groq.com/openai/v1/chat/completions";
       final model = _devModelOverride.trim().isNotEmpty
           ? _devModelOverride.trim()
-          : "moonshotai/kimi-k2-instruct";
+          : "meta-llama/llama-4-scout-17b-16e-instruct";
 
       await _assistantModeService.start(
         apiKey: apiKey,
@@ -3528,7 +3828,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           : "https://api.groq.com/openai/v1/chat/completions";
       final model = _devModelOverride.trim().isNotEmpty
           ? _devModelOverride.trim()
-          : "moonshotai/kimi-k2-instruct";
+          : "meta-llama/llama-4-scout-17b-16e-instruct";
 
       await _assistantModeService.start(
         apiKey: apiKey,
@@ -3622,7 +3922,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         : "https://api.groq.com/openai/v1/chat/completions";
     final model = _devModelOverride.trim().isNotEmpty
         ? _devModelOverride.trim()
-        : "moonshotai/kimi-k2-instruct";
+        : "meta-llama/llama-4-scout-17b-16e-instruct";
 
     await _assistantModeService.start(
       apiKey: apiKey,
@@ -3898,7 +4198,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 ),
                 exampleBox(
                   "API Key: gsk_xxx...\n"
-                  "Model: moonshotai/kimi-k2-instruct\n"
+                  "Model: meta-llama/llama-4-scout-17b-16e-instruct\n"
                   "URL: https://api.groq.com/openai/v1/chat/completions",
                 ),
                 const SizedBox(height: 8),
@@ -3914,7 +4214,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   style: const TextStyle(color: Colors.white),
                   decoration: dec(
                     "Chat Model",
-                    "e.g. moonshotai/kimi-k2-instruct",
+                    "e.g. meta-llama/llama-4-scout-17b-16e-instruct",
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -4297,7 +4597,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       letterSpacing: 1.5,
                       color: Colors.white,
                       shadows: [
-                        Shadow(color: Colors.redAccent, blurRadius: 10)
+                        Shadow(color: Color.fromARGB(255, 255, 126, 126), blurRadius: 10)
                       ],
                     ),
                   ),
@@ -5869,23 +6169,31 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 ),
               ),
               const SizedBox(width: 8),
-              actionCircle(
-                onTap: () => unawaited(_toggleManualMic()),
-                icon: _isSpeaking
-                    ? Icons.stop_rounded
-                    : (isListening
-                        ? Icons.mic_rounded
-                        : Icons.mic_none_rounded),
-                colors: isListening
-                    ? [
-                        primary.withValues(alpha: 0.95),
-                        primary.withValues(alpha: 0.62)
-                      ]
-                    : [
-                        Colors.white.withValues(alpha: 0.22),
-                        Colors.white.withValues(alpha: 0.10),
-                      ],
-                size: 44,
+              Consumer<VoiceProvider>(
+                builder: (context, vp, child) {
+                  final isReady = vp.wakeWordReady;
+                  return actionCircle(
+                    onTap: () => unawaited(_toggleManualMic()),
+                    icon: _isSpeaking
+                        ? Icons.stop_rounded
+                        : (isListening
+                            ? Icons.mic_rounded
+                            : (isReady ? Icons.mic_rounded : Icons.mic_none_rounded)),
+                    colors: isListening
+                        ? [
+                            primary.withValues(alpha: 0.95),
+                            primary.withValues(alpha: 0.62)
+                          ]
+                        : (isReady ? [
+                            primary.withValues(alpha: 0.50),
+                            primary.withValues(alpha: 0.30)
+                          ] : [
+                            Colors.white.withValues(alpha: 0.22),
+                            Colors.white.withValues(alpha: 0.10),
+                          ]),
+                    size: 44,
+                  );
+                },
               ),
               const SizedBox(width: 8),
               actionCircle(
@@ -6155,7 +6463,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       case 1:
         return _buildNotificationsPage();
       case 2:
-        return FeaturesHubPage(onBack: () => setState(() => _navIndex = 0));
+        return FeaturesHubPage(
+          onBack: () => setState(() => _navIndex = 0),
+          onOpenCloudinary: () => setState(() => _navIndex = 12),
+        );
       case 3:
         return _buildSettingsPage();
       case 4:
@@ -6174,6 +6485,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         return const SecretNotesPage();
       case 11:
         return const QuestsPage();
+      case 12:
+        return _buildComingSoonPage();
       default:
         return const SizedBox.shrink();
     }
