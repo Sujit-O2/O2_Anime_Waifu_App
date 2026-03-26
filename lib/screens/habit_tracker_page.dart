@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -74,7 +75,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
             return;
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('HabitTracker load Firestore error: $e');
+      }
     }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString('habits_data') ?? '[]';
@@ -82,7 +85,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
       _habits = (jsonDecode(raw) as List)
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('HabitTracker load local error: $e');
+    }
     if (mounted) {
       setState(() => _loading = false);
       _fadeCtrl.forward();
@@ -99,7 +104,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           'habits': encoded,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('HabitTracker save Firestore error: $e');
+      }
     }
   }
 
@@ -178,7 +185,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -200,7 +207,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                       Text(
                           '${_habits.where((h) => (h['completedOn'] as List).contains(_todayKey)).length}/${_habits.length} done today',
                           style: GoogleFonts.outfit(
-                              color: Colors.lightGreenAccent.withOpacity(0.6),
+                              color: Colors.lightGreenAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -225,7 +232,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                   .contains(_todayKey))
                               .length /
                           _habits.length,
-                  backgroundColor: Colors.white.withOpacity(0.07),
+                  backgroundColor: Colors.white.withValues(alpha: 0.07),
                   valueColor:
                       const AlwaysStoppedAnimation(Colors.lightGreenAccent),
                   minHeight: 5,
@@ -248,7 +255,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     hintStyle:
                         GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.04),
+                    fillColor: Colors.white.withValues(alpha: 0.04),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -256,7 +263,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                          color: Colors.lightGreenAccent.withOpacity(0.2)),
+                          color: Colors.lightGreenAccent.withValues(alpha: 0.2)),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -271,10 +278,10 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.lightGreenAccent.withOpacity(0.15),
+                    color: Colors.lightGreenAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Colors.lightGreenAccent.withOpacity(0.4)),
+                        color: Colors.lightGreenAccent.withValues(alpha: 0.4)),
                   ),
                   child: const Icon(Icons.add_rounded,
                       color: Colors.lightGreenAccent, size: 22),
@@ -321,7 +328,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.redAccent.withOpacity(0.15),
+                                  color: Colors.redAccent.withValues(alpha: 0.15),
                                 ),
                                 child: const Icon(Icons.delete_outline_rounded,
                                     color: Colors.redAccent),
@@ -338,13 +345,13 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                     borderRadius: BorderRadius.circular(14),
                                     color: done
                                         ? Colors.lightGreenAccent
-                                            .withOpacity(0.08)
-                                        : Colors.white.withOpacity(0.04),
+                                            .withValues(alpha: 0.08)
+                                        : Colors.white.withValues(alpha: 0.04),
                                     border: Border.all(
                                       color: done
                                           ? Colors.lightGreenAccent
-                                              .withOpacity(0.35)
-                                          : Colors.white.withOpacity(0.08),
+                                              .withValues(alpha: 0.35)
+                                          : Colors.white.withValues(alpha: 0.08),
                                     ),
                                   ),
                                   child: Row(children: [
@@ -403,8 +410,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                         shape: BoxShape.circle,
                                         color: done
                                             ? Colors.lightGreenAccent
-                                                .withOpacity(0.15)
-                                            : Colors.white.withOpacity(0.05),
+                                                .withValues(alpha: 0.15)
+                                            : Colors.white.withValues(alpha: 0.05),
                                         border: Border.all(
                                           color: done
                                               ? Colors.lightGreenAccent
