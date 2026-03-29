@@ -25,7 +25,7 @@ import 'package:anime_waifu/services/open_app_service.dart';
 import 'package:anime_waifu/services/memory_service.dart';
 import 'package:anime_waifu/services/firestore_service.dart';
 import 'package:anime_waifu/services/local_cache_service.dart';
-import 'package:anime_waifu/services/chat_export_service.dart';
+
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:anime_waifu/services/contacts_lookup_service.dart';
 import 'package:anime_waifu/services/image_gen_service.dart';
@@ -125,33 +125,32 @@ final ValueNotifier<AppThemeMode> themeNotifier =
 final ValueNotifier<Color?> accentColorNotifier = ValueNotifier(null);
 final ValueNotifier<String?> customBackgroundUrlNotifier = ValueNotifier(null);
 
-const AppThemeMode _defaultThemeMode = AppThemeMode.neonSerpent;
+const AppThemeMode _defaultThemeMode = AppThemeMode.bloodMoon;
 const Set<AppThemeMode> _activeThemeModes = {
-  AppThemeMode.neonSerpent,
-  AppThemeMode.chromaStorm,
-  AppThemeMode.goldenRuler,
-  AppThemeMode.frozenDivine,
-  AppThemeMode.infernoGod,
-  AppThemeMode.shadowBlade,
-  AppThemeMode.pinkChaos,
-  AppThemeMode.abyssWatcher,
-  AppThemeMode.solarFlare,
-  AppThemeMode.demonSlayer,
-  AppThemeMode.midnightSilk,
-  AppThemeMode.obsidianRose,
+  // Tier 1: Iconic
+  AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
+  AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
+  // Tier 2: Ultra-Premium
+  AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
+  AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
+  // Tier 3: Anime Legends
+  AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
+  AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
+  // Tier 4: Luxury
+  AppThemeMode.midnightSilk, AppThemeMode.obsidianRose,
   AppThemeMode.onyxEmerald,
-  AppThemeMode.velvetCrown,
-  AppThemeMode.platinumDawn,
-  AppThemeMode.hypergate,
-  AppThemeMode.xenoCore,
-  AppThemeMode.dataStream,
-  AppThemeMode.gravityBend,
-  AppThemeMode.quartzPulse,
-  AppThemeMode.midnightForest,
-  AppThemeMode.volcanicSea,
+  AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
+  // Tier 5: Sci-Fi
+  AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
+  AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
+  // Tier 6: Nature
+  AppThemeMode.midnightForest, AppThemeMode.volcanicSea,
   AppThemeMode.stormDesert,
-  AppThemeMode.sakuraNight,
-  AppThemeMode.arcticSoul,
+  AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
+  // Tier 7: Ethereal (New)
+  AppThemeMode.amethystDream, AppThemeMode.titaniumFrost,
+  AppThemeMode.sunsetRider,
+  AppThemeMode.midnightRaven, AppThemeMode.electricLime,
 };
 
 Future<void> main() async {
@@ -167,18 +166,29 @@ Future<void> main() async {
     await _loadEnvSafely();
     await _restoreThemePreferences();
 
-    runApp(const AppProviders(child: GestureControlOverlay(child: VoiceAiApp())));
+    runApp(
+        const AppProviders(child: GestureControlOverlay(child: VoiceAiApp())));
     unawaited(_bootstrapPlatformServices());
-  }, (_, __) {},
-      zoneSpecification: ZoneSpecification(
-        print: (_, __, ___, ____) {},
-      ));
+  }, (error, stack) {
+    // ignore: avoid_print
+    print('[ZoneError] $error');
+  });
 }
 
 void _disableRuntimeLogs() {
+  // Suppress verbose debugPrint but keep print() working for wake word logs
   debugPrint = (String? _, {int? wrapWidth}) {};
-  FlutterError.onError = (_) {};
-  PlatformDispatcher.instance.onError = (_, __) => true;
+  // Log Flutter errors instead of silently swallowing them
+  FlutterError.onError = (details) {
+    // ignore: avoid_print
+    print('[FlutterError] ${details.exceptionAsString()}');
+  };
+  // Log platform errors instead of silently swallowing them
+  PlatformDispatcher.instance.onError = (error, stack) {
+    // ignore: avoid_print
+    print('[PlatformError] $error');
+    return true; // Mark as handled to prevent crash
+  };
 }
 
 Future<void> _loadEnvSafely() async {
@@ -207,13 +217,11 @@ Future<void> _restoreThemePreferences() async {
     }
 
     final savedTheme = AppThemeMode.values[index % AppThemeMode.values.length];
-    final migratedTheme =
-        savedTheme == AppThemeMode.infernoGod ? _defaultThemeMode : savedTheme;
-    themeNotifier.value = _activeThemeModes.contains(migratedTheme)
-        ? migratedTheme
-        : _defaultThemeMode;
 
-    if (savedTheme == AppThemeMode.infernoGod) {
+    if (_activeThemeModes.contains(savedTheme)) {
+      themeNotifier.value = savedTheme;
+    } else {
+      themeNotifier.value = _defaultThemeMode;
       await prefs.setInt(
         'app_theme_index',
         AppThemeMode.values.indexOf(_defaultThemeMode),
@@ -263,15 +271,17 @@ Future<void> _refreshWeatherWidget() async {
   }
   try {
     // Call API directly to get structured JSON instead of parsing formatted string
-    final apiKey = dotenv.env['OPENWEATHER_API_KEY']?.replaceAll('"', '').trim() ?? '';
+    final apiKey =
+        dotenv.env['OPENWEATHER_API_KEY']?.replaceAll('"', '').trim() ?? '';
     if (apiKey.isEmpty) return;
     final uri = Uri.parse(
-      'https://api.openweathermap.org/data/2.5/weather?q=Bhubaneswar&appid=$apiKey&units=metric&lang=en');
+        'https://api.openweathermap.org/data/2.5/weather?q=Bhubaneswar&appid=$apiKey&units=metric&lang=en');
     final res = await http.get(uri).timeout(const Duration(seconds: 10));
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as Map<String, dynamic>;
       final main = data['main'] as Map<String, dynamic>?;
-      final weather = (data['weather'] as List?)?.first as Map<String, dynamic>?;
+      final weather =
+          (data['weather'] as List?)?.first as Map<String, dynamic>?;
       final temp = main?['temp']?.toStringAsFixed(0) ?? '?';
       final desc = weather?['description'] ?? 'unknown';
       // Capitalize first letter of description
@@ -299,13 +309,19 @@ Future<void> _refreshAllWidgets() async {
     await HomeWidgetService.updateStreakAndMood(
       svc.streakDays,
       svc.levelName,
-      svc.levelName.contains('💍') ? '💍'
-          : svc.levelName.contains('🥂') ? '🥂'
-          : svc.levelName.contains('💕') ? '💕'
-          : svc.levelName.contains('💖') ? '💖'
-          : svc.levelName.contains('💞') ? '💞'
-          : svc.levelName.contains('👑') ? '👑'
-          : '♾️',
+      svc.levelName.contains('💍')
+          ? '💍'
+          : svc.levelName.contains('🥂')
+              ? '🥂'
+              : svc.levelName.contains('💕')
+                  ? '💕'
+                  : svc.levelName.contains('💖')
+                      ? '💖'
+                      : svc.levelName.contains('💞')
+                          ? '💞'
+                          : svc.levelName.contains('👑')
+                              ? '👑'
+                              : '♾️',
     );
   } catch (e) {
     debugPrint('Streak/Mood widget update error: $e');
@@ -350,8 +366,8 @@ class VoiceAiApp extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
                   body: Center(
-                      child: CircularProgressIndicator(
-                          color: Colors.pinkAccent)),
+                      child:
+                          CircularProgressIndicator(color: Colors.pinkAccent)),
                 );
               }
               if (snapshot.hasData) {
@@ -437,6 +453,10 @@ class _ChatHomePageState extends State<ChatHomePage>
   int _aboutTapCount = 0;
   DateTime? _aboutLastTap;
 
+  // ── Multi-select message deletion state ────────────────────────────────────
+  bool _isMultiSelectMode = false;
+  final Set<String> _selectedMessageIds = {};
+
   // ── Liveliness state ───────────────────────────────────────────────────
   final _particleKey = GlobalKey<ParticleOverlayState>();
   String get _currentMoodLabel => _cp.currentMoodLabel;
@@ -462,7 +482,8 @@ class _ChatHomePageState extends State<ChatHomePage>
     if (_waifuPromptOverride.trim().isNotEmpty) {
       return _waifuPromptOverride.trim();
     }
-    final memoryBlock = _phase2PromptExtras; // Phase 2: personality + memory + context + jealousy
+    final memoryBlock =
+        _phase2PromptExtras; // Phase 2: personality + memory + context + jealousy
 
     String personaBase = '';
     switch (_selectedPersona) {
@@ -635,7 +656,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (_devTtsApiKeyOverride.trim().isNotEmpty) {
       return _devTtsApiKeyOverride.trim();
     }
-    return dotenv.env['GROQ_API_KEY_VOICE'] ?? (dotenv.env['API_KEY'] ?? "");
+    return dotenv.env['API_KEY'] ?? "";
   }
 
   String get _effectiveTtsModel {
@@ -722,10 +743,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   String get _devTtsApiKeyOverride => _sp.devTtsApiKeyOverride;
   String get _devTtsModelOverride => _sp.devTtsModelOverride;
   String get _devTtsVoiceOverride => _sp.devTtsVoiceOverride;
-  String get _devMailJetApiOverride => _sp.devMailJetApiOverride;
-  String get _devMailJetSecOverride => _sp.devMailJetSecOverride;
+  String get _devBrevoApiKeyOverride => _sp.devBrevoApiKeyOverride;
   String get _devSttLangOverride => _sp.devSttLangOverride;
   int get _devSttTimeoutOverride => _sp.devSttTimeoutOverride;
+  String get _sttProvider => _sp.sttProvider;
 
   // ── Chat image attach ────────────────────────────────────────────────
   File? get _selectedImage => _cp.selectedImage;
@@ -750,6 +771,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   List<Map<String, String>> get _notifHistory => _cp.notifHistory;
   set _notifHistory(List<Map<String, String>> v) => _cp.notifHistory = v;
   Timer? _inAppNotifHideTimer;
+  Timer? _searchDebounce;
   bool get _showInAppNotif => _cp.showInAppNotif;
   set _showInAppNotif(bool v) => _cp.showInAppNotif = v;
   String get _inAppNotifText => _cp.inAppNotifText;
@@ -775,11 +797,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   bool get _idleTimerEnabled => _cp.idleTimerEnabled;
   set _idleTimerEnabled(bool v) => _cp.idleTimerEnabled = v;
   bool get _idleBlockedUntilUserMessage => _cp.idleBlockedUntilUserMessage;
-  set _idleBlockedUntilUserMessage(bool v) => _cp.idleBlockedUntilUserMessage = v;
+  set _idleBlockedUntilUserMessage(bool v) =>
+      _cp.idleBlockedUntilUserMessage = v;
   int get _userMessageCount => _cp.userMessageCount;
   set _userMessageCount(int v) => _cp.userMessageCount = v;
   int get _idleConsumedAtUserMessageCount => _cp.idleConsumedAtUserMessageCount;
-  set _idleConsumedAtUserMessageCount(int v) => _cp.idleConsumedAtUserMessageCount = v;
+  set _idleConsumedAtUserMessageCount(int v) =>
+      _cp.idleConsumedAtUserMessageCount = v;
 
   Timer? _proactiveMessageTimer;
   bool _drainPendingInProgress = false;
@@ -1035,7 +1059,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
   }
 
-
   Future<void> _resetCustomImages() => _sp.resetCustomImages();
 
   ImageProvider _imageProviderFor({
@@ -1113,8 +1136,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       await LifeEventsService.instance.initializeIfNeeded();
 
       // Check for jealousy message on return (show if absent 2h+)
-      final personaName = _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona;
-      final jealousyMsg = await JealousyService.instance.getJealousyMessage(personaName);
+      final personaName =
+          _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona;
+      final jealousyMsg =
+          await JealousyService.instance.getJealousyMessage(personaName);
       if (jealousyMsg != null && mounted) {
         // Delay slightly so app is fully loaded
         await Future.delayed(const Duration(seconds: 2));
@@ -1125,7 +1150,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       }
 
       // Auto-detect alter ego mode from personality mood
-      await AlterEgoService.instance.autoDetectFromMood(PersonalityEngine.instance.mood);
+      await AlterEgoService.instance
+          .autoDetectFromMood(PersonalityEngine.instance.mood);
 
       // ── Next-Tier Presence Systems init ───────────────────────────
       RealWorldPresenceEngine.instance.startPolling();
@@ -1148,7 +1174,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       debugPrint('Phase 3: Advanced cognition systems initialized ✅');
 
       // Check for life event milestone (anniversary / day milestone)
-      final milestoneBlock = await LifeEventsService.instance.checkAndTriggerMilestone();
+      final milestoneBlock =
+          await LifeEventsService.instance.checkAndTriggerMilestone();
       if (milestoneBlock != null) {
         // Will be included next time _refreshPhase2Extras runs
         debugPrint('Phase 2: Life event milestone triggered!');
@@ -1159,7 +1186,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       final lastConsolMs = prefs.getInt('last_consolidation_ms') ?? 0;
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       if (nowMs - lastConsolMs > const Duration(hours: 24).inMilliseconds) {
-        unawaited(SemanticMemoryService.instance.consolidateMemories().then((_) {
+        unawaited(
+            SemanticMemoryService.instance.consolidateMemories().then((_) {
           prefs.setInt('last_consolidation_ms', nowMs);
         }));
       }
@@ -1178,7 +1206,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       final buf = StringBuffer();
 
       // 1. Personality traits + current mood
-      final personalityBlock = PersonalityEngine.instance.buildPersonalityPromptBlock();
+      final personalityBlock =
+          PersonalityEngine.instance.buildPersonalityPromptBlock();
       if (personalityBlock.isNotEmpty) buf.write(personalityBlock);
 
       // 2. Semantic memory retrieval — ranked by topic relevance to current message
@@ -1191,7 +1220,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           .take(5)
           .map((m) => m.content)
           .toList();
-      final memoryBlock = await SemanticMemoryService.instance.buildSemanticContextBlock(
+      final memoryBlock =
+          await SemanticMemoryService.instance.buildSemanticContextBlock(
         currentMessage: lastUserMsg.content,
         recentMessages: recentUserMsgs,
         currentMood: PersonalityEngine.instance.mood,
@@ -1205,15 +1235,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (ragBlock.isNotEmpty) buf.write(ragBlock);
 
       // 3. Context awareness (time of day, battery, inactivity)
-      final contextBlock = await ContextAwarenessService.instance.getContextBlock();
+      final contextBlock =
+          await ContextAwarenessService.instance.getContextBlock();
       if (contextBlock.isNotEmpty) buf.write(contextBlock);
 
       // 3b-3h. Unified Master State context (all 8 presence systems)
-      final masterBlock = await MasterStateObject.instance.buildMasterContextBlock();
+      final masterBlock =
+          await MasterStateObject.instance.buildMasterContextBlock();
       if (masterBlock.isNotEmpty) buf.write(masterBlock);
 
       // 3i. Relationship progression (stage, trust)
-      buf.write(RelationshipProgressionService.instance.getProgressionContextBlock());
+      buf.write(
+          RelationshipProgressionService.instance.getProgressionContextBlock());
 
       // 3j. Memory timeline (past significant moments)
       buf.write(MemoryTimelineService.instance.getTimelineContextBlock());
@@ -1229,13 +1262,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         final prefs = await SharedPreferences.getInstance();
         final note = prefs.getString('mab_critic_note');
         if (note != null && note.isNotEmpty) {
-          buf.writeln('// [CRITIC NOTE from last response — self-correct]: $note');
+          buf.writeln(
+              '// [CRITIC NOTE from last response — self-correct]: $note');
           await prefs.remove('mab_critic_note');
         }
       }
 
       // 4. Jealousy / absence tone override
-      final jealousyBlock = await JealousyService.instance.buildJealousyPromptBlock();
+      final jealousyBlock =
+          await JealousyService.instance.buildJealousyPromptBlock();
       if (jealousyBlock.isNotEmpty) buf.write(jealousyBlock);
 
       // 5. Alter ego mode override
@@ -1243,7 +1278,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (alterEgoBlock.isNotEmpty) buf.write(alterEgoBlock);
 
       // 6. Life event milestone (anniversary, day milestone)
-      final milestoneBlock = await LifeEventsService.instance.checkAndTriggerMilestone();
+      final milestoneBlock =
+          await LifeEventsService.instance.checkAndTriggerMilestone();
       if (milestoneBlock != null) buf.write(milestoneBlock);
 
       _phase2PromptExtras = buf.toString();
@@ -1260,12 +1296,17 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       await JealousyService.instance.recordActivity();
 
       // Auto-detect emotion in the reply and save as memory (if significant)
-      final (emotion, importance) = EmotionalMemoryService.detectEmotion(assistantText);
+      final (emotion, importance) =
+          EmotionalMemoryService.detectEmotion(assistantText);
       if (importance >= 0.5) {
         // Only save emotionally significant moments
-        final waifuId = _selectedPersona == 'Default' ? 'zero_two' : _selectedPersona.toLowerCase();
+        final waifuId = _selectedPersona == 'Default'
+            ? 'zero_two'
+            : _selectedPersona.toLowerCase();
         await EmotionalMemoryService.instance.saveMemory(
-          text: assistantText.length > 200 ? assistantText.substring(0, 200) : assistantText,
+          text: assistantText.length > 200
+              ? assistantText.substring(0, 200)
+              : assistantText,
           emotion: emotion,
           importance: importance,
           waifuId: waifuId,
@@ -1276,8 +1317,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       await PersonalityEngine.instance.onUserInteracted(wasNice: true);
 
       // Check for "I love you" in the last user message
-      final lastUserMsg = _messages.lastWhere(
-        (m) => m.role == 'user', orElse: () => ChatMessage(role: '', content: ''));
+      final lastUserMsg = _messages.lastWhere((m) => m.role == 'user',
+          orElse: () => ChatMessage(role: '', content: ''));
       if (_containsLoveDeclaration(lastUserMsg.content)) {
         await PersonalityEngine.instance.onUserInteracted(wasFlirty: true);
         await LifeEventsService.instance.recordFirstLoveYou();
@@ -1343,7 +1384,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         } else {
           _appendMessage(ChatMessage(
             role: 'assistant',
-            content: '❓ Unknown mode. Try: normal, tsundere, yandere, sleepy, assistant',
+            content:
+                '❓ Unknown mode. Try: normal, tsundere, yandere, sleepy, assistant',
           ));
         }
         if (mounted) setState(() => _isBusy = false);
@@ -1353,7 +1395,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       case '/remember':
         final mems = await EmotionalMemoryService.instance.getAllMemories();
         if (mems.isEmpty) {
-          _appendMessage(ChatMessage(role: 'assistant', content: '💭 No memories found yet.'));
+          _appendMessage(ChatMessage(
+              role: 'assistant', content: '💭 No memories found yet.'));
         } else {
           await EmotionalMemoryService.instance.pinMemory(mems.first.id);
           _appendMessage(ChatMessage(
@@ -1368,7 +1411,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       case '/forget':
         final mems = await EmotionalMemoryService.instance.getAllMemories();
         if (mems.isEmpty) {
-          _appendMessage(ChatMessage(role: 'assistant', content: '💭 Nothing to forget.'));
+          _appendMessage(
+              ChatMessage(role: 'assistant', content: '💭 Nothing to forget.'));
         } else {
           final toForget = mems.first;
           await EmotionalMemoryService.instance.forgetMemory(toForget.id);
@@ -1422,16 +1466,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           _isInForeground &&
           _navIndex != 0 && // Only if NOT on chat screen
           !_isBusy) {
-        debugPrint("In-app Check-in (Other screen). Generating notification...");
+        debugPrint(
+            "In-app Check-in (Other screen). Generating notification...");
 
         // ── Phase 2: Try mood-aware ProactiveAI message first ──
-        final proactiveMsg = await ProactiveAIService.instance.generateProactiveMessage(
-          personaName: _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona,
+        final proactiveMsg =
+            await ProactiveAIService.instance.generateProactiveMessage(
+          personaName:
+              _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona,
           currentMood: PersonalityEngine.instance.mood,
         );
         if (proactiveMsg != null) {
           await ProactiveAIService.instance.recordProactiveSent();
-          _appendMessage(ChatMessage(role: 'assistant', content: proactiveMsg.text));
+          _appendMessage(
+              ChatMessage(role: 'assistant', content: proactiveMsg.text));
           _scrollToBottom();
           unawaited(_speakAssistantText(proactiveMsg.text));
         } else {
@@ -1509,24 +1557,35 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // Keep startup deterministic: config first, then wake engine.
       await _initServices();
       await _loadDevConfig();
+      // ── Force wake word ON at startup (reset any stale 'false' from prev session) ──
+      await SharedPreferences.getInstance().then((p) async {
+        final wasExplicitlyDisabled = p.containsKey('wake_word_enabled') &&
+            p.getBool('wake_word_enabled') == false;
+        if (wasExplicitlyDisabled) {
+          print(
+              '=== STARTUP: wake_word_enabled was saved as false — resetting to true ===');
+          await p.setBool('wake_word_enabled', true);
+        }
+      });
+
       await _loadWakePreferences();
-      debugPrint("Wake word enabled by user: $_wakeWordEnabledByUser");
+      print("Wake word enabled by user: $_wakeWordEnabledByUser");
 
       await _loadAssistantMode();
 
       if (micGranted && _wakeWordEnabledByUser) {
-        debugPrint("=== STARTUP: Initializing wake word ===");
+        print("=== STARTUP: Initializing wake word ===");
         await _initWakeWord();
-        debugPrint("Wake word ready: $_wakeWordReady");
+        print("Wake word ready: $_wakeWordReady");
         if (_wakeWordReady) {
-          debugPrint("=== STARTUP: Starting wake word listening ===");
+          print("=== STARTUP: Starting wake word listening ===");
           await _ensureWakeWordActive();
-          debugPrint("=== STARTUP: Wake word active ===");
+          print("=== STARTUP: Wake word active ===");
         } else {
-          debugPrint("=== STARTUP: Wake word initialization failed ===");
+          print("=== STARTUP: Wake word initialization failed ===");
         }
       } else {
-        debugPrint(
+        print(
             "=== STARTUP: Skipping wake word (micGranted=$micGranted, enabled=$_wakeWordEnabledByUser) ===");
         await _wakeWordService.stop();
       }
@@ -1646,16 +1705,17 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       AttentionFocusSystem.instance.onUserMessage(message.content);
       final topic = _detectTopic(message.content);
       unawaited(SelfReflectionService.instance.recordTopicMentioned(topic));
-      unawaited(ConversationThreadMemory.instance.addMessage(
-          role: 'user', content: message.content, topic: topic));
+      unawaited(ConversationThreadMemory.instance
+          .addMessage(role: 'user', content: message.content, topic: topic));
     } else if (message.role == 'assistant') {
       AttentionFocusSystem.instance.onAiMessageSent();
       ConversationPresenceService.instance.onAiMessageSent();
       // Update world state on each AI message
-      unawaited(MasterStateObject.instance.onExchangeComplete(
-          topic: _detectTopic(message.content)));
+      unawaited(MasterStateObject.instance
+          .onExchangeComplete(topic: _detectTopic(message.content)));
       unawaited(ConversationThreadMemory.instance.addMessage(
-          role: 'assistant', content: message.content,
+          role: 'assistant',
+          content: message.content,
           topic: _detectTopic(message.content)));
     }
 
@@ -1716,12 +1776,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       {int maxAttempts = 3, String? modelOverride}) async {
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        final reply = await _apiService.sendConversation(payload, modelOverride: modelOverride);
+        final reply = await _apiService.sendConversation(payload,
+            modelOverride: modelOverride);
         if (reply.isNotEmpty) return reply;
       } catch (e) {
         if (attempt == maxAttempts) rethrow;
         final delay = Duration(milliseconds: 800 * attempt);
-        debugPrint('API attempt $attempt failed, retrying in ${delay.inMilliseconds}ms: $e');
+        debugPrint(
+            'API attempt $attempt failed, retrying in ${delay.inMilliseconds}ms: $e');
         await Future.delayed(delay);
       }
     }
@@ -1805,13 +1867,11 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           : Colors.white.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected
-                            ? Colors.pinkAccent
-                            : Colors.transparent,
+                        color:
+                            isSelected ? Colors.pinkAccent : Colors.transparent,
                       ),
                     ),
-                    child: Text(emoji,
-                        style: const TextStyle(fontSize: 26)),
+                    child: Text(emoji, style: const TextStyle(fontSize: 26)),
                   ),
                 );
               }).toList(),
@@ -1823,7 +1883,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
   }
 
-
   void _startWakeWatchdog() {
     _wakeWatchdogTimer?.cancel();
     _wakeWatchdogTimer = Timer.periodic(const Duration(seconds: 10), (_) {
@@ -1834,7 +1893,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   }
 
   Timer? _scheduledMsgTimer;
-  final Set<String> _playedScheduledMsgs = {}; // prevent duplicate plays in same minute
+  final Set<String> _playedScheduledMsgs =
+      {}; // prevent duplicate plays in same minute
 
   void _startScheduledMsgTimer() {
     _scheduledMsgTimer?.cancel();
@@ -1852,7 +1912,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             .doc(user.uid)
             .get();
         if (!snap.exists) return;
-        
+
         final list = (snap.data()?['messages'] as List?) ?? [];
         final int currentDay = now.weekday; // 1 = Mon, 7 = Sun
         final int currentHour = now.hour;
@@ -1866,23 +1926,25 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           final minute = m['minute'] as int? ?? -1;
           final String id = m['id'] as String? ?? '';
           final String message = m['message'] as String? ?? '';
-          
+
           if (!enabled || !days.contains(currentDay)) continue;
           if (hour == currentHour && minute == currentMinute) {
-            final playKey = '${id}_${now.year}_${now.month}_${now.day}_${hour}_$minute';
+            final playKey =
+                '${id}_${now.year}_${now.month}_${now.day}_${hour}_$minute';
             if (!_playedScheduledMsgs.contains(playKey)) {
               _playedScheduledMsgs.add(playKey);
-              
+
               if (mounted) {
-                _appendMessage(ChatMessage(role: 'assistant', content: message));
+                _appendMessage(
+                    ChatMessage(role: 'assistant', content: message));
                 unawaited(_ttsService.speak(message));
-                
+
                 // Show a quick visual indicator
                 setState(() {
                   _showInAppNotif = true;
                   _inAppNotifText = "⏰ Scheduled: $message";
                 });
-                
+
                 _inAppNotifHideTimer?.cancel();
                 _inAppNotifHideTimer = Timer(const Duration(seconds: 5), () {
                   if (mounted) setState(() => _showInAppNotif = false);
@@ -1899,7 +1961,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _loadWakePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('wake_word_enabled') ?? true;
+    final enabled = prefs.getBool('wake_word_enabled') ?? true; // Default ON
     final idleEnabled = prefs.getBool('idle_timer_enabled') ?? true;
     final idleDuration = prefs.getInt('idle_duration_seconds') ?? 600;
     final proactiveInterval = prefs.getInt('proactive_interval_seconds') ?? 60;
@@ -2048,6 +2110,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _logoTapResetTimer?.cancel();
     _wakeInitRetryTimer?.cancel();
     _inAppNotifHideTimer?.cancel();
+    _searchDebounce?.cancel();
     unawaited(_speechService.cancel());
     unawaited(_ttsService.stop());
     unawaited(_wakeWordService.dispose());
@@ -2326,8 +2389,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
   }
 
-
-
   Future<void> _onWakeWordDetected(int keywordIndex) async {
     try {
       if (!_wakeWordEnabledByUser) return;
@@ -2344,7 +2405,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // --- STAGE 2 VERIFICATION (Optional Groq Whisper Bypass for Anti-False Alarms) ---
       // Re-enabled to categorically eliminate all false-positive triggers from background noise.
       const bool useSmartVerification = true;
-      
+
       if (useSmartVerification) {
         final audioData = _wakeWordService.getRecentAudio();
         if (audioData.isNotEmpty) {
@@ -2354,7 +2415,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               transcript: "Checking wake word...",
             );
           }
-          
+
           final isValid = await _verifyWakeWordWithGroq(audioData);
           if (!isValid) {
             if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
@@ -2380,7 +2441,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
       // Don't show overlay when user is already on the chat screen, UNLESS the app is backgrounded.
       bool isBackground = _appLifecycleState != AppLifecycleState.resumed;
-      if (Platform.isAndroid && _wakePopupEnabled && (_navIndex != 0 || isBackground)) {
+      if (Platform.isAndroid &&
+          _wakePopupEnabled &&
+          (_navIndex != 0 || isBackground)) {
         await _assistantModeService.showOverlay(
           status: "Wake word detected",
           transcript: wakeName.isNotEmpty ? wakeName : "Speak your command",
@@ -2417,36 +2480,52 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final keys = [
       ...(_devApiKeyOverride.trim().split(',').map((k) => k.trim())),
       ...(dotenv.env['API_KEY'] ?? '').split(',').map((k) => k.trim()),
-      ...(dotenv.env['GROQ_API_KEY_VOICE'] ?? '').split(',').map((k) => k.trim()),
     ].where((k) => k.isNotEmpty).toList();
-    
+
     if (keys.isEmpty) return true; // allow if no key (fallback to broken ONNX)
     final apiKey = keys.first;
 
     try {
       final wavBytes = _pcmToWav(pcmData, 16000);
-      var request = http.MultipartRequest('POST', Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions'));
+      var request = http.MultipartRequest('POST',
+          Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions'));
       request.headers['Authorization'] = 'Bearer $apiKey';
       request.fields['model'] = 'whisper-large-v3-turbo';
       request.fields['language'] = 'en';
-      request.fields['prompt'] = 'zero two darling'; 
-      request.files.add(http.MultipartFile.fromBytes('file', wavBytes, filename: 'wake.wav'));
-      
-      final response = await request.send().timeout(const Duration(seconds: 4));
+      request.fields['prompt'] = 'zero two darling';
+      request.files.add(
+          http.MultipartFile.fromBytes('file', wavBytes, filename: 'wake.wav'));
+
+      final response = await request.send().timeout(const Duration(seconds: 6));
       if (response.statusCode == 200) {
         final respStr = await response.stream.bytesToString();
         final json = jsonDecode(respStr);
         final text = (json['text'] as String?)?.toLowerCase() ?? '';
         final cleanText = text.replaceAll(RegExp(r'[^a-z0-9]'), '');
-        
+
         // ignore: avoid_print
         print('[WakeGuard] STT Transcript: "$text"');
-        
-        if (cleanText.contains('zerotwo') || 
+
+        // Permissive matching — STT often truncates or mishears the wake word.
+        if (cleanText.contains('zerotwo') ||
+            cleanText.contains('zero') ||
             cleanText.contains('02') ||
             cleanText.contains('darling') ||
-            cleanText.contains('akira')) {
+            cleanText.contains('akira') ||
+            cleanText.contains('two') ||
+            cleanText.contains('tu') ||
+            cleanText.contains('to') ||
+            cleanText.contains('too') ||
+            cleanText.contains('ziro') ||
+            cleanText.contains('hero') ||
+            cleanText.contains('dear')) {
           return true; // Confirmed!
+        }
+        // If transcript is very short or empty, allow through
+        if (cleanText.length < 3) {
+          // ignore: avoid_print
+          print('[WakeGuard] Short/empty transcript, allowing through');
+          return true;
         }
         // ignore: avoid_print
         print('[WakeGuard] False trigger REJECTED: "$cleanText"');
@@ -2454,9 +2533,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       }
     } catch (e) {
       // ignore: avoid_print
-      print('[WakeGuard] STT verifier failed: $e');
+      print('[WakeGuard] STT verifier failed (allowing through): $e');
     }
-    return false; // REJECT if network verification failed — safety first!
+    // ⚠️ IMPORTANT: Return TRUE on failure so a network/timeout issue
+    // does NOT permanently disable the wake word. Only reject if we got
+    // a valid STT response that clearly did NOT match.
+    return true;
   }
 
   Uint8List _pcmToWav(Float32List pcmData, int sampleRate) {
@@ -2471,44 +2553,44 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final byteRate = sampleRate * channels * 2;
     final dataSize = pcmData.length * 2;
     final fileSize = 36 + dataSize;
-    
+
     final builder = BytesBuilder();
     builder.add(ascii.encode('RIFF'));
-    
+
     final Uint8List b4 = Uint8List(4);
     b4.buffer.asByteData().setInt32(0, fileSize, Endian.little);
     builder.add(b4);
-    
+
     builder.add(ascii.encode('WAVE'));
     builder.add(ascii.encode('fmt '));
-    
+
     b4.buffer.asByteData().setInt32(0, 16, Endian.little);
     builder.add(b4);
-    
+
     final Uint8List b2 = Uint8List(2);
     b2.buffer.asByteData().setInt16(0, 1, Endian.little);
-    builder.add(b2); 
-    
+    builder.add(b2);
+
     b2.buffer.asByteData().setInt16(0, channels, Endian.little);
     builder.add(b2);
-    
+
     b4.buffer.asByteData().setInt32(0, sampleRate, Endian.little);
     builder.add(b4);
-    
+
     b4.buffer.asByteData().setInt32(0, byteRate, Endian.little);
     builder.add(b4);
-    
+
     b2.buffer.asByteData().setInt16(0, channels * 2, Endian.little);
-    builder.add(b2); 
-    
+    builder.add(b2);
+
     b2.buffer.asByteData().setInt16(0, 16, Endian.little);
     builder.add(b2);
-    
+
     builder.add(ascii.encode('data'));
-    
+
     b4.buffer.asByteData().setInt32(0, dataSize, Endian.little);
     builder.add(b4);
-    
+
     for (final sample in pcmData) {
       var s = ((sample * multiplier) * 32767).round();
       if (s > 32767) s = 32767;
@@ -2580,7 +2662,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     // sets _isAutoListening, etc.)
     if (_isSpeaking || _isBusy || _isAutoListening) {
       // ignore: avoid_print
-      print('[WakeGuard] Blocked: speaking=$_isSpeaking busy=$_isBusy autoListen=$_isAutoListening');
+      print(
+          '[WakeGuard] Blocked: speaking=$_isSpeaking busy=$_isBusy autoListen=$_isAutoListening');
       if (_wakeWordService.isRunning) {
         await _wakeWordService.stop();
       }
@@ -2742,7 +2825,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         _pastMessages.add(m);
       }
     }
-    debugPrint("LOADED MEMORY: today=${_messages.length}, past=${_pastMessages.length}");
+    debugPrint(
+        "LOADED MEMORY: today=${_messages.length}, past=${_pastMessages.length}");
 
     _userMessageCount = _messages
         .where((m) => m.role == "user" && m.content.trim().isNotEmpty)
@@ -2791,7 +2875,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           decoration: BoxDecoration(
             color: Colors.amberAccent.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.6), width: 1.5),
+            border: Border.all(
+                color: Colors.amberAccent.withValues(alpha: 0.6), width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.amberAccent.withValues(alpha: 0.2),
@@ -2802,7 +2887,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           ),
           child: Row(
             children: [
-              const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent, size: 28),
+              const Icon(Icons.emoji_events_rounded,
+                  color: Colors.amberAccent, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -2829,7 +2915,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         elevation: 0,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 180, left: 16, right: 16),
+            bottom: MediaQuery.of(context).size.height - 180,
+            left: 16,
+            right: 16),
         duration: const Duration(seconds: 4),
       ),
     );
@@ -2842,22 +2930,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _sp.devApiUrlOverride = prefs.getString('dev_api_url_override') ?? "";
     _sp.devSystemQuery = prefs.getString('dev_system_query') ?? "";
     _sp.devWakeKeyOverride = prefs.getString('dev_wake_key_override') ?? "";
-    _sp.devTtsApiKeyOverride = prefs.getString('dev_tts_api_key_override') ?? "";
+    _sp.devTtsApiKeyOverride =
+        prefs.getString('dev_tts_api_key_override') ?? "";
     _sp.devTtsModelOverride = prefs.getString('dev_tts_model_override') ?? "";
     _sp.devTtsVoiceOverride = prefs.getString('dev_tts_voice_override') ?? "";
-    _sp.devMailJetApiOverride = prefs.getString('dev_mailjet_api_override') ?? "";
-    _sp.devMailJetSecOverride = prefs.getString('dev_mailjet_sec_override') ?? "";
-    _sp.devSttLangOverride = prefs.getString('dev_stt_lang_override') ?? "";
-    _sp.devSttTimeoutOverride = prefs.getInt('dev_stt_timeout_override') ?? 0;
+    _sp.devBrevoApiKeyOverride =
+        prefs.getString('dev_brevo_api_key_override') ?? "";
     _apiService.configure(
       apiKeyOverride: _devApiKeyOverride,
       modelOverride: _devModelOverride,
       urlOverride: _devApiUrlOverride,
-      mailJetApiOverride: _devMailJetApiOverride,
-      mailJetSecOverride: _devMailJetSecOverride,
+      brevoApiKeyOverride: _devBrevoApiKeyOverride,
     );
     _speechService.configure(
       apiKeyOverride: _devApiKeyOverride,
+      sttProvider: _sttProvider,
     );
     _wakeWordService.configure(accessKeyOverride: _devWakeKeyOverride);
     _ttsService.configure(
@@ -3002,7 +3089,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   // ── Voice Fast-Path Executor ────────────────────────────────────────────────
   /// Executes a synthetic action block detected by VoiceCommandNormalizer.
   /// Covers all OpenAppService handlers — no LLM call needed.
-  Future<void> _handleVoiceFastPath(String syntheticAction, {bool readOut = false}) async {
+  Future<void> _handleVoiceFastPath(String syntheticAction,
+      {bool readOut = false}) async {
     if (_isBusy) return;
     setState(() => _isBusy = true);
     try {
@@ -3025,14 +3113,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       result ??= await OpenAppService.handleNewsAction(syntheticAction);
       result ??= await OpenAppService.handleReminderAction(syntheticAction);
       result ??= await OpenAppService.handleOpenCalendarAction(syntheticAction);
-      result ??= await OpenAppService.handleCalendarEventAction(syntheticAction);
+      result ??=
+          await OpenAppService.handleCalendarEventAction(syntheticAction);
       result ??= await OpenAppService.handleWifiCheckAction(syntheticAction);
       result ??= await OpenAppService.handleDndAction(syntheticAction);
       result ??= await OpenAppService.handleShareAction(syntheticAction);
       result ??= await OpenAppService.handleMorningRoutine(syntheticAction);
       result ??= await OpenAppService.handleNightRoutine(syntheticAction);
       result ??= await OpenAppService.handleTranslateAction(syntheticAction);
-      result ??= await OpenAppService.handleSummarizeChatAction(syntheticAction);
+      result ??=
+          await OpenAppService.handleSummarizeChatAction(syntheticAction);
       result ??= await OpenAppService.handleDailySummaryAction(syntheticAction);
 
       // Handle SUMMARIZE_CHAT sentinel — inline because we need access to _messages
@@ -3051,7 +3141,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               : "Here's a recap of what we talked about:\n\n• $userMsgs",
         );
       }
-
 
       final responseText = result?.assistantMessage ??
           "I couldn't do that right now, Darling~ 🥺";
@@ -3125,10 +3214,11 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       try {
         // Use Safebooru API with Zero Two specific tag — only Zero Two images!
         final randomPage = DateTime.now().millisecondsSinceEpoch % 50;
-        final resp = await http.get(Uri.parse(
-          'https://safebooru.org/index.php?page=dapi&s=post&q=index'
-          '&tags=zero_two_(darling_in_the_franxx)+solo'
-          '&json=1&limit=20&pid=$randomPage'))
+        final resp = await http
+            .get(Uri.parse(
+                'https://safebooru.org/index.php?page=dapi&s=post&q=index'
+                '&tags=zero_two_(darling_in_the_franxx)+solo'
+                '&json=1&limit=20&pid=$randomPage'))
             .timeout(const Duration(seconds: 10));
         if (resp.statusCode == 200) {
           final List<dynamic> posts = jsonDecode(resp.body);
@@ -3144,7 +3234,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 'Miss me that much, huh? Here~ 💋',
                 'Don\'t stare too long, Darling~ 😘',
               ];
-              final reply = flirtyReplies[DateTime.now().second % flirtyReplies.length];
+              final reply =
+                  flirtyReplies[DateTime.now().second % flirtyReplies.length];
               _appendMessage(ChatMessage(
                 role: 'assistant',
                 content: reply,
@@ -3163,7 +3254,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // (AI misinterprets "send me a pic" as a mail/send command)
       _appendMessage(ChatMessage(
         role: 'assistant',
-        content: 'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again in a moment!',
+        content:
+            'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again in a moment!',
       ));
       _scrollToBottom();
       if (mounted) setState(() => _isBusy = false);
@@ -3217,7 +3309,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       return;
     }
 
-
     // Mini-Games: Answer trivia if one is pending
     if (MiniGameService.hasPendingTrivia()) {
       final ans = MiniGameService.checkTriviaAnswer(text);
@@ -3265,15 +3356,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   caseSensitive: false),
               '')
           .trim();
-      final url =
+      final imgResult =
           await ImageGenService.generateImage(cleaned.isEmpty ? text : cleaned);
-      if (url != null) {
+      if (imgResult != null) {
         // Replace the placeholder bubble with the real image message
         final lastIndex = _messages.length - 1;
         final updated = ChatMessage(
           role: 'assistant',
           content: '🖼️ Here you go, darling!',
-          imageUrl: url,
+          imageUrl: imgResult.url,
         );
         if (mounted) {
           setState(() => _messages[lastIndex] = updated);
@@ -3552,13 +3643,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         }
 
         // ── Intercept [SELFIE] action from AI response ───────────────
-        if (assistantText.contains('Action: SELFIE') || assistantText.contains('SELFIE')) {
+        if (assistantText.contains('Action: SELFIE') ||
+            assistantText.contains('SELFIE')) {
           try {
             final randomPage = DateTime.now().millisecondsSinceEpoch % 50;
-            final selfieResp = await http.get(Uri.parse(
-              'https://safebooru.org/index.php?page=dapi&s=post&q=index'
-              '&tags=zero_two_(darling_in_the_franxx)+solo'
-              '&json=1&limit=20&pid=$randomPage'))
+            final selfieResp = await http
+                .get(Uri.parse(
+                    'https://safebooru.org/index.php?page=dapi&s=post&q=index'
+                    '&tags=zero_two_(darling_in_the_franxx)+solo'
+                    '&json=1&limit=20&pid=$randomPage'))
                 .timeout(const Duration(seconds: 10));
             if (selfieResp.statusCode == 200) {
               final List<dynamic> posts = jsonDecode(selfieResp.body);
@@ -3574,7 +3667,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                     'Miss me that much, huh? Here~ 💋',
                     'Don\'t stare too long, Darling~ 😘',
                   ];
-                  assistantText = flirtyReplies[DateTime.now().second % flirtyReplies.length];
+                  assistantText = flirtyReplies[
+                      DateTime.now().second % flirtyReplies.length];
                   _appendMessage(ChatMessage(
                     role: 'assistant',
                     content: assistantText,
@@ -3590,7 +3684,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             debugPrint('AI SELFIE intercept error: $e');
           }
           // If Safebooru fails, show text-only response
-          assistantText = 'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again!';
+          assistantText =
+              'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again!';
         }
 
         _appendMessage(ChatMessage(role: "assistant", content: assistantText));
@@ -3694,6 +3789,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       await _stopContinuousListening();
     }
     unawaited(_ensureWakeWordActive());
+  }
+
+  Future<void> _setSttProvider(String provider) async {
+    await _sp.setSttProvider(provider);
+    _speechService.configure(sttProvider: provider);
+    if (mounted) setState(() {});
   }
 
   Future<void> _toggleDualVoice() => _sp.toggleDualVoice();
@@ -4102,10 +4203,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         TextEditingController(text: _devTtsModelOverride);
     final ttsVoiceController =
         TextEditingController(text: _devTtsVoiceOverride);
-    final mailJetApiController =
-        TextEditingController(text: _devMailJetApiOverride);
-    final mailJetSecController =
-        TextEditingController(text: _devMailJetSecOverride);
+    final brevoApiController =
+        TextEditingController(text: _devBrevoApiKeyOverride);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -4240,15 +4339,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 const SizedBox(height: 10),
                 sectionTitle(
                   "Wake Word",
-                  "Picovoice access key for wake engine",
+                  "wake engine",
                 ),
                 exampleBox("Wake Key: pKFX... (Picovoice Access Key)"),
                 const SizedBox(height: 8),
                 TextField(
                   controller: wakeKeyController,
                   style: const TextStyle(color: Colors.white),
-                  decoration:
-                      dec("Wake Key", "Picovoice Access Key (WAKE_WORD_KEY)"),
+                  decoration: dec("Wake Key", "WAKE_WORD_KEY"),
                 ),
                 const SizedBox(height: 10),
                 sectionTitle(
@@ -4287,20 +4385,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   "Needed for sendMail flow",
                 ),
                 exampleBox(
-                  "MAIL_JET_API: xxx\n"
-                  "MAILJET_SEC: yyy",
+                  "BREVO_API_KEY: xkeysib-xxx",
                 ),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: mailJetApiController,
+                  controller: brevoApiController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: dec("Mailjet API Key", "MAIL_JET_API"),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: mailJetSecController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: dec("Mailjet Secret Key", "MAILJET_SEC"),
+                  decoration: dec("Brevo API Key", "BREVO_API_KEY"),
                 ),
                 const SizedBox(height: 14),
                 Row(
@@ -4327,14 +4418,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           _sp.devTtsApiKeyOverride = "";
                           _sp.devTtsModelOverride = "";
                           _sp.devTtsVoiceOverride = "";
-                          _sp.devMailJetApiOverride = "";
-                          _sp.devMailJetSecOverride = "";
+                          _sp.devBrevoApiKeyOverride = "";
                           _apiService.configure(
                             apiKeyOverride: "",
                             modelOverride: "",
                             urlOverride: "",
-                            mailJetApiOverride: "",
-                            mailJetSecOverride: "",
+                            brevoApiKeyOverride: "",
                           );
                           _speechService.configure(
                             apiKeyOverride: "",
@@ -4361,14 +4450,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           _sp.devModelOverride = modelController.text.trim();
                           _sp.devApiUrlOverride = urlController.text.trim();
                           _sp.devSystemQuery = queryController.text.trim();
-                          _sp.devWakeKeyOverride = wakeKeyController.text.trim();
-                          _sp.devTtsApiKeyOverride = ttsApiController.text.trim();
-                          _sp.devTtsModelOverride = ttsModelController.text.trim();
-                          _sp.devTtsVoiceOverride = ttsVoiceController.text.trim();
-                          _sp.devMailJetApiOverride =
-                              mailJetApiController.text.trim();
-                          _sp.devMailJetSecOverride =
-                              mailJetSecController.text.trim();
+                          _sp.devWakeKeyOverride =
+                              wakeKeyController.text.trim();
+                          _sp.devTtsApiKeyOverride =
+                              ttsApiController.text.trim();
+                          _sp.devTtsModelOverride =
+                              ttsModelController.text.trim();
+                          _sp.devTtsVoiceOverride =
+                              ttsVoiceController.text.trim();
+                          _sp.devBrevoApiKeyOverride =
+                              brevoApiController.text.trim();
                           await prefs.setString(
                               'dev_api_key_override', _devApiKeyOverride);
                           await prefs.setString(
@@ -4385,16 +4476,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                               'dev_tts_model_override', _devTtsModelOverride);
                           await prefs.setString(
                               'dev_tts_voice_override', _devTtsVoiceOverride);
-                          await prefs.setString('dev_mailjet_api_override',
-                              _devMailJetApiOverride);
-                          await prefs.setString('dev_mailjet_sec_override',
-                              _devMailJetSecOverride);
+                          await prefs.setString('dev_brevo_api_key_override',
+                              _devBrevoApiKeyOverride);
                           _apiService.configure(
                             apiKeyOverride: _devApiKeyOverride,
                             modelOverride: _devModelOverride,
                             urlOverride: _devApiUrlOverride,
-                            mailJetApiOverride: _devMailJetApiOverride,
-                            mailJetSecOverride: _devMailJetSecOverride,
+                            brevoApiKeyOverride: _devBrevoApiKeyOverride,
                           );
                           _speechService.configure(
                             apiKeyOverride: _devApiKeyOverride,
@@ -4597,7 +4685,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       letterSpacing: 1.5,
                       color: Colors.white,
                       shadows: [
-                        Shadow(color: Color.fromARGB(255, 255, 126, 126), blurRadius: 10)
+                        Shadow(
+                            color: Color.fromARGB(255, 255, 126, 126),
+                            blurRadius: 10)
                       ],
                     ),
                   ),
@@ -4641,7 +4731,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   tooltip: 'Notifications',
                   onPressed: () => setState(() {
                     _navIndex = 1;
-                    _hasUnreadNotifs = false; // clear badge when user opens notifs
+                    _hasUnreadNotifs =
+                        false; // clear badge when user opens notifs
                   }),
                 ),
                 const SizedBox(width: 4),
@@ -4690,6 +4781,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 Positioned.fill(
                   child: ParticleOverlay(key: _particleKey),
                 ),
+                // ── Multi-Select Delete Action Bar ────────────────────────────
+                if (_isMultiSelectMode) _buildDeleteActionBar(),
               ],
             ),
           ),
@@ -4733,7 +4826,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 14),
                   Image.asset(
                     'assets/img/front.png',
@@ -4753,7 +4845,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 4),
                   Text(
                     "CORE 0.02",
@@ -4775,7 +4866,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Widget _buildAvatarArea() {
     final primary = Theme.of(context).primaryColor;
-    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight + 12;
+    // SafeArea now wraps the column, so no extra topInset needed here
+    const topInset = 12.0;
     final statusText = _isSpeaking
         ? "DECODING SPEECH..."
         : _speechService.listening
@@ -4786,20 +4878,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                     ? "SYSTEM READY"
                     : _apiKeyStatus.toUpperCase();
     final avatarCore = Container(
-      width: 88,
-      height: 88,
-      padding: const EdgeInsets.all(3),
+      width: 64,
+      height: 64,
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
           color: Colors.white70,
-          width: 1.8,
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.26),
-            blurRadius: 20,
-            spreadRadius: 2,
+            blurRadius: 14,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -4809,12 +4901,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             assetPath: _chatImageAsset,
             customPath: _effectiveChatCustomPath,
           ),
-          width: 82,
-          height: 82,
+          width: 60,
+          height: 60,
           fit: BoxFit.cover,
           errorBuilder: (c, e, s) => Container(
-            width: 82,
-            height: 82,
+            width: 60,
+            height: 60,
             color: Colors.white10,
             child: const Icon(
               Icons.person,
@@ -4838,8 +4930,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             animation: _floatController,
             builder: (context, child) {
               final v = _floatController.value;
-              final float = math.sin(v * 2 * math.pi) * 7.5;
-              final tilt = math.sin(v * 2 * math.pi) * 0.025;
+              final float = math.sin(v * 2 * math.pi) * 5.0;
+              final tilt = math.sin(v * 2 * math.pi) * 0.018;
               return RepaintBoundary(
                 child: Transform(
                   alignment: Alignment.center,
@@ -4854,184 +4946,155 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           );
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(14, topInset, 14, 6),
-      child: Column(
+      padding: EdgeInsets.fromLTRB(14, topInset, 14, 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // ── Avatar (tap to change) ─────────────────────────
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _onLogoTap,
             child: avatarWidget,
           ),
-          const SizedBox(height: 8),
-          Text(
-            statusText,
-            style: GoogleFonts.outfit(
-              color: Colors.white70,
-              fontSize: 11,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.pinkAccent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          const SizedBox(width: 12),
+          // ── Status + chips packed to the right ────────────
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Status line + wake flash inline
+                Row(
                   children: [
-                    const Icon(Icons.favorite, color: Colors.pinkAccent, size: 12),
-                    const SizedBox(width: 4),
-                    Text('${AffectionService.instance.points} pts',
-                        style: GoogleFonts.outfit(
-                            color: Colors.pinkAccent,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-              _buildHeroStatusChip(
-                // The user requested to revert back to showing exactly what the engine is doing
-                label: _wakeWordService.isRunning ? 'WAKE ON' : 'WAKE OFF',
-                active: _wakeWordService.isRunning,
-                accent: Colors.greenAccent,
-              ),
-              _buildHeroStatusChip(
-                label: _speechService.listening ? 'MIC LIVE' : 'MIC IDLE',
-                active: _speechService.listening,
-                accent: primary,
-              ),
-              _buildHeroStatusChip(
-                label: _assistantModeEnabled ? 'BG ACTIVE' : 'BG OFF',
-                active: _assistantModeEnabled,
-                accent: Colors.cyanAccent,
-              ),
-              GestureDetector(
-                onTap: () => setState(() {
-                  _isChatSearchActive = !_isChatSearchActive;
-                  if (!_isChatSearchActive) {
-                    _chatSearchQuery = '';
-                    _chatSearchController.clear();
-                  }
-                }),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: _isChatSearchActive
-                        ? Colors.orangeAccent.withValues(alpha: 0.22)
-                        : Colors.white.withValues(alpha: 0.06),
-                    border: Border.all(
-                      color: _isChatSearchActive
-                          ? Colors.orangeAccent.withValues(alpha: 0.8)
-                          : Colors.white12,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.search,
-                          size: 10,
-                          color: _isChatSearchActive
-                              ? Colors.orangeAccent
-                              : Colors.white70),
-                      const SizedBox(width: 4),
-                      Text('SEARCH',
-                          style: GoogleFonts.outfit(
-                              color: _isChatSearchActive
-                                  ? Colors.white
-                                  : Colors.white70,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              GestureDetector(
-                onTap: () {
-                  final all = [..._pastMessages, ..._messages];
-                  if (all.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('No messages to export yet!'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                    return;
-                  }
-                  unawaited(ChatExportService.exportToText(all));
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: Colors.white.withValues(alpha: 0.06),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.download_rounded,
-                          size: 10, color: Colors.white70),
-                      const SizedBox(width: 4),
-                      Text('EXPORT',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white70,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 280),
-            opacity: _wakeEffectVisible ? 1 : 0,
-            child: Transform.scale(
-              scale: _wakeEffectVisible ? 1.0 : 0.95,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.24)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.flash_on, color: primary, size: 16),
-                    const SizedBox(width: 8),
                     Text(
-                      "WAKE WORD ACTIVE",
+                      statusText,
                       style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 11,
+                        color: Colors.white70,
+                        fontSize: 10,
                         letterSpacing: 1.3,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (_wakeEffectVisible) ...[
+                      const SizedBox(width: 8),
+                      Icon(Icons.flash_on, color: primary, size: 12),
+                      const SizedBox(width: 3),
+                      Text(
+                        'WAKE ACTIVE',
+                        style: GoogleFonts.outfit(
+                          color: primary,
+                          fontSize: 9,
+                          letterSpacing: 1.1,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Chips row
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 3,
+                  children: [
+                    // Affection pts
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: Colors.pinkAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite,
+                              color: Colors.pinkAccent, size: 9),
+                          const SizedBox(width: 3),
+                          Text('${AffectionService.instance.points} pts',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.pinkAccent,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                    // Wake chip
+                    GestureDetector(
+                      onTap: () async {
+                        if (!_wakeWordReady) await _initWakeWord();
+                        await _ensureWakeWordActive();
+                        setState(() {});
+                      },
+                      child: _buildHeroStatusChip(
+                        label:
+                            _wakeWordService.isRunning ? 'WAKE ON' : 'WAKE OFF',
+                        active: _wakeWordService.isRunning,
+                        accent: Colors.greenAccent,
+                      ),
+                    ),
+                    // Mic chip
+                    _buildHeroStatusChip(
+                      label: _speechService.listening ? 'MIC LIVE' : 'MIC',
+                      active: _speechService.listening,
+                      accent: primary,
+                    ),
+                    // BG chip
+                    _buildHeroStatusChip(
+                      label: _assistantModeEnabled ? 'BG ON' : 'BG OFF',
+                      active: _assistantModeEnabled,
+                      accent: Colors.cyanAccent,
+                    ),
+                    // Search chip
+                    GestureDetector(
+                      onTap: () => setState(() {
+                        _isChatSearchActive = !_isChatSearchActive;
+                        if (!_isChatSearchActive) {
+                          _chatSearchQuery = '';
+                          _chatSearchController.clear();
+                        }
+                      }),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: _isChatSearchActive
+                              ? Colors.orangeAccent.withValues(alpha: 0.22)
+                              : Colors.white.withValues(alpha: 0.06),
+                          border: Border.all(
+                            color: _isChatSearchActive
+                                ? Colors.orangeAccent.withValues(alpha: 0.8)
+                                : Colors.white12,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search,
+                                size: 9,
+                                color: _isChatSearchActive
+                                    ? Colors.orangeAccent
+                                    : Colors.white70),
+                            const SizedBox(width: 3),
+                            Text('SEARCH',
+                                style: GoogleFonts.outfit(
+                                    color: _isChatSearchActive
+                                        ? Colors.white
+                                        : Colors.white70,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8)),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -5047,7 +5110,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: active
@@ -5062,8 +5125,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         label,
         style: GoogleFonts.outfit(
           color: active ? Colors.white : Colors.white70,
-          fontSize: 10,
-          letterSpacing: 1.4,
+          fontSize: 9,
+          letterSpacing: 1.2,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -5094,7 +5157,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   autofocus: true,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   cursorColor: Colors.white,
-                  onChanged: (q) => setState(() => _chatSearchQuery = q),
+                  onChanged: (q) {
+                    _searchDebounce?.cancel();
+                    _searchDebounce = Timer(
+                      const Duration(milliseconds: 180),
+                      () => setState(() => _chatSearchQuery = q),
+                    );
+                  },
                   decoration: InputDecoration(
                     hintText: 'Search messages...',
                     hintStyle:
@@ -5132,7 +5201,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   if (_swipeCount < 2 && _pastMessages.isNotEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Swipe down once more to load older messages...'),
+                        content: Text(
+                            'Swipe down once more to load older messages...'),
                         duration: Duration(seconds: 2),
                         backgroundColor: Color(0xFF9B59B6),
                       ),
@@ -5169,17 +5239,26 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                         ],
                       )
                     : Builder(builder: (context) {
-                        final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 50;
-                        final collapseOld = keyboardOpen && displayMessages.length > 5;
+                        final keyboardOpen =
+                            MediaQuery.of(context).viewInsets.bottom > 50;
+                        final collapseOld =
+                            keyboardOpen && displayMessages.length > 5;
                         final visibleMessages = collapseOld
-                            ? displayMessages.sublist(displayMessages.length - 5)
+                            ? displayMessages
+                                .sublist(displayMessages.length - 5)
                             : displayMessages;
-                        final hiddenCount = displayMessages.length - visibleMessages.length;
+                        final hiddenCount =
+                            displayMessages.length - visibleMessages.length;
                         return ListView.builder(
-                          controller: _isChatSearchActive ? null : _scrollController,
-                          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                          itemCount: visibleMessages.length + (collapseOld ? 1 : 0),
+                          controller:
+                              _isChatSearchActive ? null : _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics()),
+                          cacheExtent: 600, // pre-render off-screen messages
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 12),
+                          itemCount:
+                              visibleMessages.length + (collapseOld ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (collapseOld && index == 0) {
                               return GestureDetector(
@@ -5192,21 +5271,34 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: Center(
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 250),
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                      duration:
+                                          const Duration(milliseconds: 250),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 7),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.08),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                        border: Border.all(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.15)),
                                       ),
-                                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                        const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white38, size: 14),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          '↑  $hiddenCount older messages',
-                                          style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w500),
-                                        ),
-                                      ]),
+                                      child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                                Icons.keyboard_arrow_up_rounded,
+                                                color: Colors.white38,
+                                                size: 14),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '↑  $hiddenCount older messages',
+                                              style: GoogleFonts.outfit(
+                                                  color: Colors.white38,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ]),
                                     ),
                                   ),
                                 ),
@@ -5238,14 +5330,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 ),
               ),
             // ── Smart Quick Reply Chips (hidden when keyboard open) ───────────
-            if (_quickReplies.isNotEmpty && !_isBusy &&
+            if (_quickReplies.isNotEmpty &&
+                !_isBusy &&
                 MediaQuery.of(context).viewInsets.bottom == 0)
               Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: SingleChildScrollView(
-                    key: ValueKey(_quickReplies.join() + _currentStickerEmotion),
+                    key:
+                        ValueKey(_quickReplies.join() + _currentStickerEmotion),
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
@@ -5255,35 +5349,36 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           child: SurpriseMeButton(onPressed: _fireSurpriseMe),
                         ),
                         ..._quickReplies.map((chip) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() => _quickReplies = []);
-                              _textController.text = chip;
-                              unawaited(_handleTextInput());
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.pinkAccent.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                    color: Colors.pinkAccent
-                                        .withValues(alpha: 0.4)),
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                setState(() => _quickReplies = []);
+                                _textController.text = chip;
+                                unawaited(_handleTextInput());
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Colors.pinkAccent.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                      color: Colors.pinkAccent
+                                          .withValues(alpha: 0.4)),
+                                ),
+                                child: Text(chip,
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500)),
                               ),
-                              child: Text(chip,
-                                  style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500)),
                             ),
-                          ),
-                        );
-                      }),
-                      ],  // close outer children list
+                          );
+                        }),
+                      ], // close outer children list
                     ),
                   ),
                 ),
@@ -5315,16 +5410,22 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   /// Lightweight topic classifier for SelfReflectionService behaviour tracking.
   String _detectTopic(String text) {
     final t = text.toLowerCase();
-    if (_anyKw(t, ['music', 'song', 'playlist', 'spotify', 'youtube', 'sing'])) return 'music';
-    if (_anyKw(t, ['anime', 'manga', 'episode', 'watch', 'series'])) return 'anime';
+    if (_anyKw(t, ['music', 'song', 'playlist', 'spotify', 'youtube', 'sing']))
+      return 'music';
+    if (_anyKw(t, ['anime', 'manga', 'episode', 'watch', 'series']))
+      return 'anime';
     if (_anyKw(t, ['game', 'play', 'level', 'gaming', 'match'])) return 'games';
-    if (_anyKw(t, ['work', 'study', 'exam', 'office', 'college', 'job'])) return 'work';
-    if (_anyKw(t, ['love', 'miss', 'feel', 'heart', 'emotion', 'crush'])) return 'feelings';
+    if (_anyKw(t, ['work', 'study', 'exam', 'office', 'college', 'job']))
+      return 'work';
+    if (_anyKw(t, ['love', 'miss', 'feel', 'heart', 'emotion', 'crush']))
+      return 'feelings';
     if (_anyKw(t, ['food', 'eat', 'cook', 'hungry', 'dinner'])) return 'food';
     if (_anyKw(t, ['sleep', 'tired', 'rest', 'dream', 'night'])) return 'sleep';
-    if (_anyKw(t, ['travel', 'trip', 'going', 'visit', 'outside'])) return 'travel';
+    if (_anyKw(t, ['travel', 'trip', 'going', 'visit', 'outside']))
+      return 'travel';
     return 'general';
   }
+
   static bool _anyKw(String t, List<String> kw) => kw.any((k) => t.contains(k));
 
   /// Syncs the current PersonalityEngine mood to _currentMoodLabel
@@ -5477,7 +5578,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final mode = themeNotifier.value;
     final style = AppThemes.getStyle(mode);
     final primary = Theme.of(context).primaryColor;
-    final isInferno = mode == AppThemeMode.infernoGod;
+
     final messageLength = msg.content.trim().runes.length;
     final screenWidth = MediaQuery.of(context).size.width;
     final normalizedLength = (messageLength.clamp(0, 220)).toDouble() / 220.0;
@@ -5489,7 +5590,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       minBubbleWidth,
       math.min(screenWidth * widthFactor, screenWidth * 0.78),
     );
-
 
     final radius = BorderRadius.only(
       topLeft: Radius.circular(style.cornerRadius),
@@ -5528,10 +5628,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         case BubbleStyle.solid:
           final fill = isUser
               ? primary.withValues(alpha: isGhost ? 0.5 : 0.9)
-              : (isInferno
-                  ? const Color(0xFF140906)
-                      .withValues(alpha: isGhost ? 0.80 : 0.97)
-                  : Colors.white.withValues(alpha: 0.09));
+              : Colors.white.withValues(alpha: 0.09);
           tone = Color.alphaBlend(fill, scaffold);
           break;
         case BubbleStyle.glassmorphic:
@@ -5545,29 +5642,37 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
 
     final bubbleTone = bubbleReadabilityColor();
-    final onBubble =
-        ThemeData.estimateBrightnessForColor(bubbleTone) == Brightness.dark
+    // AI bubbles: always white — dark scaffolds + transparent fills = white needed
+    // User bubbles: use brightness detection on actual fill color
+    final onBubble = isUser
+        ? (ThemeData.estimateBrightnessForColor(bubbleTone) == Brightness.dark
             ? Colors.white
-            : Colors.black;
+            : Colors.black87)
+        : Colors.white;
     final textColor = isError
         ? Colors.redAccent
-        : onBubble.withValues(alpha: isGhost ? 0.86 : 0.96);
+        : onBubble.withValues(alpha: isGhost ? 0.84 : 1.0);
+
+    // Shadow ensures text is always readable regardless of bubble background
+    final textShadow = Shadow(
+      color: isUser
+          ? Colors.black.withValues(alpha: 0.4)
+          : Colors.black.withValues(alpha: 0.55),
+      blurRadius: 3,
+      offset: const Offset(0, 1),
+    );
 
     final textWidget = Text(
       isError
           ? msg.content.replaceFirst("CONNECTION_SYNC_ERROR: ", "")
           : msg.content,
-      style: style.font(_chatFontSize, textColor).copyWith(
-            height: 1.34,
-            shadows: isInferno
-                ? [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      blurRadius: 5,
-                    ),
-                  ]
-                : null,
-          ),
+      style: style.font(_chatFontSize.clamp(10.0, 28.0), textColor).copyWith(
+        // Force color explicitly — prevents GoogleFonts or theme
+        // inheritance from ever overriding to a transparent/invisible value
+        color: textColor,
+        height: 1.34,
+        shadows: [textShadow],
+      ),
       softWrap: true,
     );
 
@@ -5596,7 +5701,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           ),
         textWidget,
         // Render user-attached gallery image if this message has one
-        if (msg.imagePath != null && msg.imagePath!.isNotEmpty) ...[ 
+        if (msg.imagePath != null && msg.imagePath!.isNotEmpty) ...[
           const SizedBox(height: 10),
           GestureDetector(
             onTap: () {
@@ -5665,15 +5770,35 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       Positioned(
                         top: 8,
                         right: 8,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.black54,
-                          radius: 16,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(Icons.close,
-                                color: Colors.white, size: 18),
-                            onPressed: () => Navigator.pop(context),
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Download button
+                            CircleAvatar(
+                              backgroundColor: Colors.black54,
+                              radius: 16,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.download_rounded,
+                                    color: Colors.white, size: 18),
+                                onPressed: () {
+                                  _downloadImageFromUrl(msg.imageUrl!);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Close button
+                            CircleAvatar(
+                              backgroundColor: Colors.black54,
+                              radius: 16,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white, size: 18),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -5772,7 +5897,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   });
                 },
                 child: Icon(
-                  msg.isPinned ? Icons.star_rounded : Icons.star_outline_rounded,
+                  msg.isPinned
+                      ? Icons.star_rounded
+                      : Icons.star_outline_rounded,
                   size: 15,
                   color: msg.isPinned
                       ? Colors.amberAccent
@@ -5794,15 +5921,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           color: Colors.pinkAccent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                              color:
-                                  Colors.pinkAccent.withValues(alpha: 0.35)),
+                              color: Colors.pinkAccent.withValues(alpha: 0.35)),
                         ),
                         child: Text(msg.reaction!,
                             style: const TextStyle(fontSize: 14)),
                       )
                     : Icon(Icons.add_reaction_outlined,
-                        size: 14,
-                        color: textColor.withValues(alpha: 0.3)),
+                        size: 14, color: textColor.withValues(alpha: 0.3)),
               ),
             ],
           ),
@@ -5913,10 +6038,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       case BubbleStyle.solid:
         final bgColor = isUser
             ? primary.withValues(alpha: isGhost ? 0.5 : 0.9)
-            : (isInferno
-                ? const Color(0xFF140906)
-                    .withValues(alpha: isGhost ? 0.80 : 0.97)
-                : Colors.white.withValues(alpha: 0.09));
+            : Colors.white.withValues(alpha: 0.09);
         final borderColor = style.borderColor(primary);
         final hasAccentBar = style.leftAccentBar && !isUser;
 
@@ -5988,8 +6110,61 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       child: bubble,
     );
 
+    // ── Selection wrapping ──────────────────────────────────────────────────
+    final isSelected = _selectedMessageIds.contains(msg.id);
+
+    Widget wrapWithSelection(Widget child) {
+      return GestureDetector(
+        onLongPress: () {
+          setState(() {
+            _isMultiSelectMode = true;
+            _selectedMessageIds.add(msg.id);
+          });
+        },
+        onTap: _isMultiSelectMode
+            ? () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedMessageIds.remove(msg.id);
+                    if (_selectedMessageIds.isEmpty) {
+                      _isMultiSelectMode = false;
+                    }
+                  } else {
+                    _selectedMessageIds.add(msg.id);
+                  }
+                });
+              }
+            : null,
+        child: Stack(
+          children: [
+            child,
+            if (isSelected)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: Colors.pinkAccent.withValues(alpha: 0.18),
+                      border: Border.all(
+                          color: Colors.pinkAccent.withValues(alpha: 0.7),
+                          width: 1.5),
+                    ),
+                    alignment:
+                        isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: const Icon(Icons.check_circle_rounded,
+                        color: Colors.pinkAccent, size: 18),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     if (!isUser) {
-      return Align(
+      return wrapWithSelection(Align(
         alignment: Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: screenWidth - 12),
@@ -6024,13 +6199,185 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             ],
           ),
         ),
-      );
+      ));
     }
 
-    return Align(
+    return wrapWithSelection(Align(
       alignment: Alignment.centerRight,
       child: bubbleWithSpacing,
+    ));
+  }
+
+  // ── Multi-select Delete Action Bar ────────────────────────────────────────
+  Widget _buildDeleteActionBar() {
+    final count = _selectedMessageIds.length;
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.black.withValues(alpha: 0.85),
+            border: Border.all(
+                color: Colors.pinkAccent.withValues(alpha: 0.5), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.pinkAccent.withValues(alpha: 0.18),
+                blurRadius: 20,
+                spreadRadius: 2,
+              )
+            ],
+          ),
+          child: Row(
+            children: [
+              // Cancel
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isMultiSelectMode = false;
+                    _selectedMessageIds.clear();
+                  });
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withValues(alpha: 0.08),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Text('Cancel',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Count indicator
+              Expanded(
+                child: Text(
+                  '$count message${count == 1 ? '' : 's'} selected',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Delete
+              GestureDetector(
+                onTap: count == 0 ? null : _deleteSelectedMessages,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.redAccent.withValues(alpha: 0.18),
+                    border: Border.all(
+                        color: Colors.redAccent.withValues(alpha: 0.6)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.delete_rounded,
+                          color: Colors.redAccent, size: 16),
+                      const SizedBox(width: 5),
+                      Text('Delete',
+                          style: GoogleFonts.outfit(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  Future<void> _deleteSelectedMessages() async {
+    if (_selectedMessageIds.isEmpty) return;
+    final idsToDelete = Set<String>.from(_selectedMessageIds);
+
+    // 1. Clear selection UI state first
+    setState(() {
+      _selectedMessageIds.clear();
+      _isMultiSelectMode = false;
+    });
+
+    // 2. Remove from provider (notifies listeners → UI rebuilds instantly)
+    _cp.deleteMessages(idsToDelete);
+
+    // 3. Sync remaining to Firebase so AI prompt context is clean
+    final remaining = [..._cp.pastMessages, ..._cp.messages];
+    await FirestoreService().saveChatHistory(remaining);
+  }
+
+  /// Downloads a network image to the device's Pictures/AnimeWaifu folder
+  Future<void> _downloadImageFromUrl(String url) async {
+    try {
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
+      if (response.statusCode == 200 && response.bodyBytes.length > 500) {
+        // Save to app-accessible external storage
+        final dir = await getApplicationDocumentsDirectory();
+        final imgDir = Directory('${dir.path}/saved_images');
+        if (!await imgDir.exists()) await imgDir.create(recursive: true);
+        final fileName = 'img_${DateTime.now().millisecondsSinceEpoch}.png';
+        final file = File('${imgDir.path}/$fileName');
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Also try saving to external Pictures folder for gallery visibility
+        try {
+          final extDir = Directory('/storage/emulated/0/Pictures/AnimeWaifu');
+          if (!await extDir.exists()) await extDir.create(recursive: true);
+          final extFile = File('${extDir.path}/$fileName');
+          await extFile.writeAsBytes(response.bodyBytes);
+        } catch (_) {
+          // External storage may not be accessible, app-internal save is enough
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('💾 Image saved to Pictures/AnimeWaifu!'),
+              backgroundColor: Colors.green.shade700,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ Failed to download image'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Image download error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('❌ Download failed: ${e.toString().split(':').first}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildInputArea() {
@@ -6178,19 +6525,23 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                         ? Icons.stop_rounded
                         : (isListening
                             ? Icons.mic_rounded
-                            : (isReady ? Icons.mic_rounded : Icons.mic_none_rounded)),
+                            : (isReady
+                                ? Icons.mic_rounded
+                                : Icons.mic_none_rounded)),
                     colors: isListening
                         ? [
                             primary.withValues(alpha: 0.95),
                             primary.withValues(alpha: 0.62)
                           ]
-                        : (isReady ? [
-                            primary.withValues(alpha: 0.50),
-                            primary.withValues(alpha: 0.30)
-                          ] : [
-                            Colors.white.withValues(alpha: 0.22),
-                            Colors.white.withValues(alpha: 0.10),
-                          ]),
+                        : (isReady
+                            ? [
+                                primary.withValues(alpha: 0.50),
+                                primary.withValues(alpha: 0.30)
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.22),
+                                Colors.white.withValues(alpha: 0.10),
+                              ]),
                     size: 44,
                   );
                 },
@@ -6450,12 +6801,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           position: _contentSlide,
           child: FadeTransition(
             opacity: _contentFade,
-            child: Column(
-              children: [
-                _buildAvatarArea(),
-                _buildChatList(),
-                _buildInputArea(),
-              ],
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  _buildAvatarArea(),
+                  _buildChatList(),
+                  _buildInputArea(),
+                ],
+              ),
             ),
           ),
         );
@@ -6614,7 +6968,8 @@ class _TypingIndicatorState extends State<_TypingIndicator>
     while (mounted) {
       for (int i = 0; i < 3; i++) {
         if (!mounted) break;
-        unawaited(_controllers[i].forward().then((_) => _controllers[i].reverse()));
+        unawaited(
+            _controllers[i].forward().then((_) => _controllers[i].reverse()));
         await Future.delayed(const Duration(milliseconds: 130));
       }
       await Future.delayed(const Duration(milliseconds: 400));
@@ -6623,7 +6978,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
 
   @override
   void dispose() {
-    for (final c in _controllers) { c.dispose(); }
+    for (final c in _controllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -6699,7 +7056,8 @@ class _MiniMusicPlayerBarState extends State<_MiniMusicPlayerBar> {
         return ValueListenableBuilder<bool>(
           valueListenable: svc.isPlaying,
           builder: (context, playing, _) {
-            WidgetsBinding.instance.addPostFrameCallback((_) => _onPlayingChanged(playing));
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => _onPlayingChanged(playing));
             return AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
@@ -6716,42 +7074,85 @@ class _MiniMusicPlayerBarState extends State<_MiniMusicPlayerBar> {
                     end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.30)),
-                  boxShadow: [BoxShadow(color: Colors.pinkAccent.withValues(alpha: 0.08), blurRadius: 14, spreadRadius: 1)],
+                  border: Border.all(
+                      color: Colors.pinkAccent.withValues(alpha: 0.30)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.pinkAccent.withValues(alpha: 0.08),
+                        blurRadius: 14,
+                        spreadRadius: 1)
+                  ],
                 ),
                 child: Row(children: [
                   const SizedBox(width: 12),
                   Container(
-                    width: 34, height: 34,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.pinkAccent.withValues(alpha: 0.18)),
-                    child: Icon(playing ? Icons.equalizer_rounded : Icons.music_note_rounded, color: Colors.pinkAccent, size: 18),
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.pinkAccent.withValues(alpha: 0.18)),
+                    child: Icon(
+                        playing
+                            ? Icons.equalizer_rounded
+                            : Icons.music_note_rounded,
+                        color: Colors.pinkAccent,
+                        size: 18),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                      Text(playing ? '\u266a Now Playing' : '\u23f8 Paused — vanishes in 20s',
-                          style: GoogleFonts.outfit(color: playing ? Colors.pinkAccent.withValues(alpha: 0.80) : Colors.white38, fontSize: 10)),
-                    ]),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(song.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600)),
+                          Text(
+                              playing
+                                  ? '\u266a Now Playing'
+                                  : '\u23f8 Paused — vanishes in 20s',
+                              style: GoogleFonts.outfit(
+                                  color: playing
+                                      ? Colors.pinkAccent
+                                          .withValues(alpha: 0.80)
+                                      : Colors.white38,
+                                  fontSize: 10)),
+                        ]),
                   ),
                   IconButton(
-                    icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.pinkAccent, size: 26),
+                    icon: Icon(
+                        playing
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        color: Colors.pinkAccent,
+                        size: 26),
                     onPressed: playing ? svc.pause : svc.play,
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.skip_next_rounded, color: Colors.white54, size: 22),
+                    icon: const Icon(Icons.skip_next_rounded,
+                        color: Colors.white54, size: 22),
                     onPressed: svc.skipToNext,
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white24, size: 16),
-                    onPressed: () { _hideTimer?.cancel(); setState(() => _visible = false); },
+                    icon: const Icon(Icons.close_rounded,
+                        color: Colors.white24, size: 16),
+                    onPressed: () {
+                      _hideTimer?.cancel();
+                      setState(() => _visible = false);
+                    },
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 28),
                   ),
                   const SizedBox(width: 4),
                 ]),
@@ -6763,5 +7164,3 @@ class _MiniMusicPlayerBarState extends State<_MiniMusicPlayerBar> {
     );
   }
 }
-
-
