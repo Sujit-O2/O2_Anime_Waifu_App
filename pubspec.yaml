@@ -50,6 +50,9 @@ dependencies:
   provider: ^6.1.2
   file_picker: ^10.3.10
   web_socket_channel: ^3.0.3
+  mobile_scanner: ^6.0.2
+  qr_flutter: ^4.1.0
+  telephony: ^0.2.0
   # firebase_crashlytics and firebase_analytics were removed as they conflict
   # with firebase_core ^4.5.0 used by cloud_firestore ^6.1.3.
   # To add crash reporting: upgrade all Firebase packages together to the same

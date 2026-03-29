@@ -14,7 +14,7 @@ class MemoryStackPage extends StatefulWidget {
 
 class _MemoryStackPageState extends State<MemoryStackPage> with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
-  Map<String, List<Map<String, dynamic>>> _memories = {
+  final Map<String, List<Map<String, dynamic>>> _memories = {
     'short': [], 'long': [], 'emotional': [], 'project': [],
   };
 

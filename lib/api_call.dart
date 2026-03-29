@@ -105,20 +105,27 @@ class ApiService {
       if (autoPrefsStr != null) {
         final autoPrefs = jsonDecode(autoPrefsStr) as Map<String, dynamic>;
         final overrides = <String>[];
-        if (((autoPrefs['humor'] as num?) ?? 50) > 75)
+        if (((autoPrefs['humor'] as num?) ?? 50) > 75) {
           overrides.add('Use high amounts of humor and jokes.');
-        if (((autoPrefs['humor'] as num?) ?? 50) < 25)
+        }
+        if (((autoPrefs['humor'] as num?) ?? 50) < 25) {
           overrides.add('Be extremely serious, zero jokes.');
-        if (((autoPrefs['sass'] as num?) ?? 50) > 75)
+        }
+        if (((autoPrefs['sass'] as num?) ?? 50) > 75) {
           overrides.add('Act highly sarcastic and playfully tease the user.');
-        if (((autoPrefs['techTalk'] as num?) ?? 50) > 75)
+        }
+        if (((autoPrefs['techTalk'] as num?) ?? 50) > 75) {
           overrides.add('Use advanced software engineering jargon seamlessly.');
-        if (((autoPrefs['techTalk'] as num?) ?? 50) < 25)
+        }
+        if (((autoPrefs['techTalk'] as num?) ?? 50) < 25) {
           overrides.add('Explain things very simply, avoid technical terms.');
-        if (((autoPrefs['formality'] as num?) ?? 50) > 75)
+        }
+        if (((autoPrefs['formality'] as num?) ?? 50) > 75) {
           overrides.add('Speak formally, like a polite assistant.');
-        if (((autoPrefs['formality'] as num?) ?? 50) < 25)
+        }
+        if (((autoPrefs['formality'] as num?) ?? 50) < 25) {
           overrides.add('Speak casually with slang and lower-case text.');
+        }
 
         if (overrides.isNotEmpty) {
           timeContext += '\n[AUTO-LEARNED TRAITS: ${overrides.join(' ')}]';
@@ -411,7 +418,7 @@ class ApiService {
       List shortMem = memories['short'];
       shortMem.insert(0, {
         'text': userMessage.length > 50
-            ? userMessage.substring(0, 50) + '...'
+            ? '${userMessage.substring(0, 50)}...'
             : userMessage,
         'time': DateTime.now().toIso8601String(),
         'importance': 'low'

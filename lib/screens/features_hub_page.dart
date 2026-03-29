@@ -147,6 +147,18 @@ import 'memory_stack_page.dart';
 import 'file_intelligence_page.dart';
 import 'voice_emotion_detector_page.dart';
 
+// ── Real-Life Tools ──
+import 'parking_spot_saver_page.dart';
+import 'smart_scanner_page.dart';
+import 'medication_reminder_page.dart';
+import 'package_tracker_page.dart';
+import 'emergency_sos_page.dart';
+import 'clipboard_manager_page.dart';
+import 'bill_splitter_page.dart';
+import 'ar_ruler_page.dart';
+import 'password_generator_page.dart';
+import 'qr_scanner_page.dart';
+
 // ─── Hub category model ──────────────────────────────────────────────────────
 class _HubCategory {
   final String title;
@@ -570,6 +582,26 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Memory Stack', icon: Icons.layers_rounded, builder: (_) => const MemoryStackPage()),
             _HubItem(label: 'Knowledge Graph', icon: Icons.hub_rounded, builder: (_) => const KnowledgeGraphPage()),
             _HubItem(label: 'Time Machine', icon: Icons.history_rounded, builder: (_) => const TimeMachinePage()),
+          ],
+        ),
+
+        // ── 🧰 REAL-LIFE TOOLS ──────────────────────────────────────
+        _HubCategory(
+          title: 'Real-Life Tools',
+          emoji: '🧰',
+          description: 'Practical everyday utilities',
+          color: Colors.lightBlueAccent,
+          items: [
+            _HubItem(label: 'Parking Saver', icon: Icons.local_parking_rounded, builder: (_) => const ParkingSpotSaverPage()),
+            _HubItem(label: 'Smart Scanner', icon: Icons.document_scanner_rounded, builder: (_) => const SmartScannerPage()),
+            _HubItem(label: 'Health Reminders', icon: Icons.medication_rounded, builder: (_) => const MedicationReminderPage()),
+            _HubItem(label: 'Package Tracker', icon: Icons.local_shipping_rounded, builder: (_) => const PackageTrackerPage()),
+            _HubItem(label: 'Emergency SOS', icon: Icons.sos_rounded, builder: (_) => const EmergencySosPage()),
+            _HubItem(label: 'Clipboard', icon: Icons.content_paste_rounded, builder: (_) => const ClipboardManagerPage()),
+            _HubItem(label: 'Bill Splitter', icon: Icons.receipt_long_rounded, builder: (_) => const BillSplitterPage()),
+            _HubItem(label: 'Ruler & Convert', icon: Icons.straighten_rounded, builder: (_) => const ArRulerPage()),
+            _HubItem(label: 'Password Gen', icon: Icons.password_rounded, builder: (_) => const PasswordGeneratorPage()),
+            _HubItem(label: 'QR Tools', icon: Icons.qr_code_scanner_rounded, builder: (_) => const QrScannerPage()),
           ],
         ),
       ];

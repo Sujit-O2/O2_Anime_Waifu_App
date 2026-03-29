@@ -391,12 +391,19 @@ extension _MainDrawerExtension on _ChatHomePageState {
                           
                           // Custom max points for display
                           int maxPts = 50;
-                          if (srv.points >= 2500) maxPts = 9999;
-                          else if (srv.points >= 1500) maxPts = 2500;
-                          else if (srv.points >= 900) maxPts = 1500;
-                          else if (srv.points >= 500) maxPts = 900;
-                          else if (srv.points >= 200) maxPts = 500;
-                          else if (srv.points >= 50) maxPts = 200;
+                          if (srv.points >= 2500) {
+                            maxPts = 9999;
+                          } else if (srv.points >= 1500) {
+                            maxPts = 2500;
+                          } else if (srv.points >= 900) {
+                            maxPts = 1500;
+                          } else if (srv.points >= 500) {
+                            maxPts = 900;
+                          } else if (srv.points >= 200) {
+                            maxPts = 500;
+                          } else if (srv.points >= 50) {
+                            maxPts = 200;
+                          }
 
                           return Padding(
                             padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
@@ -562,7 +569,19 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Scheduled Msgs', Icons.schedule_send_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/scheduled-messages')),
                       ], badge: 'Focus')),
 
-
+                      // ── 🧰 REAL-LIFE TOOLS ───────────────────────────────────
+                      _DrawerStaggerItem(index: 7, child: hubAccordion('Real-Life Tools', Icons.handyman_rounded, Colors.purpleAccent, [
+                        drawerTile('Parking Saver', Icons.local_parking_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/parking-spot-saver'), badge: '🅿️'),
+                        drawerTile('Smart Scanner', Icons.document_scanner_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/smart-scanner'), badge: 'OCR'),
+                        drawerTile('Medication', Icons.medication_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/medication-reminder'), badge: '💊'),
+                        drawerTile('Package Track', Icons.local_shipping_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/package-tracker'), badge: '📦'),
+                        drawerTile('Emergency SOS', Icons.sos_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/emergency-sos'), badge: '🆘'),
+                        drawerTile('Clipboard', Icons.content_paste_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/clipboard-manager'), badge: '📋'),
+                        drawerTile('Bill Splitter', Icons.receipt_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/bill-splitter'), badge: '💰'),
+                        drawerTile('Unit Converter', Icons.straighten_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/ar-ruler'), badge: '📏'),
+                        drawerTile('Password Gen', Icons.password_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/password-generator'), badge: '🔑'),
+                        drawerTile('QR Scanner', Icons.qr_code_scanner_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/qr-scanner'), badge: '🌐'),
+                      ], badge: 'Tools')),
 
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
                       _DrawerStaggerItem(index: 8, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
