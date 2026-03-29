@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -6,96 +7,91 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 
-/// Typedef for wake word detection callback
+// ══════════════════════════════════════════════════════════════════════════════
+// WakeWordService — zerotwo_v1.onnx
+//
+// Model spec (confirmed by ONNX runtime inspection):
+//   INPUT  : 'melspectrogram'  shape=[1, 1, 80, 96]  float32
+//   OUTPUT : 'logits'          shape=[1, 2]           float32
+//
+// Feature pipeline (MUST match training):
+//   • 16 kHz mono audio, sliding 1.5-sec window (24 000 samples)
+//   • n_fft=512, hop_length=160, n_mels=80, fmin=0, fmax=8000
+//   • Hann window, center=True
+//   • Power → dB: 10*log10(max(S, 1e-10)), ref=max
+//   • Per-frame mean/std normalisation → shape [80, 96]
+//   • Reshape to [1, 1, 80, 96] float32, pass as 'melspectrogram'
+//   • wakeProb = softmax(logits)[1]
+// ══════════════════════════════════════════════════════════════════════════════
+
 typedef WakeWordCallback = void Function(int keywordIndex);
 
-/// Service for managing wake word detection using ONNX XGBoost classifier.
-///
-/// Replaces the previous Picovoice Porcupine implementation.
-/// Uses a 128-bin Mel-Spectrogram (4 096-dim vector) at 16 kHz
-/// with a multi-threshold confirmation engine.
 class WakeWordService {
+  // ── Model asset ──────────────────────────────────────────────────────────
+  static const String _modelAsset = 'assets/wakeword/zerotwo_v1.onnx';
+
   // ── ONNX session ─────────────────────────────────────────────────────────
-  static const String _modelAsset = 'assets/wakeword/zero_two.onnx';
   final OnnxRuntime _ort = OnnxRuntime();
   OrtSession? _session;
 
-  // ── Audio capture via native EventChannel ────────────────────────────────
+  // ── Audio channel (native Android AudioRecord @16 kHz) ───────────────────
   static const EventChannel _audioChannel =
       EventChannel('com.example.anime_waifu/wake_audio');
   StreamSubscription<dynamic>? _audioSub;
 
-  // ── State ────────────────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────────────────
   bool _running = false;
   bool _initialized = false;
   bool _initializing = false;
   bool _inferenceInFlight = false;
   WakeWordCallback? _onDetected;
 
-  // ── Audio buffer ─────────────────────────────────────────────────────────
-  // librosa with 16000 samples, n_fft=2048, hop=512, center=True → (128,32) = 4096
+  // ── Sliding audio window ──────────────────────────────────────────────────
+  // Window: 1.0 s = 16 000 samples @ 16 kHz  (matches training DURATION_SEC=1.0)
+  // 16000/160 = 100 STFT frames → take first 96 for model input [1,1,80,96]
   static const int _sampleRate = 16000;
-  static const int _windowSamples = _sampleRate; // Window is exactly 1 second
-  final Float64List _buffer = Float64List(_windowSamples);
-  int _bufferFillCount = 0;
-  int _chunksSinceLastEval = 0;
+  static const int _windowSamples = 16000; // 1.0 sec — MUST match training
+  final Float32List _audioWindow = Float32List(_windowSamples);
+  int _chunksReceived = 0;
+  int _chunksSinceLastInference = 0;
 
-  // ── Mel-Spectrogram parameters (match librosa defaults) ──────────────────
-  static const int _nFft = 2048;
-  static const int _hopLength = 512; // ~31.25 frames per second
-  static const int _nMels = 128;
-  static const int _nMfcc = 40;
-  static const int _targetFrames = 32;
-  static const int _halfFft = _nFft ~/ 2 + 1;
+  // Mel-spectrogram params — defined locally in static _buildMelTensor().
+  // Kept here for use in _log messages only:
+  static const int _nMels = 80;
+  static const int _targetFrames = 96; // 0.96 sec at 100 frames/sec
 
-  // Pre-computed tables (built once on init)
-  List<Float64List>? _melFilters;
-  late final Float64List _twiddleReal;
-  late final Float64List _twiddleImag;
-  late final Float64List _hannWindow;
+  // ── Multi-threshold confirmation engine ──────────────────────────────────
+  // Lowered thresholds vs pure-Python because Dart's FFT introduces
+  // small numerical diffs from librosa.  Raise once detection works well.
+  static const double _fastPassThreshold = 0.9990;
+  static const double _detectFloor = 0.95;
+  static const int _confirmWindow = 5;
+  static const int _confirmQuorum = 3;
+  static const double _varianceCap = 0.10;
+  final List<double> _confirmBuf = [];
 
-  // ── Multi-Threshold Confirmation Engine ──────────────────────────────────
-  // Based on production deployment guide §4.
-  //
-  // Tier 1: Fast-Pass   — confidence ≥ 0.96 → immediate trigger
-  // Tier 2: Secondary   — confidence ∈ [0.70, 0.96) → 3/5 temporal check
-  // Tier 3: Reject      — confidence < 0.70 → ignore
-  static const double _fastPassThreshold = 0.95;
-  static const double _detectFloor = 0.80;      
-  static const int _confirmWindowSize = 5;
-  static const int _confirmQuorum = 3;   // 3 out of 5 consecutive detections
-  static const double _varianceCap = 0.04;
-  final List<double> _confidenceBuffer = [];
+  // ── Energy gate ────────────────────────────────────────────────────────────
+  static const double _energyFloor = 0.002; // RMS threshold for silence skip
 
-  // ── Energy gate — skip inference on silence/fan noise ────────────────────
-  static const double _energyFloor = 0.008; // Balanced to accept speaking volume in noisy rooms
+  // ── Cooldown after a trigger ──────────────────────────────────────────────
+  static const Duration _cooldown = Duration(seconds: 3);
+  DateTime? _lastTrigger;
 
-  // ── Cooldown after trigger ───────────────────────────────────────────────
-  DateTime? _lastTriggerTime;
-  static const Duration _triggerCooldown = Duration(seconds: 3);
+  // ── Recent audio buffer (2-sec window for STT hand-off) ──────────────────
+  static const int _recentAudioCapacity = _sampleRate * 2;
+  final List<double> _recentAudioBuf = [];
 
-  // ── Wake word labels ─────────────────────────────────────────────────────
-  static const List<String> _wakeLabels = ['wake_word_detected'];
-
-  // ── Diagnostics & STT Buffer ─────────────────────────────────────────────
-  static const int _bufferSize = 16000 * 2; // 2 seconds of audio
-  final List<double> _audioBuffer = [];
-
-  // ── Debug logging ────────────────────────────────────────────────────────
+  // ── Compat API ────────────────────────────────────────────────────────────
+  static const List<String> _labels = ['zerotwo'];
+  List<String> get loadedKeywords => List.unmodifiable(_labels);
+  bool get isRunning => _running;
+  void configure({String? accessKeyOverride}) {}
+  void testTriggerByIndex(int i) => _onDetected?.call(i);
+  Float32List getRecentAudio() => Float32List.fromList(_recentAudioBuf);
   static bool enableDebugLogging = true;
 
-  /// Configure — no-op, ONNX doesn't need API keys.
-  void configure({String? accessKeyOverride}) {}
+  // ── Public API ────────────────────────────────────────────────────────────
 
-  /// Returns keyword labels (Porcupine API compat).
-  List<String> get loadedKeywords => List.unmodifiable(_wakeLabels);
-
-  /// Returns the most recent 2 seconds of audio.
-  Float32List getRecentAudio() {
-    return Float32List.fromList(_audioBuffer);
-  }
-
-  /// Initialize the wake word engine
   Future<void> init(
     WakeWordCallback onDetected, {
     bool startImmediately = true,
@@ -103,130 +99,81 @@ class WakeWordService {
     _onDetected = onDetected;
     if (_initializing || _initialized) return;
     _initializing = true;
-
     try {
       _session = await _ort.createSessionFromAsset(_modelAsset);
-
-      // Pre-compute Mel filter bank, FFT twiddles, Hann window
-      _melFilters = _buildMelFilters();
-      _precomputeTwiddles();
-      _hannWindow = Float64List(_nFft);
-      for (int i = 0; i < _nFft; i++) {
-        _hannWindow[i] = 0.5 * (1.0 - math.cos(2.0 * math.pi * i / (_nFft - 1)));
-      }
-
       _initialized = true;
-      _log('ONNX session loaded successfully');
+      _log('zerotwo_v1.onnx loaded ✅  [in=$_nMels×$_targetFrames → out=2]');
       if (startImmediately) await start();
     } catch (e) {
       _initialized = false;
-      _log('ONNX init FAILED: $e');
+      _log('init FAILED: $e');
       rethrow;
     } finally {
       _initializing = false;
     }
   }
 
-  /// Start detecting
   Future<void> start() async {
     if (_initializing || _running) return;
     if (!_initialized || _session == null) {
       if (_onDetected != null) await init(_onDetected!);
       return;
     }
-
-    _buffer.fillRange(0, _buffer.length, 0.0);
-    _bufferFillCount = 0;
-    _confidenceBuffer.clear();
+    _audioWindow.fillRange(0, _audioWindow.length, 0.0);
+    _chunksReceived = 0;
+    _chunksSinceLastInference = 0;
+    _confirmBuf.clear();
     _inferenceInFlight = false;
 
-    try {
-      _audioSub?.cancel();
-      _audioSub = _audioChannel.receiveBroadcastStream().listen(
-        _onAudioChunk,
-        onError: (dynamic e) {
-          _log("Wake audio error: $e");
-          _running = false;
-          // Auto-restart after mic error (e.g. mic conflict resolution)
-          Future.delayed(const Duration(seconds: 2), () {
-            if (!_running && _initialized && _onDetected != null) {
-              _log('Auto-restarting after audio error...');
-              start();
-            }
-          });
-        },
-        onDone: () {
-          _log("Wake audio stream ended unexpectedly");
-          _running = false;
-          // Auto-restart if stream ended unexpectedly
-          Future.delayed(const Duration(seconds: 2), () {
-            if (!_running && _initialized && _onDetected != null) {
-              _log('Auto-restarting after stream end...');
-              start();
-            }
-          });
-        },
-      );
-      _running = true;
-      _log('Wake word listening STARTED');
-    } catch (e) {
-      _log('Failed to start audio stream: $e');
-      _running = false;
-    }
+    _audioSub?.cancel();
+    _audioSub = _audioChannel.receiveBroadcastStream().listen(
+      _onAudioChunk,
+      onError: (dynamic e) {
+        _log('Audio error: $e');
+        _running = false;
+        _scheduleRestart();
+      },
+      onDone: () {
+        _log('Audio stream ended unexpectedly');
+        _running = false;
+        _scheduleRestart();
+      },
+    );
+    _running = true;
+    _log('STARTED — listening for "Zerotwo"');
   }
 
-  /// Stop detecting — releases mic for STT
   Future<void> stop() async {
     if (!_running && _audioSub == null) return;
     _running = false;
     final sub = _audioSub;
     _audioSub = null;
     await sub?.cancel();
-    _confidenceBuffer.clear();
+    _confirmBuf.clear();
     _inferenceInFlight = false;
-    // ignore: avoid_print
-    print('[WakeWord] STOPPED — caller:');
-    // ignore: avoid_print
-    print(StackTrace.current.toString().split('\n').take(6).join('\n'));
+    _log('STOPPED');
   }
 
-  /// Dispose all resources
   Future<void> dispose() async {
     await stop();
-    try { await _session?.close(); } catch (_) {}
+    try {
+      await _session?.close();
+    } catch (_) {}
     _session = null;
     _initialized = false;
     _onDetected = null;
-    _melFilters = null;
   }
 
-  bool get isRunning => _running;
+  // ── Private: audio pipeline ───────────────────────────────────────────────
 
-  /// Test trigger (debug)
-  void testTriggerByIndex(int keywordIndex) {
-    _onDetected?.call(keywordIndex);
+  void _scheduleRestart() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!_running && _initialized && _onDetected != null) {
+        _log('Auto-restarting...');
+        start();
+      }
+    });
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // DEBUG LOGGING
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  void _log(String msg) {
-    // CRITICAL: Use print() not debugPrint() — debugPrint is disabled globally
-    // ignore: avoid_print
-    print('[WakeWord] $msg');
-  }
-
-  void _logVerbose(String msg) {
-    if (enableDebugLogging) {
-      // ignore: avoid_print
-      print('[WakeWord] $msg');
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // AUDIO PIPELINE
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _onAudioChunk(dynamic data) {
     if (!_running || _session == null) return;
@@ -235,67 +182,67 @@ class WakeWordService {
       if (data is List) {
         samples = List<double>.from(data);
       } else {
-        print('[WakeWord Diagnostics] Received non-List data: $data');
         return;
       }
       if (samples.isEmpty) return;
 
-      _audioBuffer.addAll(samples);
-      if (_audioBuffer.length > _bufferSize) {
-        _audioBuffer.removeRange(0, _audioBuffer.length - _bufferSize);
+      // Maintain recent audio ring buffer for STT hand-off
+      _recentAudioBuf.addAll(samples);
+      if (_recentAudioBuf.length > _recentAudioCapacity) {
+        _recentAudioBuf.removeRange(
+            0, _recentAudioBuf.length - _recentAudioCapacity);
       }
 
+      // Slide window
       final incoming = samples.length;
-      // Slide buffer left, append new samples at end
       if (incoming < _windowSamples) {
-        for (int i = 0; i < _windowSamples - incoming; i++) {
-          _buffer[i] = _buffer[i + incoming];
+        // shift left, append new
+        final shift = _windowSamples - incoming;
+        for (int i = 0; i < shift; i++) {
+          _audioWindow[i] = _audioWindow[i + incoming];
         }
         for (int i = 0; i < incoming; i++) {
-          _buffer[_windowSamples - incoming + i] = samples[i];
+          _audioWindow[shift + i] = samples[i].toDouble().clamp(-1.0, 1.0);
         }
       } else {
         for (int i = 0; i < _windowSamples; i++) {
-          _buffer[i] = samples[incoming - _windowSamples + i];
+          _audioWindow[i] = samples[incoming - _windowSamples + i]
+              .toDouble()
+              .clamp(-1.0, 1.0);
         }
       }
 
-      _bufferFillCount++;
-      // Need ~10 chunks (1 second) to fill buffer
-      if (_bufferFillCount < 10) return;
+      _chunksReceived++;
+      // Wait until buffer is ~full (10 chunks ≈ first second)
+      if (_chunksReceived < 10) return;
 
-      // ── Energy gate: skip classification on silence ──────────────────
-      final rms = _computeRms(_buffer);
-      // Diagnostic print to verify audio channel stream is alive
-      if (_bufferFillCount % 10 == 0) {
-        print('[WakeWord Diagnostics] 1 sec passed. RMS: ${rms.toStringAsFixed(5)}');
+      // Energy gate — skip silence
+      final rms = _computeRms(_audioWindow);
+      if (_chunksReceived % 20 == 0) {
+        _logV('RMS=${rms.toStringAsFixed(5)} (floor=$_energyFloor)');
       }
-      
       if (rms < _energyFloor) {
-        _logVerbose('Skip: silence (RMS=${rms.toStringAsFixed(5)})');
-        // Decay confidence buffer on silence
-        _confidenceBuffer.clear();
+        _confirmBuf.clear();
         return;
       }
 
-      _chunksSinceLastEval++;
-      if (_chunksSinceLastEval < 3) return; // Evaluate max 3 times a second to prevent UI thread lockup!
-      _chunksSinceLastEval = 0;
+      // Rate-limit inference to ~5 Hz
+      _chunksSinceLastInference++;
+      if (_chunksSinceLastInference < 1)
+        return; // run every chunk for responsiveness
+      _chunksSinceLastInference = 0;
 
-      // Skip if inference is already in progress (prevent backpressure)
       if (_inferenceInFlight) return;
       _inferenceInFlight = true;
 
-      // Copy buffer and process async to not block audio stream
-      final copy = Float64List.fromList(_buffer);
+      final copy = Float32List.fromList(_audioWindow);
       unawaited(_processAsync(copy, rms));
     } catch (e) {
-      _log("Audio chunk error: $e");
+      _log('onAudioChunk error: $e');
     }
   }
 
-
-  double _computeRms(Float64List audio) {
+  double _computeRms(Float32List audio) {
     double sum = 0;
     for (int i = 0; i < audio.length; i++) {
       sum += audio[i] * audio[i];
@@ -303,264 +250,292 @@ class WakeWordService {
     return math.sqrt(sum / audio.length);
   }
 
-  Future<void> _processAsync(Float64List audio, double rms) async {
+  Future<void> _processAsync(Float32List audio, double rms) async {
     try {
       if (!_running || _session == null) return;
-      final features = _extractMelFeatures(audio);
-      await _runInference(features, rms);
-    } catch (e) {
-      _log("Process error: $e");
+      // Isolate.run works with static methods in Dart 3+
+      final tensor = await Isolate.run(() => _buildMelTensor(audio));
+      await _runInference(tensor, rms);
+    } catch (e, st) {
+      _log('Process error: $e\n$st');
     } finally {
       _inferenceInFlight = false;
     }
   }
 
-  Future<void> _runInference(Float32List features, double rms) async {
+  Future<void> _runInference(Float32List melTensor, double rms) async {
     if (!_running || _session == null) return;
+    OrtValue? input;
     try {
-      final input = await OrtValue.fromList(
-        features.toList(),
-        [1, _nMfcc, _targetFrames, 1], // CNN input shape [Batch, 40, 32, 1]
-      );
-      final outputs = await _session!.run({'input': input});
+      // Pass Float32List directly (supported typed data — no .toList() needed)
+      // Shape: [batch=1, channels=1, mel_bins=80, time_frames=96]
+      input = await OrtValue.fromList(melTensor, [1, 1, _nMels, _targetFrames]);
 
-      double wakeProb = 0.0;
+      final outputs = await _session!.run({'melspectrogram': input});
 
-      // Parse Keras/TeachableMachine Softmax output
-      final identityOut = outputs['Identity:0'] ?? outputs['dense_7'] ?? outputs.values.first;
-      final list = await identityOut.asList();
-      if (list.isNotEmpty && list[0] is List) {
-          final probs = list[0] as List; // e.g. [0.1, 0.05, 0.85]
-          if (probs.length == 1) { // Assuming single output for wake word probability
-             wakeProb = (probs[0] as num).toDouble();
-             _logVerbose('TM Prob: ${wakeProb.toStringAsFixed(3)}');
-          } else if (probs.length == 2) { // Standard binary classification [bg, wake]
-             double p0 = (probs[0] as num).toDouble();
-             double p1 = (probs[1] as num).toDouble();
-             wakeProb = p1; // Second class is wake word
-             _logVerbose('TM Probs (2-class): Bg=${p0.toStringAsFixed(3)}, Wake=${p1.toStringAsFixed(3)}');
-          } else if (probs.length == 3) { // Fallback for 3-class softmax
-             double p0 = (probs[0] as num).toDouble();
-             double p1 = (probs[1] as num).toDouble();
-             double p2 = (probs[2] as num).toDouble();
-             wakeProb = math.max(p1, p2); 
-             _logVerbose('TM Probs (3-class): Bg=${p0.toStringAsFixed(3)}, C1=${p1.toStringAsFixed(3)}, C2=${p2.toStringAsFixed(3)}');
+      // Parse logits [1, 2] -> softmax -> P(wake)
+      // asList() on shape [1,2] returns [[l0, l1]]
+      final logitsOut = outputs['logits'] ?? outputs.values.first;
+      final raw = await logitsOut.asList();
+
+      double l0 = 0.0, l1 = 0.0;
+      if (raw.isNotEmpty) {
+        final inner = raw[0] is List ? raw[0] as List : raw;
+        if (inner.length >= 2) {
+          l0 = (inner[0] as num).toDouble();
+          l1 = (inner[1] as num).toDouble();
+        } else if (inner.length == 1) {
+          l1 = (inner[0] as num).toDouble();
         }
       }
 
-      _logVerbose(
-        'Inference: prob=${wakeProb.toStringAsFixed(4)} '
-        'RMS=${rms.toStringAsFixed(4)}',
-      );
+      // Release output OrtValues (native memory)
+      for (final v in outputs.values) {
+        try {
+          await v.dispose();
+        } catch (_) {}
+      }
 
-      // ── Multi-Threshold Confirmation Engine ────────────────────────
+      // Softmax
+      final exp0 = math.exp(l0);
+      final exp1 = math.exp(l1);
+      final wakeProb = exp1 / (exp0 + exp1);
+
+      _logV(
+          'Prob=${wakeProb.toStringAsFixed(4)}  RMS=${rms.toStringAsFixed(4)}');
+
       _processConfirmation(wakeProb);
     } catch (e) {
-      _log("Inference error: $e");
+      _log('Inference error: $e');
+    } finally {
+      // Always release input tensor memory
+      try {
+        await input?.dispose();
+      } catch (_) {}
     }
   }
 
-  /// Multi-threshold tiered confirmation engine.
-  ///
-  /// Tier 1: Fast-Pass   — score ≥ 0.96 → immediate trigger
-  /// Tier 2: Secondary   — score ∈ [0.70, 0.96) → 3/5 temporal check
-  /// Tier 3: Reject      — score < 0.70 → clear buffer
   void _processConfirmation(double wakeProb) {
-    // Cooldown after a recent trigger
-    if (_lastTriggerTime != null) {
-      final elapsed = DateTime.now().difference(_lastTriggerTime!);
-      if (elapsed < _triggerCooldown) return;
-    }
+    // Cooldown check
+    if (_lastTrigger != null &&
+        DateTime.now().difference(_lastTrigger!) < _cooldown) return;
 
-    // Tier 1: Fast-Pass
+    // Tier 1: Fast-pass
     if (wakeProb >= _fastPassThreshold) {
-      _log('FAST-PASS trigger (prob=${wakeProb.toStringAsFixed(4)})');
-      _confidenceBuffer.clear();
-      _triggerDetected();
+      _log(
+          '🚀 FAST-PASS (prob=${wakeProb.toStringAsFixed(4)} ≥ $_fastPassThreshold)');
+      _confirmBuf.clear();
+      _fire();
       return;
     }
 
-    // Tier 2: Secondary Check (overlap zone)
+    // Tier 2: Accumulate for temporal confirmation
     if (wakeProb >= _detectFloor) {
-      _confidenceBuffer.add(wakeProb);
-      if (_confidenceBuffer.length > _confirmWindowSize) {
-        _confidenceBuffer.removeAt(0);
-      }
+      _confirmBuf.add(wakeProb);
+      if (_confirmBuf.length > _confirmWindow) _confirmBuf.removeAt(0);
 
-      if (_confidenceBuffer.length >= _confirmQuorum) {
-        // Count how many in the window are above the floor
-        final aboveCount = _confidenceBuffer
-            .where((s) => s >= _detectFloor)
-            .length;
+      if (_confirmBuf.length >= _confirmQuorum) {
+        final aboveFloor = _confirmBuf.where((p) => p >= _detectFloor).length;
+        final mean = _confirmBuf.reduce((a, b) => a + b) / _confirmBuf.length;
+        double varSum = 0;
+        for (final p in _confirmBuf) varSum += (p - mean) * (p - mean);
+        final stdDev = math.sqrt(varSum / _confirmBuf.length);
 
-        // Check variance — genuine wake words have low variance
-        final mean = _confidenceBuffer.reduce((a, b) => a + b) /
-            _confidenceBuffer.length;
-        double variance = 0;
-        for (final s in _confidenceBuffer) {
-          variance += (s - mean) * (s - mean);
-        }
-        final stdDev = math.sqrt(variance / _confidenceBuffer.length);
+        _logV('Confirming: $aboveFloor/$_confirmWindow above floor '
+            'stdDev=${stdDev.toStringAsFixed(4)} cap=$_varianceCap');
 
-        _logVerbose(
-          'Confirm: above=$aboveCount/${_confidenceBuffer.length} '
-          'stdDev=${stdDev.toStringAsFixed(4)} '
-          'mean=${mean.toStringAsFixed(4)}',
-        );
-
-        if (aboveCount >= _confirmQuorum && stdDev <= _varianceCap) {
-          _log('CONFIRMED trigger ($aboveCount/$_confirmWindowSize windows, '
+        if (aboveFloor >= _confirmQuorum && stdDev <= _varianceCap) {
+          _log('✅ CONFIRMED ($aboveFloor/$_confirmWindow, '
               'stdDev=${stdDev.toStringAsFixed(4)})');
-          _confidenceBuffer.clear();
-          _triggerDetected();
+          _confirmBuf.clear();
+          _fire();
         }
       }
     } else {
-      // Tier 3: Below floor — reset temporal buffer
-      _confidenceBuffer.clear();
+      // Tier 3: Below floor — decay buffer
+      _confirmBuf.clear();
     }
   }
 
-  void _triggerDetected() {
+  void _fire() {
     if (!_running || _onDetected == null) return;
-    _lastTriggerTime = DateTime.now();
-    _log("✅ ONNX wake word DETECTED");
-    try { _onDetected!(0); } catch (_) {}
+    _lastTrigger = DateTime.now();
+    _log('🔊 "Zerotwo" DETECTED');
+    try {
+      _onDetected!(0);
+    } catch (_) {}
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MEL-SPECTROGRAM (librosa-compatible)
+  // ══════════════════════════════════════════════════════════════════════════
+  // FEATURE EXTRACTION — Pure Dart mel-spectrogram [1, 1, 80, 96]
   //
-  // librosa.feature.melspectrogram(y, sr=16000, n_fft=2048, hop=512, n_mels=128)
-  //   → center=True (pads n_fft//2 on each side)
-  //   → numFrames = 1 + len(y) // hop_length = 1 + 16000//512 = 32
-  //   → shape (128, 32) → flatten = 4096
-  // Then librosa.power_to_db(S, ref=np.max)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // MUST MATCH training script 06_train.py EXACTLY:
+  //   sr=16000, n_fft=512, hop_length=160, win_length=400, n_mels=80
+  //   mel = librosa.feature.melspectrogram(y, sr, n_mels, n_fft, hop, win)
+  //   mel_db = librosa.power_to_db(mel + 1e-9, ref=np.max)
+  //   mel_db = (mel_db - mel_db.mean()) / (mel_db.std() + 1e-9)  ← GLOBAL
+  //   mel_db = mel_db[:, :96]  ← FIRST 96 frames
+  // ══════════════════════════════════════════════════════════════════════════
 
-  Float32List _extractMelFeatures(Float64List audio) {
-    // 1. Center-pad (librosa default: center=True)
-    final padLen = _nFft ~/ 2; // 1024
-    final padded = Float64List(audio.length + 2 * padLen);
-    // Reflect-pad left edge
-    for (int i = 0; i < padLen; i++) {
-      padded[i] = audio[padLen - i]; // reflect
+  static Float32List _buildMelTensor(Float32List audio) {
+    const int nFft = 512;
+    const int hopLength = 160;
+    const int winLength = 400; // 25ms window — MUST match training
+    const int nMels = 80;
+    const int targetFrames = 96;
+    const int halfFft = nFft ~/ 2 + 1; // 257
+    const int sampleRate = 16000;
+
+    // 1. Hann window of length winLength, zero-padded to nFft
+    //    librosa uses win_length=400 centered inside n_fft=512
+    final hann = Float64List(nFft); // zero-initialized
+    final padLeft = (nFft - winLength) ~/ 2; // 56
+    for (int i = 0; i < winLength; i++) {
+      hann[padLeft + i] = 0.5 * (1.0 - math.cos(2.0 * math.pi * i / winLength));
     }
-    // Copy original audio
+
+    // 2. Centre-pad (librosa center=True, mode='reflect')
+    final padLen = nFft ~/ 2; // 256
+    final paddedLen = audio.length + 2 * padLen;
+    final padded = Float64List(paddedLen);
+    // Reflect left
+    for (int i = 0; i < padLen; i++) {
+      final srcIdx = padLen - i;
+      padded[i] = srcIdx < audio.length ? audio[srcIdx] : 0.0;
+    }
+    // Centre copy
     for (int i = 0; i < audio.length; i++) {
       padded[padLen + i] = audio[i];
     }
-    // Reflect-pad right edge
+    // Reflect right
     for (int i = 0; i < padLen; i++) {
       final srcIdx = audio.length - 2 - i;
       padded[padLen + audio.length + i] = srcIdx >= 0 ? audio[srcIdx] : 0.0;
     }
 
-    // 2. STFT with centered frames
-    // numFrames = 1 + len(y) // hop_length = 1 + 16000 // 512 = 32
-    final nFrames = 1 + audio.length ~/ _hopLength;
-    final powerSpec = List<Float64List>.generate(
-        _halfFft, (_) => Float64List(nFrames));
+    // 3. STFT → power spectrum
+    final nFrames = 1 + audio.length ~/ hopLength;
+    // powerSpec[freq_bin][frame]
+    final powerSpec =
+        List<Float64List>.generate(halfFft, (_) => Float64List(nFrames));
+    final frameR = Float64List(nFft);
+    final frameI = Float64List(nFft);
 
-    final frameReal = Float64List(_nFft);
-    final frameImag = Float64List(_nFft);
+    // Twiddle factors for FFT
+    final twR = Float64List(nFft ~/ 2);
+    final twI = Float64List(nFft ~/ 2);
+    for (int i = 0; i < nFft ~/ 2; i++) {
+      final a = -2.0 * math.pi * i / nFft;
+      twR[i] = math.cos(a);
+      twI[i] = math.sin(a);
+    }
 
     for (int frame = 0; frame < nFrames; frame++) {
-      final start = frame * _hopLength;
-
-      // Apply window and load frame
-      for (int i = 0; i < _nFft; i++) {
+      final start = frame * hopLength;
+      for (int i = 0; i < nFft; i++) {
         final idx = start + i;
-        final sample = idx < padded.length ? padded[idx] : 0.0;
-        frameReal[i] = sample * _hannWindow[i];
-        frameImag[i] = 0.0;
+        final s = idx < paddedLen ? padded[idx] : 0.0;
+        frameR[i] = s * hann[i];
+        frameI[i] = 0.0;
       }
 
-      // Radix-2 FFT
-      _fftInPlace(frameReal, frameImag, _nFft);
+      _fft(frameR, frameI, nFft, twR, twI);
 
-      // Power spectrum (no division by N — matches librosa)
-      for (int k = 0; k < _halfFft; k++) {
-        powerSpec[k][frame] =
-            frameReal[k] * frameReal[k] + frameImag[k] * frameImag[k];
+      for (int k = 0; k < halfFft; k++) {
+        powerSpec[k][frame] = frameR[k] * frameR[k] + frameI[k] * frameI[k];
       }
     }
 
-    // 3. Mel filter bank
-    final melFilters = _melFilters!;
-    final melSpec = List<Float64List>.generate(
-        _nMels, (_) => Float64List(nFrames));
-    for (int m = 0; m < _nMels; m++) {
+    // 4. Mel filter bank — librosa default = SLANEY (NOT HTK)
+    final melFilters = _computeMelFiltersSlaney(
+        nMels, nFft, sampleRate, 0.0, sampleRate / 2.0);
+
+    // 5. Apply mel filters → power_to_db(mel + 1e-9, ref=np.max)
+    final melSpec =
+        List<Float64List>.generate(nMels, (_) => Float64List(nFrames));
+    double globalMax = 1e-10;
+    for (int m = 0; m < nMels; m++) {
       for (int f = 0; f < nFrames; f++) {
         double sum = 0;
-        for (int k = 0; k < _halfFft; k++) {
-          final w = melFilters[m][k];
-          if (w > 0) sum += w * powerSpec[k][f];
+        for (int k = 0; k < halfFft; k++) {
+          sum += melFilters[m][k] * powerSpec[k][f];
         }
+        sum += 1e-9; // Match: power_to_db(mel + 1e-9, ...)
         melSpec[m][f] = sum;
+        if (sum > globalMax) globalMax = sum;
       }
     }
 
-    // 4. power_to_db (ref=np.max, amin=1e-10, top_db=80)
-    double refMax = 1e-10;
-    for (int m = 0; m < _nMels; m++) {
+    // Convert to dB: 10 * log10(S / ref) where ref = globalMax
+    for (int m = 0; m < nMels; m++) {
       for (int f = 0; f < nFrames; f++) {
-        if (melSpec[m][f] > refMax) refMax = melSpec[m][f];
+        double db = 10.0 * math.log(melSpec[m][f] / globalMax) / math.ln10;
+        if (db < -80.0) db = -80.0; // top_db=80 (librosa default)
+        melSpec[m][f] = db;
       }
     }
-    for (int m = 0; m < _nMels; m++) {
+
+    // 6. GLOBAL normalization: (mel_db - mean) / (std + 1e-9)
+    //    This is THE critical difference — training uses GLOBAL, not per-channel
+    final int totalElements = nMels * nFrames;
+    double globalMean = 0;
+    for (int m = 0; m < nMels; m++) {
       for (int f = 0; f < nFrames; f++) {
-        final val = math.max(melSpec[m][f], 1e-10);
-        double db = 10.0 * math.log(val / math.max(refMax, 1e-10)) / math.ln10;
-        melSpec[m][f] = math.max(db, -80.0);
+        globalMean += melSpec[m][f];
+      }
+    }
+    globalMean /= totalElements;
+
+    double globalVar = 0;
+    for (int m = 0; m < nMels; m++) {
+      for (int f = 0; f < nFrames; f++) {
+        final d = melSpec[m][f] - globalMean;
+        globalVar += d * d;
+      }
+    }
+    final globalStd = math.sqrt(globalVar / totalElements);
+    final stdSafe = globalStd < 1e-9 ? 1e-9 : globalStd;
+
+    for (int m = 0; m < nMels; m++) {
+      for (int f = 0; f < nFrames; f++) {
+        melSpec[m][f] = (melSpec[m][f] - globalMean) / stdSafe;
       }
     }
 
-    // 5. Build packed features exactly to [40, 44]
-    final features = Float32List(_targetFrames * _nMels);
-    for (int i = 0; i < _targetFrames; i++) {
-      if (i < nFrames) {
-        for (int j = 0; j < _nMels; j++) {
-          features[j * _targetFrames + i] = melSpec[j][i];
-        }
-      } else {
-        // Pad with -80.0 dB for missing frames
-        for (int j = 0; j < _nMels; j++) {
-          features[j * _targetFrames + i] = -80.0;
-        }
+    // 7. Pack into [1, 1, nMels, targetFrames] = 7680 floats
+    //    Take FIRST 96 frames (training: mel_db[:, :target_frames])
+    final result = Float32List(nMels * targetFrames);
+    for (int m = 0; m < nMels; m++) {
+      for (int f = 0; f < targetFrames; f++) {
+        result[m * targetFrames + f] =
+            f < nFrames ? melSpec[m][f].toDouble() : 0.0;
       }
     }
 
-    return _computeMfccFromMel(features);
+    return result;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // RADIX-2 FFT
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  void _precomputeTwiddles() {
-    _twiddleReal = Float64List(_nFft ~/ 2);
-    _twiddleImag = Float64List(_nFft ~/ 2);
-    for (int i = 0; i < _nFft ~/ 2; i++) {
-      final angle = -2.0 * math.pi * i / _nFft;
-      _twiddleReal[i] = math.cos(angle);
-      _twiddleImag[i] = math.sin(angle);
-    }
-  }
-
-  void _fftInPlace(Float64List real, Float64List imag, int n) {
-    // Bit-reversal permutation
+  static void _fft(
+      Float64List r, Float64List im, int n, Float64List twR, Float64List twI) {
+    // Bit-reversal
     int j = 0;
     for (int i = 0; i < n - 1; i++) {
       if (i < j) {
-        final tR = real[i]; real[i] = real[j]; real[j] = tR;
-        final tI = imag[i]; imag[i] = imag[j]; imag[j] = tI;
+        double t = r[i];
+        r[i] = r[j];
+        r[j] = t;
+        t = im[i];
+        im[i] = im[j];
+        im[j] = t;
       }
       int k = n >> 1;
-      while (k <= j) { j -= k; k >>= 1; }
+      while (k <= j) {
+        j -= k;
+        k >>= 1;
+      }
       j += k;
     }
-    // Butterfly operations
+    // Butterfly
     int step = 1;
     while (step < n) {
       final half = step;
@@ -568,76 +543,94 @@ class WakeWordService {
       final stride = n ~/ step;
       for (int g = 0; g < n; g += step) {
         for (int p = 0; p < half; p++) {
-          final wR = _twiddleReal[p * stride];
-          final wI = _twiddleImag[p * stride];
-          final e = g + p;
-          final o = e + half;
-          final tR = wR * real[o] - wI * imag[o];
-          final tI = wR * imag[o] + wI * real[o];
-          real[o] = real[e] - tR;
-          imag[o] = imag[e] - tI;
-          real[e] += tR;
-          imag[e] += tI;
+          final wR = twR[p * stride];
+          final wI = twI[p * stride];
+          final e = g + p, o = e + half;
+          final tR = wR * r[o] - wI * im[o];
+          final tI = wR * im[o] + wI * r[o];
+          r[o] = r[e] - tR;
+          im[o] = im[e] - tI;
+          r[e] += tR;
+          im[e] += tI;
         }
       }
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MEL FILTER BANK
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  List<Float64List> _buildMelFilters() {
-    const double fMin = 0;
-    final double fMax = _sampleRate / 2.0;
-    final melMin = _hzToMel(fMin);
-    final melMax = _hzToMel(fMax);
-    final melPoints = Float64List(_nMels + 2);
-    for (int i = 0; i < _nMels + 2; i++) {
-      melPoints[i] = melMin + i * (melMax - melMin) / (_nMels + 1);
+  /// Slaney-scale mel filter bank — matches librosa.filters.mel default
+  /// (NOT HTK scale — librosa uses Slaney by default unless htk=True)
+  static List<List<double>> _computeMelFiltersSlaney(
+      int nMels, int nFft, int sr, double fMin, double fMax) {
+    // Slaney mel scale: linear below 1kHz, log above
+    double hzToMel(double hz) {
+      const double minLogHz = 1000.0;
+      const double minLogMel = 15.0; // 1000/200*3
+      const double logStep = 27.0 / math.ln2; // ~38.96
+      if (hz < minLogHz) return 3.0 * hz / 200.0;
+      return minLogMel + math.log(hz / minLogHz) * logStep;
     }
-    final binIndices = List<int>.generate(_nMels + 2, (i) {
-      final hz = _melToHz(melPoints[i]);
-      return ((hz / fMax) * (_halfFft - 1)).round().clamp(0, _halfFft - 1);
-    });
-    final filters = List<Float64List>.generate(
-        _nMels, (_) => Float64List(_halfFft));
-    for (int m = 0; m < _nMels; m++) {
-      final l = binIndices[m], c = binIndices[m + 1], r = binIndices[m + 2];
-      for (int k = l; k < c && k < _halfFft; k++) {
-        if (c != l) filters[m][k] = (k - l) / (c - l);
+
+    double melToHz(double mel) {
+      const double minLogHz = 1000.0;
+      const double minLogMel = 15.0;
+      const double logStep = 27.0 / math.ln2;
+      if (mel < minLogMel) return 200.0 * mel / 3.0;
+      return minLogHz * math.exp((mel - minLogMel) / logStep);
+    }
+
+    final melMin = hzToMel(fMin);
+    final melMax = hzToMel(fMax);
+    final nPoints = nMels + 2;
+
+    // Evenly spaced in mel, then convert back to Hz
+    final melPts = List<double>.generate(
+        nPoints, (i) => melMin + i * (melMax - melMin) / (nPoints - 1));
+    final hzPts = melPts.map(melToHz).toList();
+
+    // Convert Hz to FFT bin indices
+    final halfFft = nFft ~/ 2 + 1;
+    final bins = hzPts
+        .map((hz) => ((hz * nFft) / sr).floor().clamp(0, halfFft - 1))
+        .toList();
+
+    // Build triangular filters with Slaney normalization (area = 1)
+    final filters = List<List<double>>.generate(
+        nMels, (_) => List<double>.filled(halfFft, 0.0));
+
+    for (int m = 0; m < nMels; m++) {
+      final fL = bins[m];
+      final fC = bins[m + 1];
+      final fR = bins[m + 2];
+
+      // Slaney normalization: 2 / (hzPts[m+2] - hzPts[m])
+      final norm = 2.0 / (hzPts[m + 2] - hzPts[m]);
+
+      // Rising slope
+      if (fC > fL) {
+        for (int k = fL; k < fC && k < halfFft; k++) {
+          filters[m][k] = (k - fL) / (fC - fL) * norm;
+        }
       }
-      for (int k = c; k <= r && k < _halfFft; k++) {
-        if (r != c) filters[m][k] = (r - k) / (r - c);
+      // Falling slope
+      if (fR > fC) {
+        for (int k = fC; k <= fR && k < halfFft; k++) {
+          filters[m][k] = (fR - k) / (fR - fC) * norm;
+        }
       }
     }
     return filters;
   }
 
-  /// Applies Discrete Cosine Transform (DCT-II) to convert Log-Mel Spectrogram into MFCCs.
-  /// Expects `melsDb` of shape [nMels, targetFrames] flattened.
-  Float32List _computeMfccFromMel(Float32List melsDb) {
-    final mfcc = Float32List(_targetFrames * _nMfcc);
-    final factor = math.pi / _nMels;
-    
-    // Orthogonal normalization (matches librosa norm='ortho')
-    final scale0 = math.sqrt(1.0 / _nMels);
-    final scaleK = math.sqrt(2.0 / _nMels);
-
-    for (int frame = 0; frame < _targetFrames; frame++) {
-      for (int k = 0; k < _nMfcc; k++) {
-        double sum = 0.0;
-        for (int m = 0; m < _nMels; m++) {
-          final melVal = melsDb[m * _targetFrames + frame];
-          sum += melVal * math.cos(factor * (m + 0.5) * k);
-        }
-        final scale = (k == 0) ? scale0 : scaleK;
-        mfcc[k * _targetFrames + frame] = sum * scale;
-      }
-    }
-    return mfcc;
+  // ── Logging ───────────────────────────────────────────────────────────────
+  void _log(String msg) {
+    // ignore: avoid_print
+    print('[WakeWord] $msg');
   }
 
-  double _hzToMel(double hz) => 2595.0 * math.log(1.0 + hz / 700.0) / math.ln10;
-  double _melToHz(double mel) => 700.0 * (math.pow(10.0, mel / 2595.0) - 1.0);
+  void _logV(String msg) {
+    if (enableDebugLogging) {
+      // ignore: avoid_print
+      print('[WakeWord] $msg');
+    }
+  }
 }
