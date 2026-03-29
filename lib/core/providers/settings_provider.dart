@@ -37,6 +37,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _dualVoiceSecondaryPrefKey = 'dual_voice_secondary_v1';
   static const String _liteModeEnabledPrefKey = 'lite_mode_enabled_v1';
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
+  static const String _sttProviderPrefKey = 'stt_provider_v1';
 
   // ── UI Settings ─────────────────────────────────────────────────────────
   bool showMessageTimestamps = false;
@@ -52,6 +53,9 @@ class SettingsProvider extends ChangeNotifier {
   bool liteModeEnabled = false;
   bool appLockEnabled = false;
   bool notificationsAllowed = false;
+
+  // ── STT Provider ─────────────────────────────────────────────────────
+  String sttProvider = 'groq'; // 'groq' | 'gladia'
 
   // ── Outfit / Custom images ──────────────────────────────────────────────
   String selectedOutfit = 'assets/img/z2s.jpg';
@@ -79,8 +83,7 @@ class SettingsProvider extends ChangeNotifier {
   String devTtsApiKeyOverride = "";
   String devTtsModelOverride = "";
   String devTtsVoiceOverride = "";
-  String devMailJetApiOverride = "";
-  String devMailJetSecOverride = "";
+  String devBrevoApiKeyOverride = "";
   String devSttLangOverride = "";
   int devSttTimeoutOverride = 0;
 
@@ -122,14 +125,13 @@ class SettingsProvider extends ChangeNotifier {
       appIconFromCustom ? customAppIconPath : null;
 
   Duration get idleDuration => Duration(seconds: idleDurationSeconds);
-  Duration get proactiveInterval =>
-      Duration(seconds: proactiveIntervalSeconds);
+  Duration get proactiveInterval => Duration(seconds: proactiveIntervalSeconds);
 
   String get effectiveTtsApiKey {
     if (devTtsApiKeyOverride.trim().isNotEmpty) {
       return devTtsApiKeyOverride.trim();
     }
-    return dotenv.env['GROQ_API_KEY_VOICE'] ?? (dotenv.env['API_KEY'] ?? "");
+    return dotenv.env['API_KEY'] ?? "";
   }
 
   String get effectiveTtsModel {
@@ -188,8 +190,8 @@ class SettingsProvider extends ChangeNotifier {
     liteModeEnabled = prefs.getBool(_liteModeEnabledPrefKey) ?? false;
     appLockEnabled = prefs.getBool(_appLockEnabledPrefKey) ?? false;
     dualVoiceEnabled = prefs.getBool(_dualVoiceEnabledPrefKey) ?? false;
-    dualVoiceSecondary =
-        prefs.getString(_dualVoiceSecondaryPrefKey) ?? 'alloy';
+    dualVoiceSecondary = prefs.getString(_dualVoiceSecondaryPrefKey) ?? 'alloy';
+    sttProvider = prefs.getString(_sttProviderPrefKey) ?? 'groq';
     notifyListeners();
   }
 
@@ -326,6 +328,14 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setString(_dualVoiceSecondaryPrefKey, voice);
   }
 
+  Future<void> setSttProvider(String provider) async {
+    if (provider != 'groq' && provider != 'gladia') return;
+    sttProvider = provider;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sttProviderPrefKey, provider);
+  }
+
   Future<void> pickImageFromGallery({required bool forChatImage}) async {
     try {
       final picker = ImagePicker();
@@ -386,8 +396,7 @@ class SettingsProvider extends ChangeNotifier {
     String? ttsApiKey,
     String? ttsModel,
     String? ttsVoice,
-    String? mailJetApi,
-    String? mailJetSec,
+    String? brevoApiKey,
     String? sttLang,
     int? sttTimeout,
   }) {
@@ -399,8 +408,7 @@ class SettingsProvider extends ChangeNotifier {
     if (ttsApiKey != null) devTtsApiKeyOverride = ttsApiKey;
     if (ttsModel != null) devTtsModelOverride = ttsModel;
     if (ttsVoice != null) devTtsVoiceOverride = ttsVoice;
-    if (mailJetApi != null) devMailJetApiOverride = mailJetApi;
-    if (mailJetSec != null) devMailJetSecOverride = mailJetSec;
+    if (brevoApiKey != null) devBrevoApiKeyOverride = brevoApiKey;
     if (sttLang != null) devSttLangOverride = sttLang;
     if (sttTimeout != null) devSttTimeoutOverride = sttTimeout;
     notifyListeners();
