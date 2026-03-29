@@ -114,19 +114,13 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                       _devSttTimeoutOverride > 0),
                   const SizedBox(height: 8),
                   // ── Mail ──────────────────────────────────────────────────
-                  _devSectionLabel('MAIL (MailJet)'),
+                  _devSectionLabel('MAIL (Brevo)'),
                   _devInfoCard(
                       'API Key',
-                      _devMailJetApiOverride.isNotEmpty
-                          ? '${_devMailJetApiOverride.substring(0, _devMailJetApiOverride.length.clamp(0, 10))}...'
+                      _devBrevoApiKeyOverride.isNotEmpty
+                          ? '${_devBrevoApiKeyOverride.substring(0, _devBrevoApiKeyOverride.length.clamp(0, 10))}...'
                           : 'Using .env default',
-                      _devMailJetApiOverride.isNotEmpty),
-                  _devInfoCard(
-                      'Secret Key',
-                      _devMailJetSecOverride.isNotEmpty
-                          ? 'Custom secret set'
-                          : 'Using .env default',
-                      _devMailJetSecOverride.isNotEmpty),
+                      _devBrevoApiKeyOverride.isNotEmpty),
                   const SizedBox(height: 8),
 
                   // ── SYSTEM LIMITS & DEBUG ─────────────────────────────────
@@ -313,8 +307,7 @@ extension _MainDevConfigExtension on _ChatHomePageState {
         text: _devSttTimeoutOverride > 0
             ? _devSttTimeoutOverride.toString()
             : '');
-    final mjApiC = TextEditingController(text: _devMailJetApiOverride);
-    final mjSecC = TextEditingController(text: _devMailJetSecOverride);
+    final brevoApiC = TextEditingController(text: _devBrevoApiKeyOverride);
 
     showModalBottomSheet(
       context: context,
@@ -378,10 +371,8 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                   _buildConfigTextField(
                       'STT Timeout (seconds, e.g., 5)', sttTimeoutC),
                   const SizedBox(height: 14),
-                  _cfgLabel('MAIL (MailJet)'),
-                  _buildConfigTextField('MailJet API Key', mjApiC),
-                  const SizedBox(height: 10),
-                  _buildConfigTextField('MailJet Secret Key', mjSecC),
+                  _cfgLabel('MAIL (Brevo)'),
+                  _buildConfigTextField('Brevo API Key', brevoApiC),
                   const SizedBox(height: 22),
                   Row(
                     children: [
@@ -399,8 +390,7 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                               _sp.devWakeKeyOverride = '';
                               _sp.devSttLangOverride = '';
                               _sp.devSttTimeoutOverride = 0;
-                              _sp.devMailJetApiOverride = '';
-                              _sp.devMailJetSecOverride = '';
+                              _sp.devBrevoApiKeyOverride = '';
                             });
                             Navigator.pop(ctx);
                           },
@@ -433,8 +423,7 @@ extension _MainDevConfigExtension on _ChatHomePageState {
                               _sp.devSttLangOverride = sttLangC.text.trim();
                               _sp.devSttTimeoutOverride =
                                   int.tryParse(sttTimeoutC.text.trim()) ?? 0;
-                              _sp.devMailJetApiOverride = mjApiC.text.trim();
-                              _sp.devMailJetSecOverride = mjSecC.text.trim();
+                              _sp.devBrevoApiKeyOverride = brevoApiC.text.trim();
                             });
                             Navigator.pop(ctx);
                           },
