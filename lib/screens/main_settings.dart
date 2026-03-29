@@ -312,6 +312,89 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       onChanged: (_) => _toggleAutoListen(),
                       activeColor: primary,
                     ),
+                    // ── STT Provider Toggle ─────────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.02))),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.transcribe_rounded,
+                                  color: Colors.white54, size: 18),
+                              const SizedBox(width: 8),
+                              Text('STT Provider',
+                                  style: GoogleFonts.outfit(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600)),
+                              const Spacer(),
+                              Text(
+                                  _sttProvider == 'gladia'
+                                      ? 'Gladia Streaming'
+                                      : 'Groq Whisper',
+                                  style: GoogleFonts.outfit(
+                                      color: _sttProvider == 'gladia'
+                                          ? Colors.tealAccent
+                                          : Colors.cyanAccent,
+                                      fontSize: 11)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              ChoiceChip(
+                                label: Text('Groq Whisper',
+                                    style: GoogleFonts.outfit(
+                                      color: _sttProvider == 'groq'
+                                          ? Colors.black
+                                          : Colors.white70,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    )),
+                                selected: _sttProvider == 'groq',
+                                selectedColor: Colors.cyanAccent,
+                                backgroundColor: Colors.white10,
+                                onSelected: (sel) {
+                                  if (sel) _setSttProvider('groq');
+                                },
+                              ),
+                              ChoiceChip(
+                                label: Text('Gladia Streaming',
+                                    style: GoogleFonts.outfit(
+                                      color: _sttProvider == 'gladia'
+                                          ? Colors.black
+                                          : Colors.white70,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    )),
+                                selected: _sttProvider == 'gladia',
+                                selectedColor: Colors.tealAccent,
+                                backgroundColor: Colors.white10,
+                                onSelected: (sel) {
+                                  if (sel) _setSttProvider('gladia');
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _sttProvider == 'gladia'
+                                ? 'Real-time streaming \u2022 Live text as you speak'
+                                : 'Record \u2192 Transcribe \u2022 Sends audio after recording',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white38, fontSize: 10.5),
+                          ),
+                        ],
+                      ),
+                    ),
                     // TTS Playback Speed slider
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -1326,7 +1409,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     _buildAboutRow(
                         icon: Icons.tag_rounded,
                         label: 'Version',
-                        value: '4.0.0',
+                        value: '5.0.0',
                         color: Colors.cyanAccent),
                     _buildAboutRow(
                         icon: Icons.code_rounded,
