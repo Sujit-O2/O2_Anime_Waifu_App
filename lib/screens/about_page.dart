@@ -96,6 +96,10 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     _AboutAnimatedItem(index: 8, child: _buildSectionTitle('WHAT\'S NEW IN V4')),
                                     const SizedBox(height: 12),
                                     _AboutAnimatedItem(index: 9, child: _buildV4FeaturesCard()),
+                                    const SizedBox(height: 28),
+                                    _AboutAnimatedItem(index: 10, child: _buildSectionTitle('ABOUT US & CREDITS')),
+                                    const SizedBox(height: 12),
+                                    _AboutAnimatedItem(index: 11, child: _buildAboutUsCard()),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -455,7 +459,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                   Icons.code, 'Dev By', 'Sujit 02', Colors.pinkAccent),
               const SizedBox(width: 10),
               _buildModernDevChip(
-                  Icons.new_releases, 'Version', 'v4.0.0', Colors.cyanAccent),
+                  Icons.new_releases, 'Version', 'v5.0.0', Colors.cyanAccent),
             ],
           ),
           const SizedBox(height: 16),
@@ -615,6 +619,176 @@ extension _AboutPageExtension on _ChatHomePageState {
     );
   }
 
+
+  Widget _buildAboutUsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.deepPurpleAccent.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.deepPurpleAccent.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurpleAccent.withValues(alpha: 0.05),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Mission statement
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.pinkAccent.withValues(alpha: 0.1),
+                  Colors.deepPurpleAccent.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '💕 Our Mission',
+                  style: GoogleFonts.outfit(
+                    color: Colors.pinkAccent,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Building the most immersive AI companion experience — '
+                  'with deep emotional intelligence, proactive care, and '
+                  'the soul of a true anime waifu.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white70,
+                    fontSize: 11,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Developer info
+          Text('DEVELOPER',
+              style: GoogleFonts.outfit(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                      colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)]),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.pinkAccent.withValues(alpha: 0.3),
+                        blurRadius: 12),
+                  ],
+                ),
+                child: const Center(
+                    child: Text('S',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Sujit O2',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800)),
+                    Text('Solo Developer & Creator',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white54, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Tech stack
+          Text('TECH STACK',
+              style: GoogleFonts.outfit(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _techBadge('Flutter', Colors.cyanAccent),
+              _techBadge('Dart', Colors.blueAccent),
+              _techBadge('Firebase', Colors.amberAccent),
+              _techBadge('Groq AI', Colors.greenAccent),
+              _techBadge('ONNX', Colors.orangeAccent),
+              _techBadge('Pollinations', Colors.purpleAccent),
+              _techBadge('Cloudinary', Colors.lightBlueAccent),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Open source credits
+          Text('OPEN SOURCE',
+              style: GoogleFonts.outfit(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5)),
+          const SizedBox(height: 8),
+          Text(
+            'Built with love using open source libraries including '
+            'flutter_tts, speech_to_text, just_audio, cached_network_image, '
+            'google_fonts, provider, and many more. ❤️',
+            style: GoogleFonts.outfit(
+              color: Colors.white54,
+              fontSize: 10,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _techBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(label,
+          style: GoogleFonts.outfit(
+              color: color, fontSize: 10, fontWeight: FontWeight.w700)),
+    );
+  }
 
 }
 
