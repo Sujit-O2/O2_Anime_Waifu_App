@@ -679,11 +679,11 @@ class AssistantForegroundService : Service() {
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("💕 Zero Two misses you~")
+            .setContentTitle("Zero Two misses you~")
             .setContentText(content)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("💕 Zero Two says:")
+                    .setBigContentTitle("Zero Two says:")
                     .bigText(content)
                     .setSummaryText("Tap to chat with Zero Two")
             )
@@ -701,7 +701,7 @@ class AssistantForegroundService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.sym_action_chat,
-                "Reply 💕",
+                "Reply",
                 pendingIntent
             )
             .addAction(
