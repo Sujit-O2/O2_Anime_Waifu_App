@@ -126,6 +126,16 @@ import 'package:anime_waifu/screens/year_in_review_page.dart';
 import 'package:anime_waifu/screens/zero_two_calendar_page.dart';
 import 'package:anime_waifu/screens/zero_two_diary_page.dart';
 import 'package:anime_waifu/screens/zero_two_facts_page.dart';
+import 'package:anime_waifu/screens/ar_ruler_page.dart';
+import 'package:anime_waifu/screens/bill_splitter_page.dart';
+import 'package:anime_waifu/screens/clipboard_manager_page.dart';
+import 'package:anime_waifu/screens/emergency_sos_page.dart';
+import 'package:anime_waifu/screens/medication_reminder_page.dart';
+import 'package:anime_waifu/screens/package_tracker_page.dart';
+import 'package:anime_waifu/screens/parking_spot_saver_page.dart';
+import 'package:anime_waifu/screens/password_generator_page.dart';
+import 'package:anime_waifu/screens/qr_scanner_page.dart';
+import 'package:anime_waifu/screens/smart_scanner_page.dart';
 import 'package:anime_waifu/debug/wakeword_debug.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -266,6 +276,18 @@ class AppRouter {
   static const String zeroTwoDiary = '/zero-two-diary';
   static const String zeroTwoFacts = '/zero-two-facts';
 
+  // ── Real-Life Utility Routes ──────────────────────────────────────────────
+  static const String arRuler = '/ar-ruler';
+  static const String billSplitter = '/bill-splitter';
+  static const String clipboardManager = '/clipboard-manager';
+  static const String emergencySos = '/emergency-sos';
+  static const String medicationReminder = '/medication-reminder';
+  static const String packageTracker = '/package-tracker';
+  static const String parkingSpotSaver = '/parking-spot-saver';
+  static const String passwordGenerator = '/password-generator';
+  static const String qrScanner = '/qr-scanner';
+  static const String smartScanner = '/smart-scanner';
+
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
         wakeDebug: (_) => const WakewordDebugPage(),
@@ -392,5 +414,17 @@ class AppRouter {
         zeroTwoCalendar: (_) => const ZeroTwoCalendarPage(),
         zeroTwoDiary: (_) => const ZeroTwoDiaryPage(),
         zeroTwoFacts: (_) => const ZeroTwoFactsPage(),
+
+        // ── Real-Life Utility Routes ──────────────────────────────────────
+        arRuler: (_) => const ArRulerPage(),
+        billSplitter: (_) => const BillSplitterPage(),
+        clipboardManager: (_) => const ClipboardManagerPage(),
+        emergencySos: (_) => const EmergencySosPage(),
+        medicationReminder: (_) => const MedicationReminderPage(),
+        packageTracker: (_) => const PackageTrackerPage(),
+        parkingSpotSaver: (_) => const ParkingSpotSaverPage(),
+        passwordGenerator: (_) => const PasswordGeneratorPage(),
+        qrScanner: (_) => const QrScannerPage(),
+        smartScanner: (_) => const SmartScannerPage(),
       };
 }
