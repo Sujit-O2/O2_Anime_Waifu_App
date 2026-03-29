@@ -211,6 +211,18 @@ graph TD
 </details>
 
 <details>
+<summary><b>💌 Phase 4 — Neural Notification & Premium Communication</b></summary>
+
+| Service | What it does |
+|---|---|
+| `brevo_api_integration` | Enterprise-grade SMTP relay replacing legacy MailJet. Uses `api-key` header for 100% delivery reliability to Gmail/Outlook. |
+| `premium_html_template` | High-fidelity, mobile-responsive "Darling Alert" email design with glassmorphism, neon accents, and dynamic variable injection. |
+| `hosted_asset_pipeline` | Migration from base64 images to CDN-hosted HTTPS URLs to bypass email client security filters and ensure image rendering. |
+| `dynamic_footer_engine` | Automatic year detection and injection (`{{year}}`) ensuring zero manual maintenance for legal/copyright footers. |
+
+</details>
+
+<details>
 <summary><b>🛠 Final Fixes (Today)</b></summary>
 
 *   All **dart analyze warnings resolved** — 0 errors, 0 warnings
@@ -265,7 +277,7 @@ To get the app running, you must create a `.env` file in the root directory. Use
     ```bash
     cp .example.env .env
     ```
-2.  **Fill in your keys**: Open `.env` and replace the placeholder values with your real API keys for Groq, Picovoice, Cloudinary, Mailjet, and OpenWeather.
+2.  **Fill in your keys**: Open `.env` and replace the placeholder values with your real API keys for Groq, Picovoice, Cloudinary, Brevo (replaces Mailjet), and OpenWeather.
 
 ---
 
@@ -481,6 +493,67 @@ Seamlessly integrated background services for a more "living" assistant:
 *   **Morning Routine**: Wake up to a personalized neural voice greeting covering weather and daily goals.
 *   **Native Alarms**: Fully wired with the Android System Alarm Manager to wake the app from deep sleep.
 *   **Daily Quests**: A new gamified habit system to earn affection through healthy real-world actions.
+
+---
+
+## 🚀 Neural Notification & Communication (v5.0.0)
+
+### 1. 💌 Enterprise-Grade Brevo Integration
+- **Reliable SMTP Relay:** Fully migrated from MailJet to **Brevo (formerly Sendinblue)**, resolving legacy API authentication bottlenecks and ensuring 100% delivery success.
+- **Secure API Key Management:** Implemented the `api-key` header protocol with full support for developer overrides in the app's hidden configuration panel.
+
+### 2. 🎨 High-Fidelity "Darling Alert" Template
+- **Premium Aesthetics:** Designed a stunning, glassmorphism-inspired HTML email template featuring Zero Two's signature neon-pink and deep-violet palette.
+- **Responsive Table Architecture:** Engineered a rock-solid, table-based layout that gracefully scales from desktop monitors to small mobile screens.
+- **Dynamic Variable Injection:** Successfully implemented a multi-stage replacement engine for `{{body}}` content and `{{year}}` footer auto-updates.
+
+### 3. 📱 Mobile Email Optimization
+- **Cross-Client Compatibility:** Stripped all `position: absolute` CSS and heavy background effects to ensure perfect rendering across Gmail, Outlook, and Yahoo Mail.
+- **Hosted Image Assets:** Transitioned from fragile base64 URIs to high-performance HTTPS hosted URLs (via ImgBB/CDN) to bypass aggressive anti-tracking filters in modern email clients.
+- **Clean Alignment Logic:** Refined the meta-chip alignment (Status, Time, Priority) and button centering for a professional, "App-like" feel on mobile device Viewports.
+
+---
+
+## 🚀 The Streaming Synapse Update (v4.1.0)
+
+### 1. 🎙️ Real-Time Dual STT Engine (Gladia vs Groq)
+*   **Provider Switching:** Added the ability to seamlessly toggle between **Groq Whisper** (record, upload, transcribe) and **Gladia Streaming** right from the Settings menu.
+*   **Live Stream Protocol:** Gladia V2 Live API integration over WebSockets streams raw PCM audio chunks every 250ms, rendering words on the screen as you speak in real-time.
+*   **Automatic Key Rotation:** Intelligently rotates across a pool of up to 12 Gladia keys and 6 Groq keys to ensure zero downtime.
+
+#### STT Architecture Graph
+```mermaid
+graph TD
+    A[User Speaks] --> B{STT Provider Setting}
+    
+    B -- Groq Whisper --> C[Record Audio Buffer]
+    C -- Silence Detected --> D[Upload WAV to Groq API]
+    D --> E[Final Transcript]
+    
+    B -- Gladia Streaming --> F[Open WebSocket Connection]
+    F -- Stream 250ms chunks --> G[Partial Live Transcripts]
+    G -- Silence Detected --> E
+    
+    E --> H[Brain Logic / LLM Processing]
+```
+
+### 2. ⚡ UI Performance & Render Fixes
+*   **Exploration Hub Refactor:** Replaced heavy `AnimatedCrossFade` logic with lightweight `AnimatedSize` clipping, completely eliminating frame drops during category expansion.
+*   **Sidebar Optimization:** Removed deprecated UI accordions (Memory, Wellness, Social) and dropped sidebar background GIF rendering to `FilterQuality.low`, massively boosting scrolling FPS.
+
+### 3. 🎨 Advanced Chat Management & AI Art
+*   **Image Generation Recovery:** Fully restored and stabilized the `ImageGenService` for seamless in-chat AI image synthesis.
+*   **Gallery Integration:** Added direct-download capabilities allowing users to save AI-generated art straight to their device gallery from the chat interface.
+*   **Bulk Chat Operations:** Introduced multi-selection messaging, enabling users to highlight and delete multiple chat bubbles simultaneously for easier conversation pruning.
+
+### 4. 🧠 Infinite Memory & Knowledge Graph Evolution
+*   **Dynamic Short/Long-Term Stack:** Automatically categorizes user inputs into priority tiers (Short, Long, Emotional, Project) and persists them using a structured `memory_stack_data` architecture limits.
+*   **Auto-Learning Graph Node Strategy:** The backend invisibly parses user conversations, isolates significant entities/topics, and links them into an evolving internal graph (`knowledge_graph_data`), bridging context across completely separate chat sessions.
+*   **Personality & Trait Sliders:** Wrote a deterministic personality injection layer; the AI now dynamically shifts its Humor, Sass, Technical Jargon, and Formality based on user-defined UI settings.
+
+### 5. 🛡️ Wake Word Hyper-Optimization (ONNX)
+*   **Raw DSP Pipeline Alignment:** Bypassed standard OS-level audio filters to grab pure 16kHz raw PCM data, perfectly aligning with the custom ONNX CNN model's training distribution.
+*   **Secondary Verification Cloud Engine:** Conquered false-positives! When the local ONNX model detects "Zero Two," the engine instantly fires a rapid verification chunk to Groq's Large-v3-Turbo Whisper. If the transcript strictly lacks the wake word, the system silences the trigger to ensure 100% precision.
 
 ---
 
@@ -756,7 +829,13 @@ O2-WAIFU does not stream raw, heavy video files. We use **Dynamic URL Transforma
 *   **Quality Leveling**: `q_auto:eco` compresses video on-the-fly for users on mobile data.
 *   **Aesthetic Filters**: We inject `e_vignette:20,e_art:incognito` via URL params to give background videos a cinematic, unified look without needing a video editor.
 
-### 2. Mailjet SMTP Relay
+### 2. Brevo (New) & Mailjet (Legacy) SMTP Relays
+The `sendMail` function in `api_call.dart` now prioritizes the **Brevo v3 API**:
+*   **API-Key Auth**: Uses high-security header-based authentication for modern SMTP standards.
+*   **High-Fidelity Templating**: Automated injection into the `zero_two_email_template.html` asset.
+*   **Legacy Support**: Maintained Mailjet structures for backward compatibility where needed.
+
+### 3. Mailjet SMTP Relay (Legacy)
 The `sendMail` function in `api_call.dart` uses the **Mailjet v3.1 API**:
 *   **HTML Templating**: Messages are wrapped in a nested table structure (legacy support) to ensure the "Zero Two" branding looks perfect on every email client from Gmail to Outlook.
 *   **Base64 Auth**: We use `Basic` authentication with encoded API Key/Secret pairs, ensuring no plain-text credentials are sent over the wire.
