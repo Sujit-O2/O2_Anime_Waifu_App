@@ -1,0 +1,29 @@
+
+03-28 12:57:11.564 
+31985 31985 I flutter 
+: _wakeWordEnabledByUs
+er = true
+03-28 12:57:11.564 
+31985 31985 I flutter 
+: _wakeWordReady = 
+false
+03-28 12:57:11.580 
+31985 31985 I flutter 
+: _initWakeWord: 
+Starting ONNX wake 
+word initialization...
+03-28 12:57:11.682 
+31985 31985 I flutter 
+: [WakeWord] ONNX 
+session loaded 
+successfully
+03-28 12:57:11.685 
+31985 31985 I flutter 
+: _initWakeWord: 
+SUCCESS
+03-28 12:57:11.724 
+31985 31985 I flutter 
+: [WakeWord] Wake 
+word listening STARTED
+
+
