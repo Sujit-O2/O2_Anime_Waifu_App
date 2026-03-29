@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import 'services/gladia_stt_service.dart';
+
 /// Silent STT using [AudioRecorder] → Groq Whisper transcription.
 /// No system beeps. Silence-based auto-stop. Random API key rotation.
 class SpeechService {
@@ -40,11 +42,12 @@ class SpeechService {
 
   // ── Timing constants ───────────────────────────────────────────────────────
   static const Duration _maxListenDuration = Duration(seconds: 50);
-  static const Duration _silenceStopAfter = Duration(milliseconds: 4000);
+  static const Duration _silenceStopAfter = Duration(milliseconds: 3000);
   static const Duration _minListenBeforeSilenceCheck =
       Duration(milliseconds: 1000);
-  static const Duration _noSpeechAbortAfter = Duration(seconds: 5);
-  static const double _voiceThresholdDb = -45.0; // slightly more sensitive
+  static const Duration _noSpeechAbortAfter = Duration(seconds: 4);
+  static const double _voiceThresholdDb =
+      -28.0; // Stricter background noise ignoring
   static const Duration _transcriptionTimeout = Duration(seconds: 8);
   static const int _minUsefulAudioBytes = 1024;
 
@@ -58,9 +61,6 @@ class SpeechService {
     final combined = [
       ...(_apiKeyOverride.trim().split(',').map((k) => k.trim())),
       ...(dotenv.env['API_KEY'] ?? '').split(',').map((k) => k.trim()),
-      ...(dotenv.env['GROQ_API_KEY_VOICE'] ?? '')
-          .split(',')
-          .map((k) => k.trim()),
     ].where((k) => k.isNotEmpty).toList();
     return combined;
   }
@@ -85,6 +85,7 @@ class SpeechService {
     String? transcriptionModelOverride,
     String? transcriptionUrlOverride,
     String? transcriptionLanguageOverride,
+    String? sttProvider,
   }) {
     if (apiKeyOverride != null) _apiKeyOverride = apiKeyOverride;
     if (transcriptionModelOverride != null) {
@@ -96,13 +97,45 @@ class SpeechService {
     if (transcriptionLanguageOverride != null) {
       _transcriptionLanguageOverride = transcriptionLanguageOverride;
     }
+    if (sttProvider != null) {
+      _sttProvider = sttProvider;
+      // Wire callbacks to Gladia service
+      _gladiaService.onResult = onResult;
+      _gladiaService.onStatus = onStatus;
+      _gladiaService.onError = onError;
+    }
+  }
+
+  // ── Provider switching ───────────────────────────────────────────────────
+  String _sttProvider = 'groq'; // 'groq' | 'gladia'
+  String get sttProvider => _sttProvider;
+  final GladiaSttService _gladiaService = GladiaSttService();
+
+  /// Sync callbacks to Gladia service whenever they change.
+  void _syncGladiaCallbacks() {
+    _gladiaService.onResult = onResult;
+    _gladiaService.onStatus = onStatus;
+    _gladiaService.onError = onError;
   }
 
   Future<void> init() async {
     _available = await _recorder.hasPermission();
+    if (_sttProvider == 'gladia') {
+      await _gladiaService.init();
+    }
   }
 
   Future<bool> startListening() async {
+    if (_sttProvider == 'gladia') {
+      _syncGladiaCallbacks();
+      final result = await _gladiaService.startListening();
+      listening = _gladiaService.listening;
+      return result;
+    }
+    return _startGroqListening();
+  }
+
+  Future<bool> _startGroqListening() async {
     if (listening || _starting || _stopping) return false;
 
     _starting = true;
@@ -167,6 +200,10 @@ class SpeechService {
       _amplitudeSub = _recorder
           .onAmplitudeChanged(const Duration(milliseconds: 120))
           .listen((amp) {
+        // Live noise monitoring
+        print(
+            '[STT Noise] Live level: ${amp.current.toStringAsFixed(1)} dB (Threshold: $_voiceThresholdDb)');
+
         if (amp.current > _voiceThresholdDb) {
           _hadVoiceSignal = true;
           _lastVoiceAt = DateTime.now();
@@ -208,6 +245,15 @@ class SpeechService {
   }
 
   Future<void> stopListening() async {
+    if (_sttProvider == 'gladia') {
+      await _gladiaService.stopListening();
+      listening = _gladiaService.listening;
+      return;
+    }
+    await _stopGroqListening();
+  }
+
+  Future<void> _stopGroqListening() async {
     if (!listening || _stopping) return;
     _stopping = true;
 
@@ -273,6 +319,15 @@ class SpeechService {
   }
 
   Future<void> cancel() async {
+    if (_sttProvider == 'gladia') {
+      await _gladiaService.cancel();
+      listening = _gladiaService.listening;
+      return;
+    }
+    await _cancelGroq();
+  }
+
+  Future<void> _cancelGroq() async {
     final pendingPath = _currentPath;
     _silenceTimer?.cancel();
     _maxDurationTimer?.cancel();
@@ -296,7 +351,16 @@ class SpeechService {
   }
 
   Future<bool> recover() async {
-    await cancel();
+    if (_sttProvider == 'gladia') {
+      final result = await _gladiaService.recover();
+      listening = _gladiaService.listening;
+      return result;
+    }
+    return _recoverGroq();
+  }
+
+  Future<bool> _recoverGroq() async {
+    await _cancelGroq();
     await init();
     return _available;
   }

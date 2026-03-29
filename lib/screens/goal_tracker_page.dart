@@ -1,431 +1,81 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/waifu_background.dart';
 
-/// Goal Tracker — saves goals to Firestore (vault/{uid} goals field) + local cache
+/// Goal Tracker — Set goals, track progress, get AI reminders.
 class GoalTrackerPage extends StatefulWidget {
   const GoalTrackerPage({super.key});
   @override
   State<GoalTrackerPage> createState() => _GoalTrackerPageState();
 }
 
-class _GoalTrackerPageState extends State<GoalTrackerPage>
-    with SingleTickerProviderStateMixin {
-  final _db = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  final _goalCtrl = TextEditingController();
+class _GoalTrackerPageState extends State<GoalTrackerPage> {
   List<Map<String, dynamic>> _goals = [];
-  bool _loading = true;
-  late AnimationController _fadeCtrl;
-
-  static const _categories = [
-    '🌟 Personal',
-    '💼 Career',
-    '💪 Fitness',
-    '📚 Learning',
-    '❤️ Relationship',
-    '💰 Finance'
-  ];
-  int _selectedCat = 0;
-
-  String? get _uid => _auth.currentUser?.uid;
 
   @override
-  void initState() {
-    super.initState();
-    _fadeCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
-    _loadGoals();
-  }
+  void initState() { super.initState(); _load(); }
 
-  @override
-  void dispose() {
-    _fadeCtrl.dispose();
-    _goalCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadGoals() async {
-    setState(() => _loading = true);
-    if (_uid != null) {
-      try {
-        final doc = await _db.collection('goals').doc(_uid).get();
-        if (doc.exists) {
-          final raw = doc.data()?['goals'] as String?;
-          if (raw != null && raw.isNotEmpty) {
-            _goals = (jsonDecode(raw) as List)
-                .map((e) => Map<String, dynamic>.from(e))
-                .toList();
-            if (mounted) {
-              setState(() => _loading = false);
-              _fadeCtrl.forward();
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        debugPrint('GoalTracker load Firestore error: $e');
-      }
-    }
+  Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('goals_data') ?? '[]';
-    try {
-      _goals = (jsonDecode(raw) as List)
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    } catch (e) {
-      debugPrint('GoalTracker load local error: $e');
-    }
-    if (mounted) {
-      setState(() => _loading = false);
-      _fadeCtrl.forward();
-    }
+    final data = prefs.getString('goals_data');
+    if (data != null) setState(() => _goals = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
   }
 
-  Future<void> _saveGoals() async {
-    final encoded = jsonEncode(_goals);
+  Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('goals_data', encoded);
-    if (_uid != null) {
-      try {
-        await _db.collection('goals').doc(_uid).set({
-          'goals': encoded,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      } catch (e) {
-        debugPrint('GoalTracker save Firestore error: $e');
-      }
-    }
+    await prefs.setString('goals_data', jsonEncode(_goals));
   }
 
   void _addGoal() {
-    final name = _goalCtrl.text.trim();
-    if (name.isEmpty) return;
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _goals.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'title': name,
-        'category': _categories[_selectedCat],
-        'progress': 0, // 0-100
-        'done': false,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-    });
-    _goalCtrl.clear();
-    _saveGoals();
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: const Color(0xFF1A1A2E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text('New Goal', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: titleCtrl, style: GoogleFonts.outfit(color: Colors.white), cursorColor: Colors.greenAccent, decoration: InputDecoration(hintText: 'Goal title', hintStyle: GoogleFonts.outfit(color: Colors.white24), filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
+        const SizedBox(height: 10),
+        TextField(controller: descCtrl, maxLines: 3, style: GoogleFonts.outfit(color: Colors.white), cursorColor: Colors.greenAccent, decoration: InputDecoration(hintText: 'Steps...', hintStyle: GoogleFonts.outfit(color: Colors.white24), filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: GoogleFonts.outfit(color: Colors.white54))),
+        TextButton(onPressed: () {
+          if (titleCtrl.text.isNotEmpty) { setState(() => _goals.add({'title': titleCtrl.text, 'desc': descCtrl.text, 'progress': 0.0, 'time': DateTime.now().toIso8601String()})); _save(); Navigator.pop(ctx); }
+        }, child: Text('ADD', style: GoogleFonts.outfit(color: Colors.greenAccent, fontWeight: FontWeight.w700))),
+      ],
+    ));
   }
-
-  void _updateProgress(int idx, int progress) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _goals[idx]['progress'] = progress;
-      _goals[idx]['done'] = progress >= 100;
-    });
-    _saveGoals();
-    if (progress >= 100) HapticFeedback.heavyImpact();
-  }
-
-  void _deleteGoal(int idx) {
-    setState(() => _goals.removeAt(idx));
-    _saveGoals();
-  }
-
-  static const _catColors = {
-    '🌟 Personal': Colors.amberAccent,
-    '💼 Career': Colors.blueAccent,
-    '💪 Fitness': Colors.greenAccent,
-    '📚 Learning': Colors.purpleAccent,
-    '❤️ Relationship': Colors.pinkAccent,
-    '💰 Finance': Colors.tealAccent,
-  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
-      body: WaifuBackground(
-        opacity: 0.09,
-        tint: const Color(0xFF0A0B14),
-        child: SafeArea(
-            child: Column(children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Row(children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_new,
-                      color: Colors.white60, size: 16),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('GOAL TRACKER',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5)),
-                      Text(
-                          '${_goals.where((g) => g['done'] == true).length}/${_goals.length} goals achieved',
-                          style: GoogleFonts.outfit(
-                              color: Colors.amberAccent.withValues(alpha: 0.6),
-                              fontSize: 10)),
-                    ]),
-              ),
-              GestureDetector(
-                  onTap: _loadGoals,
-                  child: const Icon(Icons.refresh_rounded,
-                      color: Colors.white38, size: 20)),
-            ]),
-          ),
-
-          // Add goal section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Category selector
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(_categories.length, (i) {
-                    final sel = _selectedCat == i;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedCat = i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        margin: const EdgeInsets.only(right: 6),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: sel
-                              ? Colors.amberAccent.withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.04),
-                          border: Border.all(
-                              color: sel ? Colors.amberAccent : Colors.white12),
-                        ),
-                        child: Text(_categories[i],
-                            style: GoogleFonts.outfit(
-                                color:
-                                    sel ? Colors.amberAccent : Colors.white38,
-                                fontSize: 11)),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(children: [
-                Expanded(
-                  child: TextField(
-                    controller: _goalCtrl,
-                    style:
-                        GoogleFonts.outfit(color: Colors.white, fontSize: 13),
-                    cursorColor: Colors.amberAccent,
-                    onSubmitted: (_) => _addGoal(),
-                    decoration: InputDecoration(
-                      hintText: 'Add a goal…',
-                      hintStyle: GoogleFonts.outfit(
-                          color: Colors.white30, fontSize: 12),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.04),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                            color: Colors.amberAccent.withValues(alpha: 0.2)),
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _addGoal,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.amberAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.amberAccent.withValues(alpha: 0.4)),
-                    ),
-                    child: const Icon(Icons.add_rounded,
-                        color: Colors.amberAccent, size: 22),
-                  ),
-                ),
-              ]),
-            ]),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Goals list
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.amberAccent))
-                : _goals.isEmpty
-                    ? Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            const Text('🌟', style: TextStyle(fontSize: 48)),
-                            const SizedBox(height: 12),
-                            Text('Set your first goal above!',
-                                style:
-                                    GoogleFonts.outfit(color: Colors.white38)),
-                          ]))
-                    : FadeTransition(
-                        opacity: _fadeCtrl,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                          itemCount: _goals.length,
-                          itemBuilder: (ctx, i) {
-                            final g = _goals[i];
-                            final progress = (g['progress'] as num).toInt();
-                            final done = g['done'] == true;
-                            final catColor =
-                                _catColors[g['category'] as String] ??
-                                    Colors.amberAccent;
-                            return Dismissible(
-                              key: ValueKey(g['id']),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 16),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(14),
-                                    color: Colors.redAccent.withValues(alpha: 0.15)),
-                                child: const Icon(Icons.delete_outline_rounded,
-                                    color: Colors.redAccent),
-                              ),
-                              onDismissed: (_) => _deleteGoal(i),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: done
-                                      ? catColor.withValues(alpha: 0.08)
-                                      : Colors.white.withValues(alpha: 0.04),
-                                  border: Border.all(
-                                    color: done
-                                        ? catColor.withValues(alpha: 0.4)
-                                        : Colors.white.withValues(alpha: 0.08),
-                                  ),
-                                ),
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            color: catColor.withValues(alpha: 0.12),
-                                            border: Border.all(
-                                                color:
-                                                    catColor.withValues(alpha: 0.3)),
-                                          ),
-                                          child: Text(g['category'] as String,
-                                              style: GoogleFonts.outfit(
-                                                  color: catColor,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w700)),
-                                        ),
-                                        const Spacer(),
-                                        if (done)
-                                          const Icon(Icons.check_circle_rounded,
-                                              color: Colors.greenAccent,
-                                              size: 18),
-                                      ]),
-                                      const SizedBox(height: 8),
-                                      Text(g['title'] as String,
-                                          style: GoogleFonts.outfit(
-                                              color: done
-                                                  ? Colors.white70
-                                                  : Colors.white,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w700,
-                                              decoration: done
-                                                  ? TextDecoration.lineThrough
-                                                  : null)),
-                                      const SizedBox(height: 10),
-                                      // Progress slider
-                                      Row(children: [
-                                        Text('$progress%',
-                                            style: GoogleFonts.outfit(
-                                                color: catColor,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700)),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: SliderTheme(
-                                            data: SliderThemeData(
-                                              activeTrackColor:
-                                                  catColor.withValues(alpha: 0.7),
-                                              inactiveTrackColor: Colors.white
-                                                  .withValues(alpha: 0.08),
-                                              thumbColor: catColor,
-                                              overlayColor:
-                                                  catColor.withValues(alpha: 0.1),
-                                              thumbShape:
-                                                  const RoundSliderThumbShape(
-                                                      enabledThumbRadius: 8),
-                                              trackHeight: 4,
-                                            ),
-                                            child: Slider(
-                                              value: progress.toDouble(),
-                                              min: 0,
-                                              max: 100,
-                                              divisions: 10,
-                                              onChanged: (v) =>
-                                                  _updateProgress(i, v.round()),
-                                            ),
-                                          ),
-                                        ),
-                                      ]),
-                                    ]),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-          ),
-        ])),
-      ),
+      backgroundColor: const Color(0xFF0A0A1A),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
+        title: Text('GOALS', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.5)), centerTitle: true),
+      floatingActionButton: FloatingActionButton(onPressed: _addGoal, backgroundColor: Colors.greenAccent, child: const Icon(Icons.add, color: Colors.black)),
+      body: _goals.isEmpty
+        ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Text('🎯', style: TextStyle(fontSize: 48)), const SizedBox(height: 12), Text('No goals yet', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 16))]))
+        : ListView.builder(padding: const EdgeInsets.all(12), itemCount: _goals.length, itemBuilder: (_, i) {
+            final g = _goals[i]; final prog = (g['progress'] as num).toDouble();
+            return Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.2))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [Expanded(child: Text(g['title'], style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700))), Text('${(prog * 100).toInt()}%', style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.w800))]),
+                const SizedBox(height: 10),
+                ClipRRect(borderRadius: BorderRadius.circular(6), child: LinearProgressIndicator(value: prog, minHeight: 8, backgroundColor: Colors.white.withValues(alpha: 0.06), valueColor: AlwaysStoppedAnimation(prog >= 1 ? Colors.amberAccent : Colors.greenAccent))),
+                const SizedBox(height: 8),
+                Row(children: [
+                  _btn('-10%', () { setState(() => _goals[i]['progress'] = (prog - 0.1).clamp(0.0, 1.0)); _save(); }),
+                  const SizedBox(width: 6),
+                  _btn('+10%', () { setState(() => _goals[i]['progress'] = (prog + 0.1).clamp(0.0, 1.0)); _save(); }),
+                  const Spacer(),
+                  GestureDetector(onTap: () { setState(() => _goals.removeAt(i)); _save(); }, child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18)),
+                ]),
+              ]));
+          }),
     );
   }
+
+  Widget _btn(String l, VoidCallback t) => GestureDetector(onTap: t, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)), child: Text(l, style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.w700))));
 }

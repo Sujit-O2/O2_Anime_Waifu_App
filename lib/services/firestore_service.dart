@@ -115,6 +115,19 @@ class FirestoreService {
     }
   }
 
+  /// Delete specific messages by their IDs, then re-save remaining to cloud.
+  Future<void> deleteMessages(
+      List<ChatMessage> allMessages, Set<String> idsToDelete) async {
+    await init();
+    try {
+      final remaining =
+          allMessages.where((m) => !idsToDelete.contains(m.id)).toList();
+      await saveChatHistory(remaining);
+    } catch (e) {
+      debugPrint('deleteMessages: $e');
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // SECRET VAULT (notes + PIN)
   // ─────────────────────────────────────────────────────────────────────────

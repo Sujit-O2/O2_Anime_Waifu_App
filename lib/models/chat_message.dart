@@ -1,5 +1,10 @@
+import 'package:uuid/uuid.dart';
+
 /// Model for chat messages in the conversation
 class ChatMessage {
+  /// Unique ID for deletion/selection tracking
+  final String id;
+
   /// Role: 'user', 'assistant', or 'system'
   final String role;
 
@@ -21,23 +26,31 @@ class ChatMessage {
   /// Optional remote image URL (for AI-generated images via Pollinations etc.)
   final String? imageUrl;
 
+  /// Ghost/thinking placeholder
+  bool isGhost;
+
   /// Create a new chat message
   ChatMessage({
+    String? id,
     required this.role,
     required this.content,
     this.isPinned = false,
+    this.isGhost = false,
     this.reaction,
     this.imagePath,
     this.imageUrl,
     DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+  })  : id = id ?? const Uuid().v4(),
+        timestamp = timestamp ?? DateTime.now();
 
   /// Restore a chat message from stored JSON (preserves timestamp if present)
   factory ChatMessage.fromJson(Map<String, dynamic> map) {
     return ChatMessage(
+      id: map['id'] as String? ?? const Uuid().v4(),
       role: (map['role'] ?? 'user').toString(),
       content: (map['content'] ?? '').toString(),
       isPinned: map['isPinned'] as bool? ?? false,
+      isGhost: map['isGhost'] as bool? ?? false,
       reaction: map['reaction'] as String?,
       imagePath: map['imagePath'] as String?,
       imageUrl: map['imageUrl'] as String?,
@@ -49,10 +62,12 @@ class ChatMessage {
 
   /// Convert to JSON for storage (includes timestamp)
   Map<String, dynamic> toJson() => {
+        "id": id,
         "role": role,
         "content": content,
         "timestamp": timestamp.toIso8601String(),
         "isPinned": isPinned,
+        "isGhost": isGhost,
         if (reaction != null) "reaction": reaction,
         if (imagePath != null) "imagePath": imagePath,
         if (imageUrl != null) "imageUrl": imageUrl,

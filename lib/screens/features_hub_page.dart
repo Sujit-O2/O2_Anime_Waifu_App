@@ -40,6 +40,9 @@ import 'relationship_coach_page.dart';
 import 'dream_interpreter_page.dart';
 import 'ai_art_generator_page.dart';
 import 'manga_translator_page.dart';
+import 'poem_generator_page.dart';
+import 'language_translator_page.dart';
+import 'recipe_recommender_page.dart';
 
 // ── Recommendations ──
 import 'anime_recommender_page.dart';
@@ -59,6 +62,7 @@ import 'shared_bucket_list_page.dart';
 import 'workout_planner_page.dart';
 import 'breathing_page.dart';
 import 'gratitude_journal_page.dart';
+import 'countdown_timer_page.dart';
 
 // ── Anime & Media ──
 import 'manga_section_page.dart';
@@ -80,6 +84,7 @@ import 'friends_page.dart';
 import 'global_quest_board_page.dart';
 import 'pinned_messages_page.dart';
 import 'scheduled_messages_page.dart';
+import 'conversation_summary_page.dart';
 
 // ── Stats & Insights ──
 import 'chat_analytics_page.dart';
@@ -89,9 +94,58 @@ import 'achievements_gallery_page.dart';
 import 'anniversary_page.dart';
 import 'star_map_page.dart';
 import 'relationship_evolution_page.dart';
+import 'memory_timeline_page.dart';
+import 'memory_wall_page.dart';
+import 'memory_book_page.dart';
 
 // ── Settings ──
 import 'waifu_voice_call_screen.dart';
+
+import 'zero_two_facts_page.dart';
+import 'zero_two_calendar_page.dart';
+import 'tarot_reading_page.dart';
+import 'kaomoji_picker_page.dart';
+import 'late_night_mode_page.dart';
+import 'mood_tracker_page.dart';
+import 'mood_tracking_page.dart';
+import 'sleep_mode_page.dart';
+import 'wellness_reminders_page.dart';
+import 'daily_couple_challenge_page.dart';
+import 'word_puzzle_page.dart';
+
+// ── New Mega Features ──
+import 'waifu_xp_level_page.dart';
+import 'waifu_dev_mode_page.dart';
+import 'life_sim_page.dart';
+import 'plugin_system_page.dart';
+import 'dream_mode_page.dart';
+import 'ai_story_game_page.dart';
+import 'user_analytics_dashboard_page.dart';
+import 'chat_share_export_page.dart';
+import 'ai_debug_panel_page.dart';
+import 'second_brain_page.dart';
+import 'reward_system_page.dart';
+import 'focus_mode_page.dart';
+import 'day_recap_page.dart';
+import 'error_memory_page.dart';
+import 'thought_capture_page.dart';
+import 'self_improvement_page.dart';
+import 'digital_clone_page.dart';
+import 'future_sim_page.dart';
+import 'auto_learning_page.dart';
+import 'auto_life_log_page.dart';
+import 'task_executor_page.dart';
+import 'code_reviewer_page.dart';
+import 'knowledge_graph_page.dart';
+import 'time_machine_page.dart';
+import 'workflow_engine_page.dart';
+import 'personal_search_page.dart';
+import 'project_generator_page.dart';
+import 'ai_personality_modes_page.dart';
+import 'background_insights_page.dart';
+import 'memory_stack_page.dart';
+import 'file_intelligence_page.dart';
+import 'voice_emotion_detector_page.dart';
 
 // ─── Hub category model ──────────────────────────────────────────────────────
 class _HubCategory {
@@ -246,6 +300,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Virtual Date', icon: Icons.favorite_outline_rounded, builder: (_) => const VirtualDatePage()),
             _HubItem(label: 'Story Mode', icon: Icons.book_rounded, builder: (_) => const StoryModePage()),
             _HubItem(label: 'Roleplay', icon: Icons.theater_comedy_outlined, builder: (_) => const RoleplayScenarioPage()),
+            _HubItem(label: 'Word Puzzle', icon: Icons.extension_rounded, builder: (_) => const WordPuzzlePage()),
+            _HubItem(label: 'Couple Challenge', icon: Icons.favorite_rounded, builder: (_) => const DailyCoupleChallengePage()),
           ],
         ),
 
@@ -265,6 +321,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Daily Challenge', icon: Icons.flag_rounded, builder: (_) => const DailyChallengePage()),
             _HubItem(label: 'Daily Horoscope', icon: Icons.auto_awesome_rounded, builder: (_) => const DailyHoroscopePage()),
             _HubItem(label: 'Daily Trivia', icon: Icons.lightbulb_outline, builder: (_) => const DailyTriviaPage()),
+            _HubItem(label: 'Late Night Mode', icon: Icons.nights_stay_rounded, builder: (_) => const LateNightModePage()),
           ],
         ),
 
@@ -282,6 +339,9 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Writing Helper', icon: Icons.edit_note_outlined, builder: (_) => const WritingHelperPage()),
             _HubItem(label: 'Relationship Advice', icon: Icons.favorite_border_outlined, builder: (_) => const RelationshipAdvicePage()),
             _HubItem(label: 'Relationship Coach', icon: Icons.psychology_rounded, builder: (_) => const RelationshipCoachPage()),
+            _HubItem(label: 'Poem Generator', icon: Icons.edit_rounded, builder: (_) => const PoemGeneratorPage()),
+            _HubItem(label: 'Translator', icon: Icons.translate_rounded, builder: (_) => const LanguageTranslatorPage()),
+            _HubItem(label: 'Recipe Picks', icon: Icons.restaurant_rounded, builder: (_) => const RecipeRecommenderPage()),
           ],
         ),
 
@@ -314,6 +374,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Pomodoro', icon: Icons.timer_outlined, builder: (_) => const PomodoroPage()),
             _HubItem(label: 'Study Timer', icon: Icons.school_rounded, builder: (_) => const StudyTimerPage()),
             _HubItem(label: 'Bucket List', icon: Icons.checklist_outlined, builder: (_) => const SharedBucketListPage()),
+            _HubItem(label: 'Countdown Timer', icon: Icons.timer_rounded, builder: (_) => const CountdownTimerPage()),
           ],
         ),
 
@@ -327,6 +388,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Breathing', icon: Icons.air_outlined, builder: (_) => const BreathingExercisePage()),
             _HubItem(label: 'Gratitude Journal', icon: Icons.auto_awesome_outlined, builder: (_) => const GratitudeJournalPage()),
             _HubItem(label: 'Workout Planner', icon: Icons.fitness_center_outlined, builder: (_) => const WorkoutPlannerPage()),
+            _HubItem(label: 'Mood Tracker', icon: Icons.mood_rounded, builder: (_) => const MoodTrackerPage()),
+            _HubItem(label: 'Mood Tracking', icon: Icons.insights_rounded, builder: (_) => const MoodTrackingPage()),
+            _HubItem(label: 'Sleep Mode', icon: Icons.bedtime_rounded, builder: (_) => const SleepModePage()),
+            _HubItem(label: 'Wellness Reminders', icon: Icons.spa_rounded, builder: (_) => const WellnessRemindersPage()),
           ],
         ),
 
@@ -366,6 +431,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Global Quests', icon: Icons.explore_outlined, builder: (_) => const GlobalQuestBoardPage()),
             _HubItem(label: 'Pinned Messages', icon: Icons.push_pin_outlined, builder: (_) => const PinnedMessagesPage()),
             _HubItem(label: 'Scheduled Msgs', icon: Icons.schedule_outlined, builder: (_) => const ScheduledMessagesPage()),
+            _HubItem(label: 'Chat Summary', icon: Icons.summarize_rounded, builder: (_) => const ConversationSummaryPage()),
           ],
         ),
 
@@ -384,6 +450,126 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Anniversary', icon: Icons.favorite_outlined, builder: (_) => const AnniversaryPage()),
             _HubItem(label: 'Evolution', icon: Icons.trending_up_rounded, builder: (_) => const RelationshipEvolutionPage()),
             _HubItem(label: 'Voice Call', icon: Icons.phone_rounded, builder: (_) => const WaifuVoiceCallScreen()),
+            _HubItem(label: 'Memory Timeline', icon: Icons.timeline_rounded, builder: (_) => const MemoryTimelinePage()),
+            _HubItem(label: 'Memory Wall', icon: Icons.photo_library_rounded, builder: (_) => const MemoryWallPage()),
+            _HubItem(label: 'Memory Book', icon: Icons.auto_stories_rounded, builder: (_) => const MemoryBookPage()),
+          ],
+        ),
+
+        // ── 🌸 EXTRAS ────────────────────────────────────────────
+        _HubCategory(
+          title: 'Extras',
+          emoji: '🌸',
+          description: 'Fun extras, Zero Two lore, and more',
+          color: const Color(0xFFFF6B9D),
+          items: [
+            _HubItem(label: 'ZT Facts', icon: Icons.auto_awesome_rounded, builder: (_) => const ZeroTwoFactsPage()),
+            _HubItem(label: 'ZT Calendar', icon: Icons.calendar_today_rounded, builder: (_) => const ZeroTwoCalendarPage()),
+            _HubItem(label: 'Tarot Reading', icon: Icons.style_rounded, builder: (_) => const TarotReadingPage()),
+            _HubItem(label: 'Kaomoji', icon: Icons.emoji_emotions_rounded, builder: (_) => const KaomojiPickerPage()),
+          ],
+        ),
+
+        // ── 💻 DEV & CODE ─────────────────────────────────────────
+        _HubCategory(
+          title: 'Dev & Code',
+          emoji: '💻',
+          description: 'Code editor, debugging, and dev tools',
+          color: Colors.cyanAccent,
+          items: [
+            _HubItem(label: 'Dev Mode', icon: Icons.code_rounded, builder: (_) => const WaifuDevModePage()),
+            _HubItem(label: 'Error Memory', icon: Icons.bug_report_rounded, builder: (_) => const ErrorMemoryPage()),
+            _HubItem(label: 'AI Debug Panel', icon: Icons.developer_mode_rounded, builder: (_) => const AiDebugPanelPage()),
+            _HubItem(label: 'Plugin System', icon: Icons.extension_rounded, builder: (_) => const PluginSystemPage()),
+          ],
+        ),
+
+        // ── ⚡ POWER TOOLS ─────────────────────────────────────────
+        _HubCategory(
+          title: 'Power Tools',
+          emoji: '⚡',
+          description: 'Productivity, focus, and life management',
+          color: Colors.amberAccent,
+          items: [
+            _HubItem(label: 'Second Brain', icon: Icons.psychology_alt_rounded, builder: (_) => const SecondBrainPage()),
+            _HubItem(label: 'Focus Mode', icon: Icons.center_focus_strong_rounded, builder: (_) => const FocusModePage()),
+            _HubItem(label: 'Thought Capture', icon: Icons.lightbulb_rounded, builder: (_) => const ThoughtCapturePage()),
+            _HubItem(label: 'Day Recap', icon: Icons.summarize_rounded, builder: (_) => const DayRecapPage()),
+            _HubItem(label: 'Share & Export', icon: Icons.share_rounded, builder: (_) => const ChatShareExportPage()),
+          ],
+        ),
+
+        // ── 🧠 BRAIN & GROWTH ─────────────────────────────────────
+        _HubCategory(
+          title: 'Brain & Growth',
+          emoji: '🧠',
+          description: 'XP, goals, rewards, and self-improvement',
+          color: Colors.deepPurpleAccent,
+          items: [
+            _HubItem(label: 'XP & Level', icon: Icons.stars_rounded, builder: (_) => const WaifuXpLevelPage()),
+            _HubItem(label: 'Rewards', icon: Icons.card_giftcard_rounded, builder: (_) => const RewardSystemPage()),
+            _HubItem(label: 'Goal Tracker', icon: Icons.flag_rounded, builder: (_) => const GoalTrackerPage()),
+            _HubItem(label: 'Self Growth', icon: Icons.trending_up_rounded, builder: (_) => const SelfImprovementPage()),
+            _HubItem(label: 'AI Story Game', icon: Icons.auto_stories_rounded, builder: (_) => const AiStoryGamePage()),
+            _HubItem(label: 'Dream Mode', icon: Icons.nights_stay_rounded, builder: (_) => const DreamModePage()),
+            _HubItem(label: 'Life Sim', icon: Icons.favorite_rounded, builder: (_) => const LifeSimPage()),
+            _HubItem(label: 'Analytics', icon: Icons.insights_rounded, builder: (_) => const UserAnalyticsDashboardPage()),
+          ],
+        ),
+
+        // ── 🧬 AI EVOLUTION ──────────────────────────────────────────
+        _HubCategory(
+          title: 'AI Evolution',
+          emoji: '🧬',
+          description: 'Digital clone, auto-learning & future prediction',
+          color: Colors.tealAccent,
+          items: [
+            _HubItem(label: 'Digital Clone', icon: Icons.person_pin_rounded, builder: (_) => const DigitalClonePage()),
+            _HubItem(label: 'Future You', icon: Icons.rocket_launch_rounded, builder: (_) => const FutureSimPage()),
+            _HubItem(label: 'Auto Learning', icon: Icons.auto_fix_high_rounded, builder: (_) => const AutoLearningPage()),
+            _HubItem(label: 'Life Log', icon: Icons.timeline_rounded, builder: (_) => const AutoLifeLogPage()),
+          ],
+        ),
+
+        // ── ⚡ SYSTEM & AUTOMATION ─────────────────────────────────────
+        _HubCategory(
+          title: 'System & Automation',
+          emoji: '⚡',
+          description: 'Task execution, workflows & project scaffolding',
+          color: Colors.greenAccent,
+          items: [
+            _HubItem(label: 'Task Executor', icon: Icons.terminal_rounded, builder: (_) => const TaskExecutorPage()),
+            _HubItem(label: 'Workflows', icon: Icons.account_tree_rounded, builder: (_) => const WorkflowEnginePage()),
+            _HubItem(label: 'Project Gen', icon: Icons.create_new_folder_rounded, builder: (_) => const ProjectGeneratorPage()),
+            _HubItem(label: 'File Intel', icon: Icons.folder_special_rounded, builder: (_) => const FileIntelligencePage()),
+          ],
+        ),
+
+        // ── 🔍 INTELLIGENCE & SEARCH ──────────────────────────────────
+        _HubCategory(
+          title: 'Intelligence & Search',
+          emoji: '🔍',
+          description: 'Search everything, review code & AI insights',
+          color: Colors.orangeAccent,
+          items: [
+            _HubItem(label: 'Personal Search', icon: Icons.search_rounded, builder: (_) => const PersonalSearchPage()),
+            _HubItem(label: 'Code Reviewer', icon: Icons.rate_review_rounded, builder: (_) => const CodeReviewerPage()),
+            _HubItem(label: 'AI Insights', icon: Icons.auto_awesome_rounded, builder: (_) => const BackgroundInsightsPage()),
+            _HubItem(label: 'AI Modes', icon: Icons.psychology_rounded, builder: (_) => const AiPersonalityModesPage()),
+            _HubItem(label: 'Emotion Detect', icon: Icons.mic_external_on_rounded, builder: (_) => const VoiceEmotionDetectorPage()),
+          ],
+        ),
+
+        // ── 🧠 BRAIN ARCHITECTURE ─────────────────────────────────────
+        _HubCategory(
+          title: 'Brain Architecture',
+          emoji: '🧠',
+          description: 'Memory layers, knowledge graph & time travel',
+          color: Colors.deepPurpleAccent,
+          items: [
+            _HubItem(label: 'Memory Stack', icon: Icons.layers_rounded, builder: (_) => const MemoryStackPage()),
+            _HubItem(label: 'Knowledge Graph', icon: Icons.hub_rounded, builder: (_) => const KnowledgeGraphPage()),
+            _HubItem(label: 'Time Machine', icon: Icons.history_rounded, builder: (_) => const TimeMachinePage()),
           ],
         ),
       ];
@@ -582,62 +768,65 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           ),
 
           // Expandable items grid
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 300),
-            crossFadeState:
-                isOpen ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-              child: Column(children: [
-                Divider(color: cat.color.withValues(alpha: 0.2), height: 1),
-                const SizedBox(height: 12),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemCount: cat.items.length,
-                  itemBuilder: (ctx, j) {
-                    final item = cat.items[j];
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () {
-                        if (item.onTap != null) {
-                          item.onTap!();
-                        } else if (item.builder != null) {
-                          Navigator.push(context, MaterialPageRoute(builder: item.builder!));
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          color: cat.color.withValues(alpha: 0.07),
-                          border: Border.all(
-                              color: cat.color.withValues(alpha: 0.2)),
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isOpen
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                      child: Column(children: [
+                        Divider(color: cat.color.withValues(alpha: 0.2), height: 1),
+                        const SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 1.0,
+                          ),
+                          itemCount: cat.items.length,
+                          itemBuilder: (ctx, j) {
+                            final item = cat.items[j];
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                if (item.onTap != null) {
+                                  item.onTap!();
+                                } else if (item.builder != null) {
+                                  Navigator.push(context, MaterialPageRoute(builder: item.builder!));
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: cat.color.withValues(alpha: 0.07),
+                                  border: Border.all(
+                                      color: cat.color.withValues(alpha: 0.2)),
+                                ),
+                                child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(item.icon, color: cat.color, size: 24),
+                                      const SizedBox(height: 6),
+                                      Text(item.label,
+                                          style: GoogleFonts.outfit(
+                                              color: Colors.white70,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2),
+                                    ]),
+                              ),
+                            );
+                          },
                         ),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(item.icon, color: cat.color, size: 24),
-                              const SizedBox(height: 6),
-                              Text(item.label,
-                                  style: GoogleFonts.outfit(
-                                      color: Colors.white70,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2),
-                            ]),
-                      ),
-                    );
-                  },
-                ),
-              ]),
+                      ]),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
         ],

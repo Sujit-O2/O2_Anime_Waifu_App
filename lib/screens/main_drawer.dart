@@ -250,7 +250,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
               child: Image.asset(
                   'assets/gif/sidebar_bg.gif',
                   fit: BoxFit.cover,
-                  filterQuality: FilterQuality.high,
+                  filterQuality: FilterQuality.low,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink()),
             ),
           ),
@@ -562,41 +562,10 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Scheduled Msgs', Icons.schedule_send_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/scheduled-messages')),
                       ], badge: 'Focus')),
 
-                      // ── 💫 SOCIAL & SHARE ──────────────────────────────────────
-                      _DrawerStaggerItem(index: 8, child: hubAccordion('Social', Icons.people_rounded, Colors.lightBlueAccent, [
-                        drawerTile('Voice Notes', Icons.mic_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/voice-notes'), badge: '🎤'),
-                        drawerTile('Friends', Icons.group_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/friends')),
-                        drawerTile('Watch Party', Icons.live_tv_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/anime-watch-party'), badge: 'LIVE'),
-                        drawerTile('Waifu Tier List', Icons.format_list_numbered_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/waifu-tier-list')),
-                        drawerTile('Global Quests', Icons.public_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/global-quest-board'), badge: '🌍'),
-                        drawerTile('Anime Calendar', Icons.calendar_month_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/anime-calendar')),
-                        drawerTile('Episode Alerts', Icons.notifications_active_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/episode-alerts'), badge: '🔔'),
-                      ], badge: 'Connect')),
 
-                      // ── 📖 MEMORY & JOURNAL ────────────────────────────────────
-                      _DrawerStaggerItem(index: 9, child: hubAccordion('Memory', Icons.auto_stories_rounded, Colors.deepPurpleAccent, [
-                        drawerTile('Memory Book', Icons.photo_album_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/memory-book'), badge: '📸'),
-                        drawerTile('Memory Wall', Icons.dashboard_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/memory-wall')),
-                        drawerTile('Memory Timeline', Icons.timeline_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/memory-timeline')),
-                        drawerTile('Dream Journal', Icons.nightlight_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/dream-journal')),
-                        drawerTile('Gratitude Journal', Icons.favorite_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/gratitude-journal')),
-                        drawerTile('Pinned Messages', Icons.push_pin_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/pinned-messages')),
-                        drawerTile('Data Vault', Icons.lock_rounded, Colors.blueGrey, () => Navigator.pushNamed(context, '/data-vault'), badge: '🔒'),
-                      ], badge: 'Keep')),
-
-                      // ── 🧘 WELLNESS ────────────────────────────────────────────
-                      _DrawerStaggerItem(index: 10, child: hubAccordion('Wellness', Icons.spa_rounded, Colors.tealAccent, [
-                        drawerTile('Breathing', Icons.air_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/breathing')),
-                        drawerTile('Sleep Mode', Icons.bedtime_outlined, Colors.indigoAccent, () => Navigator.pushNamed(context, '/sleep-mode')),
-                        drawerTile('Late Night', Icons.nightlight_round, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/late-night-mode')),
-                        drawerTile('Wellness Tips', Icons.health_and_safety_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/wellness-reminders')),
-                        drawerTile('Daily Horoscope', Icons.auto_awesome_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/daily-horoscope'), badge: '⭐'),
-                        drawerTile('Tarot Reading', Icons.style_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/tarot-reading'), badge: '🔮'),
-                        drawerTile('Star Map', Icons.stars_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/star-map')),
-                      ], badge: 'Zen')),
 
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 11, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
+                      _DrawerStaggerItem(index: 8, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
                         drawerTile('App Settings', Icons.settings_rounded, Colors.white70, () => updateState(() => _navIndex = 3)),
                         drawerTile('Themes', Icons.palette_rounded, Colors.pinkAccent, () => updateState(() => _navIndex = 4)),
                         drawerTile('My Profile', Icons.person_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/profile')),
@@ -609,7 +578,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
 
                       // ── SEE ALL FEATURES BUTTON ─────────────────────────────
                       const SizedBox(height: 16),
-                      _DrawerStaggerItem(index: 7, child: Padding(
+                      _DrawerStaggerItem(index: 9, child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: GestureDetector(
                           onTap: () {

@@ -25,6 +25,8 @@
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 <uses-permission android:name="android.permission.CALL_PHONE" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 <!-- If targeting newer Android versions, you may also request android.permission.POST_NOTIFICATIONS at runtime if you use notifications -->
 
@@ -61,7 +63,7 @@
               />
             <!-- Fix for "Lost connection to device" fatal crash on specific Androids -->
             <meta-data
-              android:name="io.flutter.app.android.EnableImpeller"
+              android:name="io.flutter.embedding.android.EnableImpeller"
               android:value="false"
               />
             <meta-data
@@ -104,6 +106,11 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Fix for "Lost connection" crash: Disable Impeller/Vulkan at application level for Vivo/MTK devices -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+
         <service
             android:name=".AssistantForegroundService"
             android:enabled="true"
@@ -115,9 +122,9 @@
         <!-- CRITICAL: MediaBrowserService intent-filter is required by audio_service 0.18+ -->
 
         <service
-            android:name="com.ryanheise.audioservice.AudioServicePlugin$AudioServiceBinder"
+            android:name="com.ryanheise.audioservice.AudioService"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:foregroundServiceType="mediaPlayback"
             android:stopWithTask="true">
             <intent-filter>

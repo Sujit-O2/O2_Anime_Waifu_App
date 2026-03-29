@@ -165,6 +165,15 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Remove messages by ID from both active and past lists.
+  void deleteMessages(Set<String> idsToDelete) {
+    messages.removeWhere((m) => idsToDelete.contains(m.id));
+    pastMessages.removeWhere((m) => idsToDelete.contains(m.id));
+    pinnedMessages.removeWhere((m) => idsToDelete.contains(m.id));
+    notifyListeners();
+  }
+
+
   void insertPastMessages() {
     if (pastMessages.isNotEmpty) {
       messages.insertAll(0, pastMessages);

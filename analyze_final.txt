@@ -8,6 +8,27 @@
    info - Don't invoke 'print' in production code - dump_hianime_url.dart:29:7 - avoid_print
    info - Don't invoke 'print' in production code - dump_hianime_url.dart:30:7 - avoid_print
    info - Don't invoke 'print' in production code - dump_hianime_url.dart:33:5 - avoid_print
+   info - Use interpolation to compose strings and values - lib\api_call.dart:466:43 - prefer_interpolation_to_compose_strings
+   info - Don't invoke 'print' in production code - lib\load_wakeword_code.dart:238:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\load_wakeword_code.dart:271:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1497:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1503:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1508:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1510:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1512:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1514:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1516:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:1519:9 - avoid_print
+   info - The local variable '_lowerForSelfie' starts with an underscore - lib\main.dart:3104:11 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_hasImageWord' starts with an underscore - lib\main.dart:3106:11 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_hasTriggerWord' starts with an underscore - lib\main.dart:3114:11 - no_leading_underscores_for_local_identifiers
+   info - Don't invoke 'print' in production code - lib\main.dart:4900:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:4901:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:4902:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:4903:19 - avoid_print
+warning - Dead code - lib\main.dart:5539:21 - dead_code
+warning - Dead code - lib\main.dart:5570:19 - dead_code
+warning - Dead code - lib\main.dart:5924:19 - dead_code
    info - Dangling library doc comment - lib\models\anime_models.dart:1:1 - dangling_library_doc_comments
    info - The private field _openings could be 'final' - lib\screens\anime_ost_page.dart:16:29 - prefer_final_fields
    info - The private field _endings could be 'final' - lib\screens\anime_ost_page.dart:17:29 - prefer_final_fields
@@ -17,18 +38,25 @@
    info - Statements in an if should be enclosed in a block - lib\screens\anime_player_page.dart:222:20 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\screens\anime_section_page.dart:872:20 - curly_braces_in_flow_control_structures
    info - Unnecessary use of string interpolation - lib\screens\anime_section_page.dart:901:16 - unnecessary_string_interpolations
-   info - The private field _viewersCount could be 'final' - lib\screens\anime_watch_party_page.dart:29:7 - prefer_final_fields
+   info - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\screens\anime_watch_party_page.dart:2:8 - unnecessary_import
+   info - The private field _viewersCount could be 'final' - lib\screens\anime_watch_party_page.dart:31:7 - prefer_final_fields
    info - Statements in an if should be enclosed in a block - lib\screens\anime_wordle_page.dart:65:50 - curly_braces_in_flow_control_structures
+   info - Unnecessary braces in a string interpolation - lib\screens\auto_life_log_page.dart:44:89 - unnecessary_brace_in_string_interps
    info - Statements in an if should be enclosed in a block - lib\screens\character_database_page.dart:38:22 - curly_braces_in_flow_control_structures
+   info - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\screens\checkin_streak_page.dart:2:8 - unnecessary_import
    info - Statements in an if should be enclosed in a block - lib\screens\downloads_page.dart:27:18 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:401:51 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:402:56 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:403:55 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:404:55 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:405:55 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:406:54 - curly_braces_in_flow_control_structures
-warning - The declaration '_buildComingSoonPage' isn't referenced - lib\screens\main_notifications.dart:261:10 - unused_element
+warning - The value of the field '_pathCtrl' isn't used - lib\screens\file_intelligence_page.dart:17:9 - unused_field
+   info - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\screens\habit_tracker_page.dart:2:8 - unnecessary_import
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:394:51 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:395:56 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:396:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:397:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:398:55 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\main_drawer.dart:399:54 - curly_braces_in_flow_control_structures
+   info - The private field _memories could be 'final' - lib\screens\memory_stack_page.dart:17:43 - prefer_final_fields
    info - Statements in an if should be enclosed in a block - lib\screens\relationship_timeline_page.dart:258:22 - curly_braces_in_flow_control_structures
+   info - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\screens\scheduled_messages_page.dart:2:8 - unnecessary_import
+   info - Unnecessary braces in a string interpolation - lib\screens\self_improvement_page.dart:32:147 - unnecessary_brace_in_string_interps
    info - Statements in an if should be enclosed in a block - lib\screens\watch_history_page.dart:26:18 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\screens\zero_two_diary_page.dart:157:20 - curly_braces_in_flow_control_structures
    info - The 'if' statement could be replaced by a null-aware assignment - lib\services\anime_providers\hianime_provider.dart:106:7 - prefer_conditional_assignment
@@ -41,9 +69,11 @@ warning - The declaration '_buildComingSoonPage' isn't referenced - lib\screens\
    info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:81:26 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:89:27 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\services\attention_focus_system.dart:90:25 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\services\chat_export_service.dart:41:7 - avoid_print
    info - Unnecessary braces in a string interpolation - lib\services\rag_embedding_service.dart:116:43 - unnecessary_brace_in_string_interps
    info - Statements in an if should be enclosed in a block - lib\services\self_initiated_topics.dart:103:30 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\services\self_initiated_topics.dart:104:27 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\stt.dart:171:9 - avoid_print
    info - Missing type annotation - lib\widgets\anime_visual_effects.dart:40:18 - strict_top_level_inference
    info - Don't invoke 'print' in production code - test_amvstrm.dart:5:3 - avoid_print
    info - Don't invoke 'print' in production code - test_amvstrm.dart:13:5 - avoid_print
@@ -176,22 +206,11 @@ warning - The declaration '_buildComingSoonPage' isn't referenced - lib\screens\
    info - Don't invoke 'print' in production code - test_video_real_live.dart:34:5 - avoid_print
    info - Don't invoke 'print' in production code - test_video_real_live.dart:36:5 - avoid_print
 
-flutter : 175 issues 
-found. (ran in 12.7s)
+flutter : 205 issues found. (ran in 5.9s)
 At line:1 char:1
-+ flutter analyze 
---no-pub 2>&1 | 
-Out-File -FilePath 
-analyze_final.txt  ...
-+ ~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~
-    + CategoryInfo     
-         : NotSpecifi  
-  ed: (175 issues fo   
- und. (ran in 12.7s    
-):String) [], Remo    
-teException
-    + FullyQualifiedEr 
-   rorId : NativeComm  
-  andError
++ flutter analyze 2>&1 | Out-File -Encoding utf8 analyze_final.txt
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (205 issues found. (ran in 5.9s):S 
+   tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
  

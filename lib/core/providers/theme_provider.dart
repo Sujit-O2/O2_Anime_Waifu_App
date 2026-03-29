@@ -10,34 +10,23 @@ import 'package:anime_waifu/config/app_themes.dart';
 /// background URLs. Persists choices to SharedPreferences.
 /// ─────────────────────────────────────────────────────────────────────────────
 class ThemeProvider extends ChangeNotifier {
-  static const AppThemeMode defaultThemeMode = AppThemeMode.neonSerpent;
+  static const AppThemeMode defaultThemeMode = AppThemeMode.bloodMoon;
 
   static const Set<AppThemeMode> activeThemeModes = {
-    AppThemeMode.neonSerpent,
-    AppThemeMode.chromaStorm,
-    AppThemeMode.goldenRuler,
-    AppThemeMode.frozenDivine,
-    AppThemeMode.infernoGod,
-    AppThemeMode.shadowBlade,
-    AppThemeMode.pinkChaos,
-    AppThemeMode.abyssWatcher,
-    AppThemeMode.solarFlare,
-    AppThemeMode.demonSlayer,
-    AppThemeMode.midnightSilk,
-    AppThemeMode.obsidianRose,
-    AppThemeMode.onyxEmerald,
-    AppThemeMode.velvetCrown,
-    AppThemeMode.platinumDawn,
-    AppThemeMode.hypergate,
-    AppThemeMode.xenoCore,
-    AppThemeMode.dataStream,
-    AppThemeMode.gravityBend,
-    AppThemeMode.quartzPulse,
-    AppThemeMode.midnightForest,
-    AppThemeMode.volcanicSea,
-    AppThemeMode.stormDesert,
-    AppThemeMode.sakuraNight,
-    AppThemeMode.arcticSoul,
+    AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
+    AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
+    AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
+    AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
+    AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
+    AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
+    AppThemeMode.midnightSilk, AppThemeMode.obsidianRose, AppThemeMode.onyxEmerald,
+    AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
+    AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
+    AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
+    AppThemeMode.midnightForest, AppThemeMode.volcanicSea, AppThemeMode.stormDesert,
+    AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
+    AppThemeMode.amethystDream, AppThemeMode.titaniumFrost, AppThemeMode.sunsetRider,
+    AppThemeMode.midnightRaven, AppThemeMode.electricLime,
   };
 
   AppThemeMode _mode = defaultThemeMode;
@@ -69,13 +58,12 @@ class ThemeProvider extends ChangeNotifier {
 
       final savedTheme =
           AppThemeMode.values[index % AppThemeMode.values.length];
-      final migratedTheme =
-          savedTheme == AppThemeMode.infernoGod ? defaultThemeMode : savedTheme;
-      _mode = activeThemeModes.contains(migratedTheme)
-          ? migratedTheme
+      
+      _mode = activeThemeModes.contains(savedTheme)
+          ? savedTheme
           : defaultThemeMode;
 
-      if (savedTheme == AppThemeMode.infernoGod) {
+      if (!activeThemeModes.contains(savedTheme)) {
         await prefs.setInt(
           'app_theme_index',
           AppThemeMode.values.indexOf(defaultThemeMode),
