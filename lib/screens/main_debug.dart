@@ -39,15 +39,15 @@ extension _MainDebugExtension on _ChatHomePageState {
                   _debugStatusCard(
                     label: 'Wake Word Engine (ONNX)',
                     status: _wakeWordReady
-                            ? 'Ready'
-                            : _wakeInitInProgress
-                                ? 'Initializing...'
-                                : 'Offline',
+                        ? 'Ready'
+                        : _wakeInitInProgress
+                            ? 'Initializing...'
+                            : 'Offline',
                     color: _wakeWordReady
-                            ? Colors.greenAccent
-                            : _wakeInitInProgress
-                                ? Colors.orangeAccent
-                                : Colors.grey,
+                        ? Colors.greenAccent
+                        : _wakeInitInProgress
+                            ? Colors.orangeAccent
+                            : Colors.grey,
                     icon: Icons.hearing,
                     extra:
                         'Enabled: $_wakeWordEnabledByUser | Running: ${_wakeWordService.isRunning}',
@@ -608,8 +608,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                           _sp.devTtsApiKeyOverride = '';
                           _sp.devTtsModelOverride = '';
                           _sp.devWakeKeyOverride = '';
-                          _sp.devMailJetApiOverride = '';
-                          _sp.devMailJetSecOverride = '';
+                          _sp.devBrevoApiKeyOverride = '';
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -644,14 +643,14 @@ extension _MainDebugExtension on _ChatHomePageState {
                           () => MusicPlayerService().playPause()),
                       _debugActionBtn('🖼️ Test Draw', Icons.auto_fix_high,
                           () async {
-                        final url = await ImageGenService.generateImage(
-                                'anime cat girl') ??
-                            'Error: null result';
+                        final imgRes = await ImageGenService.generateImage(
+                            'anime cat girl');
                         if (mounted) {
+                          final msg = imgRes != null
+                              ? '✅ Image generated (${imgRes.bytes.length} bytes)'
+                              : '❌ Generation failed';
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text((url).startsWith('http')
-                                  ? '✅ Image: ${url.substring(0, url.length.clamp(0, 40))}...'
-                                  : '❌ $url'),
+                              content: Text(msg),
                               duration: const Duration(seconds: 3)));
                         }
                       }),
@@ -709,34 +708,110 @@ extension _MainDebugExtension on _ChatHomePageState {
                                   'Preferences: $keys total keys stored in memory')));
                         }
                       }),
-                      _debugActionBtn('⚔️ Boss Battles', Icons.sports_martial_arts_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BossBattlePage()))),
-                      _debugActionBtn('🧩 Anime Wordle', Icons.grid_on_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeWordlePage()))),
-                      _debugActionBtn('🎴 Gacha Cards', Icons.style_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GachaPage()))),
-                      _debugActionBtn('🇯🇵 Manga Translate', Icons.translate_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaTranslatorPage()))),
-                      _debugActionBtn('🎨 AI Art Gen', Icons.brush_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiArtGeneratorPage()))),
-                      _debugActionBtn('🎥 Streamers Hub', Icons.live_tv_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WebStreamersHubPage()))),
-                      _debugActionBtn('📺 Anime Section', Icons.movie_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeSectionPage()))),
-                      _debugActionBtn('📚 Manga Section', Icons.menu_book_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MangaSectionPage()))),
-                      _debugActionBtn('🕸️ HiAnime Web', Icons.language_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime)))),
-                      _debugActionBtn('🎯 Anime Recommender', Icons.recommend_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimeRecommenderPage()))),
-                      _debugActionBtn('🎮 Minigames Hub', Icons.videogame_asset_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamesHubPage()))),
-                      _debugActionBtn('📖 Story Adventure', Icons.auto_stories_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StoryAdventurePage()))),
-                      _debugActionBtn('💖 Virtual Date', Icons.favorite_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VirtualDatePage()))),
-                      _debugActionBtn('👥 Character DB', Icons.recent_actors_rounded,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CharacterDatabasePage(animeId: '1', animeTitle: 'Cowboy Bebop')))),
+                      _debugActionBtn(
+                          '⚔️ Boss Battles',
+                          Icons.sports_martial_arts_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const BossBattlePage()))),
+                      _debugActionBtn(
+                          '🧩 Anime Wordle',
+                          Icons.grid_on_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AnimeWordlePage()))),
+                      _debugActionBtn(
+                          '🎴 Gacha Cards',
+                          Icons.style_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const GachaPage()))),
+                      _debugActionBtn(
+                          '🇯🇵 Manga Translate',
+                          Icons.translate_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MangaTranslatorPage()))),
+                      _debugActionBtn(
+                          '🎨 AI Art Gen',
+                          Icons.brush_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AiArtGeneratorPage()))),
+                      _debugActionBtn(
+                          '🎥 Streamers Hub',
+                          Icons.live_tv_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const WebStreamersHubPage()))),
+                      _debugActionBtn(
+                          '📺 Anime Section',
+                          Icons.movie_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AnimeSectionPage()))),
+                      _debugActionBtn(
+                          '📚 Manga Section',
+                          Icons.menu_book_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const MangaSectionPage()))),
+                      _debugActionBtn(
+                          '🕸️ HiAnime Web',
+                          Icons.language_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const HiAnimeWebviewPage(
+                                      source: AnimeWebSource.hianime)))),
+                      _debugActionBtn(
+                          '🎯 Anime Recommender',
+                          Icons.recommend_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const AnimeRecommenderPage()))),
+                      _debugActionBtn(
+                          '🎮 Minigames Hub',
+                          Icons.videogame_asset_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const GamesHubPage()))),
+                      _debugActionBtn(
+                          '📖 Story Adventure',
+                          Icons.auto_stories_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const StoryAdventurePage()))),
+                      _debugActionBtn(
+                          '💖 Virtual Date',
+                          Icons.favorite_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const VirtualDatePage()))),
+                      _debugActionBtn(
+                          '👥 Character DB',
+                          Icons.recent_actors_rounded,
+                          () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const CharacterDatabasePage(
+                                      animeId: '1',
+                                      animeTitle: 'Cowboy Bebop')))),
                     ],
                   ),
                 ],
