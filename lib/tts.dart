@@ -31,14 +31,7 @@ class TtsService {
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    final voiceKey = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
-    final mainKeys = dotenv.env['API_KEY'] ?? "";
-
-    // Merge all keys into one string
-    if (voiceKey.isNotEmpty && mainKeys.isNotEmpty) {
-      return "$voiceKey,$mainKeys";
-    }
-    return voiceKey.isNotEmpty ? voiceKey : mainKeys;
+    return dotenv.env['API_KEY'] ?? "";
   }
 
   String get _effectiveVoice {

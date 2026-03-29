@@ -589,10 +589,10 @@ class _StreakBadgeState extends State<StreakBadge>
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: isHot
               ? [const Color(0xFFFF6B35), const Color(0xFFFF4FA8)]
-              : [const Color(0xFFFFD700), const Color(0xFFFF9800)]),
+              : [const Color(0xFFFF5252), const Color(0xFFD50000)]),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(
-            color: (isHot ? const Color(0xFFFF4FA8) : const Color(0xFFFFD700))
+            color: (isHot ? const Color(0xFFFF4FA8) : const Color(0xFFFF5252))
                 .withValues(alpha: 0.4),
             blurRadius: 8,
           )],

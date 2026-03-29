@@ -57,4 +57,6 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.28")
     implementation("androidx.cardview:cardview:1.0.0")
+    // ONNX Runtime for on-device Whisper STT + Sentiment Analysis
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
 }

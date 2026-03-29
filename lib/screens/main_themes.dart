@@ -441,56 +441,34 @@ class ThemesPage extends StatelessWidget {
   }
 
   List<_ThemeTier> _buildThemeTiers() => [
-        _ThemeTier(
-            'ULTRA-PREMIUM',
-            [
-              AppThemeMode.neonSerpent,
-              AppThemeMode.chromaStorm,
-              AppThemeMode.goldenRuler,
-              AppThemeMode.frozenDivine,
-              AppThemeMode.infernoGod,
-            ],
-            const Color(0xFFFFD700)),
-        _ThemeTier(
-            'ANIME LEGENDS',
-            [
-              AppThemeMode.shadowBlade,
-              AppThemeMode.pinkChaos,
-              AppThemeMode.abyssWatcher,
-              AppThemeMode.solarFlare,
-              AppThemeMode.demonSlayer,
-            ],
-            const Color(0xFFFF4081)),
-        _ThemeTier(
-            'LUXURY & FASHION',
-            [
-              AppThemeMode.midnightSilk,
-              AppThemeMode.obsidianRose,
-              AppThemeMode.onyxEmerald,
-              AppThemeMode.velvetCrown,
-              AppThemeMode.platinumDawn,
-            ],
-            const Color(0xFFCE93D8)),
-        _ThemeTier(
-            'SCI-FI',
-            [
-              AppThemeMode.hypergate,
-              AppThemeMode.xenoCore,
-              AppThemeMode.dataStream,
-              AppThemeMode.gravityBend,
-              AppThemeMode.quartzPulse,
-            ],
-            const Color(0xFF40C4FF)),
-        _ThemeTier(
-            'NATURE',
-            [
-              AppThemeMode.midnightForest,
-              AppThemeMode.volcanicSea,
-              AppThemeMode.stormDesert,
-              AppThemeMode.sakuraNight,
-              AppThemeMode.arcticSoul,
-            ],
-            const Color(0xFF81C784)),
+        _ThemeTier('ICONIC', [
+          AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
+          AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
+        ], Colors.redAccent),
+        _ThemeTier('ULTRA-PREMIUM', [
+          AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
+          AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
+        ], Colors.cyanAccent),
+        _ThemeTier('ANIME LEGENDS', [
+          AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
+          AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
+        ], Colors.pinkAccent),
+        _ThemeTier('LUXURY', [
+          AppThemeMode.midnightSilk, AppThemeMode.obsidianRose, AppThemeMode.onyxEmerald,
+          AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
+        ], Colors.amber),
+        _ThemeTier('SCI-FI', [
+          AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
+          AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
+        ], Colors.lightBlueAccent),
+        _ThemeTier('NATURE', [
+          AppThemeMode.midnightForest, AppThemeMode.volcanicSea, AppThemeMode.stormDesert,
+          AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
+        ], Colors.greenAccent),
+        _ThemeTier('ETHEREAL', [
+          AppThemeMode.amethystDream, AppThemeMode.titaniumFrost, AppThemeMode.sunsetRider,
+          AppThemeMode.midnightRaven, AppThemeMode.electricLime,
+        ], Colors.purpleAccent),
       ];
 }
 
