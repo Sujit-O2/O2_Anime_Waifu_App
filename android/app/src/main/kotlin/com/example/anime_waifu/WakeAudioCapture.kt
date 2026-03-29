@@ -47,7 +47,7 @@ class WakeAudioCapture(private val context: Context) : EventChannel.StreamHandle
         val bufSize = maxOf(minBuf, CHUNK_SAMPLES * 2) // 2 bytes per 16-bit sample
 
         val recorder = try {
-            AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNEL, ENCODING, bufSize)
+            AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SAMPLE_RATE, CHANNEL, ENCODING, bufSize)
         } catch (e: SecurityException) {
             events.error("SECURITY", "Mic access denied: ${e.message}", null)
             return
