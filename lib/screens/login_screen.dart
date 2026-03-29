@@ -75,6 +75,9 @@ class _LoginScreenState extends State<LoginScreen>
       _errorMessage = null;
     });
     try {
+      // Clear stale credentials first — prevents breakage after Google updates
+      try { await _googleSignIn.signOut(); } catch (_) {}
+
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         // User cancelled the sign-in
@@ -92,8 +95,17 @@ class _LoginScreenState extends State<LoginScreen>
         setState(() => _errorMessage = e.message ?? 'Google sign-in failed.');
       }
     } catch (e) {
+      final msg = e.toString();
+      String userMessage = 'Google sign-in failed. Try again.';
+      if (msg.contains('network_error') || msg.contains('NetworkError')) {
+        userMessage = 'Network error. Check your connection and try again.';
+      } else if (msg.contains('sign_in_canceled') || msg.contains('canceled')) {
+        userMessage = 'Sign-in was cancelled.';
+      } else if (msg.contains('sign_in_failed')) {
+        userMessage = 'Google sign-in failed. Make sure Google Play Services is updated.';
+      }
       if (mounted) {
-        setState(() => _errorMessage = 'Google sign-in failed. Try again.');
+        setState(() => _errorMessage = userMessage);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
