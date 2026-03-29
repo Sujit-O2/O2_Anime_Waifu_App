@@ -34,6 +34,7 @@ import io.flutter.plugin.common.MethodChannel
 import com.ryanheise.audioservice.AudioServiceFragmentActivity
 
 class MainActivity : AudioServiceFragmentActivity() {
+    private lateinit var onnxHelper: OnnxInferenceHelper
     private val channelName = "anime_waifu/assistant_mode"
     private val assistantChannelId = "assistant_mode_channel_silent_v3"
     private val assistantStatusChannelId = "assistant_status_channel_v2"
@@ -278,6 +279,45 @@ class MainActivity : AudioServiceFragmentActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "enterPip" -> result.success(enterPipMode())
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ONNX Emotion/Voice channel
+        onnxHelper = OnnxInferenceHelper(this)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.example.anime_waifu/onnx")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "initOnnx" -> {
+                        val envReady = onnxHelper.initialize()
+                        if (envReady) {
+                            val whisperOk = onnxHelper.loadWhisperModel()
+                            val sentimentOk = onnxHelper.loadSentimentModel()
+                            result.success(whisperOk && sentimentOk)
+                        } else {
+                            result.success(false)
+                        }
+                    }
+                    "analyzeVoice" -> {
+                        // Quick demo block here returning simulated data since we don't have
+                        // active AudioRecord streams hooked up specifically to this channel yet
+                        // In production, this would record 3-5 seconds of 16kHz audio
+                        // pass it into OnnxInferenceHelper.runWhisperInference(),
+                        // and pass that output into runSentimentInference()
+                        
+                        val text = "I love this anime waifu application!"
+                        val sentiment = onnxHelper.detectSentiment(text)
+                        if (sentiment != null) {
+                            val map = mapOf(
+                                "text" to text,
+                                "sentiment" to sentiment.first,
+                                "confidence" to sentiment.second.toDouble()
+                            )
+                            result.success(map)
+                        } else {
+                            result.error("ONNX_ERROR", "Failed to run sentiment model", null)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -934,6 +974,7 @@ class MainActivity : AudioServiceFragmentActivity() {
 
     override fun onDestroy() {
         AssistantOverlayController.hide()
+        if (::onnxHelper.isInitialized) onnxHelper.close()
         super.onDestroy()
     }
 
