@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/offline_ai_service.dart';
 
 /// Groq API
@@ -18,18 +20,11 @@ class ApiService {
   String _apiKeyOverride = "";
   String _modelOverride = "";
   String _urlOverride = "";
-  String _mailJetApiOverride = "";
-  String _mailJetSecOverride = "";
+  String _brevoApiKeyOverride = "";
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    final mainKeys = dotenv.env['API_KEY'] ?? "";
-    final voiceKeys = dotenv.env['GROQ_API_KEY_VOICE'] ?? "";
-
-    if (mainKeys.isNotEmpty && voiceKeys.isNotEmpty) {
-      return "$mainKeys,$voiceKeys";
-    }
-    return mainKeys.isNotEmpty ? mainKeys : voiceKeys;
+    return dotenv.env['API_KEY'] ?? "";
   }
 
   String get _effectiveModel {
@@ -44,26 +39,18 @@ class ApiService {
 
   bool get hasApiKey => _effectiveApiKey.isNotEmpty;
 
-  String get _effectiveMailJetApi {
-    if (_mailJetApiOverride.trim().isNotEmpty) {
-      return _mailJetApiOverride.trim();
+  String get _effectiveBrevoApiKey {
+    if (_brevoApiKeyOverride.trim().isNotEmpty) {
+      return _brevoApiKeyOverride.trim();
     }
-    return dotenv.env['MAIL_JET_API'] ?? "";
-  }
-
-  String get _effectiveMailJetSec {
-    if (_mailJetSecOverride.trim().isNotEmpty) {
-      return _mailJetSecOverride.trim();
-    }
-    return dotenv.env['MAILJET_SEC'] ?? "";
+    return dotenv.env['BREVO_API_KEY'] ?? "";
   }
 
   void configure({
     String? apiKeyOverride,
     String? modelOverride,
     String? urlOverride,
-    String? mailJetApiOverride,
-    String? mailJetSecOverride,
+    String? brevoApiKeyOverride,
   }) {
     if (apiKeyOverride != null) {
       _apiKeyOverride = apiKeyOverride;
@@ -74,11 +61,8 @@ class ApiService {
     if (urlOverride != null) {
       _urlOverride = urlOverride;
     }
-    if (mailJetApiOverride != null) {
-      _mailJetApiOverride = mailJetApiOverride;
-    }
-    if (mailJetSecOverride != null) {
-      _mailJetSecOverride = mailJetSecOverride;
+    if (brevoApiKeyOverride != null) {
+      _brevoApiKeyOverride = brevoApiKeyOverride;
     }
   }
 
@@ -105,8 +89,44 @@ class ApiService {
     }
 
     final now = DateTime.now().toString();
-    final timeContext =
+    String timeContext =
         " [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]";
+
+    // Phase 2: AI Evolution & Intimacy (Personality & Auto-Learning)
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final customPrompt = prefs.getString('ai_personality_prompt');
+      if (customPrompt != null && customPrompt.isNotEmpty) {
+        timeContext += '\n[PERSONALITY OVERRIDE: $customPrompt]';
+      }
+
+      final autoPrefsStr = prefs.getString('auto_learning_prefs');
+      if (autoPrefsStr != null) {
+        final autoPrefs = jsonDecode(autoPrefsStr) as Map<String, dynamic>;
+        final overrides = <String>[];
+        if (((autoPrefs['humor'] as num?) ?? 50) > 75)
+          overrides.add('Use high amounts of humor and jokes.');
+        if (((autoPrefs['humor'] as num?) ?? 50) < 25)
+          overrides.add('Be extremely serious, zero jokes.');
+        if (((autoPrefs['sass'] as num?) ?? 50) > 75)
+          overrides.add('Act highly sarcastic and playfully tease the user.');
+        if (((autoPrefs['techTalk'] as num?) ?? 50) > 75)
+          overrides.add('Use advanced software engineering jargon seamlessly.');
+        if (((autoPrefs['techTalk'] as num?) ?? 50) < 25)
+          overrides.add('Explain things very simply, avoid technical terms.');
+        if (((autoPrefs['formality'] as num?) ?? 50) > 75)
+          overrides.add('Speak formally, like a polite assistant.');
+        if (((autoPrefs['formality'] as num?) ?? 50) < 25)
+          overrides.add('Speak casually with slang and lower-case text.');
+
+        if (overrides.isNotEmpty) {
+          timeContext += '\n[AUTO-LEARNED TRAITS: ${overrides.join(' ')}]';
+        }
+      }
+    } catch (e) {
+      debugPrint('AI Evolution Override Error: $e');
+    }
 
     // Extract the valid user/assistant history
     var historyMessages = messages.where((m) => m['role'] != 'system').toList();
@@ -130,6 +150,11 @@ class ApiService {
         "role": "system",
         "content": timeContext.trim(),
       });
+    }
+
+    // Phase 1: Brain Architecture Auto-Increase
+    if (messages.isNotEmpty && messages.last['role'] == 'user') {
+      _updateBrainArchitecture(messages.last['content'].toString());
     }
 
     final payload = {
@@ -243,21 +268,25 @@ class ApiService {
         }).toList();
         fallbackPayload['messages'] = fallbackMessages;
 
-        final apiKey = keys[(DateTime.now().millisecondsSinceEpoch) % keys.length];
-        final res = await http.post(
-          Uri.parse(_effectiveUrl),
-          headers: {
-            "Authorization": "Bearer $apiKey",
-            "Content-Type": "application/json",
-          },
-          body: jsonEncode(fallbackPayload),
-        ).timeout(_chatTimeout);
+        final apiKey =
+            keys[(DateTime.now().millisecondsSinceEpoch) % keys.length];
+        final res = await http
+            .post(
+              Uri.parse(_effectiveUrl),
+              headers: {
+                "Authorization": "Bearer $apiKey",
+                "Content-Type": "application/json",
+              },
+              body: jsonEncode(fallbackPayload),
+            )
+            .timeout(_chatTimeout);
 
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body) as Map<String, dynamic>;
           final choices = data["choices"];
           if (choices is List && choices.isNotEmpty) {
-            final content = (choices.first["message"]["content"] ?? "").toString().trim();
+            final content =
+                (choices.first["message"]["content"] ?? "").toString().trim();
             if (content.isNotEmpty) {
               debugPrint("Fallback model $fallback succeeded!");
               return content;
@@ -271,24 +300,29 @@ class ApiService {
 
     // --- Offline AI Fallback ---
     // If all models and keys failed, use local fallback
-    debugPrint("All models and keys failed. Triggering Offline AI Mode fallback.");
+    debugPrint(
+        "All models and keys failed. Triggering Offline AI Mode fallback.");
     try {
-      final lastUserMsg = messages.isNotEmpty ? messages.last['content'].toString() : '';
-      return await OfflineAiService.instance.generateLocalResponse(lastUserMsg, 'Normal');
+      final lastUserMsg =
+          messages.isNotEmpty ? messages.last['content'].toString() : '';
+      return await OfflineAiService.instance
+          .generateLocalResponse(lastUserMsg, 'Normal');
     } catch (fallbackErr) {
-      throw Exception("All ${keys.length} API keys failed. Last error: ${errors.last}. Offline fallback also failed: $fallbackErr");
+      throw Exception(
+          "All ${keys.length} API keys failed. Last error: ${errors.last}. Offline fallback also failed: $fallbackErr");
     }
   }
 
+  /// Sends a styled email notification via Brevo API.
+  /// The HTML template is loaded from assets/template/zero_two_email_template.html
+  /// which supports base64 embedded images.
   Future<String> sendMail(String mailId, String body, String head) async {
-    final url = Uri.parse('https://api.mailjet.com/v3.1/send');
-    final secKeyMailjet = _effectiveMailJetSec;
-    final secApiMailjet = _effectiveMailJetApi;
+    final url = Uri.parse('https://api.brevo.com/v3/smtp/email');
+    final brevoKey = _effectiveBrevoApiKey;
 
-    // Validation
-    if (secKeyMailjet.isEmpty || secApiMailjet.isEmpty) {
-      debugPrint("Mail API keys missing (MAIL_JET_API / MAILJET_SEC)");
-      return "Mail API keys missing (MAIL_JET_API / MAILJET_SEC).";
+    if (brevoKey.isEmpty) {
+      debugPrint("Brevo API key missing (BREVO_API_KEY)");
+      return "Brevo API key missing (BREVO_API_KEY).";
     }
 
     final normalizedMail = mailId.trim();
@@ -303,100 +337,40 @@ class ApiService {
     }
 
     try {
-      final basicAuth =
-          'Basic ${base64Encode(utf8.encode("$secApiMailjet:$secKeyMailjet"))}';
-      final htmlTemplate = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { margin: 0; padding: 0; background-color: #0d0d12; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        .wrapper { width: 100%; table-layout: fixed; background-color: #0d0d12; padding-bottom: 40px; }
-        .main { background-color: #16161e; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 0, 87, 0.3); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
-        .header { background: linear-gradient(135deg, #ff0057 0%, #8e2de2 100%); padding: 40px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 4px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .content { padding: 40px 30px; line-height: 1.8; font-size: 16px; color: #d1d1d6; }
-        .content p { margin-bottom: 25px; }
-        .highlight { color: #ff0057; font-weight: bold; }
-        .button-container { text-align: center; margin: 35px 0; }
-        .button { background: #ff0057; color: #ffffff; padding: 16px 35px; text-decoration: none; border-radius: 50px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 0, 87, 0.4); display: inline-block; }
-        .footer { padding: 30px; background-color: #0f0f15; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-        .footer p { margin: 5px 0; font-size: 12px; color: #636366; }
-        .footer a { color: #ff0057; text-decoration: none; font-weight: bold; }
-        .accent-bar { height: 4px; background: linear-gradient(90deg, #ff0057, #8e2de2); }
-    </style>
-</head>
-<body>
-    <center class="wrapper">
-        <div style="height: 40px;"></div>
-        <table class="main" role="presentation">
-            <tr>
-                <td class="header">
-                    <img src="https://tenor.com/en-GB/view/zero-two-gif-16646466052208870880" alt="Zero Two" style="width: 120px; height: auto; border-radius: 50%; border: 4px solid #ffffff; margin-bottom: 20px; box-shadow: 0 0 20px rgba(255, 0, 87, 0.6);">
-                    <h1>DARLING ALERT</h1>
-                </td>
-            </tr>
-            <tr>
-                <td class="accent-bar"></td>
-            </tr>
-            <tr>
-                <td class="content">
-                    <p>Hey there, darling! You have a new message waiting for you:</p>
-                    <div style="background: rgba(255,255,255,0.03); padding: 25px; border-left: 4px solid #ff0057; border-radius: 8px; margin-bottom: 30px; color: #ffffff;">
-                        {{body}}
-                    </div>
-                    <p>I'm always watching over you. Don't keep me waiting too long, okay?</p>
-                    <div class="button-container">
-                        <a href="https://github.com/Sujit-O2" class="button">Open Assistant</a>
-                    </div>
-                    <p style="margin-top: 40px;">Yours always,<br><span class="highlight">Zero Two</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td class="footer">
-                    <p>© 2025 S-002 • Crafted with ❤️</p>
-                    <p><a href="https://github.com/Sujit-O2/O2_Anime_Waifu-Mobile-App">View Project</a> | <a href="#">Preferences</a></p>
-                </td>
-            </tr>
-        </table>
-    </center>
-</body>
-</html>
-""";
-      final htmlFinal = htmlTemplate.replaceAll("{{body}}", body);
+      // Load email template from asset (supports base64 images)
+      final htmlTemplate = await rootBundle.loadString(
+          'assets/template/zero_two_email_template.html');
+      final htmlFinal = htmlTemplate
+          .replaceAll("{{body}}", body)
+          .replaceAll("{{year}}", DateTime.now().year.toString());
 
       final respon = await http
           .post(
             url,
             headers: {
-              "Authorization": basicAuth,
+              'api-key': brevoKey,
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
             body: jsonEncode({
-              "Messages": [
-                {
-                  "From": {
-                    "Email": "zerozerotwoxsujit@gmail.com",
-                    "Name": "Zero Two"
-                  },
-                  "To": [
-                    {"Email": normalizedMail}
-                  ],
-                  "Subject": head,
-                  "HTMLPart": htmlFinal,
-                }
-              ]
+              "sender": {
+                "name": "Zero Two",
+                "email": "zerozerotwoxsujit@gmail.com"
+              },
+              "to": [
+                {"email": normalizedMail}
+              ],
+              "subject": head,
+              "htmlContent": htmlFinal,
             }),
           )
           .timeout(_mailTimeout);
 
-      if (respon.statusCode == 200) {
+      if (respon.statusCode == 201) {
         debugPrint("Mail sent successfully to $normalizedMail");
         return "Mail sent successfully.";
       } else {
-        debugPrint("Mail send failed with status: ${respon.statusCode}");
+        debugPrint("Mail send failed: ${respon.statusCode} ${respon.body}");
         return "Failed to send mail (${respon.statusCode}).";
       }
     } on TimeoutException catch (_) {
@@ -405,6 +379,85 @@ class ApiService {
     } catch (e) {
       debugPrint("Mail send error: $e");
       return "Error sending mail: $e";
+    }
+  }
+
+  /// Auto-feeds user interactions into the Memory Stack & Knowledge Graph
+  Future<void> _updateBrainArchitecture(String userMessage) async {
+    if (userMessage.trim().isEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Update Memory Stack (Short-term)
+      final memData = prefs.getString('memory_stack_data');
+      Map<String, dynamic> memories = {
+        'short': [],
+        'long': [],
+        'emotional': [],
+        'project': []
+      };
+      if (memData != null) {
+        final decoded = jsonDecode(memData) as Map<String, dynamic>;
+        memories['short'] =
+            (decoded['short'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        memories['long'] =
+            (decoded['long'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        memories['emotional'] =
+            (decoded['emotional'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        memories['project'] =
+            (decoded['project'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      }
+
+      List shortMem = memories['short'];
+      shortMem.insert(0, {
+        'text': userMessage.length > 50
+            ? userMessage.substring(0, 50) + '...'
+            : userMessage,
+        'time': DateTime.now().toIso8601String(),
+        'importance': 'low'
+      });
+      if (shortMem.length > 20) shortMem = shortMem.sublist(0, 20);
+      memories['short'] = shortMem;
+      await prefs.setString('memory_stack_data', jsonEncode(memories));
+
+      // 2. Update Knowledge Graph (Pseudo-Extraction)
+      if (userMessage.length > 15) {
+        final graphData = prefs.getString('knowledge_graph_data');
+        List nodes = [];
+        List edges = [];
+
+        if (graphData != null) {
+          final decoded = jsonDecode(graphData);
+          nodes = decoded['nodes'] ?? [];
+          edges = decoded['edges'] ?? [];
+        }
+
+        // Find longest word as dummy entity extraction for graph evolution
+        final words = userMessage.replaceAll(RegExp(r'[^\w\s]'), '').split(' ');
+        words.sort((a, b) => b.length.compareTo(a.length));
+        if (words.isNotEmpty && words.first.length > 4) {
+          final entity = words.first.toLowerCase();
+          final nodeId = 'node_\${DateTime.now().millisecondsSinceEpoch}';
+
+          // Check if entity exists
+          bool exists =
+              nodes.any((n) => n['label'].toString().toLowerCase() == entity);
+          if (!exists) {
+            nodes.add({'id': nodeId, 'label': entity, 'type': 'concept'});
+            edges.add(
+                {'source': 'user', 'target': nodeId, 'label': 'mentioned'});
+
+            // Keep graph visual clean
+            if (nodes.length > 40) nodes.removeAt(1); // Keep 'user' root at 0
+            if (edges.length > 40) edges.removeAt(0);
+
+            await prefs.setString('knowledge_graph_data',
+                jsonEncode({'nodes': nodes, 'edges': edges}));
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Brain Architecture Sync Error: \$e');
     }
   }
 }
