@@ -1,85 +1,87 @@
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
-/// AI Image Generation Service — multi-API fallback approach.
-/// 1. Primary: Pollinations.ai (returns image URL directly, no pre-check needed)
-/// 2. Fallback: waifu.pics (random anime images)
+/// AI Image Generation Service — Multi-provider with fallbacks.
+/// Returns image bytes directly for reliable display.
 class ImageGenService {
   static final _random = Random();
 
-  /// Build a Pollinations URL — the image is generated on-demand when loaded.
-  /// We skip any pre-verification and just give the URL to Image.network().
-  static String _buildPollinationsUrl(String prompt, {int? seed}) {
-    final s = seed ?? _random.nextInt(999999);
+  // ── Provider: Airforce API (Free & Reliable) ────────────
+
+  static const List<String> _models = [
+    'flux-anime',   // Best quality for anime art
+    'flux',         // Strong fallback
+    'any-dark',     // Alternative aesthetic
+  ];
+
+  static String _buildUrl(String prompt, String model, int seed) {
     final encoded = Uri.encodeComponent(prompt);
-    // Use the latest Pollinations endpoint format
-    return 'https://image.pollinations.ai/prompt/$encoded?width=512&height=512&nologo=true&seed=$s';
+    // Note: api.airforce returns raw image bytes directly
+    return 'https://api.airforce/v1/imagine2?model=$model&prompt=$encoded&seed=$seed&size=1:1';
   }
 
-  /// Returns a usable image URL for the given prompt.
-  /// Strategy:
-  /// 1. Try Pollinations — just return the URL without pre-checking (let Image widget load it)
-  ///    BUT verify with a quick GET first. If 401/503, skip to fallback immediately.
-  /// 2. Fallback to waifu.pics (free anime images API)
-  static Future<String?> generateImage(String prompt) async {
-    // ── Attempt 1: Pollinations.ai (direct URL, skip if 401) ──
-    try {
-      final url = _buildPollinationsUrl(prompt);
-      final response = await http.get(Uri.parse(url)).timeout(
-            const Duration(seconds: 60),
-          );
-      if (response.statusCode == 200 && response.bodyBytes.length > 500) {
-        debugPrint('ImageGen: Pollinations success (${response.bodyBytes.length} bytes)');
-        return url;
-      }
-      debugPrint('ImageGen: Pollinations returned ${response.statusCode}');
-    } catch (e) {
-      debugPrint('ImageGen: Pollinations error: $e');
-    }
+  /// Returns image bytes on success, or null on total failure.
+  static Future<ImageGenResult?> generateImage(String prompt) async {
+    final enhancedPrompt =
+        '$prompt, anime art style, high quality, detailed illustration, vibrant colors, masterpiece';
 
-    // ── Attempt 2: waifu.pics — free anime images ──
-    try {
-      final categories = ['waifu', 'neko', 'shinobu', 'megumin'];
-      final cat = categories[_random.nextInt(categories.length)];
-      final response = await http
-          .get(Uri.parse('https://api.waifu.pics/sfw/$cat'))
-          .timeout(const Duration(seconds: 10));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final imageUrl = data['url'] as String?;
-        if (imageUrl != null && imageUrl.isNotEmpty) {
-          debugPrint('ImageGen: waifu.pics success: $imageUrl');
-          return imageUrl;
-        }
-      }
-    } catch (e) {
-      debugPrint('ImageGen: waifu.pics error: $e');
-    }
+    // Try multiple models from Airforce API
+    for (final model in _models) {
+      final seed = _random.nextInt(999999);
+      final url = _buildUrl(enhancedPrompt, model, seed);
+      try {
+        // ignore: avoid_print
+        print('ImageGen: Trying Airforce API model=$model seed=$seed');
+        final response = await http.get(Uri.parse(url)).timeout(
+            const Duration(seconds: 40));
 
-    // ── Attempt 3: nekos.best — another free anime images API ──
-    try {
-      final categories = ['waifu', 'neko', 'kitsune', 'husbando'];
-      final cat = categories[_random.nextInt(categories.length)];
-      final response = await http
-          .get(Uri.parse('https://nekos.best/api/v2/$cat'))
-          .timeout(const Duration(seconds: 10));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final results = data['results'] as List?;
-        if (results != null && results.isNotEmpty) {
-          final imageUrl = results[0]['url'] as String?;
-          if (imageUrl != null && imageUrl.isNotEmpty) {
-            debugPrint('ImageGen: nekos.best success: $imageUrl');
-            return imageUrl;
+        if (response.statusCode == 200 && response.bodyBytes.length > 2000) {
+          final contentType = response.headers['content-type'] ?? '';
+          final isImage = contentType.contains('image') ||
+              _isImageBytes(response.bodyBytes);
+          
+          if (isImage) {
+            // ignore: avoid_print
+            print('ImageGen: ✅ Success with model=$model (${response.bodyBytes.length} bytes)');
+            return ImageGenResult(url: url, bytes: response.bodyBytes);
           }
+          // ignore: avoid_print
+          print('ImageGen: ❌ model=$model returned non-image content ($contentType)');
+        } else {
+          // ignore: avoid_print
+          print('ImageGen: ❌ model=$model returned ${response.statusCode} (${response.bodyBytes.length} bytes)');
         }
+      } catch (e) {
+        // ignore: avoid_print
+        print('ImageGen: ❌ model=$model error: $e');
       }
-    } catch (e) {
-      debugPrint('ImageGen: nekos.best error: $e');
+      // Small cooldown to prevent rate limiting
+      await Future.delayed(const Duration(milliseconds: 1000));
     }
 
+    // ignore: avoid_print
+    print('ImageGen: ❌ ALL AI providers failed');
     return null;
   }
+
+  /// Check if bytes look like an image (PNG, JPEG, WEBP, GIF magic bytes)
+  static bool _isImageBytes(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    // PNG: 89 50 4E 47
+    if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return true;
+    // JPEG: FF D8 FF
+    if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) return true;
+    // WebP: RIFF....WEBP
+    if (bytes.length > 11 && bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[8] == 0x57 && bytes[9] == 0x45) return true;
+    // GIF: GIF8
+    if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) return true;
+    return false;
+  }
+}
+
+class ImageGenResult {
+  final String url;
+  final Uint8List bytes;
+  ImageGenResult({required this.url, required this.bytes});
 }
