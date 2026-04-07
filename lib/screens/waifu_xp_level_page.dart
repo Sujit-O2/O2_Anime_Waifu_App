@@ -81,7 +81,7 @@ class _WaifuXpLevelPageState extends State<WaifuXpLevelPage>
     final quests = QuestsService.instance;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
