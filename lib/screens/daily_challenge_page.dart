@@ -48,6 +48,7 @@ class _DailyChallengePageState extends State<DailyChallengePage> {
 
     final idx = savedIndex ?? (DateTime.now().dayOfYear % _challenges.length);
     if (savedIndex == null) await prefs.setInt(key, idx);
+    if (!mounted) return;
     setState(() {
       _todayChallenge = _challenges[idx];
       _completed = isDone;
@@ -58,12 +59,13 @@ class _DailyChallengePageState extends State<DailyChallengePage> {
     final prefs = await SharedPreferences.getInstance();
     final key = 'challenge_${DateTime.now().year}_${DateTime.now().dayOfYear}_done';
     await prefs.setBool(key, true);
+    if (!mounted) return;
     setState(() => _completed = true);
     if (mounted) {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          backgroundColor: const Color(0xFF1A0D2E),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             const Text('🎉', style: TextStyle(fontSize: 60)),
@@ -92,7 +94,7 @@ class _DailyChallengePageState extends State<DailyChallengePage> {
   Widget build(BuildContext context) {
     final challenge = _todayChallenge;
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0613),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
