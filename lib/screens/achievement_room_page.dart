@@ -65,6 +65,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
 
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _stats = {
         'msg_count': prefs.getInt('flutter.total_message_count') ?? prefs.getInt('total_message_count') ?? 0,
@@ -117,7 +118,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
     final completion = (_unlocked / _achievements.length * 100).round();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0514),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
