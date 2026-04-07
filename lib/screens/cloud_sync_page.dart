@@ -92,6 +92,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
 
       final now = DateTime.now();
       await prefs.setString('last_cloud_sync', now.toIso8601String());
+      if (!mounted) return;
       setState(() => _lastSync = now);
       _snack('✅ All data synced to cloud!');
     } catch (e) {
@@ -124,22 +125,22 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
       final prefs = await SharedPreferences.getInstance();
 
       if (data['dream_journal'] != null) {
-        await prefs.setString('dream_journal', data['dream_journal'] as String);
+        await prefs.setString('dream_journal', data['dream_journal']?.toString() ?? '');
       }
       if (data['notes_pad'] != null) {
-        await prefs.setString('notes_pad', data['notes_pad'] as String);
+        await prefs.setString('notes_pad', data['notes_pad']?.toString() ?? '');
       }
       if (data['habit_tracker'] != null) {
-        await prefs.setString('habit_tracker', data['habit_tracker'] as String);
+        await prefs.setString('habit_tracker', data['habit_tracker']?.toString() ?? '');
       }
       if (data['goal_tracker'] != null) {
-        await prefs.setString('goal_tracker', data['goal_tracker'] as String);
+        await prefs.setString('goal_tracker', data['goal_tracker']?.toString() ?? '');
       }
       if (data['bucket_list'] != null) {
-        await prefs.setString('bucket_list', data['bucket_list'] as String);
+        await prefs.setString('bucket_list', data['bucket_list']?.toString() ?? '');
       }
       if (data['budget_data'] != null) {
-        await prefs.setString('budget_data', data['budget_data'] as String);
+        await prefs.setString('budget_data', data['budget_data']?.toString() ?? '');
       }
 
       final synced = data['syncedAt'] as String?;
@@ -155,7 +156,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Text('Restore from Cloud?',
@@ -195,7 +196,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
