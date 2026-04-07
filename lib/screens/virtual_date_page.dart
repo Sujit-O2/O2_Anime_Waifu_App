@@ -118,6 +118,7 @@ class _VirtualDatePageState extends State<VirtualDatePage>
     final dialogs = scene['dialogs'] as List<String>;
     if (_dialogIndex < dialogs.length - 1) {
       await _fadeCtrl.reverse();
+      if (!mounted) return;
       setState(() => _dialogIndex++);
       _fadeCtrl.forward();
     } else {
@@ -137,7 +138,7 @@ class _VirtualDatePageState extends State<VirtualDatePage>
 
   Widget _buildScenePicker() {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -180,20 +181,20 @@ class _VirtualDatePageState extends State<VirtualDatePage>
                         Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   child: Row(children: [
-                    Text(s['icon'] as String,
+                    Text(s['icon']?.toString() ?? '',
                         style: const TextStyle(fontSize: 36)),
                     const SizedBox(width: 16),
                     Expanded(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(s['name'] as String,
+                        Text(s['name']?.toString() ?? '',
                             style: GoogleFonts.outfit(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        Text(s['desc'] as String,
+                        Text(s['desc']?.toString() ?? '',
                             style: GoogleFonts.outfit(
                                 color: Colors.white54, fontSize: 12)),
                       ],
@@ -245,7 +246,7 @@ class _VirtualDatePageState extends State<VirtualDatePage>
                   onPressed: () => setState(() => _selectedScene = -1),
                 ),
                 const Spacer(),
-                Text(scene['name'] as String,
+                Text(scene['name']?.toString() ?? '',
                     style: GoogleFonts.outfit(
                         color: Colors.white, fontWeight: FontWeight.w700)),
                 const Spacer(),
@@ -268,7 +269,7 @@ class _VirtualDatePageState extends State<VirtualDatePage>
             // Scene emoji
             Expanded(
               child: Center(
-                child: Text(scene['icon'] as String,
+                child: Text(scene['icon']?.toString() ?? '',
                     style: const TextStyle(fontSize: 80)),
               ),
             ),
