@@ -168,7 +168,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF0A0B14),
@@ -206,7 +206,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                       Text(
                           '${_habits.where((h) => (h['completedOn'] as List).contains(_todayKey)).length}/${_habits.length} done today',
                           style: GoogleFonts.outfit(
-                              color: Colors.lightGreenAccent.withValues(alpha: 0.6),
+                              color: Colors.lightGreenAccent
+                                  .withValues(alpha: 0.6),
                               fontSize: 10)),
                     ]),
               ),
@@ -262,7 +263,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                          color: Colors.lightGreenAccent.withValues(alpha: 0.2)),
+                          color:
+                              Colors.lightGreenAccent.withValues(alpha: 0.2)),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -327,7 +329,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: Colors.redAccent.withValues(alpha: 0.15),
+                                  color:
+                                      Colors.redAccent.withValues(alpha: 0.15),
                                 ),
                                 child: const Icon(Icons.delete_outline_rounded,
                                     color: Colors.redAccent),
@@ -350,13 +353,14 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                       color: done
                                           ? Colors.lightGreenAccent
                                               .withValues(alpha: 0.35)
-                                          : Colors.white.withValues(alpha: 0.08),
+                                          : Colors.white
+                                              .withValues(alpha: 0.08),
                                     ),
                                   ),
                                   child: Row(children: [
                                     // Emoji + check
                                     Stack(children: [
-                                      Text(h['emoji'] as String,
+                                      Text(h['emoji']?.toString() ?? '',
                                           style: const TextStyle(fontSize: 28)),
                                       if (done)
                                         Positioned(
@@ -382,7 +386,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(h['name'] as String,
+                                            Text(h['name']?.toString() ?? '',
                                                 style: GoogleFonts.outfit(
                                                     color: done
                                                         ? Colors.white
@@ -410,7 +414,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                         color: done
                                             ? Colors.lightGreenAccent
                                                 .withValues(alpha: 0.15)
-                                            : Colors.white.withValues(alpha: 0.05),
+                                            : Colors.white
+                                                .withValues(alpha: 0.05),
                                         border: Border.all(
                                           color: done
                                               ? Colors.lightGreenAccent
