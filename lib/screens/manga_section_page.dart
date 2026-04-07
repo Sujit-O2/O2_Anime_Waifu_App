@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/manga_service.dart';
@@ -224,7 +225,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Container(
@@ -533,14 +534,14 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                   child: Container(
                     color: Colors.white.withValues(alpha: 0.05),
                     child: coverUrl != null
-                        ? Image.network(
-                            coverUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: coverUrl,
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: double.infinity,
-                            errorBuilder: (_, __, ___) => _coverPlaceholder(manga.title),
-                            loadingBuilder: (_, child, progress) =>
-                                progress == null ? child : _shimmer(),
+                            memCacheWidth: 200,
+                            placeholder: (_, __) => _shimmer(),
+                            errorWidget: (_, __, ___) => _coverPlaceholder(manga.title),
                           )
                         : _coverPlaceholder(manga.title),
                   ),
