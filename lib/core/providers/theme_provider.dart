@@ -3,30 +3,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/config/app_themes.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// ThemeProvider
+/// ThemeProvider — 10 Premium Themes
 ///
-/// Replaces the global ValueNotifier-based theme management with a proper
-/// ChangeNotifier. Manages theme mode, accent color overrides, and custom
-/// background URLs. Persists choices to SharedPreferences.
+/// Manages theme mode, accent color overrides, and custom background URLs.
+/// Persists choices to SharedPreferences.
 /// ─────────────────────────────────────────────────────────────────────────────
 class ThemeProvider extends ChangeNotifier {
-  static const AppThemeMode defaultThemeMode = AppThemeMode.bloodMoon;
+  static const AppThemeMode defaultThemeMode = AppThemeMode.zeroTwo;
 
+  /// The 10 active premium themes shown in the picker.
   static const Set<AppThemeMode> activeThemeModes = {
-    AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
-    AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
-    AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
-    AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
-    AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
-    AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
-    AppThemeMode.midnightSilk, AppThemeMode.obsidianRose, AppThemeMode.onyxEmerald,
-    AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
-    AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
-    AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
-    AppThemeMode.midnightForest, AppThemeMode.volcanicSea, AppThemeMode.stormDesert,
-    AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
-    AppThemeMode.amethystDream, AppThemeMode.titaniumFrost, AppThemeMode.sunsetRider,
-    AppThemeMode.midnightRaven, AppThemeMode.electricLime,
+    AppThemeMode.zeroTwo,
+    AppThemeMode.cyberPhantom,
+    AppThemeMode.velvetNoir,
+    AppThemeMode.toxicVenom,
+    AppThemeMode.astralDream,
+    AppThemeMode.infernoCore,
+    AppThemeMode.arcticBlade,
+    AppThemeMode.goldenEmperor,
+    AppThemeMode.phantomViolet,
+    AppThemeMode.oceanAbyss,
   };
 
   AppThemeMode _mode = defaultThemeMode;
@@ -58,7 +54,8 @@ class ThemeProvider extends ChangeNotifier {
 
       final savedTheme =
           AppThemeMode.values[index % AppThemeMode.values.length];
-      
+
+      // If saved theme is an active theme, use it; otherwise use default.
       _mode = activeThemeModes.contains(savedTheme)
           ? savedTheme
           : defaultThemeMode;
