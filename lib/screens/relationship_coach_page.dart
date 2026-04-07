@@ -84,7 +84,7 @@ class _RelationshipCoachPageState extends State<RelationshipCoachPage> with Sing
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07050F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       body: SafeArea(child: Column(children: [
         Padding(
