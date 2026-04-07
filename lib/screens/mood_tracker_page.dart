@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -7,8 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/waifu_background.dart';
 
-/// Mood Tracker — saves mood entries to Firestore + local cache
-/// Firestore: mood/{uid} → { entries: "[{...}]", updatedAt: Timestamp }
+/// Mood Tracker � saves mood entries to Firestore + local cache
+/// Firestore: mood/{uid} ? { entries: "[{...}]", updatedAt: Timestamp }
 class MoodTrackerPage extends StatefulWidget {
   const MoodTrackerPage({super.key});
   @override
@@ -26,12 +26,12 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
   late AnimationController _fadeCtrl;
 
   static const _moods = [
-    {'emoji': '😄', 'label': 'Happy', 'color': 0xFF4CAF50},
-    {'emoji': '😊', 'label': 'Good', 'color': 0xFF8BC34A},
-    {'emoji': '😐', 'label': 'Meh', 'color': 0xFFFFEB3B},
-    {'emoji': '😢', 'label': 'Sad', 'color': 0xFF2196F3},
-    {'emoji': '😠', 'label': 'Angry', 'color': 0xFFF44336},
-    {'emoji': '😴', 'label': 'Tired', 'color': 0xFF9C27B0},
+    {'emoji': '??', 'label': 'Happy', 'color': 0xFF4CAF50},
+    {'emoji': '??', 'label': 'Good', 'color': 0xFF8BC34A},
+    {'emoji': '??', 'label': 'Meh', 'color': 0xFFFFEB3B},
+    {'emoji': '??', 'label': 'Sad', 'color': 0xFF2196F3},
+    {'emoji': '??', 'label': 'Angry', 'color': 0xFFF44336},
+    {'emoji': '??', 'label': 'Tired', 'color': 0xFF9C27B0},
   ];
 
   String? get _uid => _auth.currentUser?.uid;
@@ -118,7 +118,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
         });
       } catch (_) {}
     }
-    _snack('Mood saved~ 💕');
+    _snack('Mood saved~ ??');
   }
 
   Future<void> _deleteEntry(int idx) async {
@@ -164,7 +164,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF0A0B14),
@@ -252,10 +252,10 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(_moods[i]['emoji'] as String,
+                            Text(_moods[i]['emoji']?.toString() ?? '',
                                 style: const TextStyle(fontSize: 22)),
                             const SizedBox(height: 2),
-                            Text(_moods[i]['label'] as String,
+                            Text(_moods[i]['label']?.toString() ?? '',
                                 style: GoogleFonts.outfit(
                                     color: sel
                                         ? Color(_moods[i]['color'] as int)
@@ -273,7 +273,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                 style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
                 cursorColor: Colors.greenAccent,
                 decoration: InputDecoration(
-                  hintText: 'Add a note… (optional)',
+                  hintText: 'Add a note� (optional)',
                   hintStyle:
                       GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                   filled: true,
@@ -363,7 +363,7 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                                       color: Colors.white.withValues(alpha: 0.07)),
                                 ),
                                 child: Row(children: [
-                                  Text(e['emoji'] as String,
+                                  Text(e['emoji']?.toString() ?? '😐',
                                       style: const TextStyle(fontSize: 28)),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -371,13 +371,13 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(e['label'] as String,
+                                          Text(e['label']?.toString() ?? 'Unknown',
                                               style: GoogleFonts.outfit(
                                                   color: Colors.white,
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w700)),
-                                          if ((e['note'] as String).isNotEmpty)
-                                            Text(e['note'] as String,
+                                          if ((e['note']?.toString() ?? '').isNotEmpty)
+                                            Text(e['note'].toString(),
                                                 style: GoogleFonts.outfit(
                                                     color: Colors.white54,
                                                     fontSize: 12),
