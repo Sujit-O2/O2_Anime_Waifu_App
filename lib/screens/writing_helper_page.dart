@@ -58,6 +58,7 @@ class _WritingHelperPageState extends State<WritingHelperPage> {
       final reply = await ApiService().sendConversation([
         {'role': 'user', 'content': prompt}
       ]);
+      if (!mounted) return;
       setState(() => _result = reply);
       AffectionService.instance.addPoints(3);
     } catch (_) {
@@ -69,7 +70,7 @@ class _WritingHelperPageState extends State<WritingHelperPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: const Color(0xFF0D0D1A),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
