@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -76,7 +77,7 @@ class _AnimeOstPageState extends State<AnimeOstPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -149,7 +150,7 @@ class _AnimeOstPageState extends State<AnimeOstPage> {
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: cover.isNotEmpty
-              ? Image.network(cover, width: 50, height: 70, fit: BoxFit.cover)
+              ? AppCachedImage(url: cover, width: 50, height: 70)
               : Container(width: 50, height: 70, color: Colors.grey.shade900),
           ),
           title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
