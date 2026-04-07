@@ -46,8 +46,8 @@ class _DreamInterpreterPageState extends State<DreamInterpreterPage>
       if (mounted) {
         setState(() {
           _history = snap.docs.map((d) => <String, String>{
-            'dream': d['dream'] as String,
-            'interpretation': d['interpretation'] as String,
+            'dream': d['dream']?.toString() ?? '',
+            'interpretation': d['interpretation']?.toString() ?? '',
           }).toList();
         });
       }
@@ -68,6 +68,7 @@ class _DreamInterpreterPageState extends State<DreamInterpreterPage>
       await FirebaseFirestore.instance
           .collection('users').doc(_uid).collection('dreamInterpretations')
           .add({...entry, 'ts': FieldValue.serverTimestamp()});
+      if (!mounted) return;
       setState(() {
         _history.insert(0, entry);
         _ctrl.clear();
@@ -82,7 +83,7 @@ class _DreamInterpreterPageState extends State<DreamInterpreterPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060312),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(children: [
         // Animated starfield
         AnimatedBuilder(
