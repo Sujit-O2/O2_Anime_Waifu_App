@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -13,14 +13,14 @@ class SpinnerWheelPage extends StatefulWidget {
 class _SpinnerWheelPageState extends State<SpinnerWheelPage>
     with SingleTickerProviderStateMixin {
   final List<String> _options = [
-    'Zero Two 💕',
-    'Hiro 🌹',
-    'Ichigo ❄️',
-    'Goro 💪',
-    'Miku 🌊',
-    'Zorome ⚡',
-    'Kokoro 🌸',
-    'Futoshi 🌟',
+    'Zero Two ??',
+    'Hiro ??',
+    'Ichigo ??',
+    'Goro ??',
+    'Miku ??',
+    'Zorome ?',
+    'Kokoro ??',
+    'Futoshi ??',
   ];
   final _textCtrl = TextEditingController();
   late AnimationController _spinCtrl;
@@ -105,7 +105,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF0A0714),
@@ -191,7 +191,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                 ),
                 child:
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text('🎯', style: TextStyle(fontSize: 22)),
+                  const Text('??', style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 12),
                   Text(_result!,
                       style: GoogleFonts.outfit(
@@ -218,7 +218,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                       borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: Text(_spinning ? 'Spinning…' : 'SPIN!',
+                child: Text(_spinning ? 'Spinning�' : 'SPIN!',
                     style: GoogleFonts.outfit(
                         fontSize: 16, fontWeight: FontWeight.w900)),
               ),
@@ -239,7 +239,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
                           GoogleFonts.outfit(color: Colors.white, fontSize: 13),
                       cursorColor: Colors.pinkAccent,
                       decoration: InputDecoration(
-                        hintText: 'Add option…',
+                        hintText: 'Add option�',
                         hintStyle: GoogleFonts.outfit(
                             color: Colors.white30, fontSize: 12),
                         filled: true,
