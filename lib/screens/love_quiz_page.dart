@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -76,16 +76,16 @@ class _LoveQuizPageState extends State<LoveQuizPage>
   String get _resultTitle {
     if (_questions.isEmpty) return '';
     final pct = _score / _questions.length;
-    if (pct >= 0.9) return 'Perfect Darling! 💕';
-    if (pct >= 0.7) return 'Great Match! 🌸';
-    if (pct >= 0.5) return 'Getting There~ ✨';
-    return 'Keep Trying, Darling! 💫';
+    if (pct >= 0.9) return 'Perfect Darling! ??';
+    if (pct >= 0.7) return 'Great Match! ??';
+    if (pct >= 0.5) return 'Getting There~ ?';
+    return 'Keep Trying, Darling! ??';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10, tint: const Color(0xFF0B0714),
         child: SafeArea(child: Column(children: [
@@ -119,7 +119,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
               ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   CircularProgressIndicator(color: Colors.pinkAccent),
                   SizedBox(height: 16),
-                  Text('Generating love quiz with AI…', style: TextStyle(color: Colors.white54)),
+                  Text('Generating love quiz with AI�', style: TextStyle(color: Colors.white54)),
                 ]))
               : _questions.isEmpty
                   ? Center(child: Text('Could not load quiz.', style: GoogleFonts.outfit(color: Colors.white54)))
@@ -200,7 +200,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14),
                     side: BorderSide(color: Colors.pinkAccent.withValues(alpha: 0.4))),
                 elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
-              child: Text(_currentQ < _questions.length - 1 ? 'Next Question →' : 'See Results 💖',
+              child: Text(_currentQ < _questions.length - 1 ? 'Next Question ?' : 'See Results ??',
                   style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
             )),
         ),
@@ -212,7 +212,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
     return Center(child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(_score >= _questions.length * 0.7 ? '💕' : '💫', style: const TextStyle(fontSize: 72)),
+        Text(_score >= _questions.length * 0.7 ? '??' : '??', style: const TextStyle(fontSize: 72)),
         const SizedBox(height: 20),
         Text(_resultTitle, style: GoogleFonts.outfit(
             color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
@@ -220,7 +220,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
         Text('$_score / ${_questions.length} correct',
             style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 16)),
         const SizedBox(height: 8),
-        Text('You got $_score hearts from Zero Two~ 💗',
+        Text('You got $_score hearts from Zero Two~ ??',
             style: GoogleFonts.outfit(color: Colors.white54, fontSize: 14), textAlign: TextAlign.center),
         const SizedBox(height: 32),
         ElevatedButton(
