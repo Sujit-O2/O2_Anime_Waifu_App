@@ -120,7 +120,7 @@ class _RelationshipLevelMapPageState extends State<RelationshipLevelMapPage> {
         : (points - current.minPoints) / (next.minPoints - current.minPoints);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
