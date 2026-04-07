@@ -11,9 +11,9 @@ class AiDebugPanelPage extends StatelessWidget {
     final life = SimulatedLifeLoop.instance;
     final pe = PersonalityEngine.instance;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A), elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.greenAccent), onPressed: () => Navigator.pop(context)),
         title: Text('AI DEBUG PANEL', style: GoogleFonts.sourceCodePro(color: Colors.greenAccent, fontWeight: FontWeight.w700, fontSize: 14)),
         centerTitle: true,
