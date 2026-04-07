@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/mal_sync_service.dart';
+import '../widgets/app_cached_image.dart';
 
 /// MAL Sync settings page — configure MAL API key, login, view synced list.
 class MalSyncPage extends StatefulWidget {
@@ -60,7 +61,7 @@ class MalSyncPage extends StatefulWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('🎭 MAL Sync',
@@ -140,7 +141,7 @@ class MalSyncPage extends StatefulWidget {
                   icon: const Icon(Icons.download),
                   label: const Text('Fetch MyAnimeList'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E51A2),
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12))),
@@ -174,14 +175,7 @@ class MalSyncPage extends StatefulWidget {
                     tileColor: Colors.white.withValues(alpha: 0.04),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: entry.coverUrl.isNotEmpty
-                        ? Image.network(entry.coverUrl, width: 42, height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => Container(width: 42, height: 60, color: Colors.grey.shade900))
-                        : Container(width: 42, height: 60, color: Colors.grey.shade900),
-                    ),
+                    leading: AppCachedImage(url: entry.coverUrl, width: 42, height: 60),
                     title: Text(entry.title,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
