@@ -48,7 +48,7 @@ class ChatStatisticsPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0613),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
