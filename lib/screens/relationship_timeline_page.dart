@@ -37,11 +37,11 @@ class _TimelineEvent {
       };
 
   factory _TimelineEvent.fromJson(Map<String, dynamic> j) => _TimelineEvent(
-        id: j['id'] as String,
-        emoji: j['emoji'] as String,
-        title: j['title'] as String,
-        note: j['note'] as String,
-        date: DateTime.parse(j['date'] as String),
+        id: j['id']?.toString() ?? '',
+        emoji: j['emoji']?.toString() ?? '',
+        title: j['title']?.toString() ?? '',
+        note: j['note']?.toString() ?? '',
+        date: DateTime.parse(j['date']?.toString() ?? ''),
         isAuto: j['isAuto'] as bool? ?? false,
       );
 }
@@ -383,7 +383,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setDlg) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('Add Memory',
@@ -525,7 +525,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
