@@ -35,10 +35,10 @@ class _Memory {
       };
 
   factory _Memory.fromJson(Map<String, dynamic> j) => _Memory(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        note: j['note'] as String,
-        date: DateTime.parse(j['date'] as String),
+        id: j['id']?.toString() ?? '',
+        title: j['title']?.toString() ?? '',
+        note: j['note']?.toString() ?? '',
+        date: DateTime.parse(j['date']?.toString() ?? ''),
         imagePath: j['imagePath'] as String?,
       );
 }
@@ -89,7 +89,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(builder: (ctx, setBS) {
@@ -205,7 +205,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -284,7 +284,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
                       showDialog(
                         context: context,
                         builder: (_) => AlertDialog(
-                          backgroundColor: const Color(0xFF1A1A2E),
+                          backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
                           title: Text('Delete?',
                               style: GoogleFonts.outfit(color: Colors.white)),
                           content: Text('Remove "${m.title}"?',
