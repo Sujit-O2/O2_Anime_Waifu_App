@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:anime_waifu/core/providers/chat_provider.dart';
+import 'package:anime_waifu/screens/ar_companion_page.dart';
+import 'package:anime_waifu/screens/geofencing_settings_page.dart';
+import 'package:anime_waifu/screens/memory_vault_page.dart';
+import 'package:anime_waifu/services/manga_service.dart';
 // about_page.dart is a part file — navigated via navIndex, not named routes
 import 'package:anime_waifu/screens/achievement_room_page.dart';
 import 'package:anime_waifu/screens/achievements_gallery_page.dart';
@@ -24,7 +30,7 @@ import 'package:anime_waifu/screens/bucket_list_page.dart';
 import 'package:anime_waifu/screens/budget_tracker_page.dart';
 // character_database_page.dart requires args — use MaterialPageRoute
 import 'package:anime_waifu/screens/chat_analytics_page.dart';
-// chat_statistics_page.dart requires args — use MaterialPageRoute
+import 'package:anime_waifu/screens/chat_statistics_page.dart';
 import 'package:anime_waifu/screens/checkin_streak_page.dart';
 import 'package:anime_waifu/screens/cloud_sync_page.dart';
 import 'package:anime_waifu/screens/commands_page.dart';
@@ -71,7 +77,8 @@ import 'package:anime_waifu/screens/memory_wall_page.dart';
 import 'package:anime_waifu/screens/mini_games_page.dart';
 import 'package:anime_waifu/screens/mood_tracker_page.dart';
 import 'package:anime_waifu/screens/mood_tracking_page.dart';
-// morning_greeting_card.dart requires args — use MaterialPageRoute
+// morning_greeting_card.dart used to require args — now resolved via route map or static call
+import 'package:anime_waifu/screens/morning_greeting_card.dart';
 import 'package:anime_waifu/screens/movie_recommender_page.dart';
 import 'package:anime_waifu/screens/multiple_personas_page.dart';
 import 'package:anime_waifu/screens/music_player_page.dart';
@@ -137,6 +144,44 @@ import 'package:anime_waifu/screens/password_generator_page.dart';
 import 'package:anime_waifu/screens/qr_scanner_page.dart';
 import 'package:anime_waifu/screens/smart_scanner_page.dart';
 import 'package:anime_waifu/debug/wakeword_debug.dart';
+import 'package:anime_waifu/screens/ai_debug_panel_page.dart';
+import 'package:anime_waifu/screens/ai_personality_modes_page.dart';
+import 'package:anime_waifu/screens/ai_story_game_page.dart';
+import 'package:anime_waifu/screens/auto_learning_page.dart';
+import 'package:anime_waifu/screens/auto_life_log_page.dart';
+import 'package:anime_waifu/screens/background_insights_page.dart';
+import 'package:anime_waifu/screens/chat_share_export_page.dart';
+import 'package:anime_waifu/screens/code_reviewer_page.dart';
+import 'package:anime_waifu/screens/day_recap_page.dart';
+import 'package:anime_waifu/screens/digital_clone_page.dart';
+import 'package:anime_waifu/screens/dream_mode_page.dart';
+import 'package:anime_waifu/screens/error_memory_page.dart';
+import 'package:anime_waifu/screens/file_intelligence_page.dart';
+import 'package:anime_waifu/screens/focus_mode_page.dart';
+import 'package:anime_waifu/screens/future_sim_page.dart';
+import 'package:anime_waifu/screens/knowledge_graph_page.dart';
+import 'package:anime_waifu/screens/life_sim_page.dart';
+import 'package:anime_waifu/screens/memory_stack_page.dart';
+import 'package:anime_waifu/screens/personal_search_page.dart';
+import 'package:anime_waifu/screens/plugin_system_page.dart';
+import 'package:anime_waifu/screens/project_generator_page.dart';
+import 'package:anime_waifu/screens/quests_page.dart';
+import 'package:anime_waifu/screens/reward_system_page.dart';
+import 'package:anime_waifu/screens/second_brain_page.dart';
+import 'package:anime_waifu/screens/secret_notes_page.dart';
+import 'package:anime_waifu/screens/self_improvement_page.dart';
+import 'package:anime_waifu/screens/task_executor_page.dart';
+import 'package:anime_waifu/screens/thought_capture_page.dart';
+import 'package:anime_waifu/screens/time_machine_page.dart';
+import 'package:anime_waifu/screens/user_analytics_dashboard_page.dart';
+import 'package:anime_waifu/screens/voice_emotion_detector_page.dart';
+import 'package:anime_waifu/screens/waifu_dev_mode_page.dart';
+import 'package:anime_waifu/screens/waifu_xp_level_page.dart';
+import 'package:anime_waifu/screens/workflow_engine_page.dart';
+import 'package:anime_waifu/screens/gacha_page.dart';
+import 'package:anime_waifu/screens/hianime_webview_page.dart';
+import 'package:anime_waifu/screens/manga_reader_page.dart';
+import 'package:anime_waifu/models/manga_models.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// AppRouter
@@ -288,6 +333,48 @@ class AppRouter {
   static const String qrScanner = '/qr-scanner';
   static const String smartScanner = '/smart-scanner';
 
+  // ── Previously Missing Routes ────────────────────────────────────────────
+  static const String aiDebugPanel = '/ai-debug-panel';
+  static const String aiPersonalityModes = '/ai-personality-modes';
+  static const String aiStoryGame = '/ai-story-game';
+  static const String autoLearning = '/auto-learning';
+  static const String autoLifeLog = '/auto-life-log';
+  static const String backgroundInsights = '/background-insights';
+  static const String chatShareExport = '/chat-share-export';
+  static const String codeReviewer = '/code-reviewer';
+  static const String dayRecap = '/day-recap';
+  static const String digitalClone = '/digital-clone';
+  static const String dreamMode = '/dream-mode';
+  static const String errorMemory = '/error-memory';
+  static const String fileIntelligence = '/file-intelligence';
+  static const String focusMode = '/focus-mode';
+  static const String futureSim = '/future-sim';
+  static const String knowledgeGraph = '/knowledge-graph';
+  static const String lifeSim = '/life-sim';
+  static const String memoryStack = '/memory-stack';
+  static const String personalSearch = '/personal-search';
+  static const String pluginSystem = '/plugin-system';
+  static const String projectGenerator = '/project-generator';
+  static const String quests = '/quests';
+  static const String rewardSystem = '/reward-system';
+  static const String secondBrain = '/second-brain';
+  static const String secretNotes = '/secret-notes';
+  static const String selfImprovement = '/self-improvement';
+  static const String taskExecutor = '/task-executor';
+  static const String thoughtCapture = '/thought-capture';
+  static const String timeMachine = '/time-machine';
+  static const String userAnalyticsDashboard = '/user-analytics-dashboard';
+  static const String voiceEmotionDetector = '/voice-emotion-detector';
+  static const String waifuDevMode = '/waifu-dev-mode';
+  static const String waifuXpLevel = '/waifu-xp-level';
+  static const String workflowEngine = '/workflow-engine';
+  static const String gacha = '/gacha';
+  static const String arCompanion = '/ar-companion';
+  static const String geofencingSettings = '/geofencing-settings';
+  static const String memoryVault = '/memory-vault';
+  static const String hianime = '/hianime';
+  static const String mangaReader = '/manga-reader';
+
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
         wakeDebug: (_) => const WakewordDebugPage(),
@@ -315,7 +402,9 @@ class AppRouter {
         budgetTracker: (_) => const BudgetTrackerPage(),
         // characterDatabase requires args — use MaterialPageRoute directly
         chatAnalytics: (_) => const ChatAnalyticsPage(),
-        // chatStatistics requires args — use MaterialPageRoute directly
+        chatStatistics: (context) => ChatStatisticsPage(
+              messages: context.read<ChatProvider>().messages,
+            ),
         checkinStreak: (_) => const CheckinStreakPage(),
         cloudSync: (_) => const CloudSyncPage(),
         commands: (_) => const CommandsPage(),
@@ -426,5 +515,55 @@ class AppRouter {
         passwordGenerator: (_) => const PasswordGeneratorPage(),
         qrScanner: (_) => const QrScannerPage(),
         smartScanner: (_) => const SmartScannerPage(),
+
+        // ── Previously Missing Feature Routes ──────────────────────────────
+        aiDebugPanel: (_) => const AiDebugPanelPage(),
+        aiPersonalityModes: (_) => const AiPersonalityModesPage(),
+        aiStoryGame: (_) => const AiStoryGamePage(),
+        autoLearning: (_) => const AutoLearningPage(),
+        autoLifeLog: (_) => const AutoLifeLogPage(),
+        backgroundInsights: (_) => const BackgroundInsightsPage(),
+        chatShareExport: (_) => const ChatShareExportPage(),
+        codeReviewer: (_) => const CodeReviewerPage(),
+        dayRecap: (_) => const DayRecapPage(),
+        digitalClone: (_) => const DigitalClonePage(),
+        dreamMode: (_) => const DreamModePage(),
+        errorMemory: (_) => const ErrorMemoryPage(),
+        fileIntelligence: (_) => const FileIntelligencePage(),
+        focusMode: (_) => const FocusModePage(),
+        futureSim: (_) => const FutureSimPage(),
+        knowledgeGraph: (_) => const KnowledgeGraphPage(),
+        lifeSim: (_) => const LifeSimPage(),
+        memoryStack: (_) => const MemoryStackPage(),
+        personalSearch: (_) => const PersonalSearchPage(),
+        pluginSystem: (_) => const PluginSystemPage(),
+        projectGenerator: (_) => const ProjectGeneratorPage(),
+        quests: (_) => const QuestsPage(),
+        rewardSystem: (_) => const RewardSystemPage(),
+        secondBrain: (_) => const SecondBrainPage(),
+        secretNotes: (_) => const SecretNotesPage(),
+        selfImprovement: (_) => const SelfImprovementPage(),
+        taskExecutor: (_) => const TaskExecutorPage(),
+        thoughtCapture: (_) => const ThoughtCapturePage(),
+        timeMachine: (_) => const TimeMachinePage(),
+        userAnalyticsDashboard: (_) => const UserAnalyticsDashboardPage(),
+        voiceEmotionDetector: (_) => const VoiceEmotionDetectorPage(),
+        waifuDevMode: (_) => const WaifuDevModePage(),
+        waifuXpLevel: (_) => const WaifuXpLevelPage(),
+        workflowEngine: (_) => const WorkflowEnginePage(),
+        gacha: (_) => const GachaPage(),
+        arCompanion: (_) => const ArCompanionPage(),
+        geofencingSettings: (_) => const GeofencingSettingsPage(),
+        memoryVault: (_) => const MemoryVaultPage(),
+        AppRouter.hianime: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
+        AppRouter.mangaReader: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          return MangaReaderPage(
+            chapter: args?['chapter'] as ChapterItem,
+            mangaTitle: args?['mangaTitle'] as String? ?? 'Manga',
+          );
+        },
+        // New explicit routes for orphans
+        AppRouter.morningGreetingCard: (_) => MorningGreetingCard(onDismiss: () {}),
       };
 }
