@@ -126,7 +126,7 @@ class _QrScannerPageState extends State<QrScannerPage> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Row(children: [
           GestureDetector(onTap: () { _stopScanner(); Navigator.pop(context); }, child: Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)), child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16))),
@@ -194,12 +194,12 @@ class _QrScannerPageState extends State<QrScannerPage> with SingleTickerProvider
         const SizedBox(height: 18),
         Align(alignment: Alignment.centerLeft, child: Text('SCAN HISTORY', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1))),
         const SizedBox(height: 8),
-        ..._history.take(10).map((h) => GestureDetector(onTap: () { Clipboard.setData(ClipboardData(text: h['data'] as String)); _snack('📋 Copied!', Colors.tealAccent); },
+        ..._history.take(10).map((h) => GestureDetector(onTap: () { Clipboard.setData(ClipboardData(text: h['data']?.toString() ?? '')); _snack('📋 Copied!', Colors.tealAccent); },
           child: Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(10)),
             child: Row(children: [
-              Icon(_typeIcon(h['type'] as String), color: _typeColor(h['type'] as String), size: 16), const SizedBox(width: 10),
-              Expanded(child: Text(h['data'] as String, style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11), overflow: TextOverflow.ellipsis)),
+              Icon(_typeIcon(h['type']?.toString() ?? 'text'), color: _typeColor(h['type']?.toString() ?? 'text'), size: 16), const SizedBox(width: 10),
+              Expanded(child: Text(h['data']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11), overflow: TextOverflow.ellipsis)),
               Text(_timeAgo(h['time'] as int), style: GoogleFonts.outfit(color: Colors.white24, fontSize: 9)),
             ]),
           ),
