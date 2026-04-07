@@ -163,7 +163,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A1A),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
           children: [
             Positioned.fill(
@@ -188,8 +188,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                   toolbarHeight: 214,
                   floating: false,
                   pinned: true,
-                  backgroundColor:
-                      const Color(0xFF0A0A1A).withValues(alpha: 0.82),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.82),
                   elevation: 0,
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -596,7 +595,7 @@ class _SnakeGameState extends State<SnakeGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060D12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -827,7 +826,7 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
   Widget build(BuildContext context) {
     final won = _matches == _emojis.length;
     return Scaffold(
-      backgroundColor: const Color(0xFF110018),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -1058,7 +1057,7 @@ class _TapReactionState extends State<TapReactionPage>
   Widget build(BuildContext context) {
     final avg = _times.isEmpty ? 0 : _totalMs ~/ _times.length;
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0A00),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -1237,7 +1236,7 @@ class _NumberGuesserState extends State<NumberGuesserPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0018),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -1592,7 +1591,7 @@ class _WordleGamePageState extends State<WordleGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A24),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Anime Wordle',
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
@@ -2286,8 +2285,8 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
       final results = data['results'] as List<dynamic>;
       final parsed = <Map<String, dynamic>>[];
       for (final r in results) {
-        final question = Uri.decodeComponent(r['question'] as String);
-        final correct = Uri.decodeComponent(r['correct_answer'] as String);
+        final question = Uri.decodeComponent(r['question']?.toString() ?? '');
+        final correct = Uri.decodeComponent(r['correct_answer']?.toString() ?? '');
         final incorrects = (r['incorrect_answers'] as List<dynamic>)
             .map((e) => Uri.decodeComponent(e as String))
             .toList();
@@ -2392,7 +2391,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A24),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -2550,7 +2549,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
               ],
             ),
             child: Text(
-              q['q'] as String,
+              q['q']?.toString() ?? '',
               style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -2947,7 +2946,7 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -3328,7 +3327,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060D18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
