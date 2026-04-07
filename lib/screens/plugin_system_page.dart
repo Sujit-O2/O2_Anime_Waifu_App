@@ -34,11 +34,16 @@ class _PluginSystemPageState extends State<PluginSystemPage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString('user_plugins');
-    final userPlugins = stored != null
-        ? (jsonDecode(stored) as List).cast<Map<String, dynamic>>()
-        : <Map<String, dynamic>>[];
-    setState(() => _plugins = [..._builtInPlugins, ...userPlugins]);
+    if (!mounted) return;
+    try {
+      final stored = prefs.getString('user_plugins');
+      final userPlugins = stored != null
+          ? (jsonDecode(stored) as List).cast<Map<String, dynamic>>()
+          : <Map<String, dynamic>>[];
+      setState(() => _plugins = [..._builtInPlugins, ...userPlugins]);
+    } catch (_) {
+      setState(() => _plugins = [..._builtInPlugins]);
+    }
   }
 
   Future<void> _save() async {
@@ -56,7 +61,7 @@ class _PluginSystemPageState extends State<PluginSystemPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Add Plugin', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800)),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -109,7 +114,7 @@ class _PluginSystemPageState extends State<PluginSystemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
