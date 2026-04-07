@@ -16,6 +16,9 @@ class _PersonalSearchPageState extends State<PersonalSearchPage> {
   bool _searching = false;
   String _query = '';
 
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
   Future<void> _search(String query) async {
     if (query.trim().isEmpty) { setState(() => _results = []); return; }
     setState(() { _searching = true; _query = query.toLowerCase(); });
@@ -191,7 +194,7 @@ class _PersonalSearchPageState extends State<PersonalSearchPage> {
                             ]),
                             const SizedBox(height: 6),
                             Text(r['title'], style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                            if ((r['preview'] as String).isNotEmpty) ...[
+                            if ((r['preview']?.toString() ?? '').isNotEmpty) ...[
                               const SizedBox(height: 2),
                               Text(r['preview'], style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
                             ],
