@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import '../services/watchlist_service.dart';
 
 /// Watchlist page showing favorited anime and manga in a tabbed grid.
@@ -47,7 +49,7 @@ class _WatchlistPageState extends State<WatchlistPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -123,10 +125,7 @@ class _WatchlistPageState extends State<WatchlistPage>
                     fit: StackFit.expand,
                     children: [
                       item.coverUrl.isNotEmpty
-                        ? Image.network(item.coverUrl, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey.shade900,
-                              child: const Icon(Icons.broken_image, color: Colors.grey)))
+                        ? AppCachedImage(url: item.coverUrl, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                         : Container(color: Colors.grey.shade900,
                             child: const Icon(Icons.image, color: Colors.grey)),
                       Positioned(
