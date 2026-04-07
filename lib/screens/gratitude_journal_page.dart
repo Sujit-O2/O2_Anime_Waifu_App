@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -320,7 +320,7 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                            Text(e['text'] as String,
+                                            Text(e['text']?.toString() ?? '',
                                                 style: GoogleFonts.outfit(
                                                     color: Colors.white,
                                                     fontSize: 13,
