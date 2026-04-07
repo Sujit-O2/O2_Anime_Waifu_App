@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
 import '../services/download_service.dart';
 
 /// Downloads page — shows offline manga chapters and anime episodes.
@@ -39,7 +40,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('📱 Downloads',
@@ -100,8 +101,7 @@ class _DownloadsPageState extends State<DownloadsPage> {
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: item.coverUrl.isNotEmpty
-                          ? Image.network(item.coverUrl, width: 45, height: 60,
-                              fit: BoxFit.cover)
+                          ? AppCachedImage(url: item.coverUrl, width: 45, height: 60)
                           : Container(width: 45, height: 60,
                               color: Colors.grey.shade900),
                       ),
