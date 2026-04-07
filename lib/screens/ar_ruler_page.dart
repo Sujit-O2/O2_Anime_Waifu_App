@@ -88,7 +88,7 @@ class _ArRulerPageState extends State<ArRulerPage> {
   Widget build(BuildContext context) {
     final unitList = _units[_selectedCat];
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Row(children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)), child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16))),
@@ -118,7 +118,7 @@ class _ArRulerPageState extends State<ArRulerPage> {
           Wrap(spacing: 6, runSpacing: 6, children: unitList.asMap().entries.map((e) => GestureDetector(onTap: () { setState(() => _selectedUnit = e.key); _convert(); },
             child: AnimatedContainer(duration: const Duration(milliseconds: 150), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: _selectedUnit == e.key ? Colors.orangeAccent.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.04), border: Border.all(color: _selectedUnit == e.key ? Colors.orangeAccent : Colors.white12)),
-              child: Text(e.value['label'] as String, style: GoogleFonts.outfit(color: _selectedUnit == e.key ? Colors.orangeAccent : Colors.white54, fontSize: 12, fontWeight: FontWeight.w600))))).toList()),
+              child: Text(e.value['label']?.toString() ?? '', style: GoogleFonts.outfit(color: _selectedUnit == e.key ? Colors.orangeAccent : Colors.white54, fontSize: 12, fontWeight: FontWeight.w600))))).toList()),
           const SizedBox(height: 20),
           // Results
           if (_result.isNotEmpty) Container(width: double.infinity, padding: const EdgeInsets.all(18),
