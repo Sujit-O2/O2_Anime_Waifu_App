@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -63,7 +63,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10, tint: const Color(0xFF0B0A10),
         child: SafeArea(child: Column(children: [
@@ -83,8 +83,8 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('TRUTH OR DARE', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                Text(_loading ? 'AI generating cards…'
-                    : '${_truths.length} truths • ${_dares.length} dares 🃏',
+                Text(_loading ? 'AI generating cards�'
+                    : '${_truths.length} truths � ${_dares.length} dares ??',
                     style: GoogleFonts.outfit(color: Colors.purpleAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
             ]),
@@ -94,7 +94,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
             const Column(mainAxisSize: MainAxisSize.min, children: [
               CircularProgressIndicator(color: Colors.purpleAccent),
               SizedBox(height: 16),
-              Text('Generating truth & dare cards with AI…', style: TextStyle(color: Colors.white54)),
+              Text('Generating truth & dare cards with AI�', style: TextStyle(color: Colors.white54)),
             ])
           else if (_card != null)
             Padding(
@@ -122,7 +122,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                           borderRadius: BorderRadius.circular(20),
                           color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withValues(alpha: 0.15),
                           border: Border.all(color: (_isTruth ? Colors.cyanAccent : Colors.redAccent).withValues(alpha: 0.4))),
-                        child: Text(_isTruth ? '💭 TRUTH' : '🔥 DARE',
+                        child: Text(_isTruth ? '?? TRUTH' : '?? DARE',
                             style: GoogleFonts.outfit(
                                 color: _isTruth ? Colors.cyanAccent : Colors.redAccent,
                                 fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
@@ -138,7 +138,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
             )
           else
             Column(children: [
-              const Text('🃏', style: TextStyle(fontSize: 72)),
+              const Text('??', style: TextStyle(fontSize: 72)),
               const SizedBox(height: 12),
               Text('Pick a card to begin!', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 14)),
             ]),
@@ -154,7 +154,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                     color: Colors.cyanAccent.withValues(alpha: 0.1),
                     border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.4))),
                   child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('💭', style: TextStyle(fontSize: 18)),
+                    const Text('??', style: TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),
                     Text('Truth', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.w800)),
                   ]))),
@@ -168,7 +168,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
                     color: Colors.redAccent.withValues(alpha: 0.1),
                     border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4))),
                   child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('🔥', style: TextStyle(fontSize: 18)),
+                    const Text('??', style: TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),
                     Text('Dare', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.w800)),
                   ]))),
