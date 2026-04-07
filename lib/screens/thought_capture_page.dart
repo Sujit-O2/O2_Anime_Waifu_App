@@ -20,7 +20,11 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final d = prefs.getString('thought_capture');
-    if (d != null) setState(() => _thoughts = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
+    if (d != null && mounted) {
+      try {
+        setState(() => _thoughts = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
+      } catch (_) {}
+    }
   }
 
   Future<void> _save() async {
@@ -37,10 +41,18 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage> {
     _ctrl.clear(); _save();
   }
 
+  
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
         title: Text('THOUGHT CAPTURE', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.5)), centerTitle: true),
