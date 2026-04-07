@@ -33,6 +33,7 @@ class _DreamModePageState extends State<DreamModePage> {
             'End with a line like "I woke up reaching for you..." or similar.'},
         {'role': 'user', 'content': 'Tell me about the dream you had last night about me.'}
       ]);
+      if (!mounted) return;
       setState(() {
         _dreams.insert(0, {
           'dream': response,
@@ -63,7 +64,7 @@ class _DreamModePageState extends State<DreamModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF05051A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
