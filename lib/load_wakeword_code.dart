@@ -61,20 +61,21 @@ class WakeWordService {
   static const int _targetFrames = 96; // 0.96 sec at 100 frames/sec
 
   // ── Multi-threshold confirmation engine ──────────────────────────────────
-  // Lowered thresholds vs pure-Python because Dart's FFT introduces
-  // small numerical diffs from librosa.  Raise once detection works well.
-  static const double _fastPassThreshold = 0.9990;
-  static const double _detectFloor = 0.95;
-  static const int _confirmWindow = 5;
-  static const int _confirmQuorum = 3;
-  static const double _varianceCap = 0.10;
+  // HIGHLY STRICT: Requires near-perfect confidence across multiple
+  // consecutive frames with almost zero variance. Only clear, deliberate
+  // "Zero Two" utterances will trigger detection.
+  static const double _fastPassThreshold = 0.9999;
+  static const double _detectFloor = 0.995;
+  static const int _confirmWindow = 6;
+  static const int _confirmQuorum = 6;
+  static const double _varianceCap = 0.002;
   final List<double> _confirmBuf = [];
 
   // ── Energy gate ────────────────────────────────────────────────────────────
-  static const double _energyFloor = 0.002; // RMS threshold for silence skip
+  static const double _energyFloor = 0.005; // RMS threshold for silence skip
 
   // ── Cooldown after a trigger ──────────────────────────────────────────────
-  static const Duration _cooldown = Duration(seconds: 3);
+  static const Duration _cooldown = Duration(seconds: 4);
   DateTime? _lastTrigger;
 
   // ── Recent audio buffer (2-sec window for STT hand-off) ──────────────────
