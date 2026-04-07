@@ -46,7 +46,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
       if (mounted) {
         setState(() {
           _items = snap.docs
-              .map((d) => {'id': d.id, 'text': d['text'] as String, 'done': d['done'] as bool})
+              .map((d) => {'id': d.id, 'text': d['text']?.toString() ?? '', 'done': d['done'] as bool})
               .toList();
           _loading = false;
         });
@@ -74,7 +74,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
     final newDone = !(item['done'] as bool);
     setState(() => _items[i] = {...item, 'done': newDone});
     try {
-      await _col.doc(item['id'] as String).update({'done': newDone});
+      await _col.doc(item['id']?.toString() ?? '').update({'done': newDone});
     } catch (_) {}
   }
 
@@ -82,7 +82,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
     final item = _items[i];
     setState(() => _items.removeAt(i));
     try {
-      await _col.doc(item['id'] as String).delete();
+      await _col.doc(item['id']?.toString() ?? '').delete();
     } catch (_) {}
   }
 
@@ -92,7 +92,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
     final total = _items.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF060B12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -191,7 +191,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
                           final item = _items[i];
                           final isDone = item['done'] as bool;
                           return Dismissible(
-                            key: Key(item['id'] as String),
+                            key: Key(item['id']?.toString() ?? ''),
                             direction: DismissDirection.endToStart,
                             onDismissed: (_) => _delete(i),
                             background: Container(
@@ -235,7 +235,7 @@ class _SharedBucketListPageState extends State<SharedBucketListPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: Text(item['text'] as String,
+                                    child: Text(item['text']?.toString() ?? '',
                                         style: GoogleFonts.outfit(
                                           color: isDone ? Colors.white54 : Colors.white,
                                           fontSize: 14,
