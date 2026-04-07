@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../widgets/app_cached_image.dart';
 
 /// Character Database — view characters and voice actors for any anime.
 /// Uses Jikan API anime/{id}/characters endpoint.
@@ -48,7 +49,7 @@ class _CharacterDatabasePageState extends State<CharacterDatabasePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: Text('Characters — ${widget.animeTitle}',
@@ -110,13 +111,7 @@ class _CharacterTile extends StatelessWidget {
           // Character image
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: charImage.isNotEmpty
-              ? Image.network(charImage, width: 55, height: 75, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 55, height: 75, color: Colors.grey.shade900,
-                    child: const Icon(Icons.person, color: Colors.grey)))
-              : Container(width: 55, height: 75, color: Colors.grey.shade900,
-                  child: const Icon(Icons.person, color: Colors.grey)),
+            child: AppCachedImage(url: charImage, width: 55, height: 75, borderRadius: 10),
           ),
           const SizedBox(width: 12),
 
@@ -161,8 +156,7 @@ class _CharacterTile extends StatelessWidget {
               child: () {
                 final vaImg = jpVA[0]['person']?['images']?['jpg']?['image_url'] ?? '';
                 return vaImg.isNotEmpty
-                  ? Image.network(vaImg, width: 40, height: 55, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink())
+                  ? AppCachedImage(url: vaImg, width: 40, height: 55, fit: BoxFit.cover)
                   : const SizedBox.shrink();
               }(),
             ),
