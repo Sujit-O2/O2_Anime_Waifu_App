@@ -60,8 +60,9 @@ class _ProjectGeneratorPageState extends State<ProjectGeneratorPage> {
   ];
 
   void _generate(Map<String, dynamic> template) async {
-    setState(() { _generating = true; _selectedTemplate = template['name'] as String; });
+    setState(() { _generating = true; _selectedTemplate = template['name']?.toString() ?? ''; });
     await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
     setState(() {
       _generating = false;
       _generated = template;
@@ -71,7 +72,7 @@ class _ProjectGeneratorPageState extends State<ProjectGeneratorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -105,10 +106,10 @@ class _ProjectGeneratorPageState extends State<ProjectGeneratorPage> {
                   border: Border.all(color: (isSelected ? Colors.cyanAccent : Colors.white).withValues(alpha: isSelected ? 0.4 : 0.08)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(t['icon'] as String, style: const TextStyle(fontSize: 22)),
+                  Text(t['icon']?.toString() ?? '', style: const TextStyle(fontSize: 22)),
                   const SizedBox(height: 4),
-                  Text(t['name'] as String, style: GoogleFonts.outfit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-                  Text(t['desc'] as String, style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10)),
+                  Text(t['name']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text(t['desc']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10)),
                 ]),
               ),
             );
@@ -159,10 +160,10 @@ class _ProjectGeneratorPageState extends State<ProjectGeneratorPage> {
                 child: Row(children: [
                   const Text('>', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900)),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(_generated!['cmd'] as String, style: GoogleFonts.firaCode(color: Colors.greenAccent.withValues(alpha: 0.8), fontSize: 11))),
+                  Expanded(child: Text(_generated!['cmd']?.toString() ?? '', style: GoogleFonts.firaCode(color: Colors.greenAccent.withValues(alpha: 0.8), fontSize: 11))),
                   GestureDetector(
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: _generated!['cmd'] as String));
+                      Clipboard.setData(ClipboardData(text: _generated!['cmd']?.toString() ?? ''));
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Copied!', style: GoogleFonts.outfit()), backgroundColor: Colors.greenAccent.withValues(alpha: 0.2)));
                     },
                     child: const Icon(Icons.copy_rounded, size: 16, color: Colors.greenAccent),
