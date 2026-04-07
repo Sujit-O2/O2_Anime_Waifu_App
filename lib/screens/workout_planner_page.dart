@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -56,7 +56,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
   void _showCompletionSnack() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
-        const Text('🎉', style: TextStyle(fontSize: 20)),
+        const Text('??', style: TextStyle(fontSize: 20)),
         const SizedBox(width: 10),
         Expanded(child: Text('Workout complete! +5 XP, Darling~',
             style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600))),
@@ -72,7 +72,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
   Widget build(BuildContext context) {
     final progress = _exercises.isEmpty ? 0.0 : _completed.length / _exercises.length;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10, tint: const Color(0xFF070A0F),
         child: SafeArea(child: Column(children: [
@@ -92,7 +92,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('WORKOUT PLANNER', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                Text(_loading ? 'AI generating your workout…' : 'Zero Two-approved training 💪',
+                Text(_loading ? 'AI generating your workout�' : 'Zero Two-approved training ??',
                     style: GoogleFonts.outfit(color: Colors.redAccent.withValues(alpha: 0.7), fontSize: 10)),
               ])),
               if (_exercises.isNotEmpty) Container(
@@ -126,7 +126,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
               ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent),
                   SizedBox(height: 16),
-                  Text('Generating exercises with AI…', style: TextStyle(color: Colors.white54)),
+                  Text('Generating exercises with AI�', style: TextStyle(color: Colors.white54)),
                 ]))
               : _exercises.isEmpty
                   ? Center(child: Text('No exercises available.', style: GoogleFonts.outfit(color: Colors.white54)))
@@ -176,16 +176,16 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage>
         subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (sets.isNotEmpty || reps.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text('${sets.isNotEmpty ? "Sets: $sets" : ""}${reps.isNotEmpty ? " · Reps: $reps" : ""}',
+            Text('${sets.isNotEmpty ? "Sets: $sets" : ""}${reps.isNotEmpty ? " � Reps: $reps" : ""}',
                 style: GoogleFonts.outfit(color: Colors.redAccent.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.w600)),
           ],
           if (muscle.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text('🎯 $muscle', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
+            Text('?? $muscle', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
           ],
           if (desc.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text('💡 $desc', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
+            Text('?? $desc', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
           ],
         ]),
         trailing: Icon(done ? Icons.star_rounded : Icons.star_border_rounded,
