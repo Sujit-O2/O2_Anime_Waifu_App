@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/offline_ai_service.dart';
+import 'package:anime_waifu/services/long_term_memory_db.dart';
 
 /// Groq API
 class ApiService {
@@ -160,8 +160,24 @@ class ApiService {
     }
 
     // Phase 1: Brain Architecture Auto-Increase
+    String lastUserMsg = '';
     if (messages.isNotEmpty && messages.last['role'] == 'user') {
-      _updateBrainArchitecture(messages.last['content'].toString());
+      lastUserMsg = messages.last['content'].toString();
+      _updateBrainArchitecture(lastUserMsg);
+    }
+
+    // Phase 3: Deep Vector Long-Term Memory Injection
+    if (lastUserMsg.isNotEmpty) {
+      try {
+        final facts = await LongTermMemoryDb.getRelevantContext(lastUserMsg);
+        if (facts.isNotEmpty) {
+           final factStr = '\n[LONG-TERM MEMORY MATCH: ${facts.join(" | ")}]';
+           payloadMessages.first['content'] = payloadMessages.first['content'].toString() + factStr;
+           debugPrint('[MemoryVault] Injected context: $factStr');
+        }
+      } catch (e) {
+        debugPrint('[MemoryVault] Override error: $e');
+      }
     }
 
     final payload = {
@@ -236,6 +252,10 @@ class ApiService {
           }
           final extBody = content.substring(bodyStart + 5).trim();
           return sendMail(mail, extBody, extSub);
+        }
+
+        if (lastUserMsg.isNotEmpty) {
+          unawaited(LongTermMemoryDb.extractAndSave(lastUserMsg, content));
         }
 
         return content; // Return success immediately
