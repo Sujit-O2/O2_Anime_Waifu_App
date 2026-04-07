@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -58,7 +58,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10, tint: const Color(0xFF0A0A14),
         child: SafeArea(child: Column(children: [
@@ -78,7 +78,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('NEVER HAVE I EVER', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                Text(_loading ? 'AI generating prompts…' : 'Card ${_idx + 1} of ${_prompts.length}',
+                Text(_loading ? 'AI generating prompts�' : 'Card ${_idx + 1} of ${_prompts.length}',
                     style: GoogleFonts.outfit(color: Colors.deepOrangeAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
               if (!_loading && _prompts.isNotEmpty) Container(
@@ -97,7 +97,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
               ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   CircularProgressIndicator(color: Colors.deepOrangeAccent),
                   SizedBox(height: 16),
-                  Text('Generating prompts with AI…', style: TextStyle(color: Colors.white54)),
+                  Text('Generating prompts with AI�', style: TextStyle(color: Colors.white54)),
                 ]))
               : _prompts.isEmpty
                   ? Center(child: Text('Could not load prompts.', style: GoogleFonts.outfit(color: Colors.white54)))
@@ -117,7 +117,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                             border: Border.all(color: Colors.deepOrangeAccent.withValues(alpha: 0.25)),
                             boxShadow: [BoxShadow(color: Colors.deepOrangeAccent.withValues(alpha: 0.06), blurRadius: 24, spreadRadius: -4)]),
                           child: Column(children: [
-                            const Text('🎭', style: TextStyle(fontSize: 42)),
+                            const Text('??', style: TextStyle(fontSize: 42)),
                             const SizedBox(height: 20),
                             Text(_prompts[_idx], textAlign: TextAlign.center,
                                 style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, height: 1.6, fontWeight: FontWeight.w600)),
@@ -125,11 +125,11 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                         ),
                         const SizedBox(height: 28),
                         if (!_answered) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          _responseBtn('I have 😳', Colors.pinkAccent, () => _respond(true)),
+                          _responseBtn('I have ??', Colors.pinkAccent, () => _respond(true)),
                           const SizedBox(width: 16),
-                          _responseBtn('I haven\'t 😇', Colors.cyanAccent, () => _respond(false)),
+                          _responseBtn('I haven\'t ??', Colors.cyanAccent, () => _respond(false)),
                         ]) else ...[
-                          Text(_answered ? 'Tap to continue →' : '', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 13)),
+                          Text(_answered ? 'Tap to continue ?' : '', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 13)),
                           const SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: _next,
@@ -141,7 +141,7 @@ class _NeverHaveIEverPageState extends State<NeverHaveIEverPage>
                                   side: BorderSide(color: Colors.deepOrangeAccent.withValues(alpha: 0.4))),
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14)),
-                            child: Text('Next Card →', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
+                            child: Text('Next Card ?', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
                           ),
                         ],
                       ])))),
