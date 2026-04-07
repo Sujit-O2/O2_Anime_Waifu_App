@@ -71,11 +71,13 @@ class _TarotReadingPageState extends State<TarotReadingPage>
     final rng = Random();
     final shuffled = List<_TarotCard>.from(_cards)..shuffle(rng);
     await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
     setState(() {
       _drawn = shuffled.take(3).toList();
     });
     await Future.delayed(const Duration(milliseconds: 400));
     await _flipController.forward(from: 0);
+    if (!mounted) return;
     setState(() {
       _revealed = true;
       _isRevealing = false;
@@ -91,7 +93,7 @@ class _TarotReadingPageState extends State<TarotReadingPage>
             .nextInt(_readings.length)];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF090412),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
