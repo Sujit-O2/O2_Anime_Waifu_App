@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Waifu Tier List Maker — Drag-and-drop builder for tier lists.
+/// Waifu Tier List Maker — Drag-and-drop builder with save/share.
 class WaifuTierListPage extends StatefulWidget {
   const WaifuTierListPage({super.key});
   @override
@@ -10,7 +12,6 @@ class WaifuTierListPage extends StatefulWidget {
 }
 
 class _WaifuTierListPageState extends State<WaifuTierListPage> {
-  // Define tiers
   final List<_TierRow> _tiers = [
     _TierRow('S', const Color(0xFFFF7F7F), []),
     _TierRow('A', const Color(0xFFFFBF7F), []),
@@ -19,38 +20,104 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
     _TierRow('D', const Color(0xFFBFFF7F), []),
   ];
 
-  // Unassigned pool
   final List<_TierItem> _pool = [
-    _TierItem('1', 'Zero Two', 'Darling in the FRANXX', 'assets/icons/classic.png'), // placeholders using text if no image
-    _TierItem('2', 'Rem', 'Re:Zero', ''),
-    _TierItem('3', 'Makima', 'Chainsaw Man', ''),
-    _TierItem('4', 'Miku', 'Vocaloid', ''),
-    _TierItem('5', 'Asuna', 'Sword Art Online', ''),
-    _TierItem('6', 'Marin', 'My Dress-Up Darling', ''),
-    _TierItem('7', 'Yor', 'Spy x Family', ''),
-    _TierItem('8', 'Power', 'Chainsaw Man', ''),
-    _TierItem('9', 'Aqua', 'Konosuba', ''),
-    _TierItem('10', 'Megumin', 'Konosuba', ''),
-    _TierItem('11', 'Emilia', 'Re:Zero', ''),
-    _TierItem('12', 'Nezuko', 'Demon Slayer', ''),
+    _TierItem('1', 'Zero Two', 'Darling in the FRANXX'),
+    _TierItem('2', 'Rem', 'Re:Zero'),
+    _TierItem('3', 'Makima', 'Chainsaw Man'),
+    _TierItem('4', 'Miku', 'Vocaloid'),
+    _TierItem('5', 'Asuna', 'Sword Art Online'),
+    _TierItem('6', 'Marin', 'My Dress-Up Darling'),
+    _TierItem('7', 'Yor', 'Spy x Family'),
+    _TierItem('8', 'Power', 'Chainsaw Man'),
+    _TierItem('9', 'Aqua', 'Konosuba'),
+    _TierItem('10', 'Megumin', 'Konosuba'),
+    _TierItem('11', 'Emilia', 'Re:Zero'),
+    _TierItem('12', 'Nezuko', 'Demon Slayer'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    try {
+      final d = prefs.getString('waifu_tier_list');
+      if (d != null) {
+        final data = jsonDecode(d) as Map<String, dynamic>;
+        // Restore tiers
+        for (int i = 0; i < _tiers.length; i++) {
+          final items = (data['tier_$i'] as List?)?.map((e) =>
+            _TierItem(e['id'], e['name'], e['series'])).toList() ?? [];
+          _tiers[i].items.clear();
+          _tiers[i].items.addAll(items);
+        }
+        // Restore pool
+        final poolData = (data['pool'] as List?)?.map((e) =>
+          _TierItem(e['id'], e['name'], e['series'])).toList() ?? [];
+        _pool.clear();
+        _pool.addAll(poolData);
+        setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = <String, dynamic>{};
+    for (int i = 0; i < _tiers.length; i++) {
+      data['tier_$i'] = _tiers[i].items.map((e) =>
+        {'id': e.id, 'name': e.name, 'series': e.series}).toList();
+    }
+    data['pool'] = _pool.map((e) =>
+      {'id': e.id, 'name': e.name, 'series': e.series}).toList();
+    await prefs.setString('waifu_tier_list', jsonEncode(data));
+  }
+
+  void _shareTierList() {
+    final lines = <String>[];
+    for (final tier in _tiers) {
+      if (tier.items.isNotEmpty) {
+        lines.add('${tier.label}: ${tier.items.map((i) => i.name).join(', ')}');
+      }
+    }
+    if (lines.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add characters to tiers first!')));
+      return;
+    }
+    final text = '🏆 My Waifu Tier List\n${lines.join('\n')}';
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Tier list copied to clipboard! ✅'),
+          backgroundColor: Colors.green));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('🏆 Waifu Tier List', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
         backgroundColor: Colors.transparent, elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.share, color: Colors.white), onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saving coming soon...')));
+          IconButton(icon: const Icon(Icons.share, color: Colors.white), onPressed: _shareTierList),
+          IconButton(icon: const Icon(Icons.refresh, color: Colors.white70), onPressed: () {
+            setState(() {
+              for (final tier in _tiers) {
+                _pool.addAll(tier.items);
+                tier.items.clear();
+              }
+            });
+            _save();
           }),
         ],
       ),
       body: Column(
         children: [
-          // Tiers List
           Expanded(
             flex: 3,
             child: ListView.builder(
@@ -60,10 +127,9 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
                 final tier = _tiers[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
+                  child: IntrinsicHeight(child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Tier Label
                       Container(
                         width: 80,
                         decoration: BoxDecoration(
@@ -76,11 +142,11 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
                             color: Colors.black87, fontSize: 24, fontWeight: FontWeight.bold)),
                         ),
                       ),
-                      // Drop Area
                       Expanded(
                         child: Container(
+                          constraints: const BoxConstraints(minHeight: 66),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
+                            color: Colors.white.withValues(alpha: 0.04),
                             borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)),
                             border: Border.all(color: Colors.black45, width: 1),
                           ),
@@ -92,6 +158,7 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
                                 _removeFromCurrentLocation(details.data);
                                 tier.items.add(details.data);
                               });
+                              _save();
                             },
                             builder: (context, candidateData, rejectedData) {
                               return Container(
@@ -109,27 +176,23 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
                 );
               },
             ),
           ),
-          
-          // Divider
           Container(height: 2, color: Colors.grey.shade800),
-          
-          // Bottom Pool
           Expanded(
             flex: 1,
             child: Container(
               width: double.infinity,
-              color: const Color(0xFF1A1A1A),
+              color: Colors.white.withValues(alpha: 0.03),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text('Character Pool', style: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.bold)),
+                    child: Text('Character Pool (${_pool.length})', style: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.bold)),
                   ),
                   Expanded(
                     child: DragTarget<_TierItem>(
@@ -140,6 +203,7 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
                           _removeFromCurrentLocation(details.data);
                           _pool.add(details.data);
                         });
+                        _save();
                       },
                       builder: (context, candidateData, rejectedData) {
                         return Container(
@@ -182,11 +246,11 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
           decoration: BoxDecoration(
             color: Colors.deepPurple,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 10)],
+            boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
             border: Border.all(color: Colors.purpleAccent, width: 2),
           ),
-          child: Center(child: Text(item.name.substring(0, min(item.name.length, 4)), 
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          child: Center(child: Text(item.name.substring(0, min(item.name.length, 4)),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12, decoration: TextDecoration.none))),
         ),
       ),
       childWhenDragging: Opacity(
@@ -201,23 +265,23 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> {
     return Container(
       width: 66, height: 66,
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade700),
       ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Fallback text if no image
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(2.0),
-              child: Text(item.name, 
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(item.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+            Text(item.series,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 7),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          ]),
+        ),
       ),
     );
   }
@@ -234,6 +298,5 @@ class _TierItem {
   final String id;
   final String name;
   final String series;
-  final String imagePath;
-  _TierItem(this.id, this.name, this.series, this.imagePath);
+  _TierItem(this.id, this.name, this.series);
 }
