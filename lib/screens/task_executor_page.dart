@@ -32,7 +32,7 @@ class _TaskExecutorPageState extends State<TaskExecutorPage> {
     setState(() => _executing = true);
 
     // Parse command and generate steps
-    final preset = _presets.where((p) => command.toLowerCase().contains((p['cmd'] as String).toLowerCase().split(' ').first)).toList();
+    final preset = _presets.where((p) => command.toLowerCase().contains((p['cmd']?.toString() ?? '').toLowerCase().split(' ').first)).toList();
     
     List<String> steps;
     String response;
@@ -45,6 +45,7 @@ class _TaskExecutorPageState extends State<TaskExecutorPage> {
     }
 
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
     setState(() {
       _executing = false;
       _history.insert(0, {
@@ -64,10 +65,18 @@ class _TaskExecutorPageState extends State<TaskExecutorPage> {
     await prefs.setString('task_executor_history', jsonEncode(_history.take(30).toList()));
   }
 
+  
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -87,11 +96,11 @@ class _TaskExecutorPageState extends State<TaskExecutorPage> {
               return Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: ActionChip(
-                  avatar: Text(p['icon'] as String, style: const TextStyle(fontSize: 14)),
-                  label: Text(p['cmd'] as String, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 10)),
+                  avatar: Text(p['icon']?.toString() ?? '', style: const TextStyle(fontSize: 14)),
+                  label: Text(p['cmd']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 10)),
                   backgroundColor: Colors.greenAccent.withValues(alpha: 0.08),
                   side: BorderSide(color: Colors.greenAccent.withValues(alpha: 0.2)),
-                  onPressed: () => _execute(p['cmd'] as String),
+                  onPressed: () => _execute(p['cmd']?.toString() ?? ''),
                 ),
               );
             },
