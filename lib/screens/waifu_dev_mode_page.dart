@@ -171,9 +171,9 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
@@ -191,7 +191,7 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
             initialValue: _selectedLang,
             onSelected: (v) => setState(() => _selectedLang = v),
             icon: Text(
-              _languages[_selectedLang]!['icon'] as String,
+              _languages[_selectedLang]!['icon']?.toString() ?? '',
               style: const TextStyle(fontSize: 20),
             ),
             itemBuilder: (_) => _languages.entries
