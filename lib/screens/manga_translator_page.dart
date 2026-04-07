@@ -69,7 +69,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'llama-3.2-90b-vision-preview',
+          'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
           'messages': [{
             'role': 'user',
             'content': [
@@ -108,7 +108,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('📖 Manga Translator', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
