@@ -25,6 +25,7 @@ class _SleepModePageState extends State<SleepModePage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _sleepModeEnabled = prefs.getBool('sleep_mode_enabled') ?? false;
       _sleepTime = TimeOfDay(
@@ -87,7 +88,7 @@ class _SleepModePageState extends State<SleepModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0613),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
