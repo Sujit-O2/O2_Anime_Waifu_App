@@ -57,7 +57,7 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         // Header
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Row(children: [
