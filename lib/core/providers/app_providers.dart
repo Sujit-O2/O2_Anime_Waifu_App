@@ -20,10 +20,10 @@ class AppProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        ChangeNotifierProvider(create: (_) => PersonaProvider()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..restore()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()..loadAll()),
+        ChangeNotifierProvider(create: (_) => PersonaProvider()..initialize()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()..loadPersistedState()),
         ChangeNotifierProvider(create: (_) => VoiceProvider()),
       ],
       child: child,
