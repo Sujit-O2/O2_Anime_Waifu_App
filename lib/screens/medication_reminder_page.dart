@@ -179,7 +179,7 @@ class _MedicationReminderPageState extends State<MedicationReminderPage>
         GestureDetector(onTap: () => _toggleTaken(i), child: AnimatedContainer(duration: const Duration(milliseconds: 200), width: 36, height: 36, decoration: BoxDecoration(shape: BoxShape.circle, color: taken ? Colors.greenAccent.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05), border: Border.all(color: taken ? Colors.greenAccent : Colors.white24)), child: Icon(taken ? Icons.check_rounded : Icons.circle_outlined, color: taken ? Colors.greenAccent : Colors.white24, size: 20))),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(med['name'] as String, style: GoogleFonts.outfit(color: taken ? Colors.greenAccent : Colors.white, fontSize: 14, fontWeight: FontWeight.w700, decoration: taken ? TextDecoration.lineThrough : null)),
+          Text(med['name']?.toString() ?? '', style: GoogleFonts.outfit(color: taken ? Colors.greenAccent : Colors.white, fontSize: 14, fontWeight: FontWeight.w700, decoration: taken ? TextDecoration.lineThrough : null)),
           Text('${med['dose']} • ${med['time']}', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
         ])),
         GestureDetector(onTap: () => _deleteMed(i), child: const Icon(Icons.close_rounded, color: Colors.white24, size: 18)),
