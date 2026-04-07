@@ -132,6 +132,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> {
         {'role': 'system', 'content': systemPrompt},
         {'role': 'user', 'content': 'Begin the story!'},
       ]);
+      if (!mounted) return;
       setState(() {
         _storyMessages.add({'role': 'assistant', 'content': reply});
       });
@@ -167,6 +168,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> {
         ..._storyMessages,
       ];
       final reply = await ApiService().sendConversation(msgs);
+      if (!mounted) return;
       setState(() {
         _storyMessages.add({'role': 'assistant', 'content': reply});
       });
@@ -197,7 +199,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
