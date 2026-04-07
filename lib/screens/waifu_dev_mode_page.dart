@@ -21,12 +21,12 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
   String _selectedLang = 'python';
 
   static const _languages = {
-    'python': {'id': 71, 'label': 'Python 3', 'icon': '🐍'},
+    'python': {'id': 71, 'label': 'Python 3.14', 'icon': '🐍'},
     'javascript': {'id': 63, 'label': 'JavaScript', 'icon': '⚡'},
     'cpp': {'id': 54, 'label': 'C++ 17', 'icon': '⚙️'},
-    'java': {'id': 62, 'label': 'Java', 'icon': '☕'},
-    'rust': {'id': 73, 'label': 'Rust', 'icon': '🦀'},
-    'go': {'id': 60, 'label': 'Go', 'icon': '🐹'},
+    'java': {'id': 62, 'label': 'Java 22', 'icon': '☕'},
+    'rust': {'id': 73, 'label': 'Rust 1.82', 'icon': '🦀'},
+    'go': {'id': 60, 'label': 'Go 1.23', 'icon': '🐹'},
   };
 
   @override
@@ -36,58 +36,66 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
     super.dispose();
   }
 
-  /// Run code via Judge0 API (free tier)
+  /// Run code via Wandbox API (free, no key needed, production-grade)
   Future<void> _runCode() async {
     final code = _codeCtrl.text.trim();
     if (code.isEmpty) return;
     setState(() {
       _running = true;
-      _outputCtrl.text = '⏳ Running...';
+      _outputCtrl.text = '⏳ Compiling via Wandbox...';
       _waifuReaction = '';
     });
 
     try {
-      final langMap = {
-        'python': {'language': 'python', 'version': '3.10.0'},
-        'javascript': {'language': 'javascript', 'version': '18.15.0'},
-        'cpp': {'language': 'c++', 'version': '10.2.0'},
-        'java': {'language': 'java', 'version': '15.0.2'},
-        'rust': {'language': 'rust', 'version': '1.68.2'},
-        'go': {'language': 'go', 'version': '1.16.2'},
+      // Wandbox compiler names for each language
+      final wandboxCompilers = {
+        'python': 'cpython-3.14.0',
+        'javascript': 'nodejs-20.17.0',
+        'cpp': 'gcc-13.2.0',
+        'java': 'openjdk-jdk-22+36',
+        'rust': 'rust-1.82.0',
+        'go': 'go-1.23.2',
       };
-      final target = langMap[_selectedLang]!;
-      
+
+      final compiler = wandboxCompilers[_selectedLang] ?? 'cpython-3.14.0';
+
       final submitResp = await http.post(
-        Uri.parse('https://emkc.org/api/v2/piston/execute'),
+        Uri.parse('https://wandbox.org/api/compile.json'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'language': target['language'],
-          'version': target['version'],
-          'files': [{'content': code}]
+          'compiler': compiler,
+          'code': code,
+          'save': false,
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 20));
 
       if (submitResp.statusCode == 200) {
         final result = jsonDecode(submitResp.body);
-        final run = result['run'];
-        final compile = result['compile'];
-        
         String output = '';
-        if (compile != null && compile['output'] != null && compile['output'].toString().isNotEmpty) {
-          output += '🔧 COMPILE:\n${compile['output']}\n';
+
+        // Wandbox returns 'compiler_message' for compile output and 'program_message' for stdout
+        final compilerMsg = result['compiler_message']?.toString() ?? '';
+        final programMsg = result['program_message']?.toString() ?? '';
+        final programErr = result['program_error']?.toString() ?? '';
+        final status = result['status']?.toString() ?? '0';
+
+        if (compilerMsg.isNotEmpty) {
+          output += '🔧 COMPILE:\n$compilerMsg\n';
         }
-        if (run != null) {
-          if (run['output'] != null && run['output'].toString().isNotEmpty) {
-            output += run['output'];
-          } else {
-            output += '✅ Execution complete (no output)';
-          }
+        if (programMsg.isNotEmpty) {
+          output += programMsg;
+        }
+        if (programErr.isNotEmpty) {
+          output += '\n⚠️ STDERR:\n$programErr';
+        }
+        if (output.trim().isEmpty) {
+          output = '✅ Execution complete (no output)';
         }
 
         _outputCtrl.text = output;
 
-        // Waifu reaction
-        if (run != null && run['code'] != 0) {
+        // Waifu reaction based on exit status
+        if (status != '0') {
           _waifuReaction = '😏 Hmm… your code threw an error. Let me explain?';
         } else {
           _waifuReaction = '✨ Nice work, Darling! Your code ran perfectly~';
