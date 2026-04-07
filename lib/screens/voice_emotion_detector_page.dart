@@ -132,7 +132,7 @@ class _VoiceEmotionDetectorPageState extends State<VoiceEmotionDetectorPage>
     final c = (emotionData['color'] as Color?) ?? Colors.cyanAccent;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -164,7 +164,7 @@ class _VoiceEmotionDetectorPageState extends State<VoiceEmotionDetectorPage>
                   child: Center(
                     child: _isListening
                         ? const Icon(Icons.mic_rounded, color: Colors.white, size: 48)
-                        : Text(_emotion.isEmpty ? '🎤' : emotionData['emoji'] as String, style: const TextStyle(fontSize: 48)),
+                        : Text(_emotion.isEmpty ? '🎤' : emotionData['emoji']?.toString() ?? '', style: const TextStyle(fontSize: 48)),
                   ),
                 ),
               ),
@@ -179,7 +179,7 @@ class _VoiceEmotionDetectorPageState extends State<VoiceEmotionDetectorPage>
 
         // Emotion result
         if (_emotion.isNotEmpty) ...[
-          Text(emotionData['label'] as String, style: GoogleFonts.outfit(color: c, fontSize: 22, fontWeight: FontWeight.w900)),
+          Text(emotionData['label']?.toString() ?? '', style: GoogleFonts.outfit(color: c, fontSize: 22, fontWeight: FontWeight.w900)),
           Text('${(_confidence * 100).toStringAsFixed(0)}% confidence', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 12)),
           const SizedBox(height: 8),
 
@@ -195,7 +195,7 @@ class _VoiceEmotionDetectorPageState extends State<VoiceEmotionDetectorPage>
             child: Row(children: [
               const Text('💕', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
-              Expanded(child: Text(emotionData['response'] as String, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12, fontStyle: FontStyle.italic))),
+              Expanded(child: Text(emotionData['response']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12, fontStyle: FontStyle.italic))),
             ]),
           ),
 
@@ -241,7 +241,7 @@ class _VoiceEmotionDetectorPageState extends State<VoiceEmotionDetectorPage>
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(color: ec.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(8)),
                       child: Row(children: [
-                        Text(eData['emoji'] as String, style: const TextStyle(fontSize: 18)),
+                        Text(eData['emoji']?.toString() ?? '', style: const TextStyle(fontSize: 18)),
                         const SizedBox(width: 8),
                         Expanded(child: Text(h['text'], style: GoogleFonts.outfit(color: Colors.white60, fontSize: 11), overflow: TextOverflow.ellipsis)),
                         Text('${(h['confidence'] * 100).toStringAsFixed(0)}%', style: GoogleFonts.outfit(color: ec, fontSize: 10, fontWeight: FontWeight.w700)),
