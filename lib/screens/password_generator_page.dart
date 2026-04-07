@@ -89,7 +89,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> with Sing
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Row(children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)), child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16))),
@@ -159,11 +159,11 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> with Sing
           if (_history.isNotEmpty) ...[
             Align(alignment: Alignment.centerLeft, child: Text('RECENT PASSWORDS', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1))),
             const SizedBox(height: 8),
-            ..._history.take(10).map((h) => GestureDetector(onTap: () => _copy(h['pw'] as String),
+            ..._history.take(10).map((h) => GestureDetector(onTap: () => _copy(h['pw']?.toString() ?? ''),
               child: Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(10)),
                 child: Row(children: [
-                  Expanded(child: Text(h['pw'] as String, style: GoogleFonts.firaCode(color: Colors.white54, fontSize: 11), overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(h['pw']?.toString() ?? '', style: GoogleFonts.firaCode(color: Colors.white54, fontSize: 11), overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 8),
                   Text('${h['length']}ch • ${_timeAgo(h['time'] as int)}', style: GoogleFonts.outfit(color: Colors.white24, fontSize: 9)),
                   const SizedBox(width: 8),
