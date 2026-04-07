@@ -26,7 +26,7 @@ class _MemoryTimelinePageState extends State<MemoryTimelinePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(children: [
         Container(
           decoration: const BoxDecoration(
@@ -97,10 +97,12 @@ class _MemoryTimelinePageState extends State<MemoryTimelinePage> {
         isLast: i == _memories.length - 1,
         onForget: () async {
           await EmotionalMemoryService.instance.forgetMemory(_memories[i].id);
+          if (!mounted) return;
           setState(() => _memories.removeAt(i));
         },
         onPin: () async {
           await EmotionalMemoryService.instance.pinMemory(_memories[i].id);
+          if (!mounted) return;
           setState(() {});
         },
       ),
@@ -224,7 +226,7 @@ class _MemoryCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A0E2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Text('Forget this memory?', style: GoogleFonts.outfit(color: Colors.white)),
         content: Text('"${memory.text.length > 80 ? '${memory.text.substring(0, 80)}...' : memory.text}"',
             style: GoogleFonts.outfit(color: Colors.white54, fontStyle: FontStyle.italic)),
