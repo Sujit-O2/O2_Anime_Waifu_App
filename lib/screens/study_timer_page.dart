@@ -135,7 +135,7 @@ class _StudyTimerPageState extends State<StudyTimerPage> with TickerProviderStat
     final accent = _isBreak ? Colors.greenAccent : Colors.pinkAccent;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF050B14),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
