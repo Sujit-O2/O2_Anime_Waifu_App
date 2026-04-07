@@ -58,6 +58,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
     await prefs.setString('last_daily_bonus_date_v1', _todayStr());
     final xp = 15 + AffectionService.instance.streakDays * 5;
     await AffectionService.instance.addPoints(xp.clamp(15, 50));
+    if (!mounted) return;
     setState(() { _bonusAvailable = false; _bonusClaimed = true; _bonusXp = xp.clamp(15, 50); });
     _bonusCtrl.forward(from: 0);
   }
@@ -70,7 +71,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(children: [
         // Animated stars
         AnimatedBuilder(
