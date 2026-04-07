@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -71,7 +71,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
     final progress = _facts.isEmpty ? 0.0 : (_currentIdx + 1) / _facts.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.12, tint: const Color(0xFF090714),
         child: GestureDetector(
@@ -98,7 +98,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('ZERO TWO LORE', style: GoogleFonts.outfit(
                       color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                  Text(_loading ? 'AI generating facts…' : _facts.isNotEmpty
+                  Text(_loading ? 'AI generating facts�' : _facts.isNotEmpty
                       ? 'Fact ${_currentIdx + 1} of ${_facts.length}'
                       : 'No facts available',
                       style: GoogleFonts.outfit(color: Colors.pinkAccent.withValues(alpha: 0.6), fontSize: 10)),
@@ -123,7 +123,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                   ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                       CircularProgressIndicator(strokeWidth: 2, color: Colors.pinkAccent),
                       SizedBox(height: 16),
-                      Text('Generating lore with AI…', style: TextStyle(color: Colors.white54)),
+                      Text('Generating lore with AI�', style: TextStyle(color: Colors.white54)),
                     ]))
                   : _facts.isEmpty
                       ? Center(child: Text('Could not load facts.', style: GoogleFonts.outfit(color: Colors.white54)))
@@ -137,7 +137,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                                   border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.25)),
                                   boxShadow: [BoxShadow(color: Colors.pinkAccent.withValues(alpha: 0.08), blurRadius: 24, spreadRadius: -4)]),
                                 child: Column(children: [
-                                  const Text('🌸', style: TextStyle(fontSize: 36)),
+                                  const Text('??', style: TextStyle(fontSize: 36)),
                                   const SizedBox(height: 16),
                                   Text(fact!, textAlign: TextAlign.center,
                                       style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, height: 1.7, fontWeight: FontWeight.w500)),
@@ -174,7 +174,7 @@ class _ZeroTwoFactsPageState extends State<ZeroTwoFactsPage>
                               ]),
                               if (_favorites.isNotEmpty) ...[
                                 const SizedBox(height: 16),
-                                Text('${_favorites.length} fact${_favorites.length > 1 ? 's' : ''} favorited 💖',
+                                Text('${_favorites.length} fact${_favorites.length > 1 ? 's' : ''} favorited ??',
                                     style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11)),
                               ],
                             ]))),
