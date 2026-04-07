@@ -1,362 +1,121 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/providers/settings_provider.dart';
+import '../core/providers/theme_provider.dart';
 import '../config/app_themes.dart';
 import '../main.dart' show themeNotifier;
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// ThemesPage — standalone replacement for the old main_themes.dart part file
+/// ThemesPage — Premium theme gallery with live preview cards
 /// ─────────────────────────────────────────────────────────────────────────────
-class ThemesPage extends StatelessWidget {
+class ThemesPage extends StatefulWidget {
   const ThemesPage({super.key});
+  @override
+  State<ThemesPage> createState() => _ThemesPageState();
+}
+
+class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+
+  static const _themeDescriptions = <AppThemeMode, String>{
+    AppThemeMode.zeroTwo:       'Blood crimson & sakura pink — her signature aesthetic',
+    AppThemeMode.cyberPhantom:  'Electric cyan & violet — neon-drenched cyberpunk',
+    AppThemeMode.velvetNoir:    'Rose gold & champagne — luxury dark elegance',
+    AppThemeMode.toxicVenom:    'Acid green & lime — terminal hacker aesthetic',
+    AppThemeMode.astralDream:   'Lavender & aurora pink — ethereal cosmic dream',
+    AppThemeMode.infernoCore:   'Molten orange & lava red — volcanic intensity',
+    AppThemeMode.arcticBlade:   'Ice blue & frost white — minimal arctic blade',
+    AppThemeMode.goldenEmperor: '24K gold & bronze — royal opulence',
+    AppThemeMode.phantomViolet: 'Deep purple & magenta — dark mystery',
+    AppThemeMode.oceanAbyss:    'Bioluminescent teal — deep sea glow',
+  };
+
+  static const _themeEmojis = <AppThemeMode, String>{
+    AppThemeMode.zeroTwo:       '🩸',
+    AppThemeMode.cyberPhantom:  '⚡',
+    AppThemeMode.velvetNoir:    '🥀',
+    AppThemeMode.toxicVenom:    '☠️',
+    AppThemeMode.astralDream:   '✨',
+    AppThemeMode.infernoCore:   '🌋',
+    AppThemeMode.arcticBlade:   '❄️',
+    AppThemeMode.goldenEmperor: '👑',
+    AppThemeMode.phantomViolet: '🔮',
+    AppThemeMode.oceanAbyss:    '🌊',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final sp = context.watch<SettingsProvider>();
+    final tp = context.watch<ThemeProvider>();
+    final currentMode = tp.mode;
+    final themes = ThemeProvider.activeThemeModes.toList();
 
     return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-            child: Text('ATMOSPHERE',
-                style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2.5)),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: _buildThemesHero(),
-          ),
-          // ── Quick controls strip ─────────────────────────────────────────
-          ValueListenableBuilder<AppThemeMode>(
-            valueListenable: themeNotifier,
-            builder: (ctx, currentMode, _) {
-              final td = AppThemes.getTheme(currentMode);
-              final name = AppThemes.getThemeName(currentMode);
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-                child: Row(
-                  children: [
-                    // Current theme badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: td.primaryColor.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: td.primaryColor.withValues(alpha: 0.45)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: td.primaryColor,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            name,
-                            style: GoogleFonts.outfit(
-                              color: td.primaryColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Lite Mode chip
-                    GestureDetector(
-                      onTap: () => sp.toggleLiteMode(),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: sp.liteModeEnabled
-                              ? Colors.greenAccent.withValues(alpha: 0.18)
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: sp.liteModeEnabled
-                                  ? Colors.greenAccent.withValues(alpha: 0.45)
-                                  : Colors.white12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              sp.liteModeEnabled
-                                  ? Icons.speed_rounded
-                                  : Icons.auto_awesome,
-                              color: sp.liteModeEnabled
-                                  ? Colors.greenAccent
-                                  : Colors.white38,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              sp.liteModeEnabled ? 'Lite' : 'Full FX',
-                              style: GoogleFonts.outfit(
-                                color: sp.liteModeEnabled
-                                    ? Colors.greenAccent
-                                    : Colors.white38,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    // Randomize button
-                    GestureDetector(
-                      onTap: () async {
-                        final all = AppThemeMode.values;
-                        final next =
-                            all[DateTime.now().millisecond % all.length];
-                        themeNotifier.value = next;
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setInt('app_theme_index',
-                            AppThemeMode.values.indexOf(next));
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.purpleAccent.withValues(alpha: 0.25),
-                              Colors.pinkAccent.withValues(alpha: 0.15),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color:
-                                  Colors.purpleAccent.withValues(alpha: 0.4)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.shuffle_rounded,
-                                color: Colors.purpleAccent, size: 13),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Randomize',
-                              style: GoogleFonts.outfit(
-                                color: Colors.purpleAccent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // ── Header ────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+              child: Column(
+                children: [
+                  Text('ATMOSPHERE',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.5,
+                    )),
+                  const SizedBox(height: 6),
+                  Text('10 premium themes with unique fonts, effects & vibes',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white38,
+                      fontSize: 11,
+                    )),
+                ],
+              ),
+            ),
           ),
 
-          Expanded(
-            child: ValueListenableBuilder<AppThemeMode>(
-              valueListenable: themeNotifier,
-              builder: (ctx, currentMode, _) {
-                final tiers = _buildThemeTiers();
+          // ── Current Theme Hero ─────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: _buildCurrentThemeHero(currentMode),
+            ),
+          ),
 
-                return ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  itemCount: tiers.length,
-                  itemBuilder: (ctx, i) {
-                    final tier = tiers[i];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 16, bottom: 10, left: 4),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 3,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                    color: tier.accentColor,
-                                    borderRadius: BorderRadius.circular(2)),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(tier.label,
-                                  style: GoogleFonts.outfit(
-                                      color: tier.accentColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.8)),
-                            ],
-                          ),
-                        ),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.78,
-                          ),
-                          itemCount: tier.modes.length,
-                          itemBuilder: (ctx, idx) {
-                            final mode = tier.modes[idx];
-                            final isSelected = currentMode == mode;
-                            final td = AppThemes.getRawTheme(mode);
-                            final name = AppThemes.getThemeName(mode);
-                            final grad = AppThemes.getGradient(mode);
-                            return GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () async {
-                                themeNotifier.value = mode;
-                                final prefs =
-                                    await SharedPreferences.getInstance();
-                                await prefs.setInt('app_theme_index',
-                                    AppThemeMode.values.indexOf(mode));
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(24),
-                                    bottomRight: Radius.circular(24),
-                                    topRight: Radius.circular(8),
-                                    bottomLeft: Radius.circular(8),
-                                  ),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: td.primaryColor
-                                                .withValues(alpha: 0.6),
-                                            blurRadius: 16,
-                                            spreadRadius: 2,
-                                          )
-                                        ]
-                                      : [],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(24),
-                                    bottomRight: Radius.circular(24),
-                                    topRight: Radius.circular(8),
-                                    bottomLeft: Radius.circular(8),
-                                  ),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                        sigmaX: 8.0, sigmaY: 8.0),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: grad.take(3).toList(),
-                                        ),
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(24),
-                                          bottomRight: Radius.circular(24),
-                                          topRight: Radius.circular(8),
-                                          bottomLeft: Radius.circular(8),
-                                        ),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? td.primaryColor
-                                              : Colors.white
-                                                  .withValues(alpha: 0.15),
-                                          width: isSelected ? 2.5 : 1,
-                                        ),
-                                        color: isSelected
-                                            ? Colors.transparent
-                                            : Colors.black
-                                                .withValues(alpha: 0.3),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 300),
-                                            width: isSelected ? 28 : 22,
-                                            height: isSelected ? 28 : 22,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: td.primaryColor,
-                                              boxShadow: isSelected
-                                                  ? [
-                                                      BoxShadow(
-                                                        color: td.primaryColor
-                                                            .withValues(
-                                                                alpha: 0.8),
-                                                        blurRadius: 8,
-                                                      )
-                                                    ]
-                                                  : [],
-                                            ),
-                                            child: isSelected
-                                                ? const Icon(
-                                                    Icons.check_rounded,
-                                                    color: Colors.black87,
-                                                    size: 14)
-                                                : null,
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 4),
-                                            child: Text(
-                                              name,
-                                              textAlign: TextAlign.center,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.outfit(
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : Colors.white70,
-                                                fontSize: 8.5,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w800
-                                                    : FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
+          // ── Theme Grid ────────────────────────────────────────────────
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.78,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (ctx, i) => _buildThemeCard(themes[i], currentMode, tp),
+                childCount: themes.length,
+              ),
             ),
           ),
         ],
@@ -364,71 +123,220 @@ class ThemesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemesHero() {
-    return Container(
-      height: 250,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purpleAccent.withValues(alpha: 0.2),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              'assets/img/bg2.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.black87,
-              ),
+  Widget _buildCurrentThemeHero(AppThemeMode mode) {
+    final td = AppThemes.getTheme(mode);
+    final primary = td.colorScheme.primary;
+    final gradient = AppThemes.getGradient(mode);
+    final name = AppThemes.getThemeName(mode);
+    final emoji = _themeEmojis[mode] ?? '🎨';
+
+    return AnimatedBuilder(
+      animation: _pulseCtrl,
+      builder: (_, __) {
+        final glowAlpha = 0.2 + (_pulseCtrl.value * 0.15);
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: gradient.take(3).toList(),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.8),
+            border: Border.all(color: primary.withValues(alpha: 0.5), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: primary.withValues(alpha: glowAlpha),
+                blurRadius: 30,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 36)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ACTIVE THEME',
+                      style: GoogleFonts.outfit(
+                        color: primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                      )),
+                    const SizedBox(height: 2),
+                    Text(name,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      )),
+                    const SizedBox(height: 4),
+                    Text(_themeDescriptions[mode] ?? '',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white54,
+                        fontSize: 11,
+                        height: 1.3,
+                      )),
                   ],
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeCard(AppThemeMode mode, AppThemeMode current, ThemeProvider tp) {
+    final isActive = mode == current;
+    final td = AppThemes.getRawTheme(mode);
+    final primary = td.colorScheme.primary;
+    final secondary = td.colorScheme.secondary;
+    final accent = td.colorScheme.tertiary;
+    final gradient = AppThemes.getGradient(mode);
+    final name = AppThemes.getThemeName(mode);
+    final emoji = _themeEmojis[mode] ?? '🎨';
+    final particle = AppThemes.getParticleType(mode);
+    final style = AppThemes.getStyle(mode);
+
+    return GestureDetector(
+      onTap: () async {
+        await tp.setMode(mode);
+        themeNotifier.value = mode;
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              gradient[0],
+              gradient[1],
+              gradient[2],
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(
+            color: isActive ? primary : Colors.white.withValues(alpha: 0.08),
+            width: isActive ? 2.5 : 1,
+          ),
+          boxShadow: isActive
+              ? [BoxShadow(color: primary.withValues(alpha: 0.35), blurRadius: 20, spreadRadius: 2)]
+              : [],
+        ),
+        child: Stack(
+          children: [
+            // Gradient overlay
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(19),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
             ),
+
+            // Content
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    'Visual Presets',
+                  // Emoji + active badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(emoji, style: const TextStyle(fontSize: 28)),
+                      if (isActive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: primary.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: primary.withValues(alpha: 0.6)),
+                          ),
+                          child: Text('ACTIVE',
+                            style: GoogleFonts.outfit(
+                              color: primary,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1,
+                            )),
+                        ),
+                    ],
+                  ),
+                  const Spacer(),
+
+                  // Theme name
+                  Text(name,
                     style: GoogleFonts.outfit(
                       color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      shadows: [
-                        Shadow(
-                          color: Colors.purpleAccent.withValues(alpha: 0.8),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                  ),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    )),
                   const SizedBox(height: 4),
-                  Text(
-                    'Pick a mood for chat and effects',
+
+                  // Description
+                  Text(_themeDescriptions[mode] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.white38,
+                      fontSize: 9.5,
+                      height: 1.3,
+                    )),
+                  const SizedBox(height: 10),
+
+                  // Color swatches
+                  Row(
+                    children: [
+                      _swatch(primary, 18),
+                      const SizedBox(width: 4),
+                      _swatch(secondary, 14),
+                      const SizedBox(width: 4),
+                      _swatch(accent, 14),
+                      const Spacer(),
+                      // Style badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _particleName(particle),
+                          style: GoogleFonts.outfit(
+                            color: Colors.white30,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Font preview
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      color: Colors.white.withValues(alpha: 0.04),
+                      child: Text(
+                        style.hintText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: style.font(9, Colors.white30),
+                      ),
                     ),
                   ),
                 ],
@@ -440,42 +348,31 @@ class ThemesPage extends StatelessWidget {
     );
   }
 
-  List<_ThemeTier> _buildThemeTiers() => [
-        _ThemeTier('ICONIC', [
-          AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
-          AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
-        ], Colors.redAccent),
-        _ThemeTier('ULTRA-PREMIUM', [
-          AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
-          AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
-        ], Colors.cyanAccent),
-        _ThemeTier('ANIME LEGENDS', [
-          AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
-          AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
-        ], Colors.pinkAccent),
-        _ThemeTier('LUXURY', [
-          AppThemeMode.midnightSilk, AppThemeMode.obsidianRose, AppThemeMode.onyxEmerald,
-          AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
-        ], Colors.amber),
-        _ThemeTier('SCI-FI', [
-          AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
-          AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
-        ], Colors.lightBlueAccent),
-        _ThemeTier('NATURE', [
-          AppThemeMode.midnightForest, AppThemeMode.volcanicSea, AppThemeMode.stormDesert,
-          AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
-        ], Colors.greenAccent),
-        _ThemeTier('ETHEREAL', [
-          AppThemeMode.amethystDream, AppThemeMode.titaniumFrost, AppThemeMode.sunsetRider,
-          AppThemeMode.midnightRaven, AppThemeMode.electricLime,
-        ], Colors.purpleAccent),
-      ];
-}
+  Widget _swatch(Color c, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: c,
+        boxShadow: [BoxShadow(color: c.withValues(alpha: 0.4), blurRadius: 6)],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
+      ),
+    );
+  }
 
-// ── Theme picker tier group model ──────────────────────────────────────────
-class _ThemeTier {
-  final String label;
-  final List<AppThemeMode> modes;
-  final Color accentColor;
-  const _ThemeTier(this.label, this.modes, this.accentColor);
+  String _particleName(ParticleType t) {
+    switch (t) {
+      case ParticleType.sakura:  return '🌸 sakura';
+      case ParticleType.rain:    return '🌧 rain';
+      case ParticleType.circles: return '○ circles';
+      case ParticleType.lines:   return '║ lines';
+      case ParticleType.stars:   return '★ stars';
+      case ParticleType.embers:  return '🔥 embers';
+      case ParticleType.snow:    return '❄ snow';
+      case ParticleType.squares: return '◆ squares';
+      case ParticleType.bubbles: return '○ bubbles';
+      case ParticleType.leaves:  return '🍃 leaves';
+    }
+  }
 }
