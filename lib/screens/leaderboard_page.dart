@@ -88,7 +88,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -187,7 +187,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
               radius: 20,
               backgroundColor: Colors.pinkAccent.withValues(alpha: 0.3),
               backgroundImage: (item['photoUrl'] as String?)?.isNotEmpty == true
-                  ? NetworkImage(item['photoUrl'] as String)
+                  ? NetworkImage(item['photoUrl']?.toString() ?? '')
                   : null,
               child: (item['photoUrl'] as String?)?.isNotEmpty != true
                   ? Text(name[0].toUpperCase(),
