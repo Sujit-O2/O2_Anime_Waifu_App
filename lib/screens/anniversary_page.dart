@@ -66,6 +66,7 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
       await FirebaseFirestore.instance.collection('profiles').doc(user.uid).set(
           {'anniversaryDate': picked.toIso8601String()},
           SetOptions(merge: true));
+      if (!mounted) return;
       setState(() => _startDate = picked);
       AffectionService.instance.addPoints(5);
       _snack('Anniversary saved! 🌸 +5 XP');
@@ -97,7 +98,7 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
     final daysUntil = nextAnniversary?.difference(now).inDays;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
