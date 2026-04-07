@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -22,21 +22,21 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
   late AnimationController _fadeCtrl;
 
   static const _expCats = [
-    '🍔 Food',
-    '🚕 Transport',
-    '🛍️ Shopping',
-    '🎮 Games',
-    '💊 Health',
-    '📚 Education',
-    '💡 Bills',
-    '❤️ Waifu Fund'
+    '?? Food',
+    '?? Transport',
+    '??? Shopping',
+    '?? Games',
+    '?? Health',
+    '?? Education',
+    '?? Bills',
+    '?? Waifu Fund'
   ];
   static const _incCats = [
-    '💼 Salary',
-    '🎁 Gift',
-    '💰 Bonus',
-    '📈 Investment',
-    '🛒 Freelance'
+    '?? Salary',
+    '?? Gift',
+    '?? Bonus',
+    '?? Investment',
+    '?? Freelance'
   ];
 
   @override
@@ -124,7 +124,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       body: WaifuBackground(
         opacity: 0.09,
@@ -159,7 +159,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.5)),
-                    Text('Balance: ₹${_balance.toStringAsFixed(0)}',
+                    Text('Balance: ?${_balance.toStringAsFixed(0)}',
                         style: GoogleFonts.outfit(
                             color: _balance >= 0
                                 ? Colors.greenAccent
@@ -189,7 +189,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('Budget: ₹${_budget.toStringAsFixed(0)}',
+                Text('Budget: ?${_budget.toStringAsFixed(0)}',
                     style: GoogleFonts.outfit(
                         color: Colors.white38, fontSize: 10)),
                 Text('${(_spendPct * 100).round()}% used',
@@ -237,7 +237,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                               _isExpense ? Colors.redAccent : Colors.white12),
                     ),
                     child: Center(
-                        child: Text('− Expense',
+                        child: Text('- Expense',
                             style: GoogleFonts.outfit(
                                 color: _isExpense
                                     ? Colors.redAccent
@@ -320,10 +320,10 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                   style: GoogleFonts.outfit(color: Colors.white, fontSize: 14),
                   cursorColor: Colors.tealAccent,
                   decoration: InputDecoration(
-                    hintText: 'Amount ₹',
+                    hintText: 'Amount ?',
                     hintStyle:
                         GoogleFonts.outfit(color: Colors.white30, fontSize: 13),
-                    prefixText: '₹ ',
+                    prefixText: '? ',
                     prefixStyle: GoogleFonts.outfit(color: Colors.white38),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.04),
@@ -428,7 +428,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                    Text(t['label'] as String,
+                                    Text(t['label']?.toString() ?? '',
                                         style: GoogleFonts.outfit(
                                             color: Colors.white,
                                             fontSize: 13,
@@ -439,7 +439,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
                                             fontSize: 10)),
                                   ])),
                               Text(
-                                  '${isExp ? '-' : '+'}₹${amt.abs().toStringAsFixed(0)}',
+                                  '${isExp ? '-' : '+'}?${amt.abs().toStringAsFixed(0)}',
                                   style: GoogleFonts.outfit(
                                       color: isExp
                                           ? Colors.redAccent
@@ -466,7 +466,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
             color: color.withValues(alpha: 0.07),
             border: Border.all(color: color.withValues(alpha: 0.25))),
         child: Column(children: [
-          Text('₹${value.toStringAsFixed(0)}',
+          Text('?${value.toStringAsFixed(0)}',
               style: GoogleFonts.outfit(
                   color: color, fontSize: 14, fontWeight: FontWeight.w800)),
           Text(label,
