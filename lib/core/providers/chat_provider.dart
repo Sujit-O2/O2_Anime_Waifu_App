@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/chat_message.dart';
@@ -150,6 +151,27 @@ class ChatProvider extends ChangeNotifier {
   int proactiveIntervalSeconds = 60;
   bool proactiveEnabled = true;
   bool proactiveRandomEnabled = true;
+
+  /// Restore persisted idle/proactive/persona/sleep settings from disk.
+  /// Called once at provider creation via `ChatProvider()..loadPersistedState()`.
+  Future<void> loadPersistedState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      idleTimerEnabled = prefs.getBool('idle_timer_enabled') ?? true;
+      idleDurationSeconds = prefs.getInt('idle_duration_seconds') ?? 600;
+      proactiveIntervalSeconds =
+          prefs.getInt('proactive_interval_seconds') ?? 60;
+      proactiveEnabled = prefs.getBool('proactive_enabled') ?? true;
+      proactiveRandomEnabled =
+          prefs.getBool('proactive_random_enabled') ?? true;
+      _selectedPersona =
+          prefs.getString('selected_persona_v1') ?? 'Default';
+      _sleepModeEnabled = prefs.getBool('sleep_mode_enabled_v1') ?? false;
+      notifyListeners();
+    } catch (e) {
+      // If SharedPreferences fails, defaults are fine.
+    }
+  }
 
   // ── Convenience: add a message and notify ──────────────────────────────────
   void addMessage(ChatMessage msg) {
