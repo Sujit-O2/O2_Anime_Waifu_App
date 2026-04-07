@@ -53,6 +53,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
 
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _playerWins  = prefs.getInt('rps_player_wins') ?? 0;
       _zeroTwoWins = prefs.getInt('rps_zerotwo_wins') ?? 0;
@@ -102,7 +103,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0514),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
