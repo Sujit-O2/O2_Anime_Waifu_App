@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -92,7 +92,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF070A14),
@@ -121,11 +121,11 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                       color: Colors.white, fontSize: 16,
                       fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   if (_loading)
-                    Text('AI is crafting today\'s questions…',
+                    Text('AI is crafting today\'s questions�',
                         style: GoogleFonts.outfit(
                             color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10))
                   else if (!_finished && _questions.isNotEmpty)
-                    Text('Question ${_idx + 1}/${_questions.length} · Score: $_score',
+                    Text('Question ${_idx + 1}/${_questions.length} � Score: $_score',
                         style: GoogleFonts.outfit(
                             color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10)),
                 ],
@@ -137,7 +137,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
               ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   CircularProgressIndicator(color: Colors.amberAccent),
                   SizedBox(height: 16),
-                  Text('Generating trivia with AI…', style: TextStyle(color: Colors.white54)),
+                  Text('Generating trivia with AI�', style: TextStyle(color: Colors.white54)),
                 ]))
               : _questions.isEmpty
                   ? Center(child: Text('Could not load trivia. Try again.',
@@ -241,7 +241,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                 border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
               ),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('💡 ', style: TextStyle(fontSize: 16)),
+                const Text('?? ', style: TextStyle(fontSize: 16)),
                 Expanded(child: Text(explanation,
                     style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12, height: 1.5))),
               ]),
@@ -261,7 +261,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: Text(
-                _idx < _questions.length - 1 ? 'Next Question →' : 'See Results 🏆',
+                _idx < _questions.length - 1 ? 'Next Question ?' : 'See Results ??',
                 style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),
@@ -273,7 +273,7 @@ class _DailyTriviaPageState extends State<DailyTriviaPage>
 
   Widget _buildResult() {
     final pct = _questions.isEmpty ? 0.0 : _score / _questions.length;
-    final emoji = pct >= 0.9 ? '🏆' : pct >= 0.7 ? '🌟' : pct >= 0.5 ? '💪' : '📚';
+    final emoji = pct >= 0.9 ? '??' : pct >= 0.7 ? '??' : pct >= 0.5 ? '??' : '??';
     final title = pct >= 0.9 ? 'Perfect Score, Darling!'
         : pct >= 0.7 ? 'Great Job!'
         : pct >= 0.5 ? 'Not Bad~'
