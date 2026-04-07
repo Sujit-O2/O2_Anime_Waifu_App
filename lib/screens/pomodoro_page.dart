@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
@@ -141,7 +141,7 @@ class _PomodoroPageState extends State<PomodoroPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF0A0808),
@@ -178,7 +178,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.5)),
                     Text(
-                        '$_session sessions completed${_session >= 4 ? ' 🏆' : ''}',
+                        '$_session sessions completed${_session >= 4 ? ' ??' : ''}',
                         style: GoogleFonts.outfit(
                             color: _themeColor.withValues(alpha: 0.7), fontSize: 10)),
                   ])),
@@ -230,7 +230,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                   Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(_isBreak ? '☕' : '🍅',
+                        Text(_isBreak ? '?' : '??',
                             style: const TextStyle(fontSize: 28)),
                         const SizedBox(height: 4),
                         Text(_fmt(_remaining),
@@ -316,7 +316,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                     style: GoogleFonts.outfit(
                         color: Colors.white38, fontSize: 11)),
                 const Spacer(),
-                Text('${_log.length} total 🍅',
+                Text('${_log.length} total ??',
                     style:
                         GoogleFonts.outfit(color: _themeColor, fontSize: 11)),
               ]),
@@ -332,7 +332,7 @@ class _PomodoroPageState extends State<PomodoroPage>
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(children: [
-                      const Text('🍅', style: TextStyle(fontSize: 14)),
+                      const Text('??', style: TextStyle(fontSize: 14)),
                       const SizedBox(width: 8),
                       Text('Session #${l['session']}',
                           style: GoogleFonts.outfit(
