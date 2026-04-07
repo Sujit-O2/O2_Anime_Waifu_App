@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
 import '../models/anime_models.dart';
 import '../services/anime_service.dart';
 import '../services/watchlist_service.dart';
@@ -118,7 +120,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage>
     final accent = _sourceColors[AnimeService.currentSource] ?? Colors.deepPurple;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // ✨ Star particle overlay
@@ -210,8 +212,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage>
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: _dailyPick!.coverUrl.isNotEmpty
-                              ? Image.network(_dailyPick!.coverUrl,
-                                  width: 50, height: 70, fit: BoxFit.cover)
+                              ? AppCachedImage(url: _dailyPick!.coverUrl, width: 50, height: 70)
                               : const SizedBox(width: 50, height: 70),
                           ),
                           const SizedBox(width: 12),
@@ -289,7 +290,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage>
                           key: ValueKey('grid_${AnimeService.currentSource.name}'),
                           onRefresh: _loadContent,
                           color: accent,
-                          backgroundColor: const Color(0xFF1A1A2E),
+                          backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
                           displacement: 60,
                           strokeWidth: 3,
                           child: GridView.builder(
@@ -376,8 +377,11 @@ class _AnimeTile extends StatelessWidget {
                     Transform.translate(
                       offset: Offset(0, parallaxOffset),
                       child: anime.coverUrl.isNotEmpty
-                        ? Image.network(anime.coverUrl, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                        ? CachedNetworkImage(
+                            imageUrl: anime.coverUrl, fit: BoxFit.cover,
+                            memCacheWidth: 200,
+                            placeholder: (_, __) => Container(color: Colors.grey.shade900),
+                            errorWidget: (_, __, ___) => Container(
                               color: Colors.grey.shade900,
                               child: const Icon(Icons.broken_image, color: Colors.grey)))
                         : Container(color: Colors.grey.shade900,
@@ -522,7 +526,7 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
     }
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => _DownloadSheet(
@@ -559,7 +563,7 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
     final accent = _palette.dominant;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -583,7 +587,7 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
                 fit: StackFit.expand,
                 children: [
                   if (a.coverUrl.isNotEmpty)
-                    Image.network(a.coverUrl, fit: BoxFit.cover),
+                    AppCachedImage(url: a.coverUrl, width: double.infinity, height: double.infinity, fit: BoxFit.cover),
                   // Glassmorphic gradient overlay
                   Container(
                     decoration: BoxDecoration(
