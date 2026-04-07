@@ -375,120 +375,133 @@ extension _MainDrawerExtension on _ChatHomePageState {
               ),
 
               // ── SCROLLING NAV LIST ─────────────────────────────────────────────
+              // ── PINNED XP BAR (Does NOT scroll) ───────────────────────
+              AnimatedBuilder(
+                animation: AffectionService.instance,
+                builder: (context, child) {
+                  final srv = AffectionService.instance;
+                  final Color color = srv.levelColor;
+                  final barColor = const Color(0xFFFF2D55);
+                  
+                  int maxPts = 50;
+                  if (srv.points >= 2500) {
+                    maxPts = 9999;
+                  } else if (srv.points >= 1500) {
+                    maxPts = 2500;
+                  } else if (srv.points >= 900) {
+                    maxPts = 1500;
+                  } else if (srv.points >= 500) {
+                    maxPts = 900;
+                  } else if (srv.points >= 200) {
+                    maxPts = 500;
+                  } else if (srv.points >= 50) {
+                    maxPts = 200;
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.02),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
+                      boxShadow: [
+                        BoxShadow(color: color.withValues(alpha: 0.08), blurRadius: 20, spreadRadius: -4),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.auto_awesome_rounded, color: color, size: 12),
+                                const SizedBox(width: 6),
+                                Text(srv.levelName.toUpperCase(),
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white.withValues(alpha: 0.95), 
+                                        fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.8)),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
+                              ),
+                              child: Text('${(srv.levelProgress * 100).toInt()}%',
+                                  style: GoogleFonts.jetBrainsMono(
+                                      color: color, fontSize: 10, fontWeight: FontWeight.w900)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              height: 6,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.black.withValues(alpha: 0.6),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.white.withValues(alpha: 0.02), offset: const Offset(0, 1)),
+                                ],
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: srv.levelProgress,
+                              child: Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: LinearGradient(
+                                    colors: [barColor.withValues(alpha: 0.6), barColor],
+                                    begin: Alignment.centerLeft, end: Alignment.centerRight,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(color: barColor.withValues(alpha: 0.5), blurRadius: 12, spreadRadius: 1),
+                                    BoxShadow(color: barColor.withValues(alpha: 0.3), blurRadius: 2, spreadRadius: -1),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: const _XPShimmerOverlay(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('${srv.points} / $maxPts XP TO NEXT LEVEL',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.jetBrainsMono(
+                            color: Colors.white24, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // ── SCROLLING NAV LIST ─────────────────────────────────────────────
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // ── PREMIER NEON XP BAR ──────────────────
-                      AnimatedBuilder(
-                        animation: AffectionService.instance,
-                        builder: (context, child) {
-                          final srv = AffectionService.instance;
-                          final Color color = srv.levelColor;
-                          final barColor = const Color(0xFFFF2D55); // Vibrant Reddish Pink
-                          
-                          // Custom max points for display
-                          int maxPts = 50;
-                          if (srv.points >= 2500) {
-                            maxPts = 9999;
-                          } else if (srv.points >= 1500) {
-                            maxPts = 2500;
-                          } else if (srv.points >= 900) {
-                            maxPts = 1500;
-                          } else if (srv.points >= 500) {
-                            maxPts = 900;
-                          } else if (srv.points >= 200) {
-                            maxPts = 500;
-                          } else if (srv.points >= 50) {
-                            maxPts = 200;
-                          }
-
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.auto_awesome_rounded, color: color, size: 12),
-                                        const SizedBox(width: 6),
-                                        Text(srv.levelName.toUpperCase(),
-                                            style: GoogleFonts.outfit(
-                                                color: Colors.white.withValues(alpha: 0.95), 
-                                                fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.8)),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: color.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
-                                      ),
-                                      child: Text('${(srv.levelProgress * 100).toInt()}%',
-                                          style: GoogleFonts.jetBrainsMono(
-                                              color: color, fontSize: 10, fontWeight: FontWeight.w900)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                // The Glass Neon Bar
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    // Background / Track
-                                    Container(
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Colors.black.withValues(alpha: 0.6),
-                                        boxShadow: [
-                                          BoxShadow(color: Colors.white.withValues(alpha: 0.02), offset: const Offset(0, 1)),
-                                        ],
-                                      ),
-                                    ),
-                                    // Progress Fill
-                                    FractionallySizedBox(
-                                      widthFactor: srv.levelProgress,
-                                      child: Container(
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
-                                          gradient: LinearGradient(
-                                            colors: [barColor.withValues(alpha: 0.6), barColor],
-                                            begin: Alignment.centerLeft, end: Alignment.centerRight,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(color: barColor.withValues(alpha: 0.5), blurRadius: 12, spreadRadius: 1),
-                                            BoxShadow(color: barColor.withValues(alpha: 0.3), blurRadius: 2, spreadRadius: -1),
-                                          ],
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
-                                          child: const _XPShimmerOverlay(),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text('${srv.points} / $maxPts XP TO NEXT LEVEL',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.jetBrainsMono(
-                                    color: Colors.white24, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-
-                      Divider(color: Colors.white.withValues(alpha: 0.05), height: 1, indent: 20, endIndent: 20),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
 
                       _DrawerStaggerItem(index: 0, child: navItem('Chat', Icons.chat_bubble_outline, 0)),
                       const SizedBox(height: 4),
@@ -531,62 +544,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Spin Wheel', Icons.radio_button_checked_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/spinner-wheel')),
                       ], badge: 'Play')),
 
-                      // ── 🧠 AI TOOLS ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 5, child: hubAccordion('AI Tools', Icons.psychology_rounded, Colors.cyanAccent, [
-                        drawerTile('AI Art Gen', Icons.brush_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/ai-art-generator'), badge: 'NEW'),
-                        drawerTile('Anime Picks', Icons.movie_filter_outlined, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/anime-recommender'), badge: 'AI'),
-                        drawerTile('Book Picks', Icons.menu_book_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/book-recommender'), badge: 'AI'),
-                        drawerTile('Dream Reader', Icons.bedtime_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/dream-interpreter'), badge: 'AI'),
-                        drawerTile('Life Coach', Icons.psychology_outlined, Colors.cyanAccent, () => Navigator.pushNamed(context, '/relationship-coach'), badge: 'AI'),
-                        drawerTile('Manga Translator', Icons.translate_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/manga-translator'), badge: 'NEW'),
-                        drawerTile('Movie Picks', Icons.movie_outlined, Colors.orangeAccent, () => Navigator.pushNamed(context, '/movie-recommender'), badge: 'AI'),
-                        drawerTile('Poem Generator', Icons.edit_note_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/poem-generator'), badge: 'AI'),
-                        drawerTile('Writing Helper', Icons.edit_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/writing-helper'), badge: 'AI'),
-                        drawerTile('Recipe Picks', Icons.restaurant_rounded, Colors.green, () => Navigator.pushNamed(context, '/recipe-recommender'), badge: 'AI'),
-                        drawerTile('Language Tool', Icons.language_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/language-translator'), badge: 'AI'),
-                      ], badge: 'Smart')),
-
-                      // ── 📊 ANALYTICS & STATS ──────────────────────────────────
-                      _DrawerStaggerItem(index: 6, child: hubAccordion('Analytics', Icons.analytics_rounded, Colors.cyanAccent, [
-                        drawerTile('Memory Vault', Icons.memory_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/memory-vault'), badge: 'Deep'),
-                        drawerTile('Chat Analytics', Icons.bar_chart_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/chat-analytics'), badge: '📊'),
-                        drawerTile('Stats & Habits', Icons.insights_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/stats-habits')),
-                        drawerTile('Mood Tracking', Icons.mood_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/mood-tracking')),
-                        drawerTile('Relationship Map', Icons.map_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/relationship-level-map')),
-                        drawerTile('Love Timeline', Icons.timeline_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/relationship-timeline')),
-                        drawerTile('Year In Review', Icons.calendar_today_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/year-in-review'), badge: '📅'),
-                        drawerTile('Leaderboard', Icons.leaderboard_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/leaderboard'), badge: '🏆'),
-                      ], badge: 'Data')),
-
-                      // ── 📝 PRODUCTIVITY ────────────────────────────────────────
-                      _DrawerStaggerItem(index: 7, child: hubAccordion('Productivity', Icons.task_alt_rounded, Colors.blueAccent, [
-                        drawerTile('Notes Pad', Icons.note_alt_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/notes-pad'), badge: '📝'),
-                        drawerTile('Pomodoro', Icons.timer_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/pomodoro')),
-                        drawerTile('Study Timer', Icons.school_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/study-timer')),
-                        drawerTile('Goal Tracker', Icons.flag_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/goal-tracker')),
-                        drawerTile('Habit Tracker', Icons.checklist_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/habit-tracker')),
-                        drawerTile('Budget Tracker', Icons.account_balance_wallet_rounded, Colors.green, () => Navigator.pushNamed(context, '/budget-tracker')),
-                        drawerTile('Countdown Timer', Icons.hourglass_bottom_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/countdown-timer')),
-                        drawerTile('Workout Planner', Icons.fitness_center_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/workout-planner')),
-                        drawerTile('Scheduled Msgs', Icons.schedule_send_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/scheduled-messages')),
-                      ], badge: 'Focus')),
-
-                      // ── 🧰 REAL-LIFE TOOLS ───────────────────────────────────
-                      _DrawerStaggerItem(index: 7, child: hubAccordion('Real-Life Tools', Icons.handyman_rounded, Colors.purpleAccent, [
-                        drawerTile('Parking Saver', Icons.local_parking_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/parking-spot-saver'), badge: '🅿️'),
-                        drawerTile('Smart Scanner', Icons.document_scanner_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/smart-scanner'), badge: 'OCR'),
-                        drawerTile('Medication', Icons.medication_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/medication-reminder'), badge: '💊'),
-                        drawerTile('Package Track', Icons.local_shipping_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/package-tracker'), badge: '📦'),
-                        drawerTile('Emergency SOS', Icons.sos_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/emergency-sos'), badge: '🆘'),
-                        drawerTile('Clipboard', Icons.content_paste_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/clipboard-manager'), badge: '📋'),
-                        drawerTile('Bill Splitter', Icons.receipt_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/bill-splitter'), badge: '💰'),
-                        drawerTile('Unit Converter', Icons.straighten_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/ar-ruler'), badge: '📏'),
-                        drawerTile('Password Gen', Icons.password_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/password-generator'), badge: '🔑'),
-                        drawerTile('QR Scanner', Icons.qr_code_scanner_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/qr-scanner'), badge: '🌐'),
-                      ], badge: 'Tools')),
-
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
-                      _DrawerStaggerItem(index: 8, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
+                      _DrawerStaggerItem(index: 5, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
                         drawerTile('App Settings', Icons.settings_rounded, Colors.white70, () => updateState(() => _navIndex = 3)),
                         drawerTile('Themes', Icons.palette_rounded, Colors.pinkAccent, () => updateState(() => _navIndex = 4)),
                         drawerTile('Geofence Settings', Icons.map_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/geofencing-settings'), badge: 'GPS'),
@@ -600,7 +559,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
 
                       // ── SEE ALL FEATURES BUTTON ─────────────────────────────
                       const SizedBox(height: 16),
-                      _DrawerStaggerItem(index: 9, child: Padding(
+                      _DrawerStaggerItem(index: 6, child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: GestureDetector(
                           onTap: () {
