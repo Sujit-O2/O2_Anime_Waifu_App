@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -69,7 +69,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF0B0714),
@@ -103,7 +103,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                       Text('DAILY AFFIRMATIONS', style: GoogleFonts.outfit(
                           color: Colors.white, fontSize: 16,
                           fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                      Text(_loading ? 'Zero Two is writing for you…' : 'Zero Two believes in you~ 💕',
+                      Text(_loading ? 'Zero Two is writing for you�' : 'Zero Two believes in you~ ??',
                           style: GoogleFonts.outfit(
                               color: Colors.pinkAccent.withValues(alpha: 0.6), fontSize: 10)),
                     ],
@@ -134,7 +134,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     CircularProgressIndicator(color: Colors.pinkAccent),
                     SizedBox(height: 16),
-                    Text('Generating affirmations with AI… 💕',
+                    Text('Generating affirmations with AI� ??',
                         style: TextStyle(color: Colors.white54)),
                   ]),
                 ))
@@ -177,7 +177,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                           border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
                         ),
                         child: Center(child: Text(
-                          _liked ? '💕' : '💗',
+                          _liked ? '??' : '??',
                           style: const TextStyle(fontSize: 36),
                         )),
                       ),
@@ -209,7 +209,7 @@ class _DailyAffirmationsPageState extends State<DailyAffirmationsPage>
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: _affirmations[_idx]));
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Affirmation copied~ 💕', style: GoogleFonts.outfit()),
+                              content: Text('Affirmation copied~ ??', style: GoogleFonts.outfit()),
                               backgroundColor: Colors.pinkAccent,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
