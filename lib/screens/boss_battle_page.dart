@@ -167,7 +167,7 @@ class _BossBattlePageState extends State<BossBattlePage> with TickerProviderStat
   Widget build(BuildContext context) {
     final boss = _currentBoss;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: Text('⚔️ Boss Battle Lv.$_bossLevel',
