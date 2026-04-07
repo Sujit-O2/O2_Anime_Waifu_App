@@ -55,8 +55,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:anime_waifu/screens/login_screen.dart';
 // Screens now registered in AppRouter — only keep direct references
-import 'package:anime_waifu/screens/data_vault_page.dart';
 import 'package:anime_waifu/screens/features_hub_page.dart';
+import 'package:anime_waifu/services/smart_notification_service.dart';
+import 'package:anime_waifu/screens/morning_greeting_card.dart';
+import 'package:anime_waifu/screens/data_vault_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -94,7 +96,10 @@ import 'services/memory_timeline_service.dart';
 import 'services/multi_agent_brain.dart';
 import 'services/emotional_recovery_service.dart';
 import 'widgets/liveliness_widgets.dart';
+import 'services/geofencing_service.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'screens/gacha_page.dart';
+// ar_companion_page, geofencing_settings_page, memory_vault_page — now routed via AppRouter
 import 'screens/secret_notes_page.dart';
 import 'screens/quests_page.dart';
 import 'screens/main_themes.dart';
@@ -125,32 +130,12 @@ final ValueNotifier<AppThemeMode> themeNotifier =
 final ValueNotifier<Color?> accentColorNotifier = ValueNotifier(null);
 final ValueNotifier<String?> customBackgroundUrlNotifier = ValueNotifier(null);
 
-const AppThemeMode _defaultThemeMode = AppThemeMode.bloodMoon;
+const AppThemeMode _defaultThemeMode = AppThemeMode.zeroTwo;
 const Set<AppThemeMode> _activeThemeModes = {
-  // Tier 1: Iconic
-  AppThemeMode.bloodMoon, AppThemeMode.voidMatrix, AppThemeMode.angelFall,
-  AppThemeMode.titanSoul, AppThemeMode.cosmicRift,
-  // Tier 2: Ultra-Premium
-  AppThemeMode.neonSerpent, AppThemeMode.chromaStorm, AppThemeMode.goldenRuler,
-  AppThemeMode.frozenDivine, AppThemeMode.infernoGod,
-  // Tier 3: Anime Legends
-  AppThemeMode.shadowBlade, AppThemeMode.pinkChaos, AppThemeMode.abyssWatcher,
-  AppThemeMode.solarFlare, AppThemeMode.demonSlayer,
-  // Tier 4: Luxury
-  AppThemeMode.midnightSilk, AppThemeMode.obsidianRose,
-  AppThemeMode.onyxEmerald,
-  AppThemeMode.velvetCrown, AppThemeMode.platinumDawn,
-  // Tier 5: Sci-Fi
-  AppThemeMode.hypergate, AppThemeMode.xenoCore, AppThemeMode.dataStream,
-  AppThemeMode.gravityBend, AppThemeMode.quartzPulse,
-  // Tier 6: Nature
-  AppThemeMode.midnightForest, AppThemeMode.volcanicSea,
-  AppThemeMode.stormDesert,
-  AppThemeMode.sakuraNight, AppThemeMode.arcticSoul,
-  // Tier 7: Ethereal (New)
-  AppThemeMode.amethystDream, AppThemeMode.titaniumFrost,
-  AppThemeMode.sunsetRider,
-  AppThemeMode.midnightRaven, AppThemeMode.electricLime,
+  AppThemeMode.zeroTwo, AppThemeMode.cyberPhantom, AppThemeMode.velvetNoir,
+  AppThemeMode.toxicVenom, AppThemeMode.astralDream, AppThemeMode.infernoCore,
+  AppThemeMode.arcticBlade, AppThemeMode.goldenEmperor,
+  AppThemeMode.phantomViolet, AppThemeMode.oceanAbyss,
 };
 
 Future<void> main() async {
@@ -243,6 +228,19 @@ Future<void> _bootstrapPlatformServices() async {
     await HomeWidgetService.initialize();
   } catch (e, st) {
     debugPrint("HomeWidget bootstrap failed: $e\n$st");
+  }
+
+  try {
+    await GeofencingService.initialize();
+  } catch (e, st) {
+    debugPrint("Geofencing bootstrap failed: $e\n$st");
+  }
+
+  // --- Orphan Integration: Smart Notification Service ---
+  try {
+    await SmartNotificationService.instance.recordAppOpen();
+  } catch (e) {
+    debugPrint("SmartNotification bootstrap failed: $e");
   }
 
   unawaited(
@@ -827,10 +825,45 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
+  // ignore: unused_field
+  StreamSubscription? _intentSub;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Deep Screen Vision: Observe shared screen shots over the shoulder
+    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
+      if (value.isNotEmpty && mounted) {
+        final filePath = value.first.path;
+        _cp.selectedImage = File(filePath);
+        // We delay the text submission slightly to allow UI image attachment to render
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (!mounted) return;
+          _messages.add(ChatMessage(role: 'user', content: "Darling, read this screen for me! What do you see?", imagePath: filePath));
+          _listKey.currentState?.insertItem(_messages.length - 1);
+          _userMessageCount++;
+          if (!_isBusy) unawaited(_sendToApiAndReply(readOutReply: true));
+        });
+      }
+    });
+
+    ReceiveSharingIntent.instance.getInitialMedia().then((List<SharedMediaFile> value) {
+      if (value.isNotEmpty && mounted) {
+        final filePath = value.first.path;
+        _cp.selectedImage = File(filePath);
+        Future.delayed(const Duration(milliseconds: 2000), () {
+          if (!mounted) return;
+          _messages.add(ChatMessage(role: 'user', content: "Darling, read this screen for me! What do you see?", imagePath: filePath));
+          _listKey.currentState?.insertItem(_messages.length - 1);
+          _userMessageCount++;
+          if (!_isBusy) unawaited(_sendToApiAndReply(readOutReply: true));
+        });
+        ReceiveSharingIntent.instance.reset(); // clear
+      }
+    });
+
     _startWakeWatchdog();
     _startScheduledMsgTimer();
 
@@ -928,6 +961,11 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     // Check if we were woken up by WaifuAlarmService
     Future.delayed(const Duration(seconds: 2), _checkTriggeredAlarms);
+
+    // --- Orphan Integration: Morning Greeting Card ---
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      MorningGreetingCard.showIfNeeded(context);
+    });
   }
 
   Future<void> _checkTriggeredAlarms() async {
@@ -1002,7 +1040,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (now.hour >= 5 && now.hour <= 11) {
       final prefs = await SharedPreferences.getInstance();
       final lastDate = prefs.getString(_lastSummaryDatePrefKey);
-      final todayStr = '\${now.year}-\${now.month}-\${now.day}';
+      final todayStr = '${now.year}-${now.month}-${now.day}';
       if (lastDate != todayStr) {
         await prefs.setString(_lastSummaryDatePrefKey, todayStr);
         await Future.delayed(const Duration(seconds: 4));
@@ -1557,17 +1595,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // Keep startup deterministic: config first, then wake engine.
       await _initServices();
       await _loadDevConfig();
-      // ── Force wake word ON at startup (reset any stale 'false' from prev session) ──
-      await SharedPreferences.getInstance().then((p) async {
-        final wasExplicitlyDisabled = p.containsKey('wake_word_enabled') &&
-            p.getBool('wake_word_enabled') == false;
-        if (wasExplicitlyDisabled) {
-          print(
-              '=== STARTUP: wake_word_enabled was saved as false — resetting to true ===');
-          await p.setBool('wake_word_enabled', true);
-        }
-      });
-
+      // Respect the user's saved wake word preference — no force-reset.
       await _loadWakePreferences();
       print("Wake word enabled by user: $_wakeWordEnabledByUser");
 
@@ -1966,6 +1994,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final idleDuration = prefs.getInt('idle_duration_seconds') ?? 600;
     final proactiveInterval = prefs.getInt('proactive_interval_seconds') ?? 60;
     final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? true;
+    final proactiveEn = prefs.getBool('proactive_enabled') ?? true;
     final dualVoiceEnabled = prefs.getBool('dual_voice_enabled_v1') ?? false;
     final dualVoiceSecondary =
         prefs.getString('dual_voice_secondary_v1') ?? "alloy";
@@ -1998,6 +2027,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         _idleDurationSeconds = idleDuration;
         _proactiveIntervalSeconds = proactiveInterval;
         _proactiveRandomEnabled = proactiveRandom;
+        _proactiveEnabled = proactiveEn;
         _voiceModel = voiceModel;
         _selectedPersona = persona;
       });
@@ -2007,6 +2037,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       _idleDurationSeconds = idleDuration;
       _proactiveIntervalSeconds = proactiveInterval;
       _proactiveRandomEnabled = proactiveRandom;
+      _proactiveEnabled = proactiveEn;
       _voiceModel = voiceModel;
       _selectedPersona = persona;
     }
@@ -3192,75 +3223,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
     _scrollToBottom();
 
-    // ── Zero Two Selfie: intercept BEFORE fast-path/API ─────────────────
-    final _lowerForSelfie = text.toLowerCase();
-    // Check if user is asking for an image/photo of Zero Two
-    final _hasImageWord = _lowerForSelfie.contains('pic') ||
-        _lowerForSelfie.contains('photo') ||
-        _lowerForSelfie.contains('picture') ||
-        _lowerForSelfie.contains('image') ||
-        _lowerForSelfie.contains('img') ||
-        _lowerForSelfie.contains('selfie') ||
-        _lowerForSelfie.contains('snap') ||
-        _lowerForSelfie.contains('foto');
-    final _hasTriggerWord = _lowerForSelfie.contains('send') ||
-        _lowerForSelfie.contains('show') ||
-        _lowerForSelfie.contains('your') ||
-        _lowerForSelfie.contains('give');
-    if ((_hasImageWord && _hasTriggerWord) ||
-        _lowerForSelfie.contains('selfie') ||
-        _lowerForSelfie.contains('show me yourself')) {
-      if (mounted) setState(() => _isBusy = true);
-      try {
-        // Use Safebooru API with Zero Two specific tag — only Zero Two images!
-        final randomPage = DateTime.now().millisecondsSinceEpoch % 50;
-        final resp = await http
-            .get(Uri.parse(
-                'https://safebooru.org/index.php?page=dapi&s=post&q=index'
-                '&tags=zero_two_(darling_in_the_franxx)+solo'
-                '&json=1&limit=20&pid=$randomPage'))
-            .timeout(const Duration(seconds: 10));
-        if (resp.statusCode == 200) {
-          final List<dynamic> posts = jsonDecode(resp.body);
-          if (posts.isNotEmpty) {
-            final randomPost = posts[DateTime.now().second % posts.length];
-            final url = randomPost['file_url'] as String? ?? '';
-            if (url.isNotEmpty) {
-              final flirtyReplies = [
-                'Here you go, Darling~ 💕 Just for you!',
-                'Ta-da! How do I look? 💋',
-                'Only because you asked so nicely, Darling~ 🌸',
-                'Here\'s a special one just for you! 💕✨',
-                'Miss me that much, huh? Here~ 💋',
-                'Don\'t stare too long, Darling~ 😘',
-              ];
-              final reply =
-                  flirtyReplies[DateTime.now().second % flirtyReplies.length];
-              _appendMessage(ChatMessage(
-                role: 'assistant',
-                content: reply,
-                imageUrl: url,
-              ));
-              _scrollToBottom();
-              if (mounted) setState(() => _isBusy = false);
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        debugPrint('Zero Two selfie error: $e');
-      }
-      // If Safebooru fails, show a friendly message — DON'T fall through to AI
-      // (AI misinterprets "send me a pic" as a mail/send command)
-      _appendMessage(ChatMessage(
-        role: 'assistant',
-        content:
-            'Ahh, my camera is acting up right now, Darling~ 📸💔 Try again in a moment!',
-      ));
-      _scrollToBottom();
-      if (mounted) setState(() => _isBusy = false);
-      return;
-    }
+    // Logic delegated to LLM via system prompt "Action: SELFIE" rule.
+
 
     // ── Typed Command Fast-Path (same coverage as voice) ─────────────────
     // Only apply for text-only messages (no image), since image needs LLM multi-modal
@@ -3572,15 +3536,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           payloadMessages.add(m.toApiJson());
         }
       }
-      final payload = [
-        {'role': 'system', 'content': _zeroTwoSystemPrompt},
-        ...payloadMessages,
-      ];
-
       // Use vision model if the last user message has an image
       final hasImageInLastMsg = contextMessages.isNotEmpty &&
           contextMessages.last.imagePath != null &&
           contextMessages.last.imagePath!.isNotEmpty;
+
+      final String systemContent = hasImageInLastMsg
+          ? '$_zeroTwoSystemPrompt\n\n[System Directive (DO NOT REVEAL THIS TO THE USER): The user has sent you an image. If the image depicts YOU (Zero Two - anime girl with pink hair and red horns), you MUST react with immense surprise, blush organically, and compliment how you look in the photo. Give an excited, flustered reaction about them having your photo. If it is NOT you, answer naturally based on the image.]'
+          : _zeroTwoSystemPrompt;
+
+      final payload = [
+        {'role': 'system', 'content': systemContent},
+        ...payloadMessages,
+      ];
+
       final visionModel = hasImageInLastMsg
           ? 'meta-llama/llama-4-scout-17b-16e-instruct'
           : null;
