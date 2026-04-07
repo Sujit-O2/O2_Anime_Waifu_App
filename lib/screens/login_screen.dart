@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen>
       _errorMessage = null;
     });
     try {
-      // Clear stale credentials first — prevents breakage after Google updates
+      // Clear stale credentials first â€” prevents breakage after Google updates
       try { await _googleSignIn.signOut(); } catch (_) {}
 
       final googleUser = await _googleSignIn.signIn();
@@ -209,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         padding: const EdgeInsets.all(4),
         child: ClipOval(
-          child: Image.asset('assets/img/logi.png',
+          child: Image.asset('assets/img/logi.jpg',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome,
                   color: Colors.white, size: 44)),
@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       ),
 
-      Text('Welcome back, Darling 💕',
+      Text('Welcome back, Darling ðŸ’•',
           style: GoogleFonts.outfit(color: Colors.white54, fontSize: 13)),
     ]);
   }
@@ -446,3 +446,4 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 }
+

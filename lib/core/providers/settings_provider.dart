@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,18 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:anime_waifu/services/assistant_mode_service.dart';
 
-/// ─────────────────────────────────────────────────────────────────────────────
+/// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /// SettingsProvider
 ///
 /// Extracted from _ChatHomePageState. Manages ALL user preferences including:
-/// • UI settings (timestamps, haptic, chat text size, etc.)
-/// • Voice model and TTS settings
-/// • Outfit/wallpaper/custom images
-/// • Dev config overrides (API keys, model, URL)
-/// • Assistant mode toggles (proactive, random, etc.)
-/// ─────────────────────────────────────────────────────────────────────────────
+/// â€¢ UI settings (timestamps, haptic, chat text size, etc.)
+/// â€¢ Voice model and TTS settings
+/// â€¢ Outfit/wallpaper/custom images
+/// â€¢ Dev config overrides (API keys, model, URL)
+/// â€¢ Assistant mode toggles (proactive, random, etc.)
+/// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class SettingsProvider extends ChangeNotifier {
-  // ── Pref keys ───────────────────────────────────────────────────────────
+  // â”€â”€ Pref keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const String _showTimestampsPrefKey = 'show_msg_timestamps_v1';
   static const String _hapticFeedbackPrefKey = 'haptic_feedback_v1';
   static const String _wakePopupPrefKey = 'wake_popup_enabled';
@@ -39,7 +39,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
   static const String _sttProviderPrefKey = 'stt_provider_v1';
 
-  // ── Dev config pref keys ────────────────────────────────────────────────
+  // â”€â”€ Dev config pref keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const String _devApiKeyPrefKey = 'dev_api_key_override';
   static const String _devModelPrefKey = 'dev_model_override';
   static const String _devApiUrlPrefKey = 'dev_api_url_override';
@@ -52,12 +52,12 @@ class SettingsProvider extends ChangeNotifier {
   static const String _devSttLangPrefKey = 'dev_stt_lang_override';
   static const String _devSttTimeoutPrefKey = 'dev_stt_timeout_override';
 
-  // ── Advanced pref keys ──────────────────────────────────────────────────
+  // â”€â”€ Advanced pref keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const String _advancedMemoryLimitPrefKey = 'flutter.advanced_memory_limit';
   static const String _advancedDebugLogsPrefKey = 'flutter.advanced_debug_logs';
   static const String _advancedStrictWakePrefKey = 'flutter.advanced_strict_wake';
 
-  // ── UI Settings ─────────────────────────────────────────────────────────
+  // â”€â”€ UI Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool showMessageTimestamps = false;
   bool hapticFeedbackEnabled = true;
   bool wakePopupEnabled = true;
@@ -72,27 +72,27 @@ class SettingsProvider extends ChangeNotifier {
   bool appLockEnabled = false;
   bool notificationsAllowed = false;
 
-  // ── STT Provider ─────────────────────────────────────────────────────
+  // â”€â”€ STT Provider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String sttProvider = 'groq'; // 'groq' | 'gladia'
 
-  // ── Outfit / Custom images ──────────────────────────────────────────────
+  // â”€â”€ Outfit / Custom images â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String selectedOutfit = 'assets/img/z2s.jpg';
   bool chatImageFromSystem = false;
   bool appIconFromCustom = false;
   String? customChatImagePath;
   String? customAppIconPath;
 
-  // ── Dual Voice ──────────────────────────────────────────────────────────
+  // â”€â”€ Dual Voice â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool dualVoiceEnabled = false;
   String dualVoiceSecondary = "alloy";
   int dualVoiceTurn = 0;
 
-  // ── Advanced ────────────────────────────────────────────────────────────
+  // â”€â”€ Advanced â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int advancedMemoryLimit = 15;
   bool advancedDebugLogs = false;
   bool advancedStrictWake = false;
 
-  // ── Dev Config ──────────────────────────────────────────────────────────
+  // â”€â”€ Dev Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String devApiKeyOverride = "";
   String devModelOverride = "";
   String devApiUrlOverride = "";
@@ -105,14 +105,14 @@ class SettingsProvider extends ChangeNotifier {
   String devSttLangOverride = "";
   int devSttTimeoutOverride = 0;
 
-  // ── Proactive / Idle Settings ───────────────────────────────────────────
+  // â”€â”€ Proactive / Idle Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int idleDurationSeconds = 600;
   int proactiveIntervalSeconds = 60;
   bool idleTimerEnabled = true;
   bool proactiveEnabled = true;
   bool proactiveRandomEnabled = true;
 
-  // ── Derived Getters ─────────────────────────────────────────────────────
+  // â”€â”€ Derived Getters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   double get chatFontSize {
     switch (chatTextSize) {
       case 'Small':
@@ -136,7 +136,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   String get chatImageAsset => selectedOutfit;
-  String get appIconImageAsset => 'assets/img/logi.png';
+  String get appIconImageAsset => 'assets/img/logi.jpg';
   String? get effectiveChatCustomPath =>
       chatImageFromSystem ? customChatImagePath : null;
   String? get effectiveAppIconCustomPath =>
@@ -182,9 +182,9 @@ class SettingsProvider extends ChangeNotifier {
     return AssetImage(assetPath);
   }
 
-  // ═════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // Load / Save Methods
-  // ═════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   Future<void> loadAll() async {
     await loadNewSettings();
@@ -254,7 +254,7 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Toggle / Set Methods ────────────────────────────────────────────────
+  // â”€â”€ Toggle / Set Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> toggleShowTimestamps() async {
     showMessageTimestamps = !showMessageTimestamps;
@@ -458,3 +458,4 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

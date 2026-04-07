@@ -1,5 +1,5 @@
 ![02](assets/img/front.png)
-### *A High-Performance, State-Aware, Multi-Model Neural Assistant*![System Banner](assets/img/bg.png)
+### *A High-Performance, State-Aware, Multi-Model Neural Assistant*![System Banner](assets/img/bg.jpg)
 ### *A High-Performance, State-Aware, Multi-Model Neural Assistant*
 
 ---
@@ -369,7 +369,7 @@ graph TD
 
 ## The Speech Pipeline
 
-![Chat Interface](assets/img/bg2.png)
+![Chat Interface](assets/img/bg2.jpg)
 
 The app follows a sophisticated "Listen -> Think -> Speak" loop designed to feel natural and instantaneous.
 

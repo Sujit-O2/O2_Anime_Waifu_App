@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/affection_service.dart';
@@ -33,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _formatAnniversary(String? isoDate) {
-    if (isoDate == null || isoDate.isEmpty) return 'Since today 🌸';
+    if (isoDate == null || isoDate.isEmpty) return 'Since today ðŸŒ¸';
     try {
       final d = DateTime.parse(isoDate);
       final diff = DateTime.now().difference(d).inDays;
@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           radius: 52,
                           backgroundImage: (user?.photoURL != null)
                               ? NetworkImage(user!.photoURL!)
-                              : const AssetImage('assets/img/logi.png')
+                              : const AssetImage('assets/img/logi.jpg')
                                   as ImageProvider,
                         ),
                       ),
@@ -132,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Affection card
                   _card(
                     children: [
-                      _row('💖 Level', affection.levelName),
+                      _row('ðŸ’– Level', affection.levelName),
                       const SizedBox(height: 10),
                       LinearProgressIndicator(
                         value: affection.levelProgress,
@@ -143,8 +143,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       const SizedBox(height: 6),
-                      _row('✨ Points', '${affection.points}'),
-                      _row('🔥 Streak', '${affection.streakDays} days'),
+                      _row('âœ¨ Points', '${affection.points}'),
+                      _row('ðŸ”¥ Streak', '${affection.streakDays} days'),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -152,14 +152,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Profile info card
                   _card(
                     children: [
-                      _row('📅 Together Since', anniversary),
-                      _row('🏅 Achievements',
+                      _row('ðŸ“… Together Since', anniversary),
+                      _row('ðŸ… Achievements',
                           '${achievements.unlocked.length} / ${AchievementsService.all.length}'),
                       _row(
-                          '👤 UID',
+                          'ðŸ‘¤ UID',
                           (user?.uid ?? '').length > 12
                               ? '${user!.uid.substring(0, 12)}...'
-                              : user?.uid ?? '—'),
+                              : user?.uid ?? 'â€”'),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '✏️ Display Name',
+                            'âœï¸ Display Name',
                             style: GoogleFonts.outfit(
                                 color: Colors.white70, fontSize: 14),
                           ),
@@ -273,3 +273,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 }
+

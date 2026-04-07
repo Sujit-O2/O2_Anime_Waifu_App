@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
@@ -31,11 +31,11 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
   String get _greeting {
     if (widget.greeting != null) return widget.greeting!;
     final hour = DateTime.now().hour;
-    if (hour < 5) return 'Still awake, Darling? 🌙';
-    if (hour < 12) return 'Good morning, Darling~ ☀️';
-    if (hour < 17) return 'Hello there, Darling! 💕';
-    if (hour < 21) return 'Good evening, Darling~ 🌸';
-    return 'Good night... Darling 💤';
+    if (hour < 5) return 'Still awake, Darling? ðŸŒ™';
+    if (hour < 12) return 'Good morning, Darling~ â˜€ï¸';
+    if (hour < 17) return 'Hello there, Darling! ðŸ’•';
+    if (hour < 21) return 'Good evening, Darling~ ðŸŒ¸';
+    return 'Good night... Darling ðŸ’¤';
   }
 
   @override
@@ -80,7 +80,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Floating avatar with hearts ──────────────────────────────
+              // â”€â”€ Floating avatar with hearts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               SizedBox(
                 height: 180,
                 child: Stack(
@@ -133,7 +133,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/img/bg.png',
+                            'assets/img/bg.jpg',
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(
                               Icons.favorite_rounded,
@@ -173,7 +173,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
 
               const SizedBox(height: 12),
 
-              // ── Greeting text ────────────────────────────────────────────
+              // â”€â”€ Greeting text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Text(
                 _greeting,
                 textAlign: TextAlign.center,
@@ -192,10 +192,10 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
 
               const SizedBox(height: 8),
 
-              // ── Subtitle ─────────────────────────────────────────────────
+              // â”€â”€ Subtitle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Text(
                 widget.subtitle ??
-                    'Say something, Darling~\nI\'m always here for you 💕',
+                    'Say something, Darling~\nI\'m always here for you ðŸ’•',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
                   color: Colors.white54,
@@ -206,16 +206,16 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
 
               const SizedBox(height: 20),
 
-              // ── Quick action pills ───────────────────────────────────────
+              // â”€â”€ Quick action pills â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _pill('💬 Chat', const Color(0xFFFF4D8D)),
-                  _pill('🎯 Daily', const Color(0xFF9B59B6)),
-                  _pill('🎮 Games', const Color(0xFF3498DB)),
-                  _pill('🎵 Music', const Color(0xFF1abc9c)),
+                  _pill('ðŸ’¬ Chat', const Color(0xFFFF4D8D)),
+                  _pill('ðŸŽ¯ Daily', const Color(0xFF9B59B6)),
+                  _pill('ðŸŽ® Games', const Color(0xFF3498DB)),
+                  _pill('ðŸŽµ Music', const Color(0xFF1abc9c)),
                 ],
               ),
             ],
@@ -252,7 +252,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
           ),
           child: Row(
             children: [
-              const Text('🌸', style: TextStyle(fontSize: 28)),
+              const Text('ðŸŒ¸', style: TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -329,5 +329,6 @@ class _HeartParticle {
         offset = rng.nextDouble(),
         size = 8 + rng.nextDouble() * 10,
         alpha = 0.4 + rng.nextDouble() * 0.5,
-        emoji = ['❤️', '💕', '💗', '🌸', '✨', '💖'][rng.nextInt(6)];
+        emoji = ['â¤ï¸', 'ðŸ’•', 'ðŸ’—', 'ðŸŒ¸', 'âœ¨', 'ðŸ’–'][rng.nextInt(6)];
 }
+
