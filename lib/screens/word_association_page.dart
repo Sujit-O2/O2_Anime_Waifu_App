@@ -54,6 +54,7 @@ class _WordAssociationPageState extends State<WordAssociationPage> with SingleTi
       if (streak > _longestStreak) {
         await FirebaseFirestore.instance.collection('users').doc(_uid).collection('wordGame').doc('stats')
             .set({'longestStreak': streak, 'updatedAt': FieldValue.serverTimestamp()});
+        if (!mounted) return;
         setState(() => _longestStreak = streak);
       }
     } catch (_) {}
@@ -111,7 +112,7 @@ class _WordAssociationPageState extends State<WordAssociationPage> with SingleTi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080E1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       body: SafeArea(child: Column(children: [
         Padding(
