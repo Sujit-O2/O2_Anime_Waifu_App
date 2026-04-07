@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 
 /// Anime Watch Party — Sync video playback with friends + live chat.
@@ -59,7 +58,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         title: const Text('Enter Video URL', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: _urlInput,
@@ -128,7 +127,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +203,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
           
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFF16161E),
+            color: Theme.of(context).scaffoldBackgroundColor,
             width: double.infinity,
             child: Text(_currentTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
@@ -258,7 +257,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage> {
           // Input Section
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFF16161E),
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: Row(
               children: [
                 const Icon(Icons.emoji_emotions_outlined, color: Colors.grey),
