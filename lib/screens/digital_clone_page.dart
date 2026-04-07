@@ -84,6 +84,7 @@ class _DigitalClonePageState extends State<DigitalClonePage> {
       
       final response = await api.sendConversation(prompt);
       
+      if (!mounted) return;
       setState(() {
         _cloneChat.removeLast(); // remove thinking message
         _cloneChat.add({'role': 'clone', 'text': response});
@@ -96,10 +97,18 @@ class _DigitalClonePageState extends State<DigitalClonePage> {
     }
   }
 
+  
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
