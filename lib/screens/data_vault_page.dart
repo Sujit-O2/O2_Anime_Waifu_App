@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,18 +6,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/waifu_background.dart';
 
-/// 🔐 DATA VAULT — Secret panel (tap version label 7 times in About page)
+/// ?? DATA VAULT � Secret panel (tap version label 7 times in About page)
 /// All Firestore paths are in sync with FirestoreService:
-///   chats/{uid}         — chat messages array
-///   vault/{uid}         — secret notes + PIN
-///   profiles/{uid}      — persona, custom rules, waifu name
-///   affection/{uid}     — XP, streak, relationship level
-///   memory/{uid}        — AI memory facts
-///   quests/{uid}        — daily quests progress
-///   mood/{uid}          — mood journal entries
-///   scores/{uid}        — mini-game high scores
-///   achievements/{uid}  — unlocked badges
-///   settings/{uid}      — app settings/prefs
+///   chats/{uid}         � chat messages array
+///   vault/{uid}         � secret notes + PIN
+///   profiles/{uid}      � persona, custom rules, waifu name
+///   affection/{uid}     � XP, streak, relationship level
+///   memory/{uid}        � AI memory facts
+///   quests/{uid}        � daily quests progress
+///   mood/{uid}          � mood journal entries
+///   scores/{uid}        � mini-game high scores
+///   achievements/{uid}  � unlocked badges
+///   settings/{uid}      � app settings/prefs
 class DataVaultPage extends StatefulWidget {
   const DataVaultPage({super.key});
   @override
@@ -54,22 +54,22 @@ class _DataVaultPageState extends State<DataVaultPage>
     super.dispose();
   }
 
-  // ── Correct Firestore paths matching FirestoreService ─────────────────────
+  // -- Correct Firestore paths matching FirestoreService ---------------------
   static const _defs = [
     _VaultDef(
       key: 'chat',
-      label: '💬 Chat History',
+      label: '?? Chat History',
       subtitle: 'All stored messages',
       icon: Icons.chat_bubble_outline,
       color: Colors.cyanAccent,
-      // chats/{uid} — single doc with 'messages' array
+      // chats/{uid} � single doc with 'messages' array
       collection: 'chats',
       isSingleDoc: true,
       countField: 'messages',
     ),
     _VaultDef(
       key: 'vault',
-      label: '🔐 Secret Notes',
+      label: '?? Secret Notes',
       subtitle: 'PIN-protected private notes',
       icon: Icons.lock_outline,
       color: Colors.pinkAccent,
@@ -79,7 +79,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'profile',
-      label: '👤 Profile & Persona',
+      label: '?? Profile & Persona',
       subtitle: 'Custom persona, rules, name',
       icon: Icons.person_outline,
       color: Colors.blueAccent,
@@ -88,7 +88,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'affection',
-      label: '💖 Affection / XP',
+      label: '?? Affection / XP',
       subtitle: 'Relationship XP, streak, level',
       icon: Icons.favorite_outline,
       color: Colors.pinkAccent,
@@ -98,7 +98,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'memory',
-      label: '🧠 AI Memory',
+      label: '?? AI Memory',
       subtitle: 'Facts Zero Two remembers about you',
       icon: Icons.psychology_outlined,
       color: Colors.deepPurpleAccent,
@@ -108,7 +108,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'quests',
-      label: '⚡ Daily Quests',
+      label: '? Daily Quests',
       subtitle: 'Quest progress & completions',
       icon: Icons.flag_circle_outlined,
       color: Colors.lightGreenAccent,
@@ -117,7 +117,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'mood',
-      label: '😊 Mood Journal',
+      label: '?? Mood Journal',
       subtitle: 'Mood entries & history',
       icon: Icons.mood_outlined,
       color: Colors.orangeAccent,
@@ -127,7 +127,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'scores',
-      label: '🎮 Game High Scores',
+      label: '?? Game High Scores',
       subtitle: 'Best scores across all 8 games',
       icon: Icons.sports_esports_outlined,
       color: Colors.amberAccent,
@@ -136,7 +136,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'achievements',
-      label: '🏆 Achievements',
+      label: '?? Achievements',
       subtitle: 'Unlocked badges & milestones',
       icon: Icons.emoji_events_outlined,
       color: Colors.yellow,
@@ -146,7 +146,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     ),
     _VaultDef(
       key: 'settings',
-      label: '⚙️ App Settings',
+      label: '?? App Settings',
       subtitle: 'Synced preferences & config',
       icon: Icons.settings_outlined,
       color: Colors.tealAccent,
@@ -256,10 +256,10 @@ class _DataVaultPageState extends State<DataVaultPage>
     setState(() => _deletingKey = cat.def.key);
     try {
       await _db.collection(cat.def.collection).doc(uid).delete();
-      _snack('✅ ${cat.def.label} deleted!', cat.def.color);
+      _snack('? ${cat.def.label} deleted!', cat.def.color);
       await _loadStats();
     } catch (e) {
-      _snack('❌ Error: $e', Colors.redAccent);
+      _snack('? Error: $e', Colors.redAccent);
     } finally {
       if (mounted) setState(() => _deletingKey = null);
     }
@@ -269,13 +269,13 @@ class _DataVaultPageState extends State<DataVaultPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF12121E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('⚠️ Delete ALL Data?',
+        title: Text('?? Delete ALL Data?',
             style: GoogleFonts.outfit(
                 color: Colors.redAccent, fontWeight: FontWeight.w800)),
         content: Text(
-          'This will permanently delete ALL your data from the cloud database — chat history, notes, XP, achievements, everything.\n\nThis cannot be undone.',
+          'This will permanently delete ALL your data from the cloud database � chat history, notes, XP, achievements, everything.\n\nThis cannot be undone.',
           style: GoogleFonts.outfit(color: Colors.white70, height: 1.5),
         ),
         actions: [
@@ -308,10 +308,10 @@ class _DataVaultPageState extends State<DataVaultPage>
           await _db.collection(col).doc(uid).delete();
         } catch (_) {}
       }
-      _snack('✅ All data deleted from cloud', Colors.pinkAccent);
+      _snack('? All data deleted from cloud', Colors.pinkAccent);
       await _loadStats();
     } catch (e) {
-      _snack('❌ Error: $e', Colors.redAccent);
+      _snack('? Error: $e', Colors.redAccent);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -334,7 +334,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: const Color(0xFF12121E),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             title: Text('Delete $label?',
@@ -369,7 +369,7 @@ class _DataVaultPageState extends State<DataVaultPage>
   Widget build(BuildContext context) {
     final uid = _uid;
     return Scaffold(
-      backgroundColor: const Color(0xFF050510),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.06,
         tint: const Color(0xFF050510),
@@ -409,7 +409,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(children: [
-                            Text('🔐', style: const TextStyle(fontSize: 20)),
+                            Text('??', style: const TextStyle(fontSize: 20)),
                             const SizedBox(width: 8),
                             Text('DATA VAULT',
                                 style: GoogleFonts.outfit(
@@ -426,7 +426,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                                 )),
                           ]),
                           Text(
-                              'All cloud data • ${uid != null ? '${uid.substring(0, 8)}…' : 'Not signed in'}',
+                              'All cloud data � ${uid != null ? '${uid.substring(0, 8)}�' : 'Not signed in'}',
                               style: GoogleFonts.outfit(
                                   color: Colors.white24, fontSize: 10)),
                         ]),
@@ -460,7 +460,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                 border: Border.all(color: Colors.redAccent.withValues(alpha: 0.25)),
               ),
               child: Row(children: [
-                const Text('⚠️', style: TextStyle(fontSize: 16)),
+                const Text('??', style: TextStyle(fontSize: 16)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -484,7 +484,7 @@ class _DataVaultPageState extends State<DataVaultPage>
                           const CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.redAccent),
                           const SizedBox(height: 14),
-                          Text('Reading cloud data…',
+                          Text('Reading cloud data�',
                               style: GoogleFonts.outfit(color: Colors.white38)),
                         ]))
                   : uid == null
@@ -644,7 +644,7 @@ class _DataVaultPageState extends State<DataVaultPage>
   }
 }
 
-// ── Models ────────────────────────────────────────────────────────────────────
+// -- Models --------------------------------------------------------------------
 
 class _VaultDef {
   final String key, label, subtitle, collection;
