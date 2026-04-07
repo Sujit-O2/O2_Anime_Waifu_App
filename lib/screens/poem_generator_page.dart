@@ -59,6 +59,7 @@ class _PoemGeneratorPageState extends State<PoemGeneratorPage> {
       final reply = await ApiService().sendConversation([
         {'role': 'user', 'content': prompt},
       ]);
+      if (!mounted) return;
       setState(() => _poem = reply.trim());
       AffectionService.instance.addPoints(3);
     } catch (e) {
@@ -84,7 +85,7 @@ class _PoemGeneratorPageState extends State<PoemGeneratorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
