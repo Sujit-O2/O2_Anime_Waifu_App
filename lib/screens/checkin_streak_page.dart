@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -105,7 +104,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -159,7 +158,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
