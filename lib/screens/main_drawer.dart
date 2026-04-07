@@ -240,7 +240,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
     final drawerWidth = (screenWidth * 0.82).clamp(0.0, 320.0);
     return Drawer(
       width: drawerWidth,
-      backgroundColor: const Color(0xFF0F1014), // Deep cinematic dark layout
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Deep cinematic dark layout
       child: Stack(
         children: [
           // Subtle background GIF overlay
@@ -526,6 +526,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                         drawerTile('Gacha Cards', Icons.card_giftcard_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/gacha-collector'), badge: 'NEW'),
                         drawerTile('Mini Games', Icons.sports_esports_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/mini-games'), badge: '8+'),
                         drawerTile('Story Mode', Icons.book_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/story-mode')),
+                        drawerTile('AR Companion', Icons.view_in_ar_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/ar-companion'), badge: '3D'),
                         drawerTile('Virtual Date', Icons.favorite_outline_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/virtual-date')),
                         drawerTile('Spin Wheel', Icons.radio_button_checked_outlined, Colors.amberAccent, () => Navigator.pushNamed(context, '/spinner-wheel')),
                       ], badge: 'Play')),
@@ -547,6 +548,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
 
                       // ── 📊 ANALYTICS & STATS ──────────────────────────────────
                       _DrawerStaggerItem(index: 6, child: hubAccordion('Analytics', Icons.analytics_rounded, Colors.cyanAccent, [
+                        drawerTile('Memory Vault', Icons.memory_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/memory-vault'), badge: 'Deep'),
                         drawerTile('Chat Analytics', Icons.bar_chart_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/chat-analytics'), badge: '📊'),
                         drawerTile('Stats & Habits', Icons.insights_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/stats-habits')),
                         drawerTile('Mood Tracking', Icons.mood_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/mood-tracking')),
@@ -587,6 +589,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                       _DrawerStaggerItem(index: 8, child: hubAccordion('Settings', Icons.settings_rounded, Colors.blueGrey, [
                         drawerTile('App Settings', Icons.settings_rounded, Colors.white70, () => updateState(() => _navIndex = 3)),
                         drawerTile('Themes', Icons.palette_rounded, Colors.pinkAccent, () => updateState(() => _navIndex = 4)),
+                        drawerTile('Geofence Settings', Icons.map_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/geofencing-settings'), badge: 'GPS'),
                         drawerTile('My Profile', Icons.person_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/profile')),
                         drawerTile('Achievements', Icons.emoji_events_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/achievements')),
                         drawerTile('App Icons', Icons.app_shortcut_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/app-icon-picker'), badge: '🎨'),
