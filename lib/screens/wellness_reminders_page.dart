@@ -24,6 +24,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _hydration = prefs.getBool('reminders_hydration') ?? false;
       _eyeCare = prefs.getBool('reminders_eyecare') ?? false;
@@ -110,7 +111,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
