@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
@@ -69,7 +71,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF07071A),
@@ -102,7 +104,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5)),
               ),
-              const Text('📚', style: TextStyle(fontSize: 22)),
+              const Text('??', style: TextStyle(fontSize: 22)),
             ]),
           ),
 
@@ -129,7 +131,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
                     cursorColor: Colors.amberAccent,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Search any book or author…',
+                      hintText: 'Search any book or author�',
                       hintStyle: GoogleFonts.outfit(
                           color: Colors.white30, fontSize: 13),
                       isDense: true,
@@ -207,7 +209,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                            const Text('📚', style: TextStyle(fontSize: 48)),
+                            const Text('??', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text('No books found',
                                 style:
@@ -246,18 +248,11 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
             clipBehavior: Clip.antiAlias,
             child: book['cover'] != null
-                ? Image.network(book['cover'],
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                          color: Colors.amberAccent.withValues(alpha: 0.1),
-                          child: const Center(
-                              child:
-                                  Text('📖', style: TextStyle(fontSize: 28))),
-                        ))
+                ? AppCachedImage(url: book['cover'], width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                 : Container(
                     color: Colors.amberAccent.withValues(alpha: 0.1),
                     child: const Center(
-                        child: Text('📖', style: TextStyle(fontSize: 28))),
+                        child: Text('??', style: TextStyle(fontSize: 28))),
                   ),
           ),
           const SizedBox(width: 14),
@@ -298,7 +293,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
                             ),
                             child: Text(
                                 s.toString().length > 20
-                                    ? '${s.toString().substring(0, 20)}…'
+                                    ? '${s.toString().substring(0, 20)}�'
                                     : s.toString(),
                                 style: GoogleFonts.outfit(
                                     color: Colors.amberAccent.withValues(alpha: 0.6),
