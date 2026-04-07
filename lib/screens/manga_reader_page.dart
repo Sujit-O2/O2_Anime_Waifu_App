@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/manga_service.dart';
@@ -149,38 +151,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
         padding: EdgeInsets.zero,
         itemCount: _pages.length,
         itemBuilder: (ctx, i) {
-           return Image.network(
-            _pages[i],
-            fit: BoxFit.fitWidth,
-            width: double.infinity,
-            loadingBuilder: (_, child, prog) {
-              if (prog == null) return child;
-              return Container(
-                height: 300,
-                color: Colors.black,
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFBB52FF),
-                    strokeWidth: 2,
-                  ),
-                ),
-              );
-            },
-            errorBuilder: (_, __, ___) => Container(
-              height: 300,
-              color: Colors.black,
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.broken_image_outlined, color: Colors.white38, size: 48),
-                    SizedBox(height: 8),
-                    Text('Failed to load segment', style: TextStyle(color: Colors.white38)),
-                  ],
-                ),
-              ),
-            ),
-          );
+           return AppCachedImage(url: _pages[i], width: double.infinity, height: 300, fit: BoxFit.fitWidth);
         },
       ),
     );
@@ -191,38 +162,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
       minScale: 1.0,
       maxScale: 4.0,
       child: Center(
-        child: Image.network(
-          url,
-          fit: BoxFit.contain,
-          loadingBuilder: (_, child, prog) {
-            if (prog == null) return child;
-            return Container(
-              color: Colors.black,
-              child: Center(
-                child: CircularProgressIndicator(
-                  value: prog.expectedTotalBytes != null
-                      ? prog.cumulativeBytesLoaded / prog.expectedTotalBytes!
-                      : null,
-                  color: const Color(0xFFBB52FF),
-                  strokeWidth: 2,
-                ),
-              ),
-            );
-          },
-          errorBuilder: (_, __, ___) => Container(
-            color: Colors.black,
-            child: const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.broken_image_outlined, color: Colors.white38, size: 48),
-                  SizedBox(height: 8),
-                  Text('Failed to load page', style: TextStyle(color: Colors.white38)),
-                ],
-              ),
-            ),
-          ),
-        ),
+        child: AppCachedImage(url: url, width: double.infinity, height: double.infinity, fit: BoxFit.contain),
       ),
     );
   }
@@ -241,7 +181,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
             setState(() { _loading = true; _pages = []; });
             _loadPages();
           },
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBB52FF)),
+          style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).scaffoldBackgroundColor),
           child: Text('Retry', style: GoogleFonts.outfit(color: Colors.white)),
         ),
       ],
