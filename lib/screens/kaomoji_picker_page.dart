@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/waifu_background.dart';
@@ -11,83 +11,83 @@ class KaomojiPickerPage extends StatefulWidget {
 
 class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
   static const _categories = {
-    '🌸 Waifu': [
-      '(づ｡◕‿‿◕｡)づ',
-      '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧',
-      '(っ◔◡◔)っ',
-      '(人 •͈ᴗ•͈)',
-      '(˘³˘)♥',
-      'emu(^○^)emu',
-      '♡(˘▽˘>ʃƪ)♡',
-      '(*^ω^)',
-      'ヽ(♡‿♡)ノ',
-      '(o^▽^o)',
-      '( ˘ ³˘)♥',
-      '٩(♡ε♡)۶',
+    '?? Waifu': [
+      '(???????)?',
+      '(????)?*:???',
+      '(????)?',
+      '(? �??�?)',
+      '(?�?)?',
+      'emu(^?^)emu',
+      '?(???>??)?',
+      '(*^?^)',
+      '?(???)?',
+      '(o^?^o)',
+      '( ? �?)?',
+      '?(?e?)?',
     ],
-    '😄 Happy': [
-      '(＾▽＾)',
-      '(ﾉ≧∀≦)ﾉ',
-      '(◕‿◕✿)',
-      '(｀∀´)ﾉ',
-      '(≧◡≦)',
-      '(*≧ω≦)',
-      '(✿◠‿◠)',
-      '٩(^‿^)۶',
+    '?? Happy': [
+      '(^?^)',
+      '(????)?',
+      '(????)',
+      '(`?�)?',
+      '(???)',
+      '(*???)',
+      '(????)',
+      '?(^?^)?',
     ],
-    '😢 Sad': [
+    '?? Sad': [
       '(T_T)',
-      '(；ω；)',
-      '(っ˘̩╭╮˘̩)っ',
-      '(´；ω；`)',
+      '(;?;)',
+      '(???????)?',
+      '(�;?;`)',
       '(._.)  ',
-      '(πーπ)',
-      '(T▽T)',
-      '(ㄒoㄒ)',
+      '(p?p)',
+      '(T?T)',
+      '(?o?)',
     ],
-    '😤 Angry': [
-      '(╯°□°）╯︵ ┻━┻',
-      '(ノಠ益ಠ)ノ彡┻━┻',
-      '(҂◡_◡)',
-      '٩(ఠ益ఠ)۶',
-      '(╬ಠ益ಠ)',
-      '(ó ì_í)=óò=(ì_í ò)',
-      '(￣^￣)ゞ',
-      '(◣_◢)',
+    '?? Angry': [
+      '(?�?�)?? ???',
+      '(????)?????',
+      '(??_?)',
+      '?(???)?',
+      '(+???)',
+      '(� �_�)=��=(�_� �)',
+      '(?^?)?',
+      '(?_?)',
     ],
-    '😎 Cool': [
-      '( •_•)',
-      '(•_•)>⌐■-■',
-      '(⌐■_■)',
-      '(づ  ̄ ³ ̄)づ',
-      '(¬‿¬)',
-      '( ͡° ͜ʖ ͡°)',
+    '?? Cool': [
+      '( �_�)',
+      '(�_�)>��-�',
+      '(��_�)',
+      '(?  � � �)?',
+      '(�?�)',
+      '( ?� ?? ?�)',
       '(o_O)',
-      'ψ(｀∇´)ψ',
+      '?(`?�)?',
     ],
-    '🐾 Animals': [
-      '(=^･ω･^=)',
-      '（＾ｖ＾）',
-      'ʕ•ᴥ•ʔ',
-      'ฅ^•ﻌ•^ฅ',
-      '(ᵔᴥᵔ)',
-      '(^=◕ᴥ◕=^)',
-      'U・ᴥ・U',
-      '(*.*)✿',
+    '?? Animals': [
+      '(=^???^=)',
+      '(^v^)',
+      '?�?�?',
+      '?^�?�^?',
+      '(???)',
+      '(^=???=^)',
+      'U�?�U',
+      '(*.*)?',
     ],
-    '🎉 Celebration': [
+    '?? Celebration': [
       '\\(^o^)/',
-      '(ﾉ´▽`)ﾉ♪',
-      '☆彡',
-      '(*^▽^*)',
-      'ヽ(・∀・)ﾉ',
-      '٩(◕‿◕)۶',
-      '(≧▽≦)/~☆',
-      '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧',
+      '(?�?`)??',
+      '??',
+      '(*^?^*)',
+      '?(�?�)?',
+      '?(???)?',
+      '(???)/~?',
+      '(????)?*:???',
     ],
   };
 
-  String _selectedCat = '🌸 Waifu';
+  String _selectedCat = '?? Waifu';
   String? _lastCopied;
 
   void _copy(String k) {
@@ -113,7 +113,7 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage> {
   Widget build(BuildContext context) {
     final kaomojis = _categories[_selectedCat] ?? [];
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF0A0714),
