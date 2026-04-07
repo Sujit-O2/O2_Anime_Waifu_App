@@ -128,7 +128,7 @@ class WebStreamersHubPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Web Streamers Hub',
