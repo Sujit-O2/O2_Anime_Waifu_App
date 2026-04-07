@@ -157,6 +157,7 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
     // Update best
     if (_score > _highScore) {
       await ref.doc('best').set({'score': _score});
+      if (!mounted) return;
       setState(() => _highScore = _score);
     }
   }
@@ -204,7 +205,7 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
