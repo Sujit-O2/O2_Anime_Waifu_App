@@ -459,7 +459,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                   Icons.code, 'Dev By', 'Sujit 02', Colors.pinkAccent),
               const SizedBox(width: 10),
               _buildModernDevChip(
-                  Icons.new_releases, 'Version', 'v5.0.0', Colors.cyanAccent),
+                  Icons.new_releases, 'Version', 'v5.0.2 (Beast)', Colors.cyanAccent),
             ],
           ),
           const SizedBox(height: 16),
