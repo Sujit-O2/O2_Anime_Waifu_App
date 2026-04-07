@@ -29,7 +29,7 @@ class _PersonalitySettingsPageState extends State<PersonalitySettingsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(children: [
         // Ambient gradient
         Container(
