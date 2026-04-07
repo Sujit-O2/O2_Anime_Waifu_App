@@ -80,7 +80,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('New Secret Note',
             style: GoogleFonts.outfit(color: Colors.white)),
@@ -138,7 +138,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Set PIN', style: GoogleFonts.outfit(color: Colors.white)),
         content: TextField(
