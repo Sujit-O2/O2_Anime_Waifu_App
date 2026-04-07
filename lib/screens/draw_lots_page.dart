@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
@@ -71,7 +71,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF0A080E),
@@ -115,12 +115,12 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                   _drawing ? sin(_shakeAnim.value * 4 * pi) * 0.1 : 0.0;
               return Transform.rotate(
                 angle: angle,
-                child: const Text('🫙', style: TextStyle(fontSize: 80)),
+                child: const Text('??', style: TextStyle(fontSize: 80)),
               );
             },
           ),
           const SizedBox(height: 8),
-          Text(_drawing ? 'Drawing…' : 'Shake the lot!',
+          Text(_drawing ? 'Drawing�' : 'Shake the lot!',
               style: GoogleFonts.outfit(color: Colors.white38, fontSize: 13)),
 
           const SizedBox(height: 24),
@@ -139,7 +139,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                       Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
                 ),
                 child: Column(children: [
-                  Text('✨ Result',
+                  Text('? Result',
                       style: GoogleFonts.outfit(
                           color: Colors.white38, fontSize: 11)),
                   const SizedBox(height: 8),
@@ -189,7 +189,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
                   style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
                   cursorColor: Colors.purpleAccent,
                   decoration: InputDecoration(
-                    hintText: 'Add option…',
+                    hintText: 'Add option�',
                     hintStyle:
                         GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
                     filled: true,
