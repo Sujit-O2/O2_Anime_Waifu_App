@@ -32,7 +32,11 @@ class _KnowledgeGraphPageState extends State<KnowledgeGraphPage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final d = prefs.getString('knowledge_graph_nodes');
-    if (d != null) setState(() => _nodes = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
+    if (d != null && mounted) {
+      try {
+        setState(() => _nodes = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
+      } catch (_) {}
+    }
   }
 
   Future<void> _save() async {
@@ -77,10 +81,19 @@ class _KnowledgeGraphPageState extends State<KnowledgeGraphPage> {
     return _nodes.where((n) => (n['tags'] as List? ?? []).contains(_selectedTag)).toList();
   }
 
+  
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _tagCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -197,7 +210,7 @@ class _KnowledgeGraphPageState extends State<KnowledgeGraphPage> {
             const SizedBox(height: 6),
             Row(children: _nodeTypes.map((nt) => Expanded(
               child: GestureDetector(
-                onTap: () => _addNode(nt['type'] as String),
+                onTap: () => _addNode(nt['type']?.toString() ?? ''),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   padding: const EdgeInsets.symmetric(vertical: 6),
