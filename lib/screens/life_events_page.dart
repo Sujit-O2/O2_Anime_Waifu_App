@@ -37,7 +37,7 @@ class _LifeEventsPageState extends State<LifeEventsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(children: [
         Container(
           decoration: const BoxDecoration(
