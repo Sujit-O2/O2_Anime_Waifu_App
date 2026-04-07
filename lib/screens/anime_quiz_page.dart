@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:http/http.dart' as http;
 import '../widgets/premium_animations.dart';
 import '../services/streak_service.dart';
@@ -109,7 +111,7 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -204,12 +206,7 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: _coverUrl.isNotEmpty
-                        ? Image.network(_coverUrl, fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Colors.grey.shade900,
-                              child: const Center(child: Icon(Icons.image,
-                                  color: Colors.grey, size: 48))))
+                        ? AppCachedImage(url: _coverUrl, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                         : Container(color: Colors.grey.shade900),
                     ),
                   ),
