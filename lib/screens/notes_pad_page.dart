@@ -27,11 +27,11 @@ class _Note {
         'date': date.toIso8601String()
       };
   factory _Note.fromJson(Map<String, dynamic> j) => _Note(
-      id: j['id'] as String,
-      title: j['title'] as String,
-      body: j['body'] as String,
-      color: j['color'] as String,
-      date: DateTime.parse(j['date'] as String));
+      id: j['id']?.toString() ?? '',
+      title: j['title']?.toString() ?? '',
+      body: j['body']?.toString() ?? '',
+      color: j['color']?.toString() ?? '',
+      date: DateTime.parse(j['date']?.toString() ?? ''));
 }
 
 class _NotesPadPageState extends State<NotesPadPage> {
@@ -209,7 +209,7 @@ class _NotesPadPageState extends State<NotesPadPage> {
             n.body.toLowerCase().contains(_search.toLowerCase()))
         .toList();
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
