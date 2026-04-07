@@ -195,7 +195,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A35),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title:
             Text('New Habit', style: GoogleFonts.outfit(color: Colors.white)),
         content: TextField(
@@ -375,7 +375,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A24),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Stats & Habits',
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
