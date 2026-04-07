@@ -116,8 +116,8 @@ class _MemoryStackPageState extends State<MemoryStackPage> with SingleTickerProv
             final c = l['color'] as Color;
             return Column(children: [
               Text('${l['emoji']}', style: const TextStyle(fontSize: 18)),
-              Text('${_memories[l['key'] as String]?.length ?? 0}', style: GoogleFonts.outfit(color: c, fontSize: 16, fontWeight: FontWeight.w900)),
-              Text(l['name'] as String, style: GoogleFonts.outfit(color: Colors.white30, fontSize: 9)),
+              Text('${_memories[l['key']?.toString() ?? '']?.length ?? 0}', style: GoogleFonts.outfit(color: c, fontSize: 16, fontWeight: FontWeight.w900)),
+              Text(l['name']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 9)),
             ]);
           }).toList()),
         ),
@@ -127,7 +127,7 @@ class _MemoryStackPageState extends State<MemoryStackPage> with SingleTickerProv
           child: TabBarView(
             controller: _tabCtrl,
             children: layers.map((l) {
-              final key = l['key'] as String;
+              final key = l['key']?.toString() ?? '';
               final c = l['color'] as Color;
               final items = _memories[key] ?? [];
               return items.isEmpty
@@ -181,7 +181,7 @@ class _MemoryStackPageState extends State<MemoryStackPage> with SingleTickerProv
             )),
             IconButton(
               icon: const Icon(Icons.add_circle_rounded, color: Colors.cyanAccent),
-              onPressed: () => _addMemory(layers[_tabCtrl.index]['key'] as String),
+              onPressed: () => _addMemory(layers[_tabCtrl.index]['key']?.toString() ?? ''),
             ),
           ]),
         ),
