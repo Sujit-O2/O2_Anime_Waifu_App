@@ -61,7 +61,7 @@ class _YearInReviewPageState extends State<YearInReviewPage> {
             .get();
         if (profile.exists && profile.data()?['anniversaryDate'] != null) {
           _anniversaryDate =
-              DateTime.tryParse(profile['anniversaryDate'] as String);
+              DateTime.tryParse(profile['anniversaryDate']?.toString() ?? '');
           if (_anniversaryDate != null) {
             _daysTogther = DateTime.now().difference(_anniversaryDate!).inDays;
           }
@@ -76,7 +76,7 @@ class _YearInReviewPageState extends State<YearInReviewPage> {
   Widget build(BuildContext context) {
     final year = DateTime.now().year;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
