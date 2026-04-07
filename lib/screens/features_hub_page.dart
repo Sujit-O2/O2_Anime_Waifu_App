@@ -151,13 +151,25 @@ import 'voice_emotion_detector_page.dart';
 import 'parking_spot_saver_page.dart';
 import 'smart_scanner_page.dart';
 import 'medication_reminder_page.dart';
-import 'package_tracker_page.dart';
-import 'emergency_sos_page.dart';
-import 'clipboard_manager_page.dart';
-import 'bill_splitter_page.dart';
-import 'ar_ruler_page.dart';
-import 'password_generator_page.dart';
+import 'package:provider/provider.dart';
+import 'package:anime_waifu/core/providers/chat_provider.dart';
+import 'package:anime_waifu/screens/emergency_sos_page.dart';
+import 'package:anime_waifu/screens/clipboard_manager_page.dart';
+import 'package:anime_waifu/screens/bill_splitter_page.dart';
+import 'package:anime_waifu/screens/ar_ruler_page.dart';
+import 'package:anime_waifu/screens/password_generator_page.dart';
+import 'package:anime_waifu/screens/package_tracker_page.dart';
 import 'qr_scanner_page.dart';
+
+// ── Orphan Integration ──
+import 'ar_companion_page.dart';
+import 'geofencing_settings_page.dart';
+import 'memory_vault_page.dart';
+import 'package:anime_waifu/screens/data_vault_page.dart';
+import 'package:anime_waifu/screens/secret_notes_page.dart';
+import 'package:anime_waifu/screens/hianime_webview_page.dart';
+import 'package:anime_waifu/screens/anime_quiz_page.dart';
+import 'package:anime_waifu/screens/chat_statistics_page.dart';
 
 // ─── Hub category model ──────────────────────────────────────────────────────
 class _HubCategory {
@@ -417,11 +429,12 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Cloud Videos', icon: Icons.cloud_queue_rounded, onTap: widget.onOpenCloudinary),
             _HubItem(label: 'Manga Reader', icon: Icons.menu_book_rounded, builder: (_) => const MangaSectionPage()),
             _HubItem(label: 'Web Streamers', icon: Icons.travel_explore_rounded, builder: (_) => const WebStreamersHubPage()),
-            _HubItem(label: 'Anime Quiz', icon: Icons.quiz_rounded, builder: (_) => const AnimeQuizPage()),
+            _HubItem(label: 'Anime Quiz', icon: Icons.quiz_rounded, builder: (_) => const AnimeQuizGamePage()),
             _HubItem(label: 'Anime OST', icon: Icons.music_note_rounded, builder: (_) => const AnimeOstPage()),
             _HubItem(label: 'Anime Calendar', icon: Icons.calendar_month_rounded, builder: (_) => const AnimeCalendarPage()),
             _HubItem(label: 'Watch Party', icon: Icons.live_tv_rounded, builder: (_) => const AnimeWatchPartyPage()),
             _HubItem(label: 'Matchmaker', icon: Icons.favorite_rounded, builder: (_) => const AnimeMatchmakerPage()),
+            _HubItem(label: 'HiAnime Portal', icon: Icons.movie_filter_rounded, builder: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime)),
             _HubItem(label: 'Watchlist', icon: Icons.bookmark_outlined, builder: (_) => const WatchlistPage()),
             _HubItem(label: 'Watch History', icon: Icons.history_rounded, builder: (_) => const WatchHistoryPage()),
             _HubItem(label: 'Downloads', icon: Icons.download_rounded, builder: (_) => const DownloadsPage()),
@@ -455,6 +468,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           color: Colors.tealAccent,
           items: [
             _HubItem(label: 'Chat Analytics', icon: Icons.bar_chart_outlined, builder: (_) => const ChatAnalyticsPage()),
+            _HubItem(label: 'Chat Statistics', icon: Icons.query_stats_rounded, builder: (context) => ChatStatisticsPage(messages: context.read<ChatProvider>().messages)),
             _HubItem(label: 'Level Map', icon: Icons.map_outlined, builder: (_) => const RelationshipLevelMapPage()),
             _HubItem(label: 'Year in Review', icon: Icons.calendar_month_outlined, builder: (_) => const YearInReviewPage()),
             _HubItem(label: 'Achievements', icon: Icons.emoji_events_outlined, builder: (_) => const AchievementsGalleryPage()),
@@ -490,6 +504,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           color: Colors.cyanAccent,
           items: [
             _HubItem(label: 'Dev Mode', icon: Icons.code_rounded, builder: (_) => const WaifuDevModePage()),
+            _HubItem(label: 'Data Vault', icon: Icons.storage_rounded, builder: (_) => const DataVaultPage()),
             _HubItem(label: 'Error Memory', icon: Icons.bug_report_rounded, builder: (_) => const ErrorMemoryPage()),
             _HubItem(label: 'AI Debug Panel', icon: Icons.developer_mode_rounded, builder: (_) => const AiDebugPanelPage()),
             _HubItem(label: 'Plugin System', icon: Icons.extension_rounded, builder: (_) => const PluginSystemPage()),
@@ -582,6 +597,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Memory Stack', icon: Icons.layers_rounded, builder: (_) => const MemoryStackPage()),
             _HubItem(label: 'Knowledge Graph', icon: Icons.hub_rounded, builder: (_) => const KnowledgeGraphPage()),
             _HubItem(label: 'Time Machine', icon: Icons.history_rounded, builder: (_) => const TimeMachinePage()),
+            _HubItem(label: 'Memory Vault', icon: Icons.lock_clock_rounded, builder: (_) => const MemoryVaultPage()),
+            _HubItem(label: 'Secret Notes', icon: Icons.enhanced_encryption_rounded, builder: (_) => const SecretNotesPage()),
           ],
         ),
 
@@ -602,6 +619,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(label: 'Ruler & Convert', icon: Icons.straighten_rounded, builder: (_) => const ArRulerPage()),
             _HubItem(label: 'Password Gen', icon: Icons.password_rounded, builder: (_) => const PasswordGeneratorPage()),
             _HubItem(label: 'QR Tools', icon: Icons.qr_code_scanner_rounded, builder: (_) => const QrScannerPage()),
+            _HubItem(label: 'AR Companion', icon: Icons.view_in_ar_rounded, builder: (_) => const ArCompanionPage()),
+            _HubItem(label: 'Geofence Zones', icon: Icons.my_location_rounded, builder: (_) => const GeofencingSettingsPage()),
           ],
         ),
       ];
@@ -612,7 +631,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Sakura background
@@ -636,8 +655,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFF160B2E),
-                    const Color(0xFF0A0A16).withValues(alpha: 0)
+                    Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
+                    Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0)
                   ],
                 ),
               ),
