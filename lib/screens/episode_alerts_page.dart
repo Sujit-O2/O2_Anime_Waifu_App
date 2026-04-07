@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
 import '../services/episode_alert_service.dart';
 
 /// Episode Alerts Page — view followed anime + pending new episode alerts.
@@ -67,7 +68,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('🔔 Episode Alerts',
@@ -158,8 +159,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: anime.coverUrl.isNotEmpty
-                  ? Image.network(anime.coverUrl, width: 45, height: 60,
-                      fit: BoxFit.cover)
+                  ? AppCachedImage(url: anime.coverUrl, width: 45, height: 60)
                   : Container(width: 45, height: 60, color: Colors.grey.shade900),
               ),
               title: Text(anime.title,
@@ -238,8 +238,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: alert.coverUrl.isNotEmpty
-                    ? Image.network(alert.coverUrl, width: 45, height: 60,
-                        fit: BoxFit.cover)
+                    ? AppCachedImage(url: alert.coverUrl, width: 45, height: 60)
                     : Container(width: 45, height: 60, color: Colors.grey.shade900),
                 ),
                 title: Text(alert.title,
