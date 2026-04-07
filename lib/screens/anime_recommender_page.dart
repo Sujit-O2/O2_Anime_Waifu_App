@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
@@ -75,7 +76,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.11,
         tint: const Color(0xFF07071A),
@@ -117,7 +118,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                     border: Border.all(
                         color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
                   ),
-                  child: Text('JikanAPI 🌸',
+                  child: Text('JikanAPI ??',
                       style: GoogleFonts.outfit(
                           color: Colors.deepPurpleAccent,
                           fontSize: 10,
@@ -190,7 +191,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                         cursorColor: Colors.deepPurpleAccent,
                         decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: 'Search anime title or genre…',
+                          hintText: 'Search anime title or genre�',
                           hintStyle: GoogleFonts.outfit(
                               color: Colors.white30, fontSize: 13),
                           isDense: true,
@@ -234,7 +235,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                              const Text('🌸', style: TextStyle(fontSize: 48)),
+                              const Text('??', style: TextStyle(fontSize: 48)),
                               const SizedBox(height: 12),
                               Text('No results found',
                                   style: GoogleFonts.outfit(
@@ -291,19 +292,11 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
           Expanded(
             child: Stack(children: [
               anime['image'] != null && anime['image'].isNotEmpty
-                  ? Image.network(anime['image'],
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                            color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
-                            child: const Center(
-                                child:
-                                    Text('🌸', style: TextStyle(fontSize: 40))),
-                          ))
+                  ? AppCachedImage(url: anime['image'], width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                   : Container(
                       color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
                       child: const Center(
-                          child: Text('🌸', style: TextStyle(fontSize: 40))),
+                          child: Text('??', style: TextStyle(fontSize: 40))),
                     ),
               if (score > 0)
                 Positioned(
@@ -367,7 +360,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
   void _showDetail(Map<String, dynamic> anime) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF12121E),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       isScrollControlled: true,
@@ -394,8 +387,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
               if (anime['image'] != null && anime['image'].isNotEmpty)
                 ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(anime['image'],
-                        width: 90, height: 130, fit: BoxFit.cover)),
+                    child: AppCachedImage(url: anime['image'], width: 90, height: 130)),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
