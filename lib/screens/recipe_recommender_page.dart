@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
 import '../widgets/waifu_background.dart';
@@ -52,7 +54,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF090710),
@@ -87,7 +89,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.5)),
-                      Text('TheMealDB • Real recipes 🍜',
+                      Text('TheMealDB � Real recipes ??',
                           style: GoogleFonts.outfit(
                               color: Colors.orangeAccent.withValues(alpha: 0.6),
                               fontSize: 10)),
@@ -137,7 +139,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                     ? Center(
                         child: GestureDetector(
                             onTap: _loadMeal,
-                            child: Text('Tap to load recipe 🍕',
+                            child: Text('Tap to load recipe ??',
                                 style:
                                     GoogleFonts.outfit(color: Colors.white38))))
                     : FadeTransition(
@@ -151,12 +153,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                                 if (_meal!['image']?.isNotEmpty == true)
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
-                                    child: Image.network(_meal!['image'],
-                                        width: double.infinity,
-                                        height: 220,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const SizedBox.shrink()),
+                                    child: AppCachedImage(url: _meal!['image'], width: double.infinity, height: 220, fit: BoxFit.cover),
                                   ),
                                 const SizedBox(height: 14),
 
@@ -173,7 +170,7 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                                         Colors.orangeAccent),
                                   const SizedBox(width: 8),
                                   if (_meal!['area']?.isNotEmpty == true)
-                                    _tag('🌍 ${_meal!['area']}',
+                                    _tag('?? ${_meal!['area']}',
                                         Colors.tealAccent),
                                 ]),
                                 const SizedBox(height: 16),
@@ -189,12 +186,12 @@ class _RecipeRecommenderPageState extends State<RecipeRecommenderPage>
                                   ),
                                   child: Row(children: [
                                     _tabBtn(
-                                        'Ingredients 🥘',
+                                        'Ingredients ??',
                                         _showIngredients,
                                         () => setState(
                                             () => _showIngredients = true)),
                                     _tabBtn(
-                                        'Instructions 📋',
+                                        'Instructions ??',
                                         !_showIngredients,
                                         () => setState(
                                             () => _showIngredients = false)),
