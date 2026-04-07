@@ -67,7 +67,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A0F),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
           children: [
             // Animated gradient bg
