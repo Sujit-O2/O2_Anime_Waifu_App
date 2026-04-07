@@ -19,7 +19,11 @@ class _GoalTrackerPageState extends State<GoalTrackerPage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('goals_data');
-    if (data != null) setState(() => _goals = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
+    if (data != null && mounted) {
+      try {
+        setState(() => _goals = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
+      } catch (_) { /* corrupt data — ignore */ }
+    }
   }
 
   Future<void> _save() async {
@@ -31,7 +35,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage> {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: const Color(0xFF1A1A2E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text('New Goal', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800)),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: titleCtrl, style: GoogleFonts.outfit(color: Colors.white), cursorColor: Colors.greenAccent, decoration: InputDecoration(hintText: 'Goal title', hintStyle: GoogleFonts.outfit(color: Colors.white24), filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none))),
@@ -50,7 +54,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
         title: Text('GOALS', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.5)), centerTitle: true),
