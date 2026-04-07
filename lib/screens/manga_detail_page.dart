@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/manga_service.dart';
@@ -45,12 +47,13 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
       list.add(widget.manga.id);
     }
     await prefs.setStringList('manga_reading_list_v1', list);
+    if (!mounted) return;
     setState(() => _inReadingList = !_inReadingList);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_inReadingList ? '📚 Added to Reading List' : 'Removed from Reading List',
             style: GoogleFonts.outfit()),
-        backgroundColor: const Color(0xFF1A0E2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         duration: const Duration(seconds: 2),
       ));
     }
@@ -60,7 +63,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   Widget build(BuildContext context) {
     final manga = widget.manga;
     return Scaffold(
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(manga),
@@ -79,7 +82,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     return SliverAppBar(
       expandedHeight: 320,
       pinned: true,
-      backgroundColor: const Color(0xFF080B18),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         onPressed: () => Navigator.pop(context),
@@ -102,8 +105,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
             if (manga.coverUrl != null)
               ImageFiltered(
                 imageFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
-                child: Image.network(manga.coverUrl!, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A0E2E))),
+                child: AppCachedImage(url: manga.coverUrl!, width: double.infinity, height: double.infinity, fit: BoxFit.cover),
               )
             else
               Container(color: const Color(0xFF1A0E2E)),
@@ -142,8 +144,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: manga.coverUrl != null
-                          ? Image.network(manga.coverUrl!, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _placeholder())
+                          ? AppCachedImage(url: manga.coverUrl!, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                           : _placeholder(),
                     ),
                   ),
@@ -203,7 +204,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
               icon: const Icon(Icons.play_arrow_rounded, size: 20),
               label: Text('Start Reading', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBB52FF),
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
