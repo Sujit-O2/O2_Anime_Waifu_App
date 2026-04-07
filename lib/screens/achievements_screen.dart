@@ -36,7 +36,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final earned = _unlocked.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -129,7 +129,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                           showDialog(
                             context: context,
                             builder: (_) => AlertDialog(
-                              backgroundColor: const Color(0xFF1A1A2E),
+                              backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16)),
                               title: Text(
