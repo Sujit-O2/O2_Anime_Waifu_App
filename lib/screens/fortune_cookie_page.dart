@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -61,7 +61,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
     if (_fortune == null) return;
     Clipboard.setData(ClipboardData(text: _fortune!));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Fortune copied~ 🥠', style: GoogleFonts.outfit()),
+      content: Text('Fortune copied~ ??', style: GoogleFonts.outfit()),
       backgroundColor: Colors.amberAccent.shade700,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -72,7 +72,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF0A0800),
@@ -99,7 +99,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                 children: [
                   Text('FORTUNE COOKIE', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                  Text(_loading ? 'Loading AI fortunes…' : 'Tap to crack a cookie~ 🥠',
+                  Text(_loading ? 'Loading AI fortunes�' : 'Tap to crack a cookie~ ??',
                       style: GoogleFonts.outfit(color: Colors.amberAccent.withValues(alpha: 0.6), fontSize: 10)),
                 ],
               )),
@@ -134,7 +134,7 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                       )],
                     ),
                     child: Center(child: Text(
-                      _cracked ? '🫙' : '🥠',
+                      _cracked ? '??' : '??',
                       style: const TextStyle(fontSize: 64),
                       textAlign: TextAlign.center,
                     )),
@@ -175,12 +175,12 @@ class _FortuneCookiePageState extends State<FortuneCookiePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Past fortunes 📜', style: GoogleFonts.outfit(
+                  Text('Past fortunes ??', style: GoogleFonts.outfit(
                       color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   ..._history.reversed.skip(1).take(3).map((f) => Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('• $f',
+                    child: Text('� $f',
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11)),
                   )),
