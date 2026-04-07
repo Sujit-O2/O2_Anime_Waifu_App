@@ -54,8 +54,8 @@ class _MoodTrackingPageState extends State<MoodTrackingPage> {
               id: d.id,
               date: (data['date'] as Timestamp).toDate(),
               moodIndex: data['moodIndex'] as int,
-              emoji: data['emoji'] as String,
-              label: data['label'] as String,
+              emoji: data['emoji']?.toString() ?? '',
+              label: data['label']?.toString() ?? '',
               note: data['note'] as String? ?? '',
             );
           }).toList();
@@ -74,8 +74,8 @@ class _MoodTrackingPageState extends State<MoodTrackingPage> {
       id: doc.id,
       date: DateTime.now(),
       moodIndex: _selectedMood,
-      emoji: _moods[_selectedMood]['emoji'] as String,
-      label: _moods[_selectedMood]['label'] as String,
+      emoji: _moods[_selectedMood]['emoji']?.toString() ?? '',
+      label: _moods[_selectedMood]['label']?.toString() ?? '',
       note: _thoughts.text.trim(),
     );
     setState(() {
@@ -122,7 +122,7 @@ class _MoodTrackingPageState extends State<MoodTrackingPage> {
     final avgMood = last7.isEmpty ? 2.0 : last7.fold<double>(0, (s, e) => s + e.moodIndex) / last7.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0613),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -192,9 +192,9 @@ class _MoodTrackingPageState extends State<MoodTrackingPage> {
                     ),
                   ),
                   child: Column(children: [
-                    Text(mood['emoji'] as String, style: const TextStyle(fontSize: 28)),
+                    Text(mood['emoji']?.toString() ?? '', style: const TextStyle(fontSize: 28)),
                     const SizedBox(height: 4),
-                    Text(mood['label'] as String,
+                    Text(mood['label']?.toString() ?? '',
                         style: GoogleFonts.outfit(
                             color: isSelected ? mood['color'] as Color : Colors.white38,
                             fontSize: 9,
