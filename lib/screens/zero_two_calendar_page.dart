@@ -24,13 +24,16 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
 
   Future<void> _loadEvents() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('calendar_events') ?? '[]';
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    setState(() {
-      _events = decoded
-          .map((e) => _CalendarEvent.fromJson(e as Map<String, dynamic>))
-          .toList();
-    });
+    if (!mounted) return;
+    try {
+      final raw = prefs.getString('calendar_events') ?? '[]';
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      setState(() {
+        _events = decoded
+            .map((e) => _CalendarEvent.fromJson(e as Map<String, dynamic>))
+            .toList();
+      });
+    } catch (_) {}
   }
 
   Future<void> _saveEvents() async {
@@ -50,7 +53,7 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A0D2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Add Event for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
             style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
@@ -108,7 +111,7 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0613),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.pinkAccent,
         onPressed: _addEvent,
@@ -342,8 +345,8 @@ class _CalendarEvent {
       };
 
   factory _CalendarEvent.fromJson(Map<String, dynamic> j) => _CalendarEvent(
-        date: DateTime.parse(j['date'] as String),
-        title: j['title'] as String,
+        date: DateTime.parse(j['date']?.toString() ?? ''),
+        title: j['title']?.toString() ?? '',
         emoji: j['emoji'] as String? ?? '💕',
       );
 }
