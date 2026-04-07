@@ -27,7 +27,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
 
   Future<void> _startScenario(Map<String, dynamic> scenario) async {
     setState(() { _storyLog.clear(); _turnCount = 0; _loading = true; });
-    await _sendAction(scenario['prompt'] as String, isStart: true);
+    await _sendAction(scenario['prompt']?.toString() ?? '', isStart: true);
   }
 
   Future<void> _sendAction(String action, {bool isStart = false}) async {
@@ -50,7 +50,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
 
       // Add context from previous turns
       for (final entry in _storyLog.take(10)) {
-        messages.add({'role': entry['role'] == 'user' ? 'user' : 'assistant', 'content': entry['text'] as String});
+        messages.add({'role': entry['role'] == 'user' ? 'user' : 'assistant', 'content': entry['text']?.toString() ?? ''});
       }
       messages.add({'role': 'user', 'content': action});
 
@@ -67,7 +67,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -130,7 +130,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
               Text(isUser ? '👤 Your Choice' : '💕 Zero Two narrates...',
                   style: GoogleFonts.outfit(color: isUser ? Colors.cyanAccent : Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
-              Text(entry['text'] as String, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13, height: 1.6)),
+              Text(entry['text']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13, height: 1.6)),
             ]),
           );
         },
@@ -145,7 +145,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
       // Quick choice input
       if (!_loading) Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: const Color(0xFF1A1A2E), border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1)))),
+        decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1)))),
         child: Row(children: [
           Expanded(child: TextField(
             onSubmitted: (v) { if (v.trim().isNotEmpty) _sendAction(v.trim()); },

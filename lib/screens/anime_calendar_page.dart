@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../widgets/app_cached_image.dart';
 
 /// Anime Calendar — shows which anime airs on each day of the week.
 /// Uses Jikan API schedules endpoint.
@@ -61,7 +62,7 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
     final todayIndex = DateTime.now().weekday - 1;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('📅 Anime Calendar',
@@ -125,14 +126,7 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
           child: ListTile(
             tileColor: Colors.white.withValues(alpha: 0.04),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: cover.isNotEmpty
-                ? Image.network(cover, width: 45, height: 65, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 45, height: 65, color: Colors.grey.shade900))
-                : Container(width: 45, height: 65, color: Colors.grey.shade900),
-            ),
+            leading: AppCachedImage(url: cover, width: 45, height: 65),
             title: Text(title,
               style: const TextStyle(color: Colors.white, fontSize: 13,
                   fontWeight: FontWeight.w600),

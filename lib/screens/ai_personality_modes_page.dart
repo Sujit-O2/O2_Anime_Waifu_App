@@ -80,20 +80,22 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() => _activeMode = prefs.getString('ai_personality_mode') ?? 'waifu');
   }
 
   Future<void> _setMode(String id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ai_personality_mode', id);
-    await prefs.setString('ai_personality_prompt', _modes.firstWhere((m) => m['id'] == id)['prompt'] as String);
+    await prefs.setString('ai_personality_prompt', _modes.firstWhere((m) => m['id'] == id)['prompt']?.toString() ?? '');
+    if (!mounted) return;
     setState(() => _activeMode = id);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
@@ -110,7 +112,7 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
           final gradient = (m['gradient'] as List).map((v) => Color(v as int)).toList();
 
           return GestureDetector(
-            onTap: () => _setMode(m['id'] as String),
+            onTap: () => _setMode(m['id']?.toString() ?? ''),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.only(bottom: 10),
@@ -123,11 +125,11 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Text(m['emoji'] as String, style: const TextStyle(fontSize: 28)),
+                  Text(m['emoji']?.toString() ?? '', style: const TextStyle(fontSize: 28)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(m['name'] as String, style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
-                    Text(m['desc'] as String, style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
+                    Text(m['name']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                    Text(m['desc']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
                   ])),
                   if (isActive)
                     Container(
