@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,14 +21,14 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
   final List<Map<String, String>> _history = [];
 
   final _categories = [
-    'Zero Two 💫',
-    'Love 💕',
-    'Courage 🔥',
-    'Life 🌿',
-    'Wisdom 🧠',
-    'Anime 🌸'
+    'Zero Two ??',
+    'Love ??',
+    'Courage ??',
+    'Life ??',
+    'Wisdom ??',
+    'Anime ??'
   ];
-  String _selCat = 'Zero Two 💫';
+  String _selCat = 'Zero Two ??';
 
   late AnimationController _bounceCtrl;
   late Animation<double> _bounceAnim;
@@ -44,7 +44,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
       'Zero Two'
     ),
     (
-      'I don\'t know what a future looks like — but I want to see it with you.',
+      'I don\'t know what a future looks like � but I want to see it with you.',
       'Zero Two'
     ),
     (
@@ -105,10 +105,11 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
 
   Future<void> _fetchQuote([SharedPreferences? prefs]) async {
     prefs ??= await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       Map<String, String> result;
-      if (_selCat == 'Zero Two 💫') {
+      if (_selCat == 'Zero Two ??') {
         final pick = _ztQuotes[DateTime.now().millisecond % _ztQuotes.length];
         result = {'quote': pick.$1, 'author': pick.$2};
       } else {
@@ -155,11 +156,11 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
 
   void _copyQuote() {
     if (_quote.isEmpty) return;
-    Clipboard.setData(ClipboardData(text: '"$_quote" — $_author'));
+    Clipboard.setData(ClipboardData(text: '"$_quote" � $_author'));
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Quote copied! 💕',
+        content: Text('Quote copied! ??',
             style: GoogleFonts.outfit(color: Colors.white)),
         backgroundColor: Colors.pinkAccent.shade700,
         behavior: SnackBarBehavior.floating,
@@ -172,7 +173,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.12,
         tint: const Color(0xFF07071A),
@@ -207,7 +208,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.5)),
                     ),
-                    Text('✨', style: const TextStyle(fontSize: 22)),
+                    Text('?', style: const TextStyle(fontSize: 22)),
                   ],
                 ),
               ),
@@ -327,7 +328,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                             Colors.pinkAccent.withValues(alpha: 0.4),
                                       ),
                                       const SizedBox(width: 10),
-                                      Text('— $_author',
+                                      Text('� $_author',
                                           style: GoogleFonts.outfit(
                                               color: Colors.pinkAccent,
                                               fontSize: 13,
@@ -451,7 +452,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
                                                 overflow:
                                                     TextOverflow.ellipsis),
                                             const SizedBox(height: 4),
-                                            Text('— ${h['author']}',
+                                            Text('� ${h['author']}',
                                                 style: GoogleFonts.outfit(
                                                     color: Colors.pinkAccent
                                                         .withValues(alpha: 0.5),
