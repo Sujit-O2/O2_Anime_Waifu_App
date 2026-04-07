@@ -117,7 +117,7 @@ class _ChatAnalyticsPageState extends State<ChatAnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -316,7 +316,7 @@ class _ChatAnalyticsPageState extends State<ChatAnalyticsPage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text(d['day'] as String,
+            Text(d['day']?.toString() ?? '',
                 style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10)),
           ]);
         }).toList(),
