@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -22,30 +22,30 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
   late AnimationController _fadeCtrl;
 
   static const _languages = {
-    'en': '🇬🇧 English',
-    'ja': '🇯🇵 Japanese',
-    'ko': '🇰🇷 Korean',
-    'zh': '🇨🇳 Chinese',
-    'fr': '🇫🇷 French',
-    'es': '🇪🇸 Spanish',
-    'de': '🇩🇪 German',
-    'it': '🇮🇹 Italian',
-    'ru': '🇷🇺 Russian',
-    'ar': '🇸🇦 Arabic',
-    'hi': '🇮🇳 Hindi',
-    'pt': '🇧🇷 Portuguese',
+    'en': '???? English',
+    'ja': '???? Japanese',
+    'ko': '???? Korean',
+    'zh': '???? Chinese',
+    'fr': '???? French',
+    'es': '???? Spanish',
+    'de': '???? German',
+    'it': '???? Italian',
+    'ru': '???? Russian',
+    'ar': '???? Arabic',
+    'hi': '???? Hindi',
+    'pt': '???? Portuguese',
   };
 
   // Popular anime translations built-in (no network needed)
   static const _builtIn = {
-    'darling': '「ダーリン」— Dārin (Zero Two\'s trademark~)',
+    'darling': '??????� Darin (Zero Two\'s trademark~)',
     'i love you':
-        '愛してる (Ai shiteru) — Japanese\n나는 당신을 사랑합니다 — Korean\n我爱你 — Chinese',
-    'zero two': 'ゼロツー — Zerō Tsū (Japanese)',
-    'strawberry': 'イチゴ — Ichigo (also Ichigo\'s name! 🍓)',
-    'franxx': 'フランクス — Furankusu',
-    'cherry blossom': '桜 — Sakura 🌸',
-    'thank you': 'ありがとう — Arigatou (Japanese)\n감사합니다 — Gamsahamnida (Korean)',
+        '???? (Ai shiteru) � Japanese\n?? ??? ????? � Korean\n??? � Chinese',
+    'zero two': '???? � Zero Tsu (Japanese)',
+    'strawberry': '??? � Ichigo (also Ichigo\'s name! ??)',
+    'franxx': '????? � Furankusu',
+    'cherry blossom': '? � Sakura ??',
+    'thank you': '????? � Arigatou (Japanese)\n????? � Gamsahamnida (Korean)',
   };
 
   @override
@@ -168,7 +168,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       body: WaifuBackground(
         opacity: 0.09,
@@ -204,7 +204,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 1.5)),
-                        Text('Free translation — no API key',
+                        Text('Free translation � no API key',
                             style: GoogleFonts.outfit(
                                 color: Colors.blueAccent.withValues(alpha: 0.6),
                                 fontSize: 10)),
@@ -276,7 +276,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                                 minLines: 3,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
-                                  hintText: 'Type something to translate…',
+                                  hintText: 'Type something to translate�',
                                   hintStyle: GoogleFonts.outfit(
                                       color: Colors.white30, fontSize: 14),
                                   contentPadding: const EdgeInsets.all(14),
@@ -320,7 +320,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
                                   height: 20,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2, color: Colors.white))
-                              : Text('Translate 🌐',
+                              : Text('Translate ??',
                                   style: GoogleFonts.outfit(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800)),
@@ -403,7 +403,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
 
                       // Quick phrases
                       const SizedBox(height: 20),
-                      Text('Quick phrases 💬',
+                      Text('Quick phrases ??',
                           style: GoogleFonts.outfit(
                               color: Colors.white38,
                               fontSize: 11,
