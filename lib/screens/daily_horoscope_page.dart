@@ -102,6 +102,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
       ]);
       final key = 'horoscope_${_sign}_${now.year}_${now.month}_${now.day}';
       await prefs.setString(key, reply);
+      if (!mounted) return;
       setState(() => _horoscope = reply);
       AffectionService.instance.addPoints(2);
     } catch (e) {
@@ -133,7 +134,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
     final dateStr = '${months[now.month - 1]} ${now.day}';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
