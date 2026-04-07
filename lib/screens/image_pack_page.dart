@@ -1,5 +1,7 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -105,7 +107,7 @@ class _ImagePackPageState extends State<ImagePackPage> {
                         ),
                       )
                     : _currentBgUrl!.startsWith('http')
-                        ? Image.network(_currentBgUrl!, fit: BoxFit.cover)
+                        ? AppCachedImage(url: _currentBgUrl!, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                         : Image.file(File(_currentBgUrl!), fit: BoxFit.cover),
               ),
 
