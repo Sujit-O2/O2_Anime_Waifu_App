@@ -17,10 +17,20 @@ class _ErrorMemoryPageState extends State<ErrorMemoryPage> {
   @override
   void initState() { super.initState(); _load(); }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('error_memory');
-    if (data != null) setState(() => _errors = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
+    if (data != null && mounted) {
+      try {
+        setState(() => _errors = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
+      } catch (_) {}
+    }
   }
 
   Future<void> _save() async {
@@ -33,7 +43,7 @@ class _ErrorMemoryPageState extends State<ErrorMemoryPage> {
     final solCtrl = TextEditingController();
     final langCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: const Color(0xFF1A1A2E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text('Log Error', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800)),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         _field(errCtrl, 'Error message / stack trace', Icons.error_outline),
@@ -59,9 +69,9 @@ class _ErrorMemoryPageState extends State<ErrorMemoryPage> {
   @override
   Widget build(BuildContext context) {
     final q = _searchCtrl.text.toLowerCase();
-    final filtered = q.isEmpty ? _errors : _errors.where((e) => (e['error'] as String).toLowerCase().contains(q) || (e['solution'] as String).toLowerCase().contains(q)).toList();
+    final filtered = q.isEmpty ? _errors : _errors.where((e) => (e['error']?.toString() ?? '').toLowerCase().contains(q) || (e['solution']?.toString() ?? '').toLowerCase().contains(q)).toList();
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
         title: Text('ERROR MEMORY', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.5)), centerTitle: true),
@@ -74,10 +84,10 @@ class _ErrorMemoryPageState extends State<ErrorMemoryPage> {
             final e = filtered[i];
             return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2))),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [const Icon(Icons.error_outline, color: Colors.redAccent, size: 16), const SizedBox(width: 6), if ((e['lang'] as String).isNotEmpty) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)), child: Text(e['lang'], style: GoogleFonts.outfit(color: Colors.orangeAccent, fontSize: 9, fontWeight: FontWeight.w700)))]),
+                Row(children: [const Icon(Icons.error_outline, color: Colors.redAccent, size: 16), const SizedBox(width: 6), if ((e['lang']?.toString() ?? '').isNotEmpty) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)), child: Text(e['lang'].toString(), style: GoogleFonts.outfit(color: Colors.orangeAccent, fontSize: 9, fontWeight: FontWeight.w700)))]),
                 const SizedBox(height: 6),
-                Text(e['error'], maxLines: 3, overflow: TextOverflow.ellipsis, style: GoogleFonts.sourceCodePro(color: Colors.redAccent.withValues(alpha: 0.9), fontSize: 11)),
-                if ((e['solution'] as String).isNotEmpty) ...[const SizedBox(height: 8), Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.check_circle, color: Colors.greenAccent, size: 14), const SizedBox(width: 6), Expanded(child: Text(e['solution'], style: GoogleFonts.outfit(color: Colors.greenAccent.withValues(alpha: 0.8), fontSize: 11)))])],
+                Text(e['error']?.toString() ?? '', maxLines: 3, overflow: TextOverflow.ellipsis, style: GoogleFonts.sourceCodePro(color: Colors.redAccent.withValues(alpha: 0.9), fontSize: 11)),
+                if ((e['solution']?.toString() ?? '').isNotEmpty) ...[const SizedBox(height: 8), Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.check_circle, color: Colors.greenAccent, size: 14), const SizedBox(width: 6), Expanded(child: Text(e['solution'].toString(), style: GoogleFonts.outfit(color: Colors.greenAccent.withValues(alpha: 0.8), fontSize: 11)))])],
               ]));
           })),
       ]),
