@@ -103,6 +103,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> {
           'content': '[Start the scene, open with your first line]'
         },
       ]);
+      if (!mounted) return;
       setState(() {
         _history.add({'role': 'assistant', 'content': opener});
         _aiTyping = false;
@@ -169,7 +170,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
