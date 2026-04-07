@@ -36,6 +36,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
 
       if (snap.docs.isEmpty) {
         await _seedDefaultQuests();
+        if (!mounted) return;
         setState(() => _loading = false);
         _load();
         return;
@@ -124,7 +125,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
   }
 
   Future<void> _complete(Map<String, dynamic> quest) async {
-    final id = quest['docId'] as String;
+    final id = quest['docId']?.toString() ?? '';
     if (_completedIds.contains(id)) return;
 
     setState(() => _completedIds.add(id));
@@ -178,7 +179,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
     final total = _globalQuests.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -225,7 +226,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
                   itemCount: _globalQuests.length,
                   itemBuilder: (ctx, i) {
                     final q = _globalQuests[i];
-                    final id = q['docId'] as String;
+                    final id = q['docId']?.toString() ?? '';
                     final done = _completedIds.contains(id);
                     final completions = q['completions'] as int? ?? 0;
                     return Container(
