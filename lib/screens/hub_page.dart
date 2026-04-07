@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/waifu_background.dart';
 
-// ─── Models ──────────────────────────────────────────────────────────────────
+// --- Models ------------------------------------------------------------------
 
 class HubFeature {
   final String label;
@@ -35,7 +35,7 @@ class HubGroup {
   });
 }
 
-// ─── Hub Page ─────────────────────────────────────────────────────────────────
+// --- Hub Page -----------------------------------------------------------------
 
 class HubPage extends StatefulWidget {
   final String hubTitle;
@@ -121,7 +121,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
     final isSearching = _searchQuery.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF08081A),
@@ -234,7 +234,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                 cursorColor: widget.hubColor,
                 decoration: InputDecoration(
                   border: InputBorder.none,
-                  hintText: 'Search features…',
+                  hintText: 'Search features�',
                   hintStyle:
                       GoogleFonts.outfit(color: Colors.white30, fontSize: 13),
                   isDense: true,
@@ -273,7 +273,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
           Text(
             isSearching
                 ? '${filtered.fold<int>(0, (s, g) => s + g.features.length)} results for "$_searchQuery"'
-                : 'Tap a group to expand • ${widget.groups.length} groups',
+                : 'Tap a group to expand � ${widget.groups.length} groups',
             style: GoogleFonts.outfit(color: Colors.white30, fontSize: 11),
           ),
         ],
@@ -286,7 +286,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('🔍', style: const TextStyle(fontSize: 48)),
+          Text('??', style: const TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           Text('No features found',
               style: GoogleFonts.outfit(color: Colors.white38, fontSize: 16)),
