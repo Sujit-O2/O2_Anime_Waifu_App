@@ -40,7 +40,7 @@ class _QuestsPageState extends State<QuestsPage>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          backgroundColor: const Color(0xFF1A0D2E),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text('Create Custom Quest',
