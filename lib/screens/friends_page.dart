@@ -146,7 +146,7 @@ class _FriendsPageState extends State<FriendsPage>
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text('Add Friend',
             style: GoogleFonts.outfit(
@@ -216,7 +216,7 @@ class _FriendsPageState extends State<FriendsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -346,7 +346,7 @@ class _FriendsPageState extends State<FriendsPage>
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
             TextButton(
-              onPressed: () => _acceptRequest(r['uid'] as String),
+              onPressed: () => _acceptRequest(r['uid']?.toString() ?? ''),
               child: Text('Accept',
                   style: GoogleFonts.outfit(
                       color: Colors.pinkAccent, fontWeight: FontWeight.bold)),
@@ -370,7 +370,7 @@ class _FriendsPageState extends State<FriendsPage>
             radius: 22,
             backgroundColor: Colors.pinkAccent.withValues(alpha: 0.3),
             backgroundImage: (f['photoUrl'] as String?)?.isNotEmpty == true
-                ? NetworkImage(f['photoUrl'] as String)
+                ? NetworkImage(f['photoUrl']?.toString() ?? '')
                 : null,
             child: (f['photoUrl'] as String?)?.isNotEmpty != true
                 ? Text((f['name'] as String? ?? 'D')[0].toUpperCase(),
