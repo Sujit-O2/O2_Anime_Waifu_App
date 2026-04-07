@@ -69,7 +69,7 @@ class _AnimeWordlePageState extends State<AnimeWordlePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         title: const Text('🧩 Anime Wordle', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
@@ -186,7 +186,7 @@ class _AnimeTarget {
   factory _AnimeTarget.fromJson(Map<String, dynamic> j) => _AnimeTarget(
     title: j['title'] ?? '', year: j['year'] ?? j['aired']?['prop']?['from']?['year'] ?? 0,
     episodes: j['episodes'] ?? 0, score: (j['score'] ?? 0).toDouble(),
-    genres: (j['genres'] as List?)?.map((g) => g['name'] as String).toList() ?? [],
+    genres: (j['genres'] as List?)?.map((g) => g['name']?.toString() ?? '').toList() ?? [],
     type: j['type'] ?? 'TV',
     studio: (j['studios'] as List?)?.isNotEmpty == true ? j['studios'][0]['name'] : 'Unknown');
 }
