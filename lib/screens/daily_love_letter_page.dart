@@ -65,6 +65,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage> {
       ]);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_todayKey, letter);
+      if (!mounted) return;
       setState(() => _letter = letter);
       AffectionService.instance.addPoints(3);
     } catch (e) {
@@ -95,7 +96,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage> {
     final dateStr = '${months[now.month - 1]} ${now.day}, ${now.year}';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
