@@ -54,6 +54,7 @@ class _DateNightPlannerPageState extends State<DateNightPlannerPage> {
       final reply = await ApiService().sendConversation([
         {'role': 'user', 'content': prompt},
       ]);
+      if (!mounted) return;
       setState(() => _plan = reply);
       AffectionService.instance.addPoints(5);
     } catch (e) {
@@ -67,7 +68,7 @@ class _DateNightPlannerPageState extends State<DateNightPlannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
