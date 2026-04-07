@@ -139,7 +139,7 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF08080E),
@@ -293,7 +293,7 @@ class _CountdownTimerPageState extends State<CountdownTimerPage>
                                       color:
                                           Colors.cyanAccent.withValues(alpha: 0.25)),
                                 ),
-                                child: Text(p['label'] as String,
+                                child: Text(p['label']?.toString() ?? '',
                                     style: GoogleFonts.outfit(
                                         color: Colors.cyanAccent,
                                         fontSize: 12)),
