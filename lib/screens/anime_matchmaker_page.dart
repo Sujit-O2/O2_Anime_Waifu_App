@@ -43,7 +43,7 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F15),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('💘 Anime Matchmaker', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
         backgroundColor: Colors.transparent,
