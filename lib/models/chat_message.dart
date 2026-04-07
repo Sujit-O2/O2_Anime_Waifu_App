@@ -29,11 +29,15 @@ class ChatMessage {
   /// Ghost/thinking placeholder
   bool isGhost;
 
+  /// Optional internal thought (hidden reasoning/internal monologue)
+  final String? internalThought;
+
   /// Create a new chat message
   ChatMessage({
     String? id,
     required this.role,
     required this.content,
+    this.internalThought,
     this.isPinned = false,
     this.isGhost = false,
     this.reaction,
@@ -51,6 +55,7 @@ class ChatMessage {
       content: (map['content'] ?? '').toString(),
       isPinned: map['isPinned'] as bool? ?? false,
       isGhost: map['isGhost'] as bool? ?? false,
+      internalThought: map['internalThought'] as String?,
       reaction: map['reaction'] as String?,
       imagePath: map['imagePath'] as String?,
       imageUrl: map['imageUrl'] as String?,
@@ -68,6 +73,7 @@ class ChatMessage {
         "timestamp": timestamp.toIso8601String(),
         "isPinned": isPinned,
         "isGhost": isGhost,
+        if (internalThought != null) "internalThought": internalThought,
         if (reaction != null) "reaction": reaction,
         if (imagePath != null) "imagePath": imagePath,
         if (imageUrl != null) "imageUrl": imageUrl,
@@ -77,5 +83,6 @@ class ChatMessage {
   Map<String, dynamic> toApiJson() => {
         "role": role,
         "content": content,
+        if (internalThought != null) "internal_thought": internalThought,
       };
 }
