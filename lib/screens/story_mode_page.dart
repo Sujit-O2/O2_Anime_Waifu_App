@@ -60,7 +60,7 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
 
   Future<void> _startStory(Map<String, dynamic> starter) async {
     setState(() { _activeStarter = starter; _chapters = []; _loading = true; _docId = null; });
-    await _continueStory(initial: starter['seed'] as String);
+    await _continueStory(initial: starter['seed']?.toString() ?? '');
   }
 
   Future<void> _continueStory({String? initial}) async {
@@ -104,7 +104,7 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060A12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -158,7 +158,7 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(children: [
               Text('${_activeStarter!['icon']} ', style: const TextStyle(fontSize: 18)),
-              Text(_activeStarter!['title'] as String, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(_activeStarter!['title']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w700)),
               const Spacer(),
               Text('Chapter ${_chapters.length}', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 12)),
             ]),
@@ -188,7 +188,7 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text('Chapter ${chapter['idx']}', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
-                      Text(chapter['text'] as String, style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, height: 1.7)),
+                      Text(chapter['text']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, height: 1.7)),
                     ]),
                   ),
                 );
