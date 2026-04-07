@@ -1587,7 +1587,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            backgroundColor: const Color(0xFF16161E),
+                            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20)),
                             title: Text('Sign Out',
@@ -2168,7 +2168,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1028),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title,
             style: GoogleFonts.outfit(
