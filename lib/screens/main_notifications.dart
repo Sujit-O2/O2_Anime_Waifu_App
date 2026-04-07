@@ -1698,6 +1698,7 @@ class _LandscapeEpisodePlayerPageState
     }
 
     await controller.setPlaybackSpeed(nextSpeed);
+    if (!mounted) return;
     setState(() {
       _playbackSpeed = nextSpeed;
     });
