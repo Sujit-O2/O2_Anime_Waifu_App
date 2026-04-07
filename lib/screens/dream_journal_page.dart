@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/waifu_background.dart';
 
-/// Dream Journal — Firestore: dreams/{uid} → { entries: "[...]" }
+/// Dream Journal � Firestore: dreams/{uid} ? { entries: "[...]" }
 class DreamJournalPage extends StatefulWidget {
   const DreamJournalPage({super.key});
   @override
@@ -84,8 +84,8 @@ class _DreamJournalPageState extends State<DreamJournalPage>
   void _addEntry() {
     final titleCtrl = TextEditingController();
     final bodyCtrl = TextEditingController();
-    String mood = '😴';
-    final moods = ['😴', '😨', '😊', '🌟', '😱', '🌈', '🌀', '💜'];
+    String mood = '??';
+    final moods = ['??', '??', '??', '??', '??', '??', '??', '??'];
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -114,7 +114,9 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                           color: Colors.purpleAccent),
                       onPressed: () {
                         if (titleCtrl.text.trim().isEmpty &&
-                            bodyCtrl.text.trim().isEmpty) { return; }
+                            bodyCtrl.text.trim().isEmpty) {
+                          return;
+                        }
                         HapticFeedback.mediumImpact();
                         setState(() => _entries.insert(0, {
                               'title': titleCtrl.text.trim().isEmpty
@@ -146,7 +148,8 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                         color: mood == m
                                             ? Colors.purpleAccent
                                                 .withValues(alpha: 0.2)
-                                            : Colors.white.withValues(alpha: 0.04),
+                                            : Colors.white
+                                                .withValues(alpha: 0.04),
                                         border: Border.all(
                                             color: mood == m
                                                 ? Colors.purpleAccent
@@ -171,7 +174,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                         cursorColor: Colors.purpleAccent,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'Dream title…',
+                            hintText: 'Dream title�',
                             hintStyle: GoogleFonts.outfit(
                                 color: Colors.white24, fontSize: 17))),
                   ),
@@ -188,7 +191,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                         keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'Describe your dream…',
+                            hintText: 'Describe your dream�',
                             hintStyle:
                                 GoogleFonts.outfit(color: Colors.white24))),
                   )),
@@ -219,7 +222,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
         onPressed: _addEntry,
         backgroundColor: Colors.purpleAccent,
@@ -255,7 +258,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.5)),
-                    Text('${_entries.length} dreams logged ✨',
+                    Text('${_entries.length} dreams logged ?',
                         style: GoogleFonts.outfit(
                             color: Colors.purpleAccent.withValues(alpha: 0.6),
                             fontSize: 10)),
@@ -276,7 +279,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                            const Text('🌙', style: TextStyle(fontSize: 48)),
+                            const Text('??', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text('No dreams logged yet~',
                                 style:
@@ -302,8 +305,8 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                   margin: const EdgeInsets.only(bottom: 10),
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(14),
-                                      color:
-                                          Colors.redAccent.withValues(alpha: 0.12)),
+                                      color: Colors.redAccent
+                                          .withValues(alpha: 0.12)),
                                   child: const Icon(
                                       Icons.delete_outline_rounded,
                                       color: Colors.redAccent)),
@@ -316,7 +319,8 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  color: Colors.purpleAccent.withValues(alpha: 0.04),
+                                  color: Colors.purpleAccent
+                                      .withValues(alpha: 0.04),
                                   border: Border.all(
                                       color: Colors.purpleAccent
                                           .withValues(alpha: 0.15)),
@@ -326,12 +330,12 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                         CrossAxisAlignment.start,
                                     children: [
                                       Row(children: [
-                                        Text(e['mood'] as String,
+                                        Text(e['mood']?.toString() ?? '',
                                             style:
                                                 const TextStyle(fontSize: 20)),
                                         const SizedBox(width: 8),
                                         Expanded(
-                                            child: Text(e['title'] as String,
+                                            child: Text(e['title']?.toString() ?? '',
                                                 style: GoogleFonts.outfit(
                                                     color: Colors.white,
                                                     fontSize: 14,
@@ -345,9 +349,9 @@ class _DreamJournalPageState extends State<DreamJournalPage>
                                                 color: Colors.white24,
                                                 fontSize: 10)),
                                       ]),
-                                      if ((e['body'] as String).isNotEmpty) ...[
+                                      if ((e['body']?.toString() ?? '').isNotEmpty) ...[
                                         const SizedBox(height: 6),
-                                        Text(e['body'] as String,
+                                        Text(e['body']?.toString() ?? '',
                                             style: GoogleFonts.outfit(
                                                 color: Colors.white54,
                                                 fontSize: 12,
