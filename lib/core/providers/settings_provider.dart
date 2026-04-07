@@ -39,6 +39,24 @@ class SettingsProvider extends ChangeNotifier {
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
   static const String _sttProviderPrefKey = 'stt_provider_v1';
 
+  // ── Dev config pref keys ────────────────────────────────────────────────
+  static const String _devApiKeyPrefKey = 'dev_api_key_override';
+  static const String _devModelPrefKey = 'dev_model_override';
+  static const String _devApiUrlPrefKey = 'dev_api_url_override';
+  static const String _devSystemQueryPrefKey = 'dev_system_query';
+  static const String _devWakeKeyPrefKey = 'dev_wake_key_override';
+  static const String _devTtsApiKeyPrefKey = 'dev_tts_api_key_override';
+  static const String _devTtsModelPrefKey = 'dev_tts_model_override';
+  static const String _devTtsVoicePrefKey = 'dev_tts_voice_override';
+  static const String _devBrevoPrefKey = 'dev_brevo_api_key_override';
+  static const String _devSttLangPrefKey = 'dev_stt_lang_override';
+  static const String _devSttTimeoutPrefKey = 'dev_stt_timeout_override';
+
+  // ── Advanced pref keys ──────────────────────────────────────────────────
+  static const String _advancedMemoryLimitPrefKey = 'flutter.advanced_memory_limit';
+  static const String _advancedDebugLogsPrefKey = 'flutter.advanced_debug_logs';
+  static const String _advancedStrictWakePrefKey = 'flutter.advanced_strict_wake';
+
   // ── UI Settings ─────────────────────────────────────────────────────────
   bool showMessageTimestamps = false;
   bool hapticFeedbackEnabled = true;
@@ -172,6 +190,8 @@ class SettingsProvider extends ChangeNotifier {
     await loadNewSettings();
     await loadOutfitPreference();
     await loadCustomImagePaths();
+    await loadDevConfig();
+    await loadAdvancedSettings();
   }
 
   Future<void> loadNewSettings() async {
@@ -207,6 +227,30 @@ class SettingsProvider extends ChangeNotifier {
     chatImageFromSystem = prefs.getBool(_chatImageFromSystemPrefKey) ?? false;
     customAppIconPath = prefs.getString(_customAppIconPathPrefKey);
     appIconFromCustom = prefs.getBool(_appIconFromCustomPrefKey) ?? false;
+    notifyListeners();
+  }
+
+  Future<void> loadDevConfig() async {
+    final prefs = await SharedPreferences.getInstance();
+    devApiKeyOverride = prefs.getString(_devApiKeyPrefKey) ?? '';
+    devModelOverride = prefs.getString(_devModelPrefKey) ?? '';
+    devApiUrlOverride = prefs.getString(_devApiUrlPrefKey) ?? '';
+    devSystemQuery = prefs.getString(_devSystemQueryPrefKey) ?? '';
+    devWakeKeyOverride = prefs.getString(_devWakeKeyPrefKey) ?? '';
+    devTtsApiKeyOverride = prefs.getString(_devTtsApiKeyPrefKey) ?? '';
+    devTtsModelOverride = prefs.getString(_devTtsModelPrefKey) ?? '';
+    devTtsVoiceOverride = prefs.getString(_devTtsVoicePrefKey) ?? '';
+    devBrevoApiKeyOverride = prefs.getString(_devBrevoPrefKey) ?? '';
+    devSttLangOverride = prefs.getString(_devSttLangPrefKey) ?? '';
+    devSttTimeoutOverride = prefs.getInt(_devSttTimeoutPrefKey) ?? 0;
+    notifyListeners();
+  }
+
+  Future<void> loadAdvancedSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    advancedMemoryLimit = prefs.getInt(_advancedMemoryLimitPrefKey) ?? 15;
+    advancedDebugLogs = prefs.getBool(_advancedDebugLogsPrefKey) ?? false;
+    advancedStrictWake = prefs.getBool(_advancedStrictWakePrefKey) ?? false;
     notifyListeners();
   }
 
