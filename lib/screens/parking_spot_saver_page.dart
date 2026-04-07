@@ -459,7 +459,7 @@ class _ParkingSpotSaverPageState extends State<ParkingSpotSaverPage>
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: Image.file(
-                                  File(spot['photo'] as String),
+                                  File(spot['photo'].toString()),
                                   height: 120,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
