@@ -81,10 +81,11 @@ flutter:
     - assets/gif/
     - assets/wakeword/
     - assets/template/
+    - assets/models/
     - .env
 
 # Launcher icon config
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/img/logi.png"
+  image_path: "assets/img/logi.jpg"
