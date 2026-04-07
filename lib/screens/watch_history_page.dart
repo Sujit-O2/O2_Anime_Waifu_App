@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import '../services/watch_history_service.dart';
 
 /// Watch History page with "Continue Watching" carousel and full history list.
@@ -33,7 +35,7 @@ class _WatchHistoryPageState extends State<WatchHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -147,11 +149,7 @@ class _ContinueCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   entry.animeCoverUrl.isNotEmpty
-                    ? Image.network(
-                        entry.animeCoverUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
-                      )
+                    ? AppCachedImage(url: entry.animeCoverUrl, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                     : Container(color: Colors.grey.shade900),
                   // Progress bar
                   Positioned(
@@ -212,12 +210,7 @@ class _HistoryTile extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: entry.animeCoverUrl.isNotEmpty
-            ? Image.network(
-                entry.animeCoverUrl,
-                width: 45, height: 60,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(width: 45, height: 60, color: Colors.grey.shade900),
-              )
+            ? AppCachedImage(url: entry.animeCoverUrl, width: 45, height: 60, fit: BoxFit.cover)
             : Container(width: 45, height: 60, color: Colors.grey.shade900),
         ),
         title: Text(entry.animeTitle,
