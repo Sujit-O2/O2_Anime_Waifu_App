@@ -558,8 +558,12 @@ class AppRouter {
         AppRouter.hianime: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
         AppRouter.mangaReader: (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          final chapter = args?['chapter'];
+          if (chapter == null || chapter is! ChapterItem) {
+            return const Scaffold(body: Center(child: Text('Invalid manga chapter')));
+          }
           return MangaReaderPage(
-            chapter: args?['chapter'] as ChapterItem,
+            chapter: chapter,
             mangaTitle: args?['mangaTitle'] as String? ?? 'Manga',
           );
         },

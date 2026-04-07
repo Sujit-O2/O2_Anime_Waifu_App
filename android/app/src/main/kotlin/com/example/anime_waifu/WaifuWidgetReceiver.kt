@@ -20,7 +20,17 @@ class WaifuWidgetReceiver : HomeWidgetProvider() {
                 if (imagePath != null) {
                     val imgFile = File(imagePath)
                     if (imgFile.exists()) {
-                        val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
+                        val options = BitmapFactory.Options().apply {
+                            inJustDecodeBounds = true
+                        }
+                        BitmapFactory.decodeFile(imgFile.absolutePath, options)
+                        // Scale down to fit widget (max 400px)
+                        val maxDim = 400
+                        val scale = maxOf(1, maxOf(options.outWidth, options.outHeight) / maxDim)
+                        val decodeOptions = BitmapFactory.Options().apply {
+                            inSampleSize = scale
+                        }
+                        val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath, decodeOptions)
                         setImageViewBitmap(R.id.widget_image, bitmap)
                     }
                 }
