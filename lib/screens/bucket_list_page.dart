@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/waifu_background.dart';
 
-/// Bucket List — Firestore: bucket/{uid}
+/// Bucket List � Firestore: bucket/{uid}
 class BucketListPage extends StatefulWidget {
   const BucketListPage({super.key});
   @override
@@ -25,13 +25,13 @@ class _BucketListPageState extends State<BucketListPage>
   String? get _uid => _auth.currentUser?.uid;
 
   static const _categories = [
-    '🌍 Travel',
-    '🎯 Achievement',
-    '💪 Personal',
-    '❤️ Relationship',
-    '🎨 Creative',
-    '📚 Learning',
-    '🤩 Experience'
+    '?? Travel',
+    '?? Achievement',
+    '?? Personal',
+    '?? Relationship',
+    '?? Creative',
+    '?? Learning',
+    '?? Experience'
   ];
   int _selCat = 0;
 
@@ -121,7 +121,7 @@ class _BucketListPageState extends State<BucketListPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.09,
         tint: const Color(0xFF080E14),
@@ -152,7 +152,7 @@ class _BucketListPageState extends State<BucketListPage>
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.5)),
-                    Text('$_done/${_items.length} completed 🌟',
+                    Text('$_done/${_items.length} completed ??',
                         style: GoogleFonts.outfit(
                             color: Colors.amberAccent.withValues(alpha: 0.6),
                             fontSize: 10)),
@@ -217,7 +217,7 @@ class _BucketListPageState extends State<BucketListPage>
                         cursorColor: Colors.amberAccent,
                         onSubmitted: (_) => _add(),
                         decoration: InputDecoration(
-                            hintText: 'Add a bucket list item…',
+                            hintText: 'Add a bucket list item�',
                             hintStyle: GoogleFonts.outfit(
                                 color: Colors.white30, fontSize: 12),
                             filled: true,
@@ -260,7 +260,7 @@ class _BucketListPageState extends State<BucketListPage>
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                            const Text('🌟', style: TextStyle(fontSize: 48)),
+                            const Text('??', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text('Add things you want to do~',
                                 style:
@@ -326,7 +326,7 @@ class _BucketListPageState extends State<BucketListPage>
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                          Text(item['text'] as String,
+                                          Text(item['text']?.toString() ?? '',
                                               style: GoogleFonts.outfit(
                                                   color: done
                                                       ? Colors.white54
@@ -337,7 +337,7 @@ class _BucketListPageState extends State<BucketListPage>
                                                       ? TextDecoration
                                                           .lineThrough
                                                       : null)),
-                                          Text(item['cat'] as String,
+                                          Text(item['cat']?.toString() ?? '',
                                               style: GoogleFonts.outfit(
                                                   color: Colors.amberAccent
                                                       .withValues(alpha: 0.5),
