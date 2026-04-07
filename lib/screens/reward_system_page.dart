@@ -20,7 +20,7 @@ class RewardSystemPage extends StatelessWidget {
       {'day': 100, 'reward': '1000 XP + Legend', 'icon': '💫', 'unlocked': streak >= 100},
     ];
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
         title: Text('REWARDS', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.5)), centerTitle: true),
@@ -39,11 +39,11 @@ class RewardSystemPage extends StatelessWidget {
           final unlocked = r['unlocked'] as bool;
           return Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: (unlocked ? Colors.amberAccent : Colors.white).withValues(alpha: unlocked ? 0.08 : 0.03), borderRadius: BorderRadius.circular(14), border: Border.all(color: (unlocked ? Colors.amberAccent : Colors.white24).withValues(alpha: 0.3))),
             child: Row(children: [
-              Text(r['icon'] as String, style: const TextStyle(fontSize: 28)),
+              Text(r['icon']?.toString() ?? '', style: const TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Day ${r['day']}', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                Text(r['reward'] as String, style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
+                Text(r['reward']?.toString() ?? '', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11)),
               ])),
               Icon(unlocked ? Icons.check_circle : Icons.lock_outline, color: unlocked ? Colors.amberAccent : Colors.white24, size: 22),
             ]));
