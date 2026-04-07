@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../widgets/app_cached_image.dart';
+
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/free_apis_service.dart';
@@ -65,7 +67,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10,
         tint: const Color(0xFF070A14),
@@ -98,7 +100,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5)),
               ),
-              const Text('🎬', style: TextStyle(fontSize: 22)),
+              const Text('??', style: TextStyle(fontSize: 22)),
             ]),
           ),
 
@@ -125,7 +127,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                     cursorColor: Colors.purpleAccent,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Search anime movies…',
+                      hintText: 'Search anime movies�',
                       hintStyle: GoogleFonts.outfit(
                           color: Colors.white30, fontSize: 13),
                       isDense: true,
@@ -205,7 +207,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                            const Text('🎬', style: TextStyle(fontSize: 48)),
+                            const Text('??', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text('No results found',
                                 style:
@@ -246,20 +248,11 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
           // Poster
           Expanded(
             child: movie['image']?.isNotEmpty == true
-                ? Image.network(
-                    movie['image'],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.purpleAccent.withValues(alpha: 0.1),
-                      child: const Center(
-                          child: Text('🎬', style: TextStyle(fontSize: 40))),
-                    ),
-                  )
+                ? AppCachedImage(url: movie['image'], width: double.infinity, height: double.infinity, fit: BoxFit.cover)
                 : Container(
                     color: Colors.purpleAccent.withValues(alpha: 0.1),
                     child: const Center(
-                        child: Text('🎬', style: TextStyle(fontSize: 40))),
+                        child: Text('??', style: TextStyle(fontSize: 40))),
                   ),
           ),
           Padding(
@@ -298,7 +291,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
     HapticFeedback.selectionClick();
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF12121E),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -328,13 +321,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
               if (movie['image']?.isNotEmpty == true)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    movie['image'],
-                    width: 100,
-                    height: 140,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+                  child: AppCachedImage(url: movie['image'], width: 100, height: 140, fit: BoxFit.cover),
                 ),
               const SizedBox(width: 14),
               Expanded(
