@@ -31,15 +31,18 @@ class _AutoLearningPageState extends State<AutoLearningPage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final d = prefs.getString('auto_learning_prefs');
-    if (d != null) {
-      setState(() => _preferences = Map<String, int>.from(jsonDecode(d)));
-    }
-    final f = prefs.getString('auto_learning_feedback');
-    if (f != null) {
-      setState(() => _feedbackLog = (jsonDecode(f) as List).cast<Map<String, dynamic>>());
-    }
-    _totalInteractions = prefs.getInt('auto_learning_total') ?? 0;
+    if (!mounted) return;
+    try {
+      final d = prefs.getString('auto_learning_prefs');
+      if (d != null) {
+        setState(() => _preferences = Map<String, int>.from(jsonDecode(d)));
+      }
+      final f = prefs.getString('auto_learning_feedback');
+      if (f != null) {
+        setState(() => _feedbackLog = (jsonDecode(f) as List).cast<Map<String, dynamic>>());
+      }
+      _totalInteractions = prefs.getInt('auto_learning_total') ?? 0;
+    } catch (_) {}
   }
 
   Future<void> _save() async {
@@ -76,7 +79,7 @@ class _AutoLearningPageState extends State<AutoLearningPage> {
     };
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70), onPressed: () => Navigator.pop(context)),
