@@ -46,6 +46,7 @@ class _ConversationSummaryPageState extends State<ConversationSummaryPage> {
       final reply = await ApiService().sendConversation([
         {'role': 'user', 'content': prompt},
       ]);
+      if (!mounted) return;
       setState(() => _summary = reply);
       AffectionService.instance.addPoints(2);
     } catch (e) {
@@ -59,7 +60,7 @@ class _ConversationSummaryPageState extends State<ConversationSummaryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
