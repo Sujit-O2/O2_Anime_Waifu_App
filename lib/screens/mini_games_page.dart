@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -10,8 +10,8 @@ import '../main.dart';
 const List<String> _o2GameBackgroundAssets = [
   'assets/img/z12.jpg',
   'assets/img/z2s.jpg',
-  'assets/img/bg2.png',
-  'assets/img/bg.png',
+  'assets/img/bg2.jpg',
+  'assets/img/bg.jpg',
   'assets/img/bll.jpg',
 ];
 const String _o2GameFallbackAsset = 'assets/img/z12.jpg';
@@ -128,9 +128,9 @@ class _BackdropOrb extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GAMES HUB – lists all playable animated games
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// GAMES HUB â€“ lists all playable animated games
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class GamesHubPage extends StatefulWidget {
   const GamesHubPage({super.key});
@@ -309,7 +309,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                     children: [
                       _GameCard(
                         title: 'Snake',
-                        subtitle: 'Classic snake — eat, grow, survive',
+                        subtitle: 'Classic snake â€” eat, grow, survive',
                         icon: Icons.shuffle_rounded,
                         gradient: const [Color(0xFF00E676), Color(0xFF00897B)],
                         onTap: () => Navigator.push(
@@ -400,9 +400,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GAME CARD WIDGET
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _GameCard extends StatefulWidget {
   final String title, subtitle;
@@ -499,9 +499,9 @@ class _GameCardState extends State<_GameCard>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SNAKE GAME
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class SnakeGamePage extends StatefulWidget {
   const SnakeGamePage({super.key});
@@ -599,7 +599,7 @@ class _SnakeGameState extends State<SnakeGamePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Snake — $_score pts',
+        title: Text('Snake â€” $_score pts',
             style: GoogleFonts.outfit(
                 color: Colors.greenAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -762,9 +762,9 @@ class _SnakePainter extends CustomPainter {
   bool shouldRepaint(_SnakePainter old) => true;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MEMORY MATCH GAME
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class MemoryMatchPage extends StatefulWidget {
   const MemoryMatchPage({super.key});
@@ -773,7 +773,7 @@ class MemoryMatchPage extends StatefulWidget {
 }
 
 class _MemoryMatchState extends State<MemoryMatchPage> {
-  static const _emojis = ['🌸', '⚔️', '🦋', '💮', '🎴', '🌺', '🍡', '🎎'];
+  static const _emojis = ['ðŸŒ¸', 'âš”ï¸', 'ðŸ¦‹', 'ðŸ’®', 'ðŸŽ´', 'ðŸŒº', 'ðŸ¡', 'ðŸŽŽ'];
   late List<String> _cards;
   List<bool> _flipped = [];
   List<bool> _matched = [];
@@ -830,7 +830,7 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Memory Match — $_moves moves',
+        title: Text('Memory Match â€” $_moves moves',
             style: GoogleFonts.outfit(
                 color: Colors.pinkAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -866,7 +866,7 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
                         gradient: const LinearGradient(
                             colors: [Color(0xFFFF4081), Color(0xFFAD1457)]),
                         borderRadius: BorderRadius.circular(20)),
-                    child: Text('🎉 You won in $_moves moves!',
+                    child: Text('ðŸŽ‰ You won in $_moves moves!',
                         style: GoogleFonts.outfit(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -979,11 +979,11 @@ class _CardTileState extends State<_CardTile>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // TAP REACTION GAME
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Reaction game phases — top-level (Dart doesn't allow enums inside classes)
+// Reaction game phases â€” top-level (Dart doesn't allow enums inside classes)
 enum _Phase { idle, waiting, ready, result }
 
 class TapReactionPage extends StatefulWidget {
@@ -1119,7 +1119,7 @@ class _TapReactionState extends State<TapReactionPage>
                       child: Center(
                         child: Text(
                           _phase == _Phase.idle
-                              ? '▶ TAP TO\nSTART'
+                              ? 'â–¶ TAP TO\nSTART'
                               : _phase == _Phase.waiting
                                   ? 'WAIT...'
                                   : _phase == _Phase.ready
@@ -1136,7 +1136,7 @@ class _TapReactionState extends State<TapReactionPage>
                   ),
                   const SizedBox(height: 40),
                   if (_times.isNotEmpty) ...[
-                    Text('Round $_round  •  Avg: $avg ms',
+                    Text('Round $_round  â€¢  Avg: $avg ms',
                         style: GoogleFonts.outfit(
                             color: Colors.white70, fontSize: 14)),
                     const SizedBox(height: 8),
@@ -1160,9 +1160,9 @@ class _TapReactionState extends State<TapReactionPage>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // NUMBER GUESSER GAME
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class NumberGuesserPage extends StatefulWidget {
   const NumberGuesserPage({super.key});
@@ -1210,7 +1210,7 @@ class _NumberGuesserState extends State<NumberGuesserPage>
     _attempts++;
     if (n == _secret) {
       setState(() {
-        _hint = '🎉 Correct! The number was $_secret!';
+        _hint = 'ðŸŽ‰ Correct! The number was $_secret!';
         _won = true;
       });
     } else if (n < _secret) {
@@ -1708,12 +1708,12 @@ class _WordleGamePageState extends State<WordleGamePage> {
 }
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-// ANIME QUIZ GAME — Unlimited rounds, 10 questions per round
+// ANIME QUIZ GAME â€” Unlimited rounds, 10 questions per round
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-// ── Master question bank (80+ questions) ─────────────────────────────────────
+// â”€â”€ Master question bank (80+ questions) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const List<Map<String, dynamic>> _kAnimeQuestions = [
-  // ── One Piece ─────────────────────────────────────────────────
+  // â”€â”€ One Piece â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'What fruit gives Luffy his rubber powers?',
     'opts': [
@@ -1754,7 +1754,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Rashomon', 'Oni Giri', 'Tora Gari', 'Asura'],
     'ans': 3
   },
-  // ── Naruto ────────────────────────────────────────────────────
+  // â”€â”€ Naruto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'Who is the Nine-Tails Jinchuriki?',
     'opts': ['Gaara', 'Killer B', 'Naruto', 'Minato'],
@@ -1785,7 +1785,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Tobirama Senju', 'Hashirama Senju', 'Sarutobi', 'Minato'],
     'ans': 1
   },
-  // ── Attack on Titan ───────────────────────────────────────────
+  // â”€â”€ Attack on Titan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'Who holds the Founding Titan at the start of AOT?',
     'opts': ['Reiner', 'Eren', 'Zeke', 'Historia'],
@@ -1811,7 +1811,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Bertholdt', 'Reiner', 'Annie', 'Zeke'],
     'ans': 1
   },
-  // ── Death Note ────────────────────────────────────────────────
+  // â”€â”€ Death Note â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'What is the name of the shinigami who drops the Death Note?',
     'opts': ['Rem', 'Ryuk', 'Gelus', 'Sidoh'],
@@ -1837,7 +1837,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Lawliet', 'Ryuzaki', 'L. Lowe', 'L. Watari'],
     'ans': 0
   },
-  // ── Dragon Ball ───────────────────────────────────────────────
+  // â”€â”€ Dragon Ball â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'Who is the first character to become a Super Saiyan in DBZ?',
     'opts': ['Vegeta', 'Gohan', 'Goku', 'Trunks'],
@@ -1868,7 +1868,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     ],
     'ans': 0
   },
-  // ── Fullmetal Alchemist ───────────────────────────────────────
+  // â”€â”€ Fullmetal Alchemist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "Who is Edward Elric's brother?",
     'opts': ['Roy Mustang', 'Alphonse Elric', 'Hughes', 'Envy'],
@@ -1894,7 +1894,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Right arm', 'Left leg', 'Left arm', 'Right leg'],
     'ans': 0
   },
-  // ── One Punch Man ─────────────────────────────────────────────
+  // â”€â”€ One Punch Man â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'Who is known as the One Punch Man?',
     'opts': ['Genos', 'King', 'Saitama', 'Garou'],
@@ -1920,7 +1920,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     ],
     'ans': 1
   },
-  // ── Demon Slayer ──────────────────────────────────────────────
+  // â”€â”€ Demon Slayer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Tanjiro Kamado's breathing style?",
     'opts': [
@@ -1956,7 +1956,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     ],
     'ans': 1
   },
-  // ── My Hero Academia ──────────────────────────────────────────
+  // â”€â”€ My Hero Academia â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Deku's Quirk called?",
     'opts': ['Half-Cold Half-Hot', 'Explosion', 'One For All', 'Zero Gravity'],
@@ -1982,7 +1982,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Class 1-B', 'Class 2-A', 'Class 1-A', 'Class 3-C'],
     'ans': 2
   },
-  // ── Hunter x Hunter ───────────────────────────────────────────
+  // â”€â”€ Hunter x Hunter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Gon Freecss's father?",
     'opts': ['Netero', 'Ging Freecss', 'Killua', 'Leorio'],
@@ -2000,10 +2000,10 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
   },
   {
     'q': 'What animal can Gon transform into with Nen?',
-    'opts': ['None — he has Enhancer Nen', 'Dragon', 'Wolf', 'Eagle'],
+    'opts': ['None â€” he has Enhancer Nen', 'Dragon', 'Wolf', 'Eagle'],
     'ans': 0
   },
-  // ── Sword Art Online ──────────────────────────────────────────
+  // â”€â”€ Sword Art Online â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Kirito's real name?",
     'opts': [
@@ -2029,7 +2029,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     ],
     'ans': 0
   },
-  // ── Darling in the FranXX ─────────────────────────────────────
+  // â”€â”€ Darling in the FranXX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Zero Two's code?",
     'opts': ['016', '002', '326', '666'],
@@ -2050,7 +2050,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Klaxosaurs', 'Titans', 'Apostles', 'Shadows'],
     'ans': 0
   },
-  // ── Bleach ────────────────────────────────────────────────────
+  // â”€â”€ Bleach â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Ichigo Kurosaki's sword called?",
     'opts': ['Zanpakuto: Zangetsu', 'Byakuya', 'Renji', 'Senbonzakura'],
@@ -2065,13 +2065,13 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'q': "What is Byakuya Kuchiki's Bankai?",
     'opts': [
       'Senbonzakura Kageyoshi',
-      'Daiguren Hyōrinmaru',
+      'Daiguren HyÅrinmaru',
       'Tenken',
-      'Ittō Kasō'
+      'IttÅ KasÅ'
     ],
     'ans': 0
   },
-  // ── Tokyo Ghoul ───────────────────────────────────────────────
+  // â”€â”€ Tokyo Ghoul â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What is Ken Kaneki's ghoul kagune type?",
     'opts': ['Rinkaku', 'Ukaku', 'Koukaku', 'Bikaku'],
@@ -2082,7 +2082,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': [':re', 'Anteiku', 'Ghoul House', 'Cochlea'],
     'ans': 1
   },
-  // ── Black Clover ──────────────────────────────────────────────
+  // â”€â”€ Black Clover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "What magic does Asta use?",
     'opts': ['Fire Magic', 'Anti-Magic', 'Darkness Magic', 'Light Magic'],
@@ -2098,7 +2098,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'opts': ['Silver Eagles', 'Golden Dawn', 'Black Bulls', 'Crimson Lion'],
     'ans': 2
   },
-  // ── Jujutsu Kaisen ────────────────────────────────────────────
+  // â”€â”€ Jujutsu Kaisen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': "Who is Ryomen Sukuna?",
     'opts': ['A hero', 'The King of Curses', 'A teacher', 'A student'],
@@ -2124,7 +2124,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     ],
     'ans': 0
   },
-  // ── Miscellaneous ─────────────────────────────────────────────
+  // â”€â”€ Miscellaneous â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     'q': 'In Re:Zero, what power does Subaru have?',
     'opts': [
@@ -2233,7 +2233,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
   final Random _rng = Random();
   late final String _bgAsset;
 
-  // ── Round state ────────────────────────────────────────────────
+  // â”€â”€ Round state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int _round = 1;
   int _currentQ = 0;
   int _roundScore = 0;
@@ -2242,7 +2242,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
   bool _answered = false;
   int? _selectedIdx;
 
-  // Quiz data for current round — each entry: {q, opts: [String], ans: int}
+  // Quiz data for current round â€” each entry: {q, opts: [String], ans: int}
   List<Map<String, dynamic>> _roundQuestions = [];
   bool _loading = false; // Start false to show difficulty selector
 
@@ -2267,7 +2267,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
     // Wait for user to select difficulty before fetching
   }
 
-  // ── API fetch ─────────────────────────────────────────────────
+  // â”€â”€ API fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _fetchRound() async {
     if (!mounted) return;
     setState(() {
@@ -2326,7 +2326,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
     _timerController.forward(from: 0);
   }
 
-  // ── Gameplay ───────────────────────────────────────────────────
+  // â”€â”€ Gameplay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _answer(int idx) {
     if (_answered || _roundQuestions.isEmpty) return;
     _timerController.stop();
@@ -2372,11 +2372,11 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
 
   String _gradeLabel() {
     final pct = _roundScore / _questionsPerRound;
-    if (pct == 1.0) return '🏆 Perfect!';
-    if (pct >= 0.8) return '⭐ Excellent!';
-    if (pct >= 0.6) return '👍 Good Job!';
-    if (pct >= 0.4) return '😊 Keep Going!';
-    return '💪 Try Again!';
+    if (pct == 1.0) return 'ðŸ† Perfect!';
+    if (pct >= 0.8) return 'â­ Excellent!';
+    if (pct >= 0.6) return 'ðŸ‘ Good Job!';
+    if (pct >= 0.4) return 'ðŸ˜Š Keep Going!';
+    return 'ðŸ’ª Try Again!';
   }
 
   Color _gradeColor() {
@@ -2405,7 +2405,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
               ? 'Select Difficulty'
               : _phase == 'roundSummary'
                   ? 'Round $_round Done!'
-                  : 'Round $_round  •  Q${_currentQ + 1}/$_questionsPerRound',
+                  : 'Round $_round  â€¢  Q${_currentQ + 1}/$_questionsPerRound',
           style: GoogleFonts.outfit(
               color: Colors.pinkAccent, fontWeight: FontWeight.w800),
         ),
@@ -2413,7 +2413,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
-              child: Text('🏅 $_totalScore',
+              child: Text('ðŸ… $_totalScore',
                   style: GoogleFonts.outfit(
                       color: Colors.amberAccent,
                       fontSize: 16,
@@ -2697,7 +2697,7 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
                 ),
                 onPressed: _nextRound,
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text('Next Round →',
+                label: Text('Next Round â†’',
                     style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w800, fontSize: 16)),
               ),
@@ -2716,14 +2716,14 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // BLOCK BLAST GAME
-// Place tetromino-like pieces onto an 8×8 grid. Full rows/cols clear for score.
-// ─────────────────────────────────────────────────────────────────────────────
+// Place tetromino-like pieces onto an 8Ã—8 grid. Full rows/cols clear for score.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // All possible piece shapes (list of [row, col] offsets from an anchor)
 const List<List<List<int>>> _kBlockBlastPieces = [
-  // O-piece (2×2)
+  // O-piece (2Ã—2)
   [
     [0, 0],
     [0, 1],
@@ -2783,29 +2783,29 @@ const List<List<List<int>>> _kBlockBlastPieces = [
   [
     [0, 0]
   ],
-  // 2×1
+  // 2Ã—1
   [
     [0, 0],
     [0, 1]
   ],
-  // 1×2
+  // 1Ã—2
   [
     [0, 0],
     [1, 0]
   ],
-  // 3×1
+  // 3Ã—1
   [
     [0, 0],
     [0, 1],
     [0, 2]
   ],
-  // 1×3
+  // 1Ã—3
   [
     [0, 0],
     [1, 0],
     [2, 0]
   ],
-  // 2×2 corner
+  // 2Ã—2 corner
   [
     [0, 0],
     [0, 1],
@@ -2950,7 +2950,7 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Block Blast — $_score pts',
+        title: Text('Block Blast â€” $_score pts',
             style: GoogleFonts.outfit(
                 color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -3149,9 +3149,9 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // BLOCK BREAKER GAME (Arkanoid / Breakout)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class BlockBreakerPage extends StatefulWidget {
   const BlockBreakerPage({super.key});
@@ -3331,7 +3331,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Block Breaker — $_score pts',
+        title: Text('Block Breaker â€” $_score pts',
             style: GoogleFonts.outfit(
                 color: Colors.cyanAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -3384,7 +3384,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (_won)
-                                    Text('You Win! 🎉',
+                                    Text('You Win! ðŸŽ‰',
                                         style: GoogleFonts.outfit(
                                             color: Colors.greenAccent,
                                             fontSize: 32,
@@ -3493,3 +3493,4 @@ class _BreakerPainter extends CustomPainter {
   @override
   bool shouldRepaint(_BreakerPainter old) => true;
 }
+

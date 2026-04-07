@@ -1,7 +1,7 @@
-part of '../main.dart';
+﻿part of '../main.dart';
 
 extension _MainSettingsExtension on _ChatHomePageState {
-// —— Page: Settings ————————————————————————————————————————————————————————————————
+// â€”â€” Page: Settings â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
   Widget _buildVoiceOption(BuildContext context, String id, String label) {
     final bool sel = _voiceModel == id;
     return Expanded(
@@ -312,7 +312,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       onChanged: (_) => _toggleAutoListen(),
                       activeColor: primary,
                     ),
-                    // ── STT Provider Toggle ─────────────────────────────────
+                    // â”€â”€ STT Provider Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
@@ -691,7 +691,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       icon: Icons.nightlight_round,
                       label: 'Sleep Mode',
                       subtitle: _sleepModeEnabled
-                          ? 'Auto-mutes midnight – 7 AM'
+                          ? 'Auto-mutes midnight â€“ 7 AM'
                           : 'Always active (no mute)',
                       value: _sleepModeEnabled,
                       onChanged: (v) => _setSleepMode(v),
@@ -806,7 +806,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                             fontWeight: FontWeight.w600)),
                                     Text(
                                       count == 0
-                                          ? 'No facts saved yet — tell her something to remember!'
+                                          ? 'No facts saved yet â€” tell her something to remember!'
                                           : '$count fact${count == 1 ? '' : 's'} stored in memory',
                                       style: GoogleFonts.outfit(
                                           color: Colors.white54, fontSize: 11),
@@ -1214,7 +1214,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       icon: Icons.music_note_rounded,
                       label: 'Music Player',
                       subtitle:
-                          'Play local music — in-app player with album art',
+                          'Play local music â€” in-app player with album art',
                       color: Colors.purpleAccent,
                       onTap: () => Navigator.push(
                           context,
@@ -1255,7 +1255,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       icon: Icons.games_rounded,
                       label: 'Mini-Games',
                       subtitle:
-                          'RPS · Tic-Tac-Toe · Anime Trivia — all in chat',
+                          'RPS Â· Tic-Tac-Toe Â· Anime Trivia â€” all in chat',
                       color: Colors.amberAccent,
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -1349,22 +1349,22 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           const SizedBox(height: 10),
                           ...[
                             (
-                              '📊 Waifu Dashboard',
+                              'ðŸ“Š Waifu Dashboard',
                               'Chat snippet, affection level & quick-open'
                             ),
                             (
-                              '🌡 Status Monitor',
+                              'ðŸŒ¡ Status Monitor',
                               'Relationship tier + progress bar'
                             ),
                             (
-                              '🌤 Weather & Time',
+                              'ðŸŒ¤ Weather & Time',
                               'Live weather + greeting clock'
                             ),
                             (
-                              '⚡ Actions Hub',
+                              'âš¡ Actions Hub',
                               'Talk / Morning / Night / Quests shortcuts'
                             ),
-                            ('💬 Quote Banner', 'Zero Two daily quote'),
+                            ('ðŸ’¬ Quote Banner', 'Zero Two daily quote'),
                           ].map((item) => Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 3),
@@ -1378,7 +1378,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                             fontWeight: FontWeight.w600)),
                                     const SizedBox(width: 8),
                                     Expanded(
-                                      child: Text('— ${item.$2}',
+                                      child: Text('â€” ${item.$2}',
                                           style: GoogleFonts.outfit(
                                               color: Colors.white38,
                                               fontSize: 11)),
@@ -1388,7 +1388,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                               )),
                           const SizedBox(height: 10),
                           Text(
-                            'To add: long-press your home screen → Widgets → Anime Waifu',
+                            'To add: long-press your home screen â†’ Widgets â†’ Anime Waifu',
                             style: GoogleFonts.outfit(
                                 color: Colors.blueAccent, fontSize: 11),
                           ),
@@ -1399,12 +1399,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ]),
                   const SizedBox(height: 16),
 
-                  // ── ABOUT ──────────────────────────────────────────────────
+                  // â”€â”€ ABOUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   _settingsSectionCard('ABOUT', [
                     _buildAboutRow(
                         icon: Icons.favorite_rounded,
                         label: 'App',
-                        value: 'Anime Waifu — Zero Two AI',
+                        value: 'Anime Waifu â€” Zero Two AI',
                         color: Colors.pinkAccent),
                     _buildAboutRow(
                         icon: Icons.tag_rounded,
@@ -1414,7 +1414,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     _buildAboutRow(
                         icon: Icons.code_rounded,
                         label: 'Engine',
-                        value: 'Flutter · Dart',
+                        value: 'Flutter Â· Dart',
                         color: Colors.lightBlueAccent),
                     _buildAboutRow(
                         icon: Icons.smart_toy_rounded,
@@ -1446,7 +1446,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                             color: Colors.pinkAccent.withValues(alpha: 0.18)),
                       ),
                       child: Text(
-                        '"My darling, I\'ll fight, create, and protect — just for you." — Zero Two 💕',
+                        '"My darling, I\'ll fight, create, and protect â€” just for you." â€” Zero Two ðŸ’•',
                         style: GoogleFonts.outfit(
                           color: Colors.white60,
                           fontSize: 12,
@@ -1460,7 +1460,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   ]),
                   const SizedBox(height: 16),
 
-                  // ── DEBUG ──────────────────────────────────────────────────
+                  // â”€â”€ DEBUG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   _settingsSectionCard('DEBUG & DIAGNOSTICS', [
                     _buildToolShortcut(
                       icon: Icons.bug_report_rounded,
@@ -1496,7 +1496,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('✅ All 5 widgets refreshed!'),
+                                content: Text('âœ… All 5 widgets refreshed!'),
                                 duration: Duration(seconds: 2)));
                       },
                     ),
@@ -1540,7 +1540,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     const SizedBox(height: 8),
                   ]),
                   const SizedBox(height: 16),
-                  // ── ACCOUNT ────────────────────────────────────────────────
+                  // â”€â”€ ACCOUNT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   _settingsSectionCard('ACCOUNT', [
                     // Current user display
                     Builder(builder: (context) {
@@ -1698,14 +1698,14 @@ extension _MainSettingsExtension on _ChatHomePageState {
   Future<void> _triggerTestNotification() async {
     try {
       await _assistantModeService.showListeningNotification(
-        status: '💕 Zero Two',
-        transcript: 'I am always watching over you, Darling~ 💕',
+        status: 'ðŸ’• Zero Two',
+        transcript: 'I am always watching over you, Darling~ ðŸ’•',
         pulse: true,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('✅ Test notification sent!'),
+              content: Text('âœ… Test notification sent!'),
               duration: Duration(seconds: 2)),
         );
       }
@@ -1825,7 +1825,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/img/bg.png',
+              'assets/img/bg.jpg',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -1875,7 +1875,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
   Widget _buildOutfitChangerCard() {
     final List<String> outfits = [
       'assets/img/z2s.jpg',
-      'assets/img/logi.png',
+      'assets/img/logi.jpg',
       'assets/img/z12.jpg',
       'assets/img/bll.jpg',
     ];
@@ -2017,7 +2017,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
   Widget _buildWaifuCustomizationCard() {
     return Column(
       children: [
-        // ── Custom Rules ──────────────────────────────────────────────────
+        // â”€â”€ Custom Rules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(14),
@@ -2074,7 +2074,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
             ],
           ),
         ),
-        // ── Full Prompt Override ──────────────────────────────────────────
+        // â”€â”€ Full Prompt Override â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -2127,7 +2127,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
               Text(
                 _waifuPromptOverride.trim().isEmpty
                     ? 'Using default Zero Two persona. Tap Edit to fully customize.'
-                    : '✅ Custom prompt active: "${_waifuPromptOverride.trim().substring(0, _waifuPromptOverride.trim().length.clamp(0, 60))}..."',
+                    : 'âœ… Custom prompt active: "${_waifuPromptOverride.trim().substring(0, _waifuPromptOverride.trim().length.clamp(0, 60))}..."',
                 style: GoogleFonts.outfit(
                     color: _waifuPromptOverride.isEmpty
                         ? Colors.white38
@@ -2296,3 +2296,4 @@ class _GoogleDriveBackupWidget extends StatelessWidget {
     );
   }
 }
+
