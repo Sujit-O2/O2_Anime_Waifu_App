@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/ai_content_service.dart';
@@ -66,7 +66,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A16),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.10, tint: const Color(0xFF08100F),
         child: SafeArea(child: Column(children: [
@@ -86,7 +86,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('WOULD YOU RATHER', style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                Text(_loading ? 'AI generating dilemmas…'
+                Text(_loading ? 'AI generating dilemmas�'
                     : '${_idx + 1} / ${_questions.length} questions',
                     style: GoogleFonts.outfit(color: Colors.cyanAccent.withValues(alpha: 0.6), fontSize: 10)),
               ])),
@@ -96,7 +96,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
               ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   CircularProgressIndicator(color: Colors.cyanAccent),
                   SizedBox(height: 16),
-                  Text('Generating dilemmas with AI…', style: TextStyle(color: Colors.white54)),
+                  Text('Generating dilemmas with AI�', style: TextStyle(color: Colors.white54)),
                 ]))
               : _questions.isEmpty
                   ? Center(child: Text('Could not load questions.', style: GoogleFonts.outfit(color: Colors.white54)))
@@ -104,7 +104,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                       child: Padding(padding: const EdgeInsets.all(20),
                         child: Column(children: [
                           const Spacer(),
-                          Text('Would you rather…', style: GoogleFonts.outfit(
+                          Text('Would you rather�', style: GoogleFonts.outfit(
                               color: Colors.white38, fontSize: 13, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 20),
                           _buildOption(_questions[_idx]['optionA'] ?? 'Option A', 0, Colors.cyanAccent),
@@ -152,7 +152,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
                                       borderRadius: BorderRadius.circular(14),
                                       side: const BorderSide(color: Colors.white12)),
                                   padding: const EdgeInsets.symmetric(vertical: 14)),
-                                child: Text(_idx < _questions.length - 1 ? 'Next Question →' : 'Start Over 🔁',
+                                child: Text(_idx < _questions.length - 1 ? 'Next Question ?' : 'Start Over ??',
                                     style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
                               ),
                             ),
