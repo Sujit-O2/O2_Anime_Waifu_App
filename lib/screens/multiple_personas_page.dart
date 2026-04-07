@@ -131,6 +131,7 @@ class _MultiplePersonasPageState extends State<MultiplePersonasPage> {
                   'Keep it 1-2 sentences, use emojis, stay in character.',
         }
       ]);
+      if (!mounted) return;
       setState(() => _preview = reply);
       AffectionService.instance.addPoints(2);
     } catch (_) {
@@ -146,7 +147,7 @@ class _MultiplePersonasPageState extends State<MultiplePersonasPage> {
         orElse: () => _personas.first);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
