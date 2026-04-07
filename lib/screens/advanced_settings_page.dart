@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +22,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _memoryLimit = prefs.getInt('flutter.advanced_memory_limit') ?? 15;
       _debugLogs = prefs.getBool('flutter.advanced_debug_logs') ?? false;
@@ -31,18 +32,21 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
 
   Future<void> _saveMemoryLimit(double value) async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() => _memoryLimit = value.toInt());
     await prefs.setInt('flutter.advanced_memory_limit', _memoryLimit);
   }
 
   Future<void> _saveDebugLogs(bool value) async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() => _debugLogs = value);
     await prefs.setBool('flutter.advanced_debug_logs', _debugLogs);
   }
 
   Future<void> _saveStrictWake(bool value) async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() => _strictWake = value);
     await prefs.setBool('flutter.advanced_strict_wake', _strictWake);
   }
