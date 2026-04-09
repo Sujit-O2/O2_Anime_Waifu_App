@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/app_cached_image.dart';
+import '../widgets/waifu_background.dart';
 
-/// Anime Calendar — shows which anime airs on each day of the week.
-/// Uses Jikan API schedules endpoint.
+/// Anime Calendar v2 — Weekly airing schedule with dark glass cards,
+/// today indicator, score badges, staggered animations, and haptics.
 class AnimeCalendarPage extends StatefulWidget {
   const AnimeCalendarPage({super.key});
   @override
@@ -12,30 +15,29 @@ class AnimeCalendarPage extends StatefulWidget {
 }
 
 class _AnimeCalendarPageState extends State<AnimeCalendarPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabCtrl;
+  late AnimationController _fadeCtrl;
   final Map<String, List<Map<String, dynamic>>> _schedule = {};
   bool _loading = true;
 
-  static const List<String> _days = [
-    'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday', 'sunday'
-  ];
-  static const List<String> _dayLabels = [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-  ];
+  static const _days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _dayEmojis = ['🌙', '🔥', '💧', '🌿', '⚡', '🌸', '☀️'];
 
   @override
   void initState() {
     super.initState();
     final todayIndex = DateTime.now().weekday - 1;
     _tabCtrl = TabController(length: 7, vsync: this, initialIndex: todayIndex);
+    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _loadSchedule();
   }
 
   @override
   void dispose() {
     _tabCtrl.dispose();
+    _fadeCtrl.dispose();
     super.dispose();
   }
 
@@ -51,11 +53,13 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
           final data = jsonDecode(resp.body)['data'] as List? ?? [];
           _schedule[day] = data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         }
-        await Future.delayed(const Duration(milliseconds: 350)); // Rate limit
+        await Future.delayed(const Duration(milliseconds: 350));
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
   }
+
+  int get _totalAiring => _schedule.values.fold(0, (sum, list) => sum + list.length);
 
   @override
   Widget build(BuildContext context) {
@@ -63,52 +67,94 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent, elevation: 0,
-        title: const Text('📅 Anime Calendar',
-          style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [
-              Colors.indigo.withValues(alpha: 0.5),
-              Colors.black.withValues(alpha: 0.95),
+      body: WaifuBackground(
+        opacity: 0.06,
+        tint: const Color(0xFF060A14),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeCtrl,
+            child: Column(children: [
+              // ── Header ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: Row(children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 36, height: 36,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)),
+                      child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 16)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('ANIME CALENDAR', style: GoogleFonts.outfit(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                    Text('$_totalAiring anime airing this week', style: GoogleFonts.outfit(color: Colors.indigoAccent.withValues(alpha: 0.7), fontSize: 10)),
+                  ])),
+                  GestureDetector(
+                    onTap: () { HapticFeedback.lightImpact(); _loadSchedule(); },
+                    child: Container(
+                      width: 36, height: 36,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)),
+                      child: const Icon(Icons.refresh, color: Colors.white60, size: 18)),
+                  ),
+                ]),
+              ),
+
+              // ── Day Tabs ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                child: TabBar(
+                  controller: _tabCtrl,
+                  isScrollable: true,
+                  indicatorColor: Colors.indigoAccent,
+                  indicatorWeight: 3,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white38,
+                  labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 12),
+                  tabs: List.generate(7, (i) => Tab(
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('${_dayEmojis[i]} ${_dayLabels[i]}'),
+                      if (i == todayIndex)
+                        Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                        ),
+                    ]),
+                  )),
+                ),
+              ),
+
+              // ── Content ──
+              Expanded(
+                child: _loading
+                  ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const CircularProgressIndicator(color: Colors.indigoAccent),
+                      const SizedBox(height: 12),
+                      Text('Loading schedule...', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 12)),
+                    ]))
+                  : TabBarView(
+                      controller: _tabCtrl,
+                      children: _days.map((day) => _buildDayList(day)).toList(),
+                    ),
+              ),
             ]),
           ),
-        ),
-        bottom: TabBar(
-          controller: _tabCtrl,
-          isScrollable: true,
-          indicatorColor: Colors.indigo,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.grey,
-          tabs: List.generate(7, (i) => Tab(
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(_dayLabels[i]),
-              if (i == todayIndex)
-                Container(
-                  margin: const EdgeInsets.only(left: 4),
-                  width: 6, height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.greenAccent, shape: BoxShape.circle),
-                ),
-            ]),
-          )),
         ),
       ),
-      body: _loading
-        ? const Center(child: CircularProgressIndicator(color: Colors.indigo))
-        : TabBarView(
-            controller: _tabCtrl,
-            children: _days.map((day) => _buildDayList(day)).toList(),
-          ),
     );
   }
 
   Widget _buildDayList(String day) {
     final anime = _schedule[day] ?? [];
     if (anime.isEmpty) {
-      return Center(child: Text('No anime scheduled',
-        style: TextStyle(color: Colors.grey.shade600)));
+      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('📺', style: TextStyle(fontSize: 48)),
+        const SizedBox(height: 12),
+        Text('No anime scheduled', style: GoogleFonts.outfit(color: Colors.white30, fontSize: 14)),
+        const SizedBox(height: 4),
+        Text('Check other days~', style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11)),
+      ]));
     }
 
     return ListView.builder(
@@ -120,28 +166,59 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
         final title = a['title'] as String? ?? 'Unknown';
         final score = a['score']?.toString() ?? '';
         final eps = a['episodes']?.toString() ?? '?';
+        final genres = (a['genres'] as List?)?.map((g) => g['name']?.toString() ?? '').take(2).join(', ') ?? '';
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            tileColor: Colors.white.withValues(alpha: 0.04),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            leading: AppCachedImage(url: cover, width: 45, height: 65),
-            title: Text(title,
-              style: const TextStyle(color: Colors.white, fontSize: 13,
-                  fontWeight: FontWeight.w600),
-              maxLines: 2, overflow: TextOverflow.ellipsis),
-            subtitle: Row(children: [
-              if (score.isNotEmpty && score != 'null') ...[
-                const Icon(Icons.star, color: Colors.amber, size: 12),
-                Text(' $score', style: TextStyle(
-                    color: Colors.grey.shade500, fontSize: 11)),
-                const SizedBox(width: 8),
-              ],
-              Text('$eps ep', style: TextStyle(
-                  color: Colors.grey.shade600, fontSize: 11)),
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 300 + i * 50),
+          curve: Curves.easeOut,
+          builder: (_, val, child) => Opacity(opacity: val, child: Transform.translate(offset: Offset(0, 12 * (1 - val)), child: child)),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.indigoAccent.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.indigoAccent.withValues(alpha: 0.15)),
+            ),
+            child: Row(children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: cover.isNotEmpty
+                  ? AppCachedImage(url: cover, width: 50, height: 70, fit: BoxFit.cover)
+                  : Container(width: 50, height: 70, color: Colors.grey.shade900),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Row(children: [
+                  if (score.isNotEmpty && score != 'null') ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(color: Colors.amberAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.star, color: Colors.amberAccent, size: 10),
+                        const SizedBox(width: 2),
+                        Text(score, style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.w700)),
+                      ]),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text('$eps ep', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10)),
+                ]),
+                if (genres.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(genres, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.outfit(color: Colors.white24, fontSize: 9)),
+                ],
+              ])),
+              Container(
+                width: 32, height: 32,
+                decoration: BoxDecoration(color: Colors.indigoAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.live_tv, color: Colors.indigoAccent, size: 16),
+              ),
             ]),
-            trailing: const Icon(Icons.live_tv, color: Colors.indigo, size: 20),
           ),
         );
       },
