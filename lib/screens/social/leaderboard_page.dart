@@ -211,7 +211,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      WaifuCommentary(mood: _commentaryMood),
+
                       Row(
                         children: [
                           Expanded(

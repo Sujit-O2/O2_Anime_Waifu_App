@@ -382,7 +382,7 @@ class _FriendsPageState extends State<FriendsPage>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      WaifuCommentary(mood: _commentaryMood),
+
                       Row(
                         children: [
                           Expanded(

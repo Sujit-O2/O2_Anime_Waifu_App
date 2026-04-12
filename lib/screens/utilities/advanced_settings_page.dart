@@ -202,7 +202,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                WaifuCommentary(mood: _commentaryMood),
+
                 const SizedBox(height: 12),
                 Row(
                   children: [
