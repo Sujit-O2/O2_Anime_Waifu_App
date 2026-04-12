@@ -86,3 +86,5 @@ class ChatMessage {
         if (internalThought != null) "internal_thought": internalThought,
       };
 }
+
+

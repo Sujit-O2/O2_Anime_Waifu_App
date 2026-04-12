@@ -149,3 +149,5 @@ class MangaGenres {
     '🔞 Adult': 'id_adult', // Used purely for UI switching
   };
 }
+
+
