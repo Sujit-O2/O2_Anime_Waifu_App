@@ -1,6 +1,7 @@
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// Advanced notification service for anime_waifu app
 /// Provides access to all 10 notification features with theme color support
