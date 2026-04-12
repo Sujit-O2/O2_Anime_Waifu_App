@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modern Glass Morphism Overlay Design -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/assistantOverlayRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Animated gradient scrim (blur effect simulation) -->
+    <View
+        android:id="@+id/overlayScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@drawable/overlay_scrim_gradient" />
+
+    <!-- Modern bottom sheet with glass morphism -->
+    <FrameLayout
+        android:id="@+id/assistantOverlaySheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:clipToOutline="true"
+        android:outlineProvider="bounds">
+
+        <!-- Animated background gradient + particles -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/overlay_modern_bg" />
+
+        <pl.droidsonroids.gif.GifImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:alpha="0.3"
+            android:src="@drawable/sidebar_bg" />
+
+        <com.example.anime_waifu.FireDropParticlesView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Content with frosted glass effect -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/overlay_glass_bg"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- Premium drag handle with gradient -->
+            <FrameLayout
+                android:id="@+id/overlayDragHandle"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:layout_marginBottom="8dp">
+                <View
+                    android:layout_width="48dp"
+                    android:layout_height="4dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/overlay_handle_premium" />
+            </FrameLayout>
+
+            <!-- Header: Status + Actions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <!-- Animated status indicator -->
+                <FrameLayout
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="10dp">
+                    <View
+                        android:id="@+id/overlayStatusDot"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@drawable/overlay_status_dot_modern" />
+                    <!-- Glow effect -->
+                    <View
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/overlay_glow_effect"
+                        android:alpha="0.6" />
+                </FrameLayout>
+
+                <!-- Title with gradient text -->
+                <TextView
+                    android:id="@+id/overlayStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Zero Two"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- Info icon (future: show typing, online, etc) -->
+                <ImageButton
+                    android:id="@+id/overlayInfoButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:visibility="gone"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Info"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_dialog_info"
+                    android:tint="#CCFFFFFF" />
+
+                <!-- Close button -->
+                <ImageButton
+                    android:id="@+id/overlayCloseButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/overlay_close_btn_bg"
+                    android:contentDescription="Close"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:tint="#FFFFFF"
+                    android:scaleX="0.9"
+                    android:scaleY="0.9" />
+            </LinearLayout>
+
+            <!-- Divider line -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@drawable/overlay_divider_gradient"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Chat transcript with smooth scrolling -->
+            <ScrollView
+                android:id="@+id/overlayTranscriptScroll"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="140dp"
+                android:layout_marginBottom="12dp"
+                android:scrollbars="none"
+                android:fillViewport="true"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:id="@+id/overlayChatList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:gravity="bottom" />
+            </ScrollView>
+
+            <!-- Animated listening waveform -->
+            <LinearLayout
+                android:id="@+id/overlayWaveformRow"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical|start"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:background="@drawable/overlay_wave_bg">
+
+                <!-- Animated frequency bars -->
+                <View android:layout_width="3dp" android:layout_height="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/overlay_wave_bar_animated" />
+                <View android:layout_width="3dp" android:layout_height="18dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/overlay_wave_bar_animated" />
+                <View android:layout_width="3dp" android:layout_height="12dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/overlay_wave_bar_animated" />
+                <View android:layout_width="3dp" android:layout_height="20dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/overlay_wave_bar_animated" />
+                <View android:layout_width="3dp" android:layout_height="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/overlay_wave_bar_animated" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎤 Listening..."
+                    android:textColor="#FFFF5252"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Action row: Mic + Input + Send (Modern design) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:background="@drawable/overlay_action_row_bg">
+
+                <!-- Voice input button with ripple -->
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp">
+                    <ImageButton
+                        android:id="@+id/overlayMicButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/overlay_mic_btn_modern"
+                        android:contentDescription="Voice command"
+                        android:padding="12dp"
+                        android:src="@android:drawable/ic_btn_speak_now"
+                        android:tint="#FFFFFFFF" />
+                </FrameLayout>
+
+                <!-- Text input with smooth corners -->
+                <EditText
+                    android:id="@+id/overlayInput"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/overlay_input_modern"
+                    android:hint="💭 Type something..."
+                    android:imeOptions="actionSend"
+                    android:inputType="textCapSentences"
+                    android:maxLines="1"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="#FFFFFFFF"
+                    android:textColorHint="#80FFFFFF"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/google_sans_medium" />
+
+                <!-- Send button with animation -->
+                <ImageButton
+                    android:id="@+id/overlaySendButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/overlay_send_btn_modern"
+                    android:contentDescription="Send"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_menu_send"
+                    android:tint="#FFFFFFFF" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>
