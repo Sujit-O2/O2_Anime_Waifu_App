@@ -64,4 +64,6 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     // ONNX Runtime for on-device Whisper STT + Sentiment Analysis
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
+    // Gson for JSON parsing theme colors
+    implementation("com.google.code.gson:gson:2.10.1")
 }

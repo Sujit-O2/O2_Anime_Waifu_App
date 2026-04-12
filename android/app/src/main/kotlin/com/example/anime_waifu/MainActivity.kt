@@ -269,6 +269,87 @@ class MainActivity : AudioServiceFragmentActivity() {
                     "isCharging" -> {
                         result.success(isCharging())
                     }
+                    // Advanced Notification Features
+                    "showProgressNotification" -> {
+                        val title = call.argument<String>("title") ?: "Loading..."
+                        val progress = call.argument<Int>("progress") ?: 0
+                        val notifId = call.argument<Int>("notifId") ?: 3001
+                        val channelId = call.argument<String>("channelId") ?: assistantStatusChannelId
+                        showProgressNotification(title, progress, notifId, channelId)
+                        result.success(true)
+                    }
+                    "showInteractiveNotification" -> {
+                        val title = call.argument<String>("title") ?: "Title"
+                        val message = call.argument<String>("message") ?: "Message"
+                        val notifId = call.argument<Int>("notifId") ?: 3002
+                        val channelId = call.argument<String>("channelId") ?: wakeEventChannelId
+                        val actions = call.argument<List<String>>("actions") ?: emptyList()
+                        showInteractiveNotification(title, message, notifId, channelId, actions)
+                        result.success(true)
+                    }
+                    "showGroupedNotification" -> {
+                        val title = call.argument<String>("title") ?: "Title"
+                        val message = call.argument<String>("message") ?: "Message"
+                        val groupKey = call.argument<String>("groupKey") ?: "default_group"
+                        val notifId = call.argument<Int>("notifId") ?: 3003
+                        val channelId = call.argument<String>("channelId") ?: assistantStatusChannelId
+                        showGroupedNotification(title, message, groupKey, notifId, channelId)
+                        result.success(true)
+                    }
+                    "showInboxNotification" -> {
+                        val title = call.argument<String>("title") ?: "Messages"
+                        val messages = call.argument<List<String>>("messages") ?: emptyList()
+                        val notifId = call.argument<Int>("notifId") ?: 3004
+                        val channelId = call.argument<String>("channelId") ?: wakeEventChannelId
+                        showInboxNotification(title, messages, notifId, channelId)
+                        result.success(true)
+                    }
+                    "showHeadsUpNotification" -> {
+                        val title = call.argument<String>("title") ?: "Alert!"
+                        val message = call.argument<String>("message") ?: "Important notification"
+                        val notifId = call.argument<Int>("notifId") ?: 3005
+                        val channelId = call.argument<String>("channelId") ?: wakeEventChannelId
+                        showHeadsUpNotification(title, message, notifId, channelId)
+                        result.success(true)
+                    }
+                    "showMessageNotification" -> {
+                        val sender = call.argument<String>("sender") ?: "Zero Two"
+                        val message = call.argument<String>("message") ?: "Message"
+                        val timestamp = call.argument<String>("timestamp") ?: "Now"
+                        val notifId = call.argument<Int>("notifId") ?: 3006
+                        val channelId = call.argument<String>("channelId") ?: wakeEventChannelId
+                        showMessageNotification(sender, message, timestamp, notifId, channelId)
+                        result.success(true)
+                    }
+                    "showBigTextNotification" -> {
+                        val title = call.argument<String>("title") ?: "Title"
+                        val bigText = call.argument<String>("bigText") ?: "Big notification text"
+                        val notifId = call.argument<Int>("notifId") ?: 3007
+                        val channelId = call.argument<String>("channelId") ?: assistantStatusChannelId
+                        showBigTextNotification(title, bigText, notifId, channelId)
+                        result.success(true)
+                    }
+                    "updateNotificationProgress" -> {
+                        val notifId = call.argument<Int>("notifId") ?: 3001
+                        val progress = call.argument<Int>("progress") ?: 0
+                        updateProgressNotification(notifId, progress)
+                        result.success(true)
+                    }
+                    "dismissNotification" -> {
+                        val notifId = call.argument<Int>("notifId") ?: -1
+                        if (notifId >= 0) {
+                            val manager = getSystemService(NotificationManager::class.java)
+                            manager?.cancel(notifId)
+                            result.success(true)
+                        } else {
+                            result.success(false)
+                        }
+                    }
+                    "clearAllNotifications" -> {
+                        val manager = getSystemService(NotificationManager::class.java)
+                        manager?.cancelAll()
+                        result.success(true)
+                    }
                     else -> result.notImplemented()
 
                 }
@@ -599,6 +680,7 @@ class MainActivity : AudioServiceFragmentActivity() {
         val manager = getSystemService(NotificationManager::class.java)
         val openPendingIntent = buildLaunchPendingIntent(wakeEventNotificationId)
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val themeColors = ThemeColorManager.getNotificationColors(this)
 
         val body = if (transcript.isBlank() && status.isBlank()) {
             "Listening..."
@@ -618,7 +700,7 @@ class MainActivity : AudioServiceFragmentActivity() {
             .setLargeIcon(largeIcon)
             .setSubText("💕 Active")
             .setContentIntent(openPendingIntent)
-            .setColor(0xFFAD1457.toInt())  // Deep pink
+            .setColor(themeColors.primaryColor)  // Use theme primary color
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -640,13 +722,13 @@ class MainActivity : AudioServiceFragmentActivity() {
                 .setLargeIcon(largeIcon)
                 .setSubText("Tap to open O2-WAIFU")
                 .setAutoCancel(true)
-                .setColor(0xFF00E5FF.toInt())  // Cyan
+                .setColor(themeColors.accentColor)  // Use theme accent color
                 .setColorized(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOnlyAlertOnce(false)
                 .setContentIntent(openPendingIntent)
                 .setDefaults(NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE)
-                .setLights(0xFF00E5FF.toInt(), 200, 400)
+                .setLights(themeColors.accentColor, 200, 400)  // Use theme accent for LED
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build()
@@ -666,6 +748,7 @@ class MainActivity : AudioServiceFragmentActivity() {
     private fun ensureNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
+            val themeColors = ThemeColorManager.getNotificationColors(this)
 
             // Silent background service channel (no sound, no vibration)
             val assistantChannel = NotificationChannel(
@@ -692,32 +775,32 @@ class MainActivity : AudioServiceFragmentActivity() {
                 enableLights(false)
             }
 
-            // Wake/message alerts — sound + pink LED
+            // Wake/message alerts — sound + theme accent LED
             val wakeEventChannel = NotificationChannel(
                 wakeEventChannelId,
                 "Zero Two Messages 💕",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Zero Two check-ins and proactive messages ~ with pink LED."
+                description = "Zero Two check-ins and proactive messages with theme-colored LED."
                 setSound(notificationSoundUri(), notificationAudioAttributes())
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0L, 150L, 100L, 150L, 100L, 250L)
                 enableLights(true)
-                lightColor = 0xFFFF4081.toInt()  // Hot pink LED
+                lightColor = themeColors.accentColor  // Use theme accent for LED
             }
 
-            // Wake word detected — vibrate only + cyan LED
+            // Wake word detected — vibrate only + theme secondary LED
             val wakeVibrateChannel = NotificationChannel(
                 wakeVibrateChannelId,
                 "Wake Word Detection 🎤",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifies when Zero Two hears her wake word. Vibrates + cyan LED."
+                description = "Notifies when Zero Two hears her wake word with theme-colored LED."
                 setSound(null, null)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0L, 80L, 60L, 80L)
                 enableLights(true)
-                lightColor = 0xFF00E5FF.toInt()  // Cyan LED
+                lightColor = themeColors.secondaryColor  // Use theme secondary for LED
             }
 
             manager?.createNotificationChannel(assistantChannel)
@@ -1051,6 +1134,121 @@ class MainActivity : AudioServiceFragmentActivity() {
                 } else null
             }
         } catch (_: Exception) { null }
+    }
+
+    // ===== ADVANCED NOTIFICATION FEATURES =====
+
+    private fun showProgressNotification(title: String, progress: Int, notifId: Int, channelId: String) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createProgressNotification(
+            this, channelId, title, progress, false, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showInteractiveNotification(
+        title: String, message: String, notifId: Int, 
+        channelId: String, actions: List<String>
+    ) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val actionList = mutableListOf<Pair<String, PendingIntent>>()
+        
+        for (action in actions) {
+            val intent = Intent(this, MainActivity::class.java)
+            val pending = PendingIntent.getActivity(
+                this, action.hashCode(), intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            actionList.add(action to pending)
+        }
+        
+        val builder = NotificationEnhancer.createInteractiveNotification(
+            this, channelId, notifId, title, message, actionList, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showGroupedNotification(
+        title: String, message: String, groupKey: String, 
+        notifId: Int, channelId: String
+    ) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createGroupedNotification(
+            this, channelId, title, message, groupKey, themeColors, false
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showInboxNotification(title: String, messages: List<String>, notifId: Int, channelId: String) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createInboxNotification(
+            this, channelId, title, messages, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showHeadsUpNotification(title: String, message: String, notifId: Int, channelId: String) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createHeadsUpNotification(
+            this, channelId, title, message, null, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showMessageNotification(
+        sender: String, message: String, timestamp: String, 
+        notifId: Int, channelId: String
+    ) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createMessageNotification(
+            this, channelId, sender, message, timestamp, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun showBigTextNotification(title: String, bigText: String, notifId: Int, channelId: String) {
+        ensureNotificationChannels()
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!canPostNotifications()) return
+        
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createBigPictureNotification(
+            this, channelId, title, bigText, themeColors
+        )
+        manager?.notify(notifId, builder.build())
+    }
+
+    private fun updateProgressNotification(notifId: Int, progress: Int) {
+        val manager = getSystemService(NotificationManager::class.java)
+        val themeColors = ThemeColorManager.getNotificationColors(this)
+        val builder = NotificationEnhancer.createProgressNotification(
+            this, assistantStatusChannelId, "Updating...", progress, false, themeColors
+        )
+        manager?.notify(notifId, builder.build())
     }
 }
 
