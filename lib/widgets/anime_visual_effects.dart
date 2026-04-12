@@ -37,7 +37,7 @@ class _TiltCardState extends State<TiltCard> {
     });
   }
 
-  void _onPanEnd(_) => _reset();
+  void _onPanEnd(DragEndDetails _) => _reset();
   void _onPanCancel() => _reset();
 
   void _reset() {
@@ -208,3 +208,5 @@ class GlassContainer extends StatelessWidget {
     );
   }
 }
+
+
