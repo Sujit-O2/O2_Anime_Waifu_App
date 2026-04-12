@@ -43,8 +43,7 @@ android {
         release {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // Enable R8 shrinking with rules that protect Porcupine's JNI bridge.
-            // Without this, R8 silently strips native classes and wake word fails.
+            // Enable R8 shrinking for production builds
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
