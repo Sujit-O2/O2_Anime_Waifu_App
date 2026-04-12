@@ -1,8 +1,7 @@
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 
 class BreathingExercisePage extends StatefulWidget {
   const BreathingExercisePage({super.key});
@@ -35,16 +34,6 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
   ];
 
   String get _waifuMsg => _messages[DateTime.now().second % _messages.length];
-
-  String get _commentaryMood {
-    if (_phase == 'Complete') {
-      return 'achievement';
-    }
-    if (_running) {
-      return 'relaxed';
-    }
-    return 'neutral';
-  }
 
   @override
   void initState() {

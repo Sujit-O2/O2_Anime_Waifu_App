@@ -48,8 +48,6 @@ class _WatchHistoryPageState extends State<WatchHistoryPage> {
     }).toList();
   }
 
-  String get _commentaryMood => _history.isEmpty ? 'neutral' : 'achievement';
-
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredHistory;

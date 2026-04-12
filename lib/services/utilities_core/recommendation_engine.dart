@@ -79,22 +79,20 @@ class RecommendationEngine {
 
       if (hour >= 6 && hour < 12) {
         // Morning - recommend bright themes
-        selected = allThemes.where((t) => !t.isDarkMode).cast<CustomTheme?>().firstWhere(
-              (t) => t != null,
-              orElse: () => null,
-            );
+        selected = allThemes
+            .where((t) => !t.isDarkMode)
+            .fold<CustomTheme?>(null, (prev, t) => prev ?? t);
       } else if (hour >= 12 && hour < 18) {
         // Afternoon - recommend energetic themes
         selected = allThemes
             .where((t) =>
                 t.animationType == 'pulse' || t.animationType == 'bounce')
-            .first;
+            .fold<CustomTheme?>(null, (prev, t) => prev ?? t);
       } else {
         // Evening/Night - recommend dark, calm themes
-        selected = allThemes.where((t) => t.isDarkMode).cast<CustomTheme?>().firstWhere(
-              (t) => t != null && t.animationType != 'pulse',
-              orElse: () => null,
-            );
+        selected = allThemes
+            .where((t) => t.isDarkMode && t.animationType != 'pulse')
+            .fold<CustomTheme?>(null, (prev, t) => prev ?? t);
       }
 
       if (selected == null) return null;

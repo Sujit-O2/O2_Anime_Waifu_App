@@ -1,13 +1,12 @@
 import 'dart:convert';
 
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/ai_personalization/ai_content_service.dart';
+import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
-import 'package:anime_waifu/services/user_profile/affection_service.dart';
-import 'package:anime_waifu/services/ai_personalization/ai_content_service.dart';
 
 class WorkoutPlannerPage extends StatefulWidget {
   const WorkoutPlannerPage({super.key});

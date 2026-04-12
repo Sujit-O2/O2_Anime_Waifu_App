@@ -1,11 +1,12 @@
+import 'dart:convert';
+
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 
 /// Mood Tracker ? saves mood entries to Firestore + local cache
 /// Firestore: mood/{uid} ? { entries: "[{...}]", updatedAt: Timestamp }
@@ -42,12 +43,6 @@ class _MoodTrackerPageState extends State<MoodTrackerPage>
                 .inDays <
             7;
       }).length;
-
-  String get _commentaryMood {
-    if (_entries.length >= 10) return 'achievement';
-    if (_selectedMood >= 0) return 'motivated';
-    return 'neutral';
-  }
 
   String get _selectedMoodLabel =>
       _selectedMood < 0 ? 'Waiting' : _moods[_selectedMood]['label'].toString();

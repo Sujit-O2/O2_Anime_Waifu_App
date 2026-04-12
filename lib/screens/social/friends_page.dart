@@ -23,16 +23,6 @@ class _FriendsPageState extends State<FriendsPage>
   final String _myUid = FirebaseAuth.instance.currentUser?.uid ?? '';
   final User? _user = FirebaseAuth.instance.currentUser;
 
-  String get _commentaryMood {
-    if (_requests.isNotEmpty) {
-      return 'motivated';
-    }
-    if (_friends.isNotEmpty) {
-      return 'achievement';
-    }
-    return 'neutral';
-  }
-
   @override
   void initState() {
     super.initState();

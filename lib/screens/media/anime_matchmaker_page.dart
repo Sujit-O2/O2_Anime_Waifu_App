@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 
 class AnimeMatchmakerPage extends StatefulWidget {
   const AnimeMatchmakerPage({super.key});
@@ -109,9 +108,6 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
           common.contains(query);
     }).toList();
   }
-
-  String get _commentaryMood =>
-      _requested.isEmpty ? 'motivated' : 'achievement';
 
   Future<void> _sendRequest(Map<String, dynamic> match) async {
     final name = match['name'].toString();

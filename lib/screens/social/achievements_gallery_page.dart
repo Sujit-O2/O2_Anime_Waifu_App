@@ -50,16 +50,6 @@ class _AchievementsGalleryPageState extends State<AchievementsGalleryPage> {
     }
   }
 
-  String _commentaryMood(int unlockedCount, int totalCount) {
-    if (unlockedCount == 0) {
-      return 'motivated';
-    }
-    if (unlockedCount == totalCount) {
-      return 'achievement';
-    }
-    return unlockedCount * 2 >= totalCount ? 'achievement' : 'neutral';
-  }
-
   @override
   Widget build(BuildContext context) {
     final aff = AffectionService.instance;

@@ -1,8 +1,7 @@
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 
 class AchievementRoomPage extends StatefulWidget {
   const AchievementRoomPage({super.key});
@@ -315,16 +314,6 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
 
   double get _completionValue =>
       _achievements.isEmpty ? 0 : _unlocked / _achievements.length;
-
-  String get _commentaryMood {
-    if (_unlocked == 0) {
-      return 'motivated';
-    }
-    if (_unlocked == _achievements.length) {
-      return 'achievement';
-    }
-    return _completionValue >= 0.5 ? 'achievement' : 'neutral';
-  }
 
   Future<void> _refresh() => _loadStats();
 

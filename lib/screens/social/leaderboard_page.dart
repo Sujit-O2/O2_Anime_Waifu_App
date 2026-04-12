@@ -25,16 +25,6 @@ class _LeaderboardPageState extends State<LeaderboardPage>
 
   int get _myXpRank => _xpBoard.indexWhere((item) => item['uid'] == _myUid) + 1;
 
-  String get _commentaryMood {
-    if (_myXpRank > 0 && _myXpRank <= 3) {
-      return 'achievement';
-    }
-    if (_xpBoard.isNotEmpty) {
-      return 'motivated';
-    }
-    return 'neutral';
-  }
-
   @override
   void initState() {
     super.initState();
