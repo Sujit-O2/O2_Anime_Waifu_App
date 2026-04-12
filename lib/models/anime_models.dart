@@ -1,4 +1,5 @@
 /// Core data models for the Anime Streaming Engine.
+library;
 
 class AnimeItem {
   final String id;       // MAL ID or provider-specific ID
@@ -49,3 +50,5 @@ class AnimeVideoSource {
     this.headers,
   });
 }
+
+
