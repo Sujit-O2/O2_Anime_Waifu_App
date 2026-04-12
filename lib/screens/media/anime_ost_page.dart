@@ -285,7 +285,7 @@ class _AnimeOstPageState extends State<AnimeOstPage> with SingleTickerProviderSt
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: WaifuCommentary(mood: _commentaryMood),
+
               ),
               if (_lastPlayedSong != null)
                 Padding(
