@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/anime_models.dart';
-import 'anime_provider.dart';
+import 'package:anime_waifu/models/anime_models.dart';
+import 'package:anime_waifu/services/anime_providers/anime_provider.dart';
 
 /// 🔞 Hanime.tv provider — adult anime streaming via HTV search API.
 class HanimeProvider implements AnimeProvider {
@@ -188,3 +188,5 @@ class HanimeProvider implements AnimeProvider {
     'Yuri',
   ];
 }
+
+

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/anime_models.dart';
-import 'anime_provider.dart';
+import 'package:anime_waifu/models/anime_models.dart';
+import 'package:anime_waifu/services/anime_providers/anime_provider.dart';
 
 /// Uses Jikan (MyAnimeList) API for metadata and GogoAnime
 /// scraper APIs for actual M3U8 streaming sources.
@@ -253,3 +253,5 @@ class GogoAnimeProvider implements AnimeProvider {
     );
   }
 }
+
+
