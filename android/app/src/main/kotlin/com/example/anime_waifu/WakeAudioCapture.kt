@@ -76,12 +76,16 @@ class WakeAudioCapture(private val context: Context) : EventChannel.StreamHandle
                 if (!capturing) return
                 val read = recorder.read(buffer, 0, CHUNK_SAMPLES)
                 if (read > 0) {
-                    // Normalise Short → Double [-1, 1] for Dart Float64List
-                    val doubles = DoubleArray(read) { i -> buffer[i].toDouble() / 32768.0 }
-                    val list = doubles.toList()
+                    // Send raw PCM bytes instead of boxed doubles to eliminate massive GC battery drain
+                    val byteBuf = java.nio.ByteBuffer.allocate(read * 2)
+                    byteBuf.order(java.nio.ByteOrder.LITTLE_ENDIAN)
+                    // buffer is a ShortArray
+                    byteBuf.asShortBuffer().put(buffer, 0, read)
+                    val rawBytes = byteBuf.array()
+                    
                     android.os.Handler(android.os.Looper.getMainLooper()).post {
                         try {
-                            events.success(list)
+                            events.success(rawBytes)
                         } catch (_: Exception) {
                             stopCapture()
                         }

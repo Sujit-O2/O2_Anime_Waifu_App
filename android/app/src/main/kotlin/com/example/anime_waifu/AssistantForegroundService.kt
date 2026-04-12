@@ -69,7 +69,7 @@ class AssistantForegroundService : Service() {
     private var ttsModel: String? = null
     private var ttsVoice: String? = null
     private var ttsSpeed: Double = 1.0
-    private var intervalMs: Long = 10000 // Default 10s for testing
+    private var intervalMs: Long = 1800000 // Default 30min — battery optimized
     private var isGenerating = false
     private var proactiveEnabled = true
     private var proactiveRandomEnabled = false
@@ -120,11 +120,11 @@ class AssistantForegroundService : Service() {
     private val wakeTranscriptionLanguage = "en"
     private val minWakeAudioBytes = 1536L
     private val proactiveRandomIntervalsMs = longArrayOf(
-        10 * 60 * 1000L,
-        30 * 60 * 1000L,
-        60 * 60 * 1000L,
-        2 * 60 * 60 * 1000L,
-        5 * 60 * 60 * 1000L
+        45 * 60 * 1000L,
+        90 * 60 * 1000L,
+        3 * 60 * 60 * 1000L,
+        5 * 60 * 60 * 1000L,
+        8 * 60 * 60 * 1000L
     )
     private val wakeCaptureRunnable = object : Runnable {
         override fun run() {
@@ -146,7 +146,7 @@ class AssistantForegroundService : Service() {
                 Log.w(TAG, "WakeWatchdog: wake loop dead — restarting via applyWakeRecognizerState")
                 applyWakeRecognizerState()
             }
-            handler.postDelayed(this, 45_000L)
+            handler.postDelayed(this, 300_000L)
         }
     }
 
@@ -200,9 +200,9 @@ class AssistantForegroundService : Service() {
         // Flutter SharedPreferences stores interval as Int, but we need Long.
         // Try Long first; fall back to Int if a ClassCastException occurs.
         intervalMs = try {
-            prefs.getLong("interval_ms", 10000L)
+            prefs.getLong("interval_ms", 1800000L)
         } catch (_: ClassCastException) {
-            prefs.getInt("interval_ms", 10000).toLong()
+            prefs.getInt("interval_ms", 1800000).toLong()
         }
         proactiveEnabled = prefs.getBoolean("proactive_enabled", true)
         proactiveRandomEnabled = prefs.getBoolean("proactive_random_enabled", false)
@@ -589,7 +589,9 @@ class AssistantForegroundService : Service() {
         if (proactiveRandomEnabled) {
             return proactiveRandomIntervalsMs[random.nextInt(proactiveRandomIntervalsMs.size)]
         }
-        return if (intervalMs > 0) intervalMs else 15000L
+        // Enforce 30-minute minimum to save battery
+        val minInterval = 1800000L
+        return if (intervalMs > minInterval) intervalMs else minInterval
     }
 
     private fun fetchAndShowProactiveMessage() {
