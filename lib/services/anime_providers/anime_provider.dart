@@ -19,3 +19,5 @@ abstract class AnimeProvider {
   /// Get M3U8/MP4 streaming video sources for an episode
   Future<List<AnimeVideoSource>> getVideoSources(String episodeId);
 }
+
+
