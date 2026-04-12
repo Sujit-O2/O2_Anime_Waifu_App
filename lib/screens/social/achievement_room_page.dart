@@ -475,7 +475,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: WaifuCommentary(mood: _commentaryMood),
+
                         ),
                       ),
                       SliverToBoxAdapter(

@@ -247,7 +247,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               const SizedBox(height: 12),
                               AnimatedEntry(
                                 index: 1,
-                                child: WaifuCommentary(mood: _commentaryMood),
+
                               ),
                             ],
                           ),

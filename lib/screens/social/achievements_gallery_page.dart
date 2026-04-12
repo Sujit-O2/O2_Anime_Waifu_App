@@ -208,10 +208,6 @@ class _AchievementsGalleryPageState extends State<AchievementsGalleryPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      WaifuCommentary(
-                        mood: _commentaryMood(unlockedCount, totalCount),
-                      ),
-                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(

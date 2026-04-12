@@ -319,7 +319,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  WaifuCommentary(mood: _commentaryMood),
+
                   const SizedBox(height: 12),
                   Row(
                     children: [
