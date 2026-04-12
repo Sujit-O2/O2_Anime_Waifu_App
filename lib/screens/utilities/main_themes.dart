@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/providers/theme_provider.dart';
 import 'package:anime_waifu/main.dart' show themeNotifier;
+import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,7 @@ class ThemesPage extends StatefulWidget {
 
 class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
   late final AnimationController _pulseCtrl;
+  final CustomThemeService _customThemeService = CustomThemeService();
 
   static const _themeDescriptions = <AppThemeMode, String>{
     AppThemeMode.zeroTwo:       'Blood crimson & sakura pink — her signature aesthetic',
@@ -52,6 +54,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+    _customThemeService.initialize();
   }
 
   @override
@@ -118,6 +121,293 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 childCount: themes.length,
               ),
             ),
+          ),
+
+          // ── Custom Theme Creation Section ──────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('CREATE CUSTOM',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                    )),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: _showCreateThemeDialog,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white24,
+                          width: 1.5,
+                        ),
+                        color: Colors.white.withValues(alpha: 0.03),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: Colors.white54,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Create New Theme',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white54,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Your Custom Themes ─────────────────────────────────────────
+          FutureBuilder<List<CustomTheme>>(
+            future: _customThemeService.getAllCustomThemes(),
+            builder: (ctx, snap) {
+              if (!snap.hasData || snap.data!.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              final customThemes = snap.data!;
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('YOUR CUSTOM THEMES (${customThemes.length})',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                        )),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 120,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: customThemes.length,
+                          itemBuilder: (ctx, i) => _buildCustomThemePreview(customThemes[i]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateThemeDialog() {
+    final nameCtrl = TextEditingController();
+    final primaryColorNotifier = ValueNotifier<Color>(Colors.red);
+    final accentColorNotifier = ValueNotifier<Color>(Colors.pink);
+    final backgroundColorNotifier = ValueNotifier<Color>(Colors.black);
+    final secondaryColorNotifier = ValueNotifier<Color>(Colors.grey);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: Text('Create New Theme', style: GoogleFonts.outfit(color: Colors.white)),
+        content: StatefulBuilder(
+          builder: (dialogCtx, setState) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Theme name',
+                    hintStyle: GoogleFonts.outfit(color: Colors.white30),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ValueListenableBuilder<Color>(
+                  valueListenable: primaryColorNotifier,
+                  builder: (_, pc, __) => _colorPickerRow(
+                    'Primary', pc,
+                    (c) {
+                      primaryColorNotifier.value = c;
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ValueListenableBuilder<Color>(
+                  valueListenable: accentColorNotifier,
+                  builder: (_, ac, __) => _colorPickerRow(
+                    'Accent', ac,
+                    (c) {
+                      accentColorNotifier.value = c;
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ValueListenableBuilder<Color>(
+                  valueListenable: backgroundColorNotifier,
+                  builder: (_, bc, __) => _colorPickerRow(
+                    'Background', bc,
+                    (c) {
+                      backgroundColorNotifier.value = c;
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ValueListenableBuilder<Color>(
+                  valueListenable: secondaryColorNotifier,
+                  builder: (_, sc, __) => _colorPickerRow(
+                    'Secondary', sc,
+                    (c) {
+                      secondaryColorNotifier.value = c;
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (nameCtrl.text.trim().isNotEmpty) {
+                String hexColor(Color c) => '#${c.value.toRadixString(16).substring(2).toUpperCase()}';
+                
+                final theme = CustomTheme(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: nameCtrl.text.trim(),
+                  primaryColor: hexColor(primaryColorNotifier.value),
+                  accentColor: hexColor(accentColorNotifier.value),
+                  backgroundColor: hexColor(backgroundColorNotifier.value),
+                  secondaryColor: hexColor(secondaryColorNotifier.value),
+                );
+                await _customThemeService.createCustomTheme(theme);
+                if (mounted) {
+                  setState(() {});
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+                }
+              }
+            },
+            child: const Text('Create', style: TextStyle(color: Colors.greenAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _colorPickerRow(String label, Color color, Function(Color) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
+        GestureDetector(
+          onTap: () {
+            final colors = [Colors.red, Colors.blue, Colors.green, Colors.purple, Colors.orange, Colors.pink];
+            int currentIndex = 0;
+            for (int i = 0; i < colors.length; i++) {
+              if (colors[i].value == color.value) {
+                currentIndex = i;
+                break;
+              }
+            }
+            final nextColor = colors[(currentIndex + 1) % colors.length];
+            onChanged(nextColor);
+          },
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white24),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomThemePreview(CustomTheme theme) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+        color: Colors.white.withValues(alpha: 0.03),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(theme.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.outfit(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            )),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _swatch(Color(int.parse(theme.primaryColor.replaceFirst('#', '0xff'))), 12),
+              const SizedBox(width: 4),
+              _swatch(Color(int.parse(theme.accentColor.replaceFirst('#', '0xff'))), 10),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  // Apply custom theme
+                  debugPrint('Applying custom theme: ${theme.name}');
+                },
+                child: const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 16),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () async {
+                  await _customThemeService.deleteCustomTheme(theme.id);
+                  setState(() {});
+                },
+                child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+              ),
+            ],
           ),
         ],
       ),
