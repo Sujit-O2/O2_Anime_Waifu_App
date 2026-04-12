@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/manga_models.dart';
-import 'manga_provider.dart';
+import 'package:anime_waifu/models/manga_models.dart';
+import 'package:anime_waifu/services/manga_providers/manga_provider.dart';
 
 /// MangaPark v5 GraphQL API — massive raw & translated scan library.
 /// GraphQL endpoint: https://mangapark.net/api/query
@@ -200,3 +200,5 @@ class MangaParkProvider implements MangaProvider {
     );
   }
 }
+
+
