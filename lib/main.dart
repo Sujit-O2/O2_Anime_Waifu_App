@@ -394,6 +394,8 @@ class VoiceAiApp extends StatelessWidget {
         return MaterialApp(
           title: 'Zero Two',
           debugShowCheckedModeBanner: false,
+          showPerformanceOverlay: false,
+          showSemanticsDebugger: false,
           theme: AppThemes.getTheme(themeProv.mode),
           routes: AppRouter.routes,
           home: StreamBuilder<User?>(

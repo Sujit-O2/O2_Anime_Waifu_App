@@ -221,7 +221,7 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: WaifuCommentary(mood: _commentaryMood),
+
                 ),
                 const SizedBox(height: 12),
                 Expanded(

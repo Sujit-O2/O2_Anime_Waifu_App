@@ -59,7 +59,7 @@ class _BossBattlePageState extends State<BossBattlePage> with TickerProviderStat
   Future<void> _loadQuestion() async {
     setState(() { _loading = true; _selectedAnswer = null; });
     try {
-      final resp = await http.get(Uri.parse('https://api.jikan.moe/v4/random/anime'));
+      final resp = await http.get(Uri.parse('https://api.jikan.moe/v4/random/anime')).timeout(const Duration(seconds: 8));
       if (resp.statusCode == 200) {
         final anime = jsonDecode(resp.body)['data'];
         final title = anime['title']?.toString() ?? 'Unknown';
@@ -102,12 +102,26 @@ class _BossBattlePageState extends State<BossBattlePage> with TickerProviderStat
           _correctAnswer = type;
           _options = _generateFakeOptions(type, ['TV', 'Movie', 'OVA', 'ONA', 'Special']);
         }
+      } else {
+        _loadOfflineQuestion();
       }
-    } catch (_) {
-      _currentQ = 'Error loading question';
-      _options = [];
+    } catch (e) {
+      _loadOfflineQuestion();
     }
     if (mounted) setState(() => _loading = false);
+  }
+
+  void _loadOfflineQuestion() {
+    final questions = [
+      {'q': 'What is Zero Two from?', 'a': 'Darling in the Franxx', 'opts': ['Darling in the Franxx', 'Evangelion', 'Kill la Kill', 'Code Geass']},
+      {'q': 'Who is the main character?', 'a': 'Zero Two', 'opts': ['Zero Two', 'Rem', 'Emilia', 'Asuna']},
+      {'q': 'What year started anime?', 'a': '1917', 'opts': ['1917', '1956', '1970', '1980']},
+      {'q': 'Anime is from which country?', 'a': 'Japan', 'opts': ['Japan', 'China', 'Korea', 'USA']},
+    ];
+    final q = questions[Random().nextInt(questions.length)];
+    _currentQ = q['q'] as String;
+    _correctAnswer = q['a'] as String;
+    _options = (q['opts'] as List).cast<String>()..shuffle();
   }
 
   List<String> _generateFakeOptions(String correct, List<String> pool) {
