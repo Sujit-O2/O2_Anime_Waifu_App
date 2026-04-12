@@ -373,3 +373,5 @@ class _StaticBackgroundLayer extends StatelessWidget {
 }
 
 // Removed _CrepuscularPainter to save CPU payload.
+
+

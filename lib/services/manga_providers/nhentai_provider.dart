@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/manga_models.dart';
-import 'manga_provider.dart';
+import 'package:anime_waifu/models/manga_models.dart';
+import 'package:anime_waifu/services/manga_providers/manga_provider.dart';
 
 /// NHentai Unofficial API — the most comprehensive adult doujinshi library.
 /// API: https://nhentai.net/api/gallery/{id} and /galleries/search
@@ -172,3 +172,5 @@ class NhentaiProvider implements MangaProvider {
     );
   }
 }
+
+

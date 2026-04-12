@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-import '../../models/manga_models.dart';
-import 'manga_provider.dart';
+import 'package:anime_waifu/models/manga_models.dart';
+import 'package:anime_waifu/services/manga_providers/manga_provider.dart';
 
 class RawManhwaProvider implements MangaProvider {
   static const String _baseUrl = 'https://toonily.com';
@@ -148,3 +148,5 @@ class RawManhwaProvider implements MangaProvider {
     return items;
   }
 }
+
+
