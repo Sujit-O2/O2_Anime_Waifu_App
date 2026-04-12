@@ -9,3 +9,5 @@ abstract class MangaProvider {
   Future<ChapterPages?> getChapterPages(String chapterId, {bool dataSaver = false});
   Future<List<TagItem>> getTags();
 }
+
+
