@@ -14,7 +14,7 @@ class GestureControlOverlay extends StatefulWidget {
   State<GestureControlOverlay> createState() => _GestureControlOverlayState();
 }
 
-class _GestureControlOverlayState extends State<GestureControlOverlay> {
+class _GestureControlOverlayState extends State<GestureControlOverlay> with WidgetsBindingObserver {
   static const double _shakeThresholdGravity = 2.7;
   static const int _shakeTimeMs = 500;
   
@@ -34,13 +34,24 @@ class _GestureControlOverlayState extends State<GestureControlOverlay> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initShakeDetection();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _accelSub?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _accelSub?.resume();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _accelSub?.pause(); // PAUSE SENSOR STREAM TO SAVE MASSIVE BATTERY
+    }
   }
 
   void _initShakeDetection() {
@@ -104,3 +115,5 @@ class _GestureControlOverlayState extends State<GestureControlOverlay> {
     return widget.child;
   }
 }
+
+
