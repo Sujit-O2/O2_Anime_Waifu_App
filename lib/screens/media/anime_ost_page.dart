@@ -1,13 +1,12 @@
 import 'dart:convert';
 
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
-import 'package:anime_waifu/widgets/app_cached_image.dart';
 
 class AnimeOstPage extends StatefulWidget {
   const AnimeOstPage({super.key});
@@ -70,16 +69,6 @@ class _AnimeOstPageState extends State<AnimeOstPage> with SingleTickerProviderSt
     if (_lastPlayedSong != null) {
       await prefs.setString('anime_ost_last_song_v2', _lastPlayedSong!);
     }
-  }
-
-  String get _commentaryMood {
-    if (_selectedAnimeId != null) {
-      return 'achievement';
-    }
-    if (_results.isNotEmpty) {
-      return 'motivated';
-    }
-    return 'neutral';
   }
 
   Future<void> _search(String query) async {

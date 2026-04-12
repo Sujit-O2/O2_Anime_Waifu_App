@@ -57,19 +57,6 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
     await prefs.setString(_queryKey, _searchCtrl.text.trim());
   }
 
-  String get _commentaryMood {
-    if (_animeList.length >= 10) {
-      return 'achievement';
-    }
-    if (_mode != 'Top Anime' || _searchCtrl.text.trim().isNotEmpty) {
-      return 'motivated';
-    }
-    if (_animeList.isEmpty && !_loading) {
-      return 'relaxed';
-    }
-    return 'neutral';
-  }
-
   double get _averageScore {
     if (_animeList.isEmpty) {
       return 0;

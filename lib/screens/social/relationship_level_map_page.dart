@@ -19,11 +19,6 @@ class RelationshipLevelMapPage extends StatelessWidget {
     final progress = next == null
         ? 1.0
         : (points - current.minPoints) / (next.minPoints - current.minPoints);
-    final mood = safeIndex >= _levels.length - 2
-        ? 'achievement'
-        : safeIndex >= 4
-            ? 'motivated'
-            : 'neutral';
 
     return Scaffold(
       backgroundColor: V2Theme.surfaceDark,

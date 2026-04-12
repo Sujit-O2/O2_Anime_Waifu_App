@@ -40,10 +40,14 @@ class WatchHistoryService {
   /// Get last watched position for a specific episode.
   static Future<int?> getLastPosition(String animeId, String episodeId) async {
     final list = await getHistory();
-    final entry = list.cast<WatchHistoryEntry?>().firstWhere(
-      (e) => e!.animeId == animeId && e.episodeId == episodeId,
-      orElse: () => null,
-    );
+    WatchHistoryEntry? entry;
+    try {
+      entry = list.firstWhere(
+        (e) => e.animeId == animeId && e.episodeId == episodeId,
+      );
+    } catch (_) {
+      entry = null;
+    }
     return entry?.positionMs;
   }
 

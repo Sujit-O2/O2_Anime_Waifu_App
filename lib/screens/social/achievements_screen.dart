@@ -15,8 +15,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   List<String> _unlocked = <String>[];
   bool _loading = true;
 
-  String get _commentaryMood => _unlocked.isEmpty ? 'motivated' : 'achievement';
-
   @override
   void initState() {
     super.initState();
@@ -245,10 +243,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              AnimatedEntry(
-                                index: 1,
-
-                              ),
                             ],
                           ),
                         ),

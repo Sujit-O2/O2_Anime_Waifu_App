@@ -1,9 +1,8 @@
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
   const AdvancedSettingsPage({super.key});
@@ -66,16 +65,6 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   }
 
   Future<void> _refresh() => _loadSettings();
-
-  String get _commentaryMood {
-    if (_debugLogs || _strictWake) {
-      return 'motivated';
-    }
-    if (_memoryLimit >= 25) {
-      return 'achievement';
-    }
-    return 'neutral';
-  }
 
   @override
   Widget build(BuildContext context) {

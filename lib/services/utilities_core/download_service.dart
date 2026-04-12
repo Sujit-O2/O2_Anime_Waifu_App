@@ -148,8 +148,12 @@ class DownloadService {
   /// Delete a downloaded item.
   static Future<void> deleteDownload(String id) async {
     final items = await getDownloads();
-    final item = items.cast<DownloadItem?>().firstWhere(
-        (e) => e!.id == id, orElse: () => null);
+    DownloadItem? item;
+    try {
+      item = items.firstWhere((e) => e.id == id);
+    } catch (_) {
+      item = null;
+    }
     if (item != null) {
       final dir = Directory(item.localPath);
       if (await dir.exists()) await dir.delete(recursive: true);

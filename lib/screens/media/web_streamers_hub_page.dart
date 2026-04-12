@@ -57,11 +57,6 @@ class _WebStreamersHubPageState extends State<WebStreamersHubPage> {
   @override
   Widget build(BuildContext context) {
     final visible = _visibleSites;
-    final mood = visible.length >= 10
-        ? 'achievement'
-        : visible.isNotEmpty
-            ? 'motivated'
-            : 'neutral';
 
     return Scaffold(
       backgroundColor: V2Theme.surfaceDark,

@@ -96,11 +96,6 @@ class _MemoryTimelinePageState extends State<MemoryTimelinePage> {
     final pinnedCount = _memories.where((memory) => memory.pinned).length;
     final highImportance =
         _memories.where((memory) => memory.importance >= 0.75).length;
-    final mood = _memories.length >= 10
-        ? 'achievement'
-        : _memories.isEmpty
-            ? 'neutral'
-            : 'motivated';
 
     return Scaffold(
       backgroundColor: V2Theme.surfaceDark,
