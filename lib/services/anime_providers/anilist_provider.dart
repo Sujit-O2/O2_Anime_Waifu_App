@@ -1,34 +1,41 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../models/anime_models.dart';
-import 'anime_provider.dart';
-import 'amvstrm_provider.dart';
 
-/// AniList GraphQL API — modern, ultra-fast anime metadata source.
-/// Uses anilist.co/graphql for search, trending, and popular.
+import 'package:http/http.dart' as http;
+
+import 'package:anime_waifu/models/anime_models.dart';
+import 'package:anime_waifu/services/anime_providers/anime_provider.dart';
+import 'package:anime_waifu/services/anime_providers/hianime_provider.dart';
+
 class AniListProvider implements AnimeProvider {
   static const String _base = 'https://graphql.anilist.co';
+  static final HiAnimeProvider _hianime = HiAnimeProvider();
 
-  Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
+  Map<String, String> get _headers => const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
 
   @override
   String get name => 'AniList';
 
-  Future<List<AnimeItem>> _gql(String query, Map<String, dynamic> variables) async {
+  Future<List<AnimeItem>> _gql(
+    String query,
+    Map<String, dynamic> variables,
+  ) async {
     try {
-      final resp = await http.post(
-        Uri.parse(_base),
-        headers: _headers,
-        body: jsonEncode({'query': query, 'variables': variables}),
-      ).timeout(const Duration(seconds: 12));
+      final resp = await http
+          .post(
+            Uri.parse(_base),
+            headers: _headers,
+            body: jsonEncode({'query': query, 'variables': variables}),
+          )
+          .timeout(const Duration(seconds: 12));
       if (resp.statusCode != 200) return [];
+
       final json = jsonDecode(resp.body) as Map<String, dynamic>;
       final page = json['data']?['Page'] as Map<String, dynamic>? ?? {};
       final media = page['media'] as List? ?? [];
-      return media.map((e) => _fromAniList(e as Map<String, dynamic>)).toList();
+      return media.whereType<Map<String, dynamic>>().map(_fromAniList).toList();
     } catch (_) {
       return [];
     }
@@ -90,96 +97,175 @@ class AniListProvider implements AnimeProvider {
 
   @override
   Future<List<AnimeEpisode>> getEpisodes(String animeId) async {
-    // AniList doesn't serve episodes directly — we generate placeholders
-    // based on the anime's known episode count
     try {
-      const query = '''
-        query(\$id: Int) {
-          Media(id: \$id, type: ANIME) { episodes }
+      final meta = await _fetchMediaMeta(animeId);
+      if (meta == null) {
+        return [];
+      }
+
+      final hianimeId = await _findHiAnimeId(meta.titles);
+      if (hianimeId != null) {
+        final episodes = await _hianime.getEpisodesByProviderId(hianimeId);
+        if (episodes.isNotEmpty) {
+          return episodes;
         }
-      ''';
-      final resp = await http.post(Uri.parse(_base),
-        headers: _headers,
-        body: jsonEncode({'query': query, 'variables': {'id': int.tryParse(animeId) ?? 0}}),
-      ).timeout(const Duration(seconds: 10));
-      if (resp.statusCode != 200) return [];
-      final json = jsonDecode(resp.body) as Map<String, dynamic>;
-      final epCount = json['data']?['Media']?['episodes'] as int? ?? 0;
-      return List.generate(epCount, (i) => AnimeEpisode(
-        id: '$animeId-ep-${i + 1}',
-        number: i + 1,
-        title: 'Episode ${i + 1}',
-      ));
+      }
+
+      return List.generate(
+        meta.episodeCount,
+        (index) => AnimeEpisode(
+          id: '$animeId-ep-${index + 1}',
+          number: index + 1,
+          title: 'Episode ${index + 1}',
+        ),
+      );
     } catch (_) {
       return [];
     }
   }
 
   @override
-  Future<List<AnimeVideoSource>> getVideoSources(String episodeId) async {
+  Future<List<AnimeVideoSource>> getVideoSources(String episodeId) {
+    return getVideoSourcesForType(episodeId, 'sub');
+  }
+
+  Future<List<AnimeVideoSource>> getVideoSourcesForType(
+    String episodeId,
+    String type,
+  ) async {
     try {
-      if (!episodeId.contains('-ep-')) return [];
+      if (!episodeId.contains('-ep-')) {
+        return _hianime.getVideoSourcesForType(episodeId, type: type);
+      }
+
       final parts = episodeId.split('-ep-');
-      final aid = parts[0];
-      final epNum = int.tryParse(parts[1]) ?? 1;
+      final animeId = parts[0];
+      final episodeNumber = int.tryParse(parts[1]) ?? 1;
+      final meta = await _fetchMediaMeta(animeId);
+      if (meta == null) {
+        return [];
+      }
 
-      // 1. Fetch title from AniList
-      const titleQuery = 'query(\$id: Int) { Media(id: \$id, type: ANIME) { title { english romaji } } }';
-      final resp = await http.post(Uri.parse(_base), headers: _headers,
-          body: jsonEncode({'query': titleQuery, 'variables': {'id': int.tryParse(aid) ?? 0}}));
-      if (resp.statusCode != 200) return [];
-      
-      final media = jsonDecode(resp.body)['data']?['Media']?['title'];
-      if (media == null) return [];
-      final title = media['english'] ?? media['romaji'];
-      if (title == null) return [];
+      final hianimeId = await _findHiAnimeId(meta.titles);
+      if (hianimeId == null) {
+        return [];
+      }
 
-      // 2. Search AMVSTRM using the exact title
-      final amv = AmvstrmProvider();
-      final searchResults = await amv.searchAnime(title.toString());
-      if (searchResults.isEmpty) return [];
+      final episodes = await _hianime.getEpisodesByProviderId(hianimeId);
+      if (episodes.isEmpty) {
+        return [];
+      }
 
-      // 3. Get episodes list from AMVSTRM for the first match
-      final amvId = searchResults.first.id;
-      final episodes = await amv.getEpisodes(amvId);
-      
-      // 4. Find matching episode number
-      final targetEp = episodes.firstWhere((e) => e.number == epNum, 
-          orElse: () => episodes.firstWhere((e) => e.id.endsWith('-$epNum'), orElse: () => episodes.first));
+      final targetEpisode = episodes.firstWhere(
+        (episode) => episode.number == episodeNumber,
+        orElse: () => episodes.first,
+      );
 
-      // 5. Extract strictly raw M3U8 video link
-      return await amv.getVideoSources(targetEp.id);
+      return _hianime.getVideoSourcesForType(targetEpisode.id, type: type);
     } catch (_) {
       return [];
     }
   }
 
-  AnimeItem _fromAniList(Map<String, dynamic> e) {
-    final title = e['title'] as Map<String, dynamic>? ?? {};
-    final coverImage = e['coverImage'] as Map<String, dynamic>? ?? {};
-    final displayTitle = title['english'] as String? ??
-        title['romaji'] as String? ?? 'Unknown';
-    final score = (e['averageScore'] as int? ?? 0) / 10.0;
+  AnimeItem _fromAniList(Map<String, dynamic> value) {
+    final title = value['title'] as Map<String, dynamic>? ?? {};
+    final coverImage = value['coverImage'] as Map<String, dynamic>? ?? {};
+    final displayTitle =
+        title['english'] as String? ?? title['romaji'] as String? ?? 'Unknown';
+    final score = (value['averageScore'] as int? ?? 0) / 10.0;
 
-    String statusStr;
-    switch (e['status']) {
-      case 'RELEASING': statusStr = 'Airing'; break;
-      case 'FINISHED': statusStr = 'Finished'; break;
-      case 'NOT_YET_RELEASED': statusStr = 'Upcoming'; break;
-      default: statusStr = e['status']?.toString() ?? 'Unknown';
+    String status;
+    switch (value['status']) {
+      case 'RELEASING':
+        status = 'Airing';
+        break;
+      case 'FINISHED':
+        status = 'Finished';
+        break;
+      case 'NOT_YET_RELEASED':
+        status = 'Upcoming';
+        break;
+      default:
+        status = value['status']?.toString() ?? 'Unknown';
     }
 
     return AnimeItem(
-      id: '${e['id']}',
+      id: '${value['id']}',
       title: displayTitle,
-      description: (e['description'] as String? ?? '')
+      description: (value['description'] as String? ?? '')
           .replaceAll(RegExp(r'<[^>]*>'), ''),
       coverUrl: coverImage['extraLarge'] as String? ??
-          coverImage['large'] as String? ?? '',
-      status: statusStr,
-      totalEpisodes: e['episodes'] as int? ?? 0,
+          coverImage['large'] as String? ??
+          '',
+      status: status,
+      totalEpisodes: value['episodes'] as int? ?? 0,
       score: score,
-      genres: (e['genres'] as List?)?.cast<String>() ?? [],
+      genres: (value['genres'] as List?)?.cast<String>() ?? const [],
     );
   }
+
+  Future<_AniListMediaMeta?> _fetchMediaMeta(String animeId) async {
+    const query = '''
+      query(\$id: Int) {
+        Media(id: \$id, type: ANIME) {
+          episodes
+          title { english romaji native }
+        }
+      }
+    ''';
+
+    final resp = await http
+        .post(
+          Uri.parse(_base),
+          headers: _headers,
+          body: jsonEncode({
+            'query': query,
+            'variables': {'id': int.tryParse(animeId) ?? 0},
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+    if (resp.statusCode != 200) {
+      return null;
+    }
+
+    final json = jsonDecode(resp.body) as Map<String, dynamic>;
+    final media = json['data']?['Media'] as Map<String, dynamic>?;
+    if (media == null) {
+      return null;
+    }
+
+    final title = media['title'] as Map<String, dynamic>? ?? {};
+    final titles = <String>[
+      title['english']?.toString() ?? '',
+      title['romaji']?.toString() ?? '',
+      title['native']?.toString() ?? '',
+    ].where((entry) => entry.trim().isNotEmpty).toSet().toList();
+
+    return _AniListMediaMeta(
+      titles: titles,
+      episodeCount: media['episodes'] as int? ?? 0,
+    );
+  }
+
+  Future<String?> _findHiAnimeId(List<String> titles) async {
+    for (final title in titles) {
+      final id = await _hianime.searchHiAnimeId(title);
+      if (id != null && id.isNotEmpty) {
+        return id;
+      }
+    }
+    return null;
+  }
 }
+
+class _AniListMediaMeta {
+  const _AniListMediaMeta({
+    required this.titles,
+    required this.episodeCount,
+  });
+
+  final List<String> titles;
+  final int episodeCount;
+}
+
+

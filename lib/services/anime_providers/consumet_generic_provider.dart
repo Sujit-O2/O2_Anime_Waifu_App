@@ -1,7 +1,7 @@
 import 'dart:convert';
-import '../../models/anime_models.dart';
-import '../robust_http_client.dart';
-import 'anime_provider.dart';
+import 'package:anime_waifu/models/anime_models.dart';
+import 'package:anime_waifu/services/utilities_core/robust_http_client.dart';
+import 'package:anime_waifu/services/anime_providers/anime_provider.dart';
 
 /// A universal wrapper for Consumet APIs that supports 10+ standard scraping routes
 /// such as Zoro, Enime, Animepahe, 9Anime, Bilibili, Yugen, etc.
@@ -124,3 +124,5 @@ class ConsumetGenericProvider implements AnimeProvider {
     }).toList();
   }
 }
+
+
