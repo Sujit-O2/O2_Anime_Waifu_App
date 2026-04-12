@@ -1,7 +1,7 @@
+import 'package:anime_waifu/services/ai_personalization/personality_engine.dart';
+import 'package:anime_waifu/services/ai_personalization/proactive_ai_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/proactive_ai_service.dart';
-import '../services/personality_engine.dart';
 
 /// Inner thought bubble widget — shows what she's "thinking but not saying".
 /// Displayed as a semi-transparent floating bubble near the avatar with
@@ -201,3 +201,6 @@ class _InnerThoughtsManagerState extends State<InnerThoughtsManager> {
     );
   }
 }
+
+
+
