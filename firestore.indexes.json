@@ -1,0 +1,190 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "messages",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "characterId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "isRead",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "leaderboard",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "score",
+          "order": "Descending"
+        },
+        {
+          "fieldPath": "characterId",
+          "order": "Ascending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "leaderboard",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "characterId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "score",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "character_affection",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "affectionLevel",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "analytics_events",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "eventTimestamp",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "analytics_events",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "eventType",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "eventTimestamp",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "quest_completions",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "completedAt",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    },
+    {
+      "collectionGroup": "voice_command_history",
+      "queryScope": "Collection",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "Ascending"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "Descending"
+        }
+      ],
+      "status": "ENABLED"
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "messages",
+      "fieldPath": "content",
+      "indexes": [
+        {
+          "order": "Ascending",
+          "queryScope": "Collection"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "analytics_events",
+      "fieldPath": "eventType",
+      "indexes": [
+        {
+          "order": "Ascending",
+          "queryScope": "Collection"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "pending_operations",
+      "fieldPath": "status",
+      "indexes": [
+        {
+          "order": "Ascending",
+          "queryScope": "Collection"
+        }
+      ]
+    }
+  ]
+}
