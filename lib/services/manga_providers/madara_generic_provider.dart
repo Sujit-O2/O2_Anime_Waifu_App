@@ -1,7 +1,7 @@
 
-import '../../models/manga_models.dart';
-import '../robust_http_client.dart';
-import 'manga_provider.dart';
+import 'package:anime_waifu/models/manga_models.dart';
+import 'package:anime_waifu/services/utilities_core/robust_http_client.dart';
+import 'package:anime_waifu/services/manga_providers/manga_provider.dart';
 
 /// A universal wrapper for WordPress Madara themes.
 /// By injecting a host URL, this class can natively scrape 15+ adult manhwa apps.
@@ -164,3 +164,5 @@ class MadaraGenericProvider implements MangaProvider {
     return items;
   }
 }
+
+
