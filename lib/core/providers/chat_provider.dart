@@ -148,7 +148,7 @@ class ChatProvider extends ChangeNotifier {
   bool idleBlockedUntilUserMessage = false;
   int idleConsumedAtUserMessageCount = -1;
   int idleDurationSeconds = 600;
-  int proactiveIntervalSeconds = 60;
+  int proactiveIntervalSeconds = 1800; // 30 min — battery optimized
   bool proactiveEnabled = true;
   bool proactiveRandomEnabled = true;
 
@@ -160,7 +160,7 @@ class ChatProvider extends ChangeNotifier {
       idleTimerEnabled = prefs.getBool('idle_timer_enabled') ?? true;
       idleDurationSeconds = prefs.getInt('idle_duration_seconds') ?? 600;
       proactiveIntervalSeconds =
-          prefs.getInt('proactive_interval_seconds') ?? 60;
+          prefs.getInt('proactive_interval_seconds') ?? 1800;
       proactiveEnabled = prefs.getBool('proactive_enabled') ?? true;
       proactiveRandomEnabled =
           prefs.getBool('proactive_random_enabled') ?? true;
@@ -211,3 +211,5 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+
