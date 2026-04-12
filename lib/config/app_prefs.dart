@@ -45,3 +45,5 @@ class AppPrefs {
   static const String lastDailyBonusDate = 'last_daily_bonus_date_v1';
   static const String totalXp = 'total_xp_v1';
 }
+
+
