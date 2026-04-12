@@ -242,8 +242,7 @@
                     android:paddingEnd="14dp"
                     android:textColor="#FFFFFFFF"
                     android:textColorHint="#80FFFFFF"
-                    android:textSize="14sp"
-                    android:fontFamily="@font/google_sans_medium" />
+                    android:textSize="14sp" />
 
                 <!-- Send button with animation -->
                 <ImageButton
