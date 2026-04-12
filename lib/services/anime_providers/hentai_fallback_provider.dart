@@ -1,6 +1,6 @@
-import '../../models/anime_models.dart';
-import 'anime_provider.dart';
-import 'gogoanime_provider.dart';
+import 'package:anime_waifu/models/anime_models.dart';
+import 'package:anime_waifu/services/anime_providers/anime_provider.dart';
+import 'package:anime_waifu/services/anime_providers/gogoanime_provider.dart';
 
 /// A specialized fallback provider that utilizes GogoAnime's enormous uncensored
 /// Japanese Hentai catalog to guarantee adult video delivery when primary adult 
@@ -38,3 +38,5 @@ class HentaiFallbackProvider implements AnimeProvider {
     return _gogo.getVideoSources(episodeId);
   }
 }
+
+
