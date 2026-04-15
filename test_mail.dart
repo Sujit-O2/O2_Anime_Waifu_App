@@ -3,13 +3,29 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-void main() async {
+void main(List<String> args) async {
   print('Testing Brevo API mail sending with REAL template...\n');
 
-  // ── Config ──────────────────────────────────────────────────────────────
-  final apiKey =
-      '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';
-  final recipientEmail = 'sujitswain077@gmail.com';
+  // ── Config from env or CLI args ───────────────────────────────────────────
+  final apiKey = Platform.environment['BREVO_API_KEY'];
+  if (apiKey == null || apiKey.isEmpty) {
+    print('❌ Missing BREVO_API_KEY environment variable');
+    exit(1);
+  }
+
+  String recipientEmail;
+  if (args.isNotEmpty) {
+    recipientEmail = args[0];
+  } else {
+    recipientEmail = Platform.environment['RECIPIENT_EMAIL'] ?? 'sujitswain077@gmail.com';
+  }
+
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  if (!emailRegex.hasMatch(recipientEmail)) {
+    print('❌ Invalid email format: $recipientEmail');
+    exit(1);
+  }
+
   final subject = 'System Verification: Brevo + Real Template Test';
   final bodyText =
       'This is a test verifying the REAL email template (with base64 avatar) renders correctly across all email clients!';
@@ -39,27 +55,29 @@ void main() async {
   print('   Base64 image embedded: $hasBase64');
   print('');
 
-  // ── Send via Brevo API ──────────────────────────────────────────────────
+  // ── Send via Brevo API with retry ─────────────────────────────────────────
   final url = Uri.parse('https://api.brevo.com/v3/smtp/email');
 
-  try {
-    print('Sending email to $recipientEmail...');
-    final response = await http.post(
-      url,
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        "sender": {"name": "Zero Two", "email": "zerozerotwoxsujit@gmail.com"},
-        "to": [
-          {"email": recipientEmail}
-        ],
-        "subject": subject,
-        "htmlContent": htmlFinal,
-      }),
-    );
+  const maxRetries = 3;
+  for (var attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      print('Sending email to $recipientEmail... (attempt $attempt/$maxRetries)');
+      final response = await http.post(
+        url,
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          "sender": {"name": "Zero Two", "email": "zerozerotwoxsujit@gmail.com"},
+          "to": [
+            {"email": recipientEmail}
+          ],
+          "subject": subject,
+          "htmlContent": htmlFinal,
+        }),
+      ).timeout(const Duration(seconds: 30));
 
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
@@ -67,10 +85,19 @@ void main() async {
     if (response.statusCode == 200 || response.statusCode == 201) {
       print('\n✅ Mail sent successfully using the REAL template!');
       print('   Check $recipientEmail inbox to verify rendering.');
+      break;
+    } else if (attempt < maxRetries) {
+      print('   Retrying in 2 seconds...');
+      await Future.delayed(const Duration(seconds: 2));
     } else {
-      print('\n❌ Mail send failed.');
+      print('\n❌ Mail send failed after $maxRetries attempts.');
     }
   } catch (e) {
-    print('\n❌ Error occurred: $e');
+    if (attempt < maxRetries) {
+      print('❌ Error: $e. Retrying in 2 seconds...');
+      await Future.delayed(const Duration(seconds: 2));
+    } else {
+      print('\n❌ Error after $maxRetries attempts: $e');
+    }
   }
 }
