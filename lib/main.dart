@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:anime_waifu/config/app_themes.dart';
+import 'package:anime_waifu/core/constants.dart';
 import 'package:anime_waifu/core/providers/app_providers.dart';
 import 'package:anime_waifu/core/providers/chat_provider.dart';
 import 'package:anime_waifu/core/providers/settings_provider.dart';
@@ -158,7 +159,7 @@ Future<void> main() async {
     debugPrint("Firebase init failed: $e");
   }
   _disableRuntimeLogs();
-  
+
   // ✅ MEGA POWERFUL ORCHESTRATOR - Initialize all 15 services
   debugPrint('🚀 Initializing 15 Enterprise Services...');
   final orchestrator = MegaPowerfulServicesOrchestrator();
@@ -168,7 +169,7 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('❌ Orchestrator initialization failed: $e');
   }
-  
+
   // ✅ QUICK WIN #1: Log app launch for performance monitoring
   try {
     await PerformanceMonitoringService.logAppLaunch();
@@ -190,8 +191,8 @@ Future<void> main() async {
 }
 
 void _disableRuntimeLogs() {
-  // Suppress verbose debugPrint but keep debugPrint() working for wake word logs
-  debugPrint = (String? _, {int? wrapWidth}) {};
+  // NOTE: Debug print suppression removed - keeping for proper logging
+  // Previously disabled: debugPrint = (String? _, {int? wrapWidth}) {};
   // Log Flutter errors instead of silently swallowing them
   FlutterError.onError = (details) {
     // ignore: avoid_print
@@ -216,7 +217,7 @@ Future<void> _loadEnvSafely() async {
 Future<void> _restoreThemePreferences() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('app_theme_index') ?? 0;
+    final index = prefs.getInt(PrefsKeys.appThemeIndex) ?? 0;
 
     final savedAccent = prefs.getInt('flutter.theme_accent_color');
     if (savedAccent != null) {
@@ -237,7 +238,7 @@ Future<void> _restoreThemePreferences() async {
     } else {
       themeNotifier.value = _defaultThemeMode;
       await prefs.setInt(
-        'app_theme_index',
+        PrefsKeys.appThemeIndex,
         AppThemeMode.values.indexOf(_defaultThemeMode),
       );
     }
@@ -311,7 +312,7 @@ Future<void> _refreshWeatherWidget() async {
         dotenv.env['OPENWEATHER_API_KEY']?.replaceAll('"', '').trim() ?? '';
     if (apiKey.isEmpty) return;
     final uri = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?q=Bhubaneswar&appid=$apiKey&units=metric&lang=en');
+        'https://api.openweathermap.org/data/2.5/weather?q=${Defaults.defaultCity}&appid=$apiKey&units=metric&lang=en');
     final res = await http.get(uri).timeout(const Duration(seconds: 10));
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -719,6 +720,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       0; // 0=Chat 1=Notification 2=Videos 3=Setting 4=Themes 5=DevConfig 6=Debug 7=About
   Timer? _wakeInitRetryTimer;
   Timer? _wakeWatchdogTimer;
+  Timer? _widgetRefreshTimer;
   Future<void>? _ensureWakeWordActiveTask;
   int _titleTapCount = 0;
   int _logoTapCount = 0;
@@ -799,9 +801,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   String get _cachedMemoryBlock => _cp.cachedMemoryBlock;
   set _cachedMemoryBlock(String v) => _cp.cachedMemoryBlock = v;
   List<ChatMessage> get _pinnedMessages => _cp.pinnedMessages;
-  static const String _personaPrefKey = 'selected_persona_v1';
-  static const String _sleepModePrefKey = 'sleep_mode_enabled_v1';
-  static const String _lastSummaryDatePrefKey = 'last_summary_date_v1';
+  static const String _personaPrefKey = PrefsKeys.selectedPersona;
+  static const String _sleepModePrefKey = PrefsKeys.sleepModeEnabled;
+  static const String _lastSummaryDatePrefKey = PrefsKeys.lastSummaryDate;
 
   double get _chatFontSize => _sp.chatFontSize;
   String get _responseLengthInstruction => _sp.responseLengthInstruction;
@@ -918,7 +920,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _startScheduledMsgTimer();
 
     // Periodic widget refresh (every 30 mins)
-    Timer.periodic(const Duration(minutes: 30), (timer) {
+    _widgetRefreshTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
       _refreshAllWidgets();
     });
 
@@ -1020,10 +1022,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _checkTriggeredAlarms() async {
     final prefs = await SharedPreferences.getInstance();
-    final triggered = prefs.getBool('alarm_triggered') ?? false;
+    final triggered = prefs.getBool(PrefsKeys.alarmTriggered) ?? false;
     if (triggered) {
       debugPrint("Alarm was triggered! Running Morning Routine...");
-      await prefs.setBool('alarm_triggered', false);
+      await prefs.setBool(PrefsKeys.alarmTriggered, false);
       // Simulate user asking for morning routine
       final msg =
           ChatMessage(role: "user", content: "Start my morning routine.");
@@ -1271,12 +1273,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
       // Memory consolidation — rate-limited to once per 24h
       final prefs = await SharedPreferences.getInstance();
-      final lastConsolMs = prefs.getInt('last_consolidation_ms') ?? 0;
+      final lastConsolMs = prefs.getInt(PrefsKeys.lastConsolidationMs) ?? 0;
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       if (nowMs - lastConsolMs > const Duration(hours: 24).inMilliseconds) {
         unawaited(
             SemanticMemoryService.instance.consolidateMemories().then((_) {
-          prefs.setInt('last_consolidation_ms', nowMs);
+          prefs.setInt(PrefsKeys.lastConsolidationMs, nowMs);
         }));
       }
 
@@ -1289,16 +1291,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   /// Rebuilds the full context extras block — called before every LLM API call.
   /// Gathers: personality traits, emotional memories, RAG retrieval, context awareness,
   /// jealousy tone, alter ego mode, life events milestone.
+  /// Optimized with parallel execution for independent operations.
   Future<void> _refreshPhase2Extras() async {
     try {
       final buf = StringBuffer();
 
-      // 1. Personality traits + current mood
-      final personalityBlock =
-          PersonalityEngine.instance.buildPersonalityPromptBlock();
-      if (personalityBlock.isNotEmpty) buf.write(personalityBlock);
-
-      // 2. Semantic memory retrieval — ranked by topic relevance to current message
+      // Run independent async operations in parallel for performance
       final lastUserMsg = _messages.reversed.firstWhere(
         (m) => m.role == 'user',
         orElse: () => ChatMessage(role: 'user', content: ''),
@@ -1308,67 +1306,44 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           .take(5)
           .map((m) => m.content)
           .toList();
-      final memoryBlock =
-          await SemanticMemoryService.instance.buildSemanticContextBlock(
-        currentMessage: lastUserMsg.content,
-        recentMessages: recentUserMsgs,
-        currentMood: PersonalityEngine.instance.mood,
-      );
-      if (memoryBlock.isNotEmpty) buf.write(memoryBlock);
 
-      // 2b. RAG Embedding retrieval + auto-ingest (single API call, 30s cooldown)
-      final ragBlock = await RagEmbeddingService.instance.buildRagContextBlock(
-        lastUserMsg.content,
-      );
-      if (ragBlock.isNotEmpty) buf.write(ragBlock);
+      final results = await Future.wait([
+        Future.value(PersonalityEngine.instance.buildPersonalityPromptBlock()),
+        SemanticMemoryService.instance.buildSemanticContextBlock(
+          currentMessage: lastUserMsg.content,
+          recentMessages: recentUserMsgs,
+          currentMood: PersonalityEngine.instance.mood,
+        ),
+        RagEmbeddingService.instance.buildRagContextBlock(lastUserMsg.content),
+        ContextAwarenessService.instance.getContextBlock(),
+        MasterStateObject.instance.buildMasterContextBlock(),
+        JealousyService.instance.buildJealousyPromptBlock(),
+        Future.value(AlterEgoService.instance.buildAlterEgoPromptBlock()),
+        LifeEventsService.instance.checkAndTriggerMilestone(),
+      ]);
 
-      // 3. Context awareness (time of day, battery, inactivity)
-      final contextBlock =
-          await ContextAwarenessService.instance.getContextBlock();
-      if (contextBlock.isNotEmpty) buf.write(contextBlock);
-
-      // 3b-3h. Unified Master State context (all 8 presence systems)
-      final masterBlock =
-          await MasterStateObject.instance.buildMasterContextBlock();
-      if (masterBlock.isNotEmpty) buf.write(masterBlock);
-
-      // 3i. Relationship progression (stage, trust)
-      buf.write(
-          RelationshipProgressionService.instance.getProgressionContextBlock());
-
-      // 3j. Memory timeline (past significant moments)
-      buf.write(MemoryTimelineService.instance.getTimelineContextBlock());
-
-      // 3k. Emotional recovery phase hint
-      buf.write(EmotionalRecoveryService.instance.getRecoveryContextBlock());
-
-      // 3l. Multi-agent planner hint
-      buf.write(MultiAgentBrainService.instance.getPlanContextBlock());
-
-      // 3m. Critic note from last exchange (if AI quality issue detected)
-      {
-        final prefs = await SharedPreferences.getInstance();
-        final note = prefs.getString('mab_critic_note');
-        if (note != null && note.isNotEmpty) {
-          buf.writeln(
-              '// [CRITIC NOTE from last response — self-correct]: $note');
-          await prefs.remove('mab_critic_note');
+      // Append all parallel results
+      for (final result in results) {
+        if (result != null && result.isNotEmpty) {
+          buf.write(result);
         }
       }
 
-      // 4. Jealousy / absence tone override
-      final jealousyBlock =
-          await JealousyService.instance.buildJealousyPromptBlock();
-      if (jealousyBlock.isNotEmpty) buf.write(jealousyBlock);
+      // Add synchronous blocks
+      buf.write(
+          RelationshipProgressionService.instance.getProgressionContextBlock());
+      buf.write(MemoryTimelineService.instance.getTimelineContextBlock());
+      buf.write(EmotionalRecoveryService.instance.getRecoveryContextBlock());
+      buf.write(MultiAgentBrainService.instance.getPlanContextBlock());
 
-      // 5. Alter ego mode override
-      final alterEgoBlock = AlterEgoService.instance.buildAlterEgoPromptBlock();
-      if (alterEgoBlock.isNotEmpty) buf.write(alterEgoBlock);
-
-      // 6. Life event milestone (anniversary, day milestone)
-      final milestoneBlock =
-          await LifeEventsService.instance.checkAndTriggerMilestone();
-      if (milestoneBlock != null) buf.write(milestoneBlock);
+      // Critic note from last exchange
+      final prefs = await SharedPreferences.getInstance();
+      final note = prefs.getString('mab_critic_note');
+      if (note != null && note.isNotEmpty) {
+        buf.writeln(
+            '// [CRITIC NOTE from last response — self-correct]: $note');
+        await prefs.remove('mab_critic_note');
+      }
 
       _phase2PromptExtras = buf.toString();
     } catch (e) {
@@ -1820,11 +1795,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   void _checkAndShowAchievementPopup() {
     final pts = AffectionService.instance.points;
-    if (pts >= 100 && pts < 102) {
+    if (pts >= AppLimits.achievement100Points &&
+        pts <
+            AppLimits.achievement100Points +
+                AppLimits.achievementPointTolerance) {
       _showAchievementPopup('100 Points of Love!');
-    } else if (pts >= 500 && pts < 502) {
+    } else if (pts >= AppLimits.achievement500Points &&
+        pts <
+            AppLimits.achievement500Points +
+                AppLimits.achievementPointTolerance) {
       _showAchievementPopup('500 Points – Soulmates!');
-    } else if (pts >= 1000 && pts < 1002) {
+    } else if (pts >= AppLimits.achievement1000Points &&
+        pts <
+            AppLimits.achievement1000Points +
+                AppLimits.achievementPointTolerance) {
       _showAchievementPopup('1000 Points – Eternal Partners!');
     }
   }
@@ -2039,13 +2023,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _loadWakePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('wake_word_enabled') ?? true; // Default ON
-    final idleEnabled = prefs.getBool('idle_timer_enabled') ?? true;
-    final idleDuration = prefs.getInt('idle_duration_seconds') ?? 600;
+    final enabled =
+        prefs.getBool(PrefsKeys.wakeWordEnabled) ?? true; // Default ON
+    final idleEnabled = prefs.getBool(PrefsKeys.idleTimerEnabled) ?? true;
+    final idleDuration = prefs.getInt(PrefsKeys.idleDurationSeconds) ?? 600;
     final proactiveInterval =
-        prefs.getInt('proactive_interval_seconds') ?? 1800;
-    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? true;
-    final proactiveEn = prefs.getBool('proactive_enabled') ?? true;
+        prefs.getInt(PrefsKeys.proactiveIntervalSeconds) ?? 1800;
+    final proactiveRandom =
+        prefs.getBool(PrefsKeys.proactiveRandomEnabled) ?? true;
+    final proactiveEn = prefs.getBool(PrefsKeys.proactiveEnabled) ?? true;
     final dualVoiceEnabled = prefs.getBool('dual_voice_enabled_v1') ?? false;
     final dualVoiceSecondary =
         prefs.getString('dual_voice_secondary_v1') ?? "alloy";
@@ -2059,7 +2045,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final advancedStrictWake =
         prefs.getBool('flutter.advanced_strict_wake') ?? false;
 
-    final voiceModel = prefs.getString('voice_model') ?? 'arabic';
+    final voiceModel = prefs.getString(PrefsKeys.voiceModel) ?? 'arabic';
     final persona = prefs.getString(_personaPrefKey) ?? 'Default';
 
     // Provider-managed settings:
@@ -2127,7 +2113,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _persistWakeWordEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('wake_word_enabled', enabled);
+    await prefs.setBool(PrefsKeys.wakeWordEnabled, enabled);
   }
 
   Future<void> _toggleWakeWordEnabled() async {
@@ -2191,6 +2177,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _titleTapResetTimer?.cancel();
     _logoTapResetTimer?.cancel();
     _wakeInitRetryTimer?.cancel();
+    _widgetRefreshTimer?.cancel();
     _inAppNotifHideTimer?.cancel();
     _searchDebounce?.cancel();
     unawaited(_speechService.cancel());
@@ -2272,7 +2259,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _drainPendingInProgress = true;
     final prefs = await SharedPreferences.getInstance();
     try {
-      final snapshotRaw = prefs.getString('pending_proactive_messages') ?? "[]";
+      final snapshotRaw =
+          prefs.getString(PrefsKeys.pendingProactiveMessages) ?? "[]";
       final snapshot = _decodePendingQueue(snapshotRaw);
       final list = snapshot;
       if (list.isNotEmpty) {
@@ -2296,12 +2284,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           _scrollToBottom();
           await _saveMemory();
         }
-        final latestRaw = prefs.getString('pending_proactive_messages') ?? "[]";
+        final latestRaw =
+            prefs.getString(PrefsKeys.pendingProactiveMessages) ?? "[]";
         final latest = _decodePendingQueue(latestRaw);
         final remaining =
             _subtractDrainedEntries(latest: latest, drained: list);
         await prefs.setString(
-            'pending_proactive_messages', jsonEncode(remaining));
+            PrefsKeys.pendingProactiveMessages, jsonEncode(remaining));
       }
     } catch (e) {
       debugPrint("Error reading pending messages: $e");
@@ -2381,9 +2370,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // syncBackgroundWakeFromFlutterPrefs() in the native service reads fresh
       // values even if the native service is restarted after a swipe-away.
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('wake_word_enabled', _wakeWordEnabledByUser);
-      await prefs.setBool('assistant_mode_enabled', _assistantModeEnabled);
-      await prefs.setBool('proactive_enabled', _proactiveEnabled);
+      await prefs.setBool(PrefsKeys.wakeWordEnabled, _wakeWordEnabledByUser);
+      await prefs.setBool(
+          PrefsKeys.assistantModeEnabled, _assistantModeEnabled);
+      await prefs.setBool(PrefsKeys.proactiveEnabled, _proactiveEnabled);
 
       await _assistantModeService.start(
         apiKey: _devApiKeyOverride.isNotEmpty
@@ -2590,19 +2580,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         // ignore: avoid_print
         debugPrint('[WakeGuard] STT Transcript: "$text"');
 
-        // Permissive matching — STT often truncates or mishears the wake word.
+        // Stricter matching — require core wake word components
         if (cleanText.contains('zerotwo') ||
-            cleanText.contains('zero') ||
-            cleanText.contains('02') ||
-            cleanText.contains('darling') ||
-            cleanText.contains('akira') ||
-            cleanText.contains('two') ||
-            cleanText.contains('tu') ||
-            cleanText.contains('to') ||
-            cleanText.contains('too') ||
-            cleanText.contains('ziro') ||
-            cleanText.contains('hero') ||
-            cleanText.contains('dear')) {
+            (cleanText.contains('zero') && cleanText.contains('two')) ||
+            cleanText.contains('darling')) {
           return true; // Confirmed!
         }
         // If transcript is very short or empty, allow through
@@ -2919,9 +2900,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     setState(() {}); // trigger final tree layout update
     _scrollToBottom();
 
-    setState(() {}); // trigger final tree layout update
-    _scrollToBottom();
-
     // ── Daily morning greeting ────────────────────────────────────────────────
     // If today has no messages yet (fresh day), greet the user automatically.
     if (_messages.isEmpty && _pastMessages.isNotEmpty) {
@@ -3009,17 +2987,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _loadDevConfig() async {
     final prefs = await SharedPreferences.getInstance();
-    _sp.devApiKeyOverride = prefs.getString('dev_api_key_override') ?? "";
-    _sp.devModelOverride = prefs.getString('dev_model_override') ?? "";
-    _sp.devApiUrlOverride = prefs.getString('dev_api_url_override') ?? "";
-    _sp.devSystemQuery = prefs.getString('dev_system_query') ?? "";
-    _sp.devWakeKeyOverride = prefs.getString('dev_wake_key_override') ?? "";
+    _sp.devApiKeyOverride = prefs.getString(PrefsKeys.devApiKeyOverride) ?? "";
+    _sp.devModelOverride = prefs.getString(PrefsKeys.devModelOverride) ?? "";
+    _sp.devApiUrlOverride = prefs.getString(PrefsKeys.devApiUrlOverride) ?? "";
+    _sp.devSystemQuery = prefs.getString(PrefsKeys.devSystemQuery) ?? "";
+    _sp.devWakeKeyOverride =
+        prefs.getString(PrefsKeys.devWakeKeyOverride) ?? "";
     _sp.devTtsApiKeyOverride =
-        prefs.getString('dev_tts_api_key_override') ?? "";
-    _sp.devTtsModelOverride = prefs.getString('dev_tts_model_override') ?? "";
-    _sp.devTtsVoiceOverride = prefs.getString('dev_tts_voice_override') ?? "";
+        prefs.getString(PrefsKeys.devTtsApiKeyOverride) ?? "";
+    _sp.devTtsModelOverride =
+        prefs.getString(PrefsKeys.devTtsModelOverride) ?? "";
+    _sp.devTtsVoiceOverride =
+        prefs.getString(PrefsKeys.devTtsVoiceOverride) ?? "";
     _sp.devBrevoApiKeyOverride =
-        prefs.getString('dev_brevo_api_key_override') ?? "";
+        prefs.getString(PrefsKeys.devBrevoApiKeyOverride) ?? "";
     _apiService.configure(
       apiKeyOverride: _devApiKeyOverride,
       modelOverride: _devModelOverride,
@@ -3044,9 +3025,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Future<void> _loadAssistantMode() async {
     final prefs = await SharedPreferences.getInstance();
     // Default to true for immersive experience
-    final enabled = prefs.getBool('assistant_mode_enabled') ?? true;
-    final proactive = prefs.getBool('proactive_enabled') ?? true;
-    final proactiveRandom = prefs.getBool('proactive_random_enabled') ?? true;
+    final enabled = prefs.getBool(PrefsKeys.assistantModeEnabled) ?? true;
+    final proactive = prefs.getBool(PrefsKeys.proactiveEnabled) ?? true;
+    final proactiveRandom =
+        prefs.getBool(PrefsKeys.proactiveRandomEnabled) ?? true;
 
     if (enabled) {
       final apiKey = _devApiKeyOverride.trim().isNotEmpty
@@ -3849,8 +3831,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Future<void> _toggleIdleTimer() async {
     final next = !_idleTimerEnabled;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('idle_timer_enabled', next);
-    await prefs.setInt('idle_duration_seconds', _idleDurationSeconds);
+    await prefs.setBool(PrefsKeys.idleTimerEnabled, next);
+    await prefs.setInt(PrefsKeys.idleDurationSeconds, _idleDurationSeconds);
     setState(() => _idleTimerEnabled = next);
 
     if (next) {
@@ -3888,7 +3870,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _idleConsumedAtUserMessageCount = -1;
     _resetIdleTimer();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('idle_duration_seconds', seconds);
+    await prefs.setInt(PrefsKeys.idleDurationSeconds, seconds);
   }
 
   Future<void> _updateProactiveInterval(int seconds) async {
@@ -3898,7 +3880,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       _proactiveIntervalSeconds = seconds;
     }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('proactive_interval_seconds', seconds);
+    await prefs.setInt(PrefsKeys.proactiveIntervalSeconds, seconds);
     _startProactiveTimer();
 
     // Update native service if running
@@ -3931,7 +3913,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   Future<void> _setProactiveTimingMode(bool randomEnabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('proactive_random_enabled', randomEnabled);
+    await prefs.setBool(PrefsKeys.proactiveRandomEnabled, randomEnabled);
 
     if (mounted) {
       setState(() => _proactiveRandomEnabled = randomEnabled);
@@ -4103,7 +4085,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         if (!accessOk) return;
         final hasMic = await _ensureMicPermission(requestIfNeeded: false);
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('assistant_mode_enabled', true);
+        await prefs.setBool(PrefsKeys.assistantModeEnabled, true);
 
         // Pass API config to background service for persistence after swipe
         await _refreshAssistantModeRuntime(hasMic: hasMic);
@@ -4126,7 +4108,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         }
       } else {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('assistant_mode_enabled', false);
+        await prefs.setBool(PrefsKeys.assistantModeEnabled, false);
         await _assistantModeService.setWakeMode(false);
         await _assistantModeService.stop();
         if (mounted) {
@@ -4149,7 +4131,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Future<void> _toggleProactiveMode() async {
     final next = !_proactiveEnabled;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('proactive_enabled', next);
+    await prefs.setBool(PrefsKeys.proactiveEnabled, next);
 
     // If assistant mode is ON, sync to native service
     if (_assistantModeEnabled) {
@@ -4171,7 +4153,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Future<void> _setVoiceModel(String model) async {
     if (_voiceModel == model) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('voice_model', model);
+    await prefs.setString(PrefsKeys.voiceModel, model);
     if (mounted) {
       setState(() {
         _voiceModel = model;
@@ -4422,14 +4404,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       child: OutlinedButton(
                         onPressed: () async {
                           final prefs = await SharedPreferences.getInstance();
-                          await prefs.remove('dev_api_key_override');
-                          await prefs.remove('dev_model_override');
-                          await prefs.remove('dev_api_url_override');
-                          await prefs.remove('dev_system_query');
-                          await prefs.remove('dev_wake_key_override');
-                          await prefs.remove('dev_tts_api_key_override');
-                          await prefs.remove('dev_tts_model_override');
-                          await prefs.remove('dev_tts_voice_override');
+                          await prefs.remove(PrefsKeys.devApiKeyOverride);
+                          await prefs.remove(PrefsKeys.devModelOverride);
+                          await prefs.remove(PrefsKeys.devApiUrlOverride);
+                          await prefs.remove(PrefsKeys.devSystemQuery);
+                          await prefs.remove(PrefsKeys.devWakeKeyOverride);
+                          await prefs.remove(PrefsKeys.devTtsApiKeyOverride);
+                          await prefs.remove(PrefsKeys.devTtsModelOverride);
+                          await prefs.remove(PrefsKeys.devTtsVoiceOverride);
                           await prefs.remove('dev_mailjet_api_override');
                           await prefs.remove('dev_mailjet_sec_override');
                           _sp.devApiKeyOverride = "";
@@ -4493,22 +4475,23 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           _sp.devBrevoApiKeyOverride =
                               brevoApiController.text.trim();
                           await prefs.setString(
-                              'dev_api_key_override', _devApiKeyOverride);
+                              PrefsKeys.devApiKeyOverride, _devApiKeyOverride);
                           await prefs.setString(
-                              'dev_model_override', _devModelOverride);
+                              PrefsKeys.devModelOverride, _devModelOverride);
                           await prefs.setString(
-                              'dev_api_url_override', _devApiUrlOverride);
+                              PrefsKeys.devApiUrlOverride, _devApiUrlOverride);
                           await prefs.setString(
-                              'dev_system_query', _devSystemQuery);
-                          await prefs.setString(
-                              'dev_wake_key_override', _devWakeKeyOverride);
-                          await prefs.setString('dev_tts_api_key_override',
+                              PrefsKeys.devSystemQuery, _devSystemQuery);
+                          await prefs.setString(PrefsKeys.devWakeKeyOverride,
+                              _devWakeKeyOverride);
+                          await prefs.setString(PrefsKeys.devTtsApiKeyOverride,
                               _devTtsApiKeyOverride);
+                          await prefs.setString(PrefsKeys.devTtsModelOverride,
+                              _devTtsModelOverride);
+                          await prefs.setString(PrefsKeys.devTtsVoiceOverride,
+                              _devTtsVoiceOverride);
                           await prefs.setString(
-                              'dev_tts_model_override', _devTtsModelOverride);
-                          await prefs.setString(
-                              'dev_tts_voice_override', _devTtsVoiceOverride);
-                          await prefs.setString('dev_brevo_api_key_override',
+                              PrefsKeys.devBrevoApiKeyOverride,
                               _devBrevoApiKeyOverride);
                           _apiService.configure(
                             apiKeyOverride: _devApiKeyOverride,
@@ -4912,7 +4895,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final avatarCore = Container(
       width: 64,
       height: 64,
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -4921,9 +4904,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.26),
-            blurRadius: 14,
-            spreadRadius: 1,
+            color: primary.withValues(alpha: 0.35),
+            blurRadius: 18,
+            spreadRadius: 2,
+          ),
+          BoxShadow(
+            color: primary.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: -1,
           ),
         ],
       ),
@@ -5034,10 +5023,23 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.pinkAccent.withValues(alpha: 0.15),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.pinkAccent.withValues(alpha: 0.20),
+                            Colors.pinkAccent.withValues(alpha: 0.08),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                            color: Colors.pinkAccent.withValues(alpha: 0.4)),
+                            color: Colors.pinkAccent.withValues(alpha: 0.45)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.pinkAccent.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                            spreadRadius: 0,
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -5094,14 +5096,33 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
+                          gradient: _isChatSearchActive
+                              ? LinearGradient(
+                                  colors: [
+                                    Colors.orangeAccent.withValues(alpha: 0.28),
+                                    Colors.orangeAccent.withValues(alpha: 0.12),
+                                  ],
+                                )
+                              : null,
                           color: _isChatSearchActive
-                              ? Colors.orangeAccent.withValues(alpha: 0.22)
+                              ? null
                               : Colors.white.withValues(alpha: 0.06),
                           border: Border.all(
                             color: _isChatSearchActive
                                 ? Colors.orangeAccent.withValues(alpha: 0.8)
                                 : Colors.white12,
                           ),
+                          boxShadow: _isChatSearchActive
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.orangeAccent
+                                        .withValues(alpha: 0.22),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                    spreadRadius: 0,
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -5145,13 +5166,31 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: active
-            ? accent.withValues(alpha: 0.22)
-            : Colors.white.withValues(alpha: 0.06),
+        gradient: active
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accent.withValues(alpha: 0.28),
+                  accent.withValues(alpha: 0.12),
+                ],
+              )
+            : null,
+        color: active ? null : Colors.white.withValues(alpha: 0.06),
         border: Border.all(
           color: active ? accent.withValues(alpha: 0.8) : Colors.white12,
           width: 1,
         ),
+        boxShadow: active
+            ? [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ]
+            : null,
       ),
       child: Text(
         label,
@@ -5390,16 +5429,32 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                                 _textController.text = chip;
                                 unawaited(_handleTextInput());
                               },
-                              child: Container(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color:
-                                      Colors.pinkAccent.withValues(alpha: 0.14),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.pinkAccent.withValues(alpha: 0.22),
+                                      Colors.pinkAccent.withValues(alpha: 0.08),
+                                    ],
+                                  ),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                       color: Colors.pinkAccent
-                                          .withValues(alpha: 0.4)),
+                                          .withValues(alpha: 0.5)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.pinkAccent
+                                          .withValues(alpha: 0.18),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
                                 ),
                                 child: Text(chip,
                                     style: GoogleFonts.outfit(
@@ -5515,23 +5570,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 'Hey, Darling~ 💕',
                 style: GoogleFonts.outfit(
                   color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
                   shadows: [
                     Shadow(
-                        color: primary.withValues(alpha: 0.60), blurRadius: 14),
+                        color: primary.withValues(alpha: 0.70), blurRadius: 18),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                "I'm right here, waiting for you.\nJust type or say the wake word to start!",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  color: Colors.white60,
-                  fontSize: 13,
-                  height: 1.5,
+              const SizedBox(height: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.06),
+                      Colors.white.withValues(alpha: 0.02),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Text(
+                  "I'm right here, waiting for you.\nJust type or say the wake word to start!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white60,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
               ),
               const SizedBox(height: 28),
@@ -5544,7 +5615,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      primary.withValues(alpha: 0.60),
+                      primary.withValues(alpha: 0.70),
                       Colors.transparent,
                     ],
                   ),
@@ -5570,22 +5641,37 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   return GestureDetector(
                     onTap: () => _sendSuggestion(label),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 160),
+                      duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(999),
-                        color: primary.withValues(alpha: 0.10),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            primary.withValues(alpha: 0.15),
+                            primary.withValues(alpha: 0.05),
+                          ],
+                        ),
                         border: Border.all(
-                          color: primary.withValues(alpha: 0.35),
+                          color: primary.withValues(alpha: 0.45),
                           width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primary.withValues(alpha: 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                            spreadRadius: 0,
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(icon,
-                              size: 13, color: primary.withValues(alpha: 0.85)),
+                              size: 13, color: primary.withValues(alpha: 0.9)),
                           const SizedBox(width: 6),
                           Text(
                             label,
@@ -6024,21 +6110,33 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           decoration: BoxDecoration(
             borderRadius: radius,
             color: outlinedFill,
+            gradient: isUser
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primary.withValues(alpha: 0.35),
+                      primary.withValues(alpha: 0.15),
+                    ],
+                  )
+                : null,
             border: Border.all(
-              color: isUser ? primary : style.borderColor(primary),
+              color: isUser
+                  ? primary.withValues(alpha: 0.8)
+                  : style.borderColor(primary),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: (isUser ? primary : Colors.cyanAccent)
-                    .withValues(alpha: isGhost ? 0.1 : 0.25),
-                blurRadius: 16,
+                    .withValues(alpha: isGhost ? 0.15 : 0.35),
+                blurRadius: 20,
                 spreadRadius: 1,
               ),
               if (isUser)
                 BoxShadow(
-                  color: primary.withValues(alpha: isGhost ? 0.05 : 0.12),
-                  blurRadius: 8,
+                  color: primary.withValues(alpha: isGhost ? 0.08 : 0.18),
+                  blurRadius: 12,
                   spreadRadius: -2,
                 ),
             ],
@@ -6063,7 +6161,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   : [const Color(0xFF1A1200), const Color(0xFF120D00)],
             ),
             border: Border.all(
-              color: isUser ? primary : Colors.cyanAccent.withValues(alpha: 0.4),
+              color:
+                  isUser ? primary : Colors.cyanAccent.withValues(alpha: 0.4),
               width: 1.2,
             ),
             boxShadow: [
@@ -6099,7 +6198,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           constraints: BoxConstraints(maxWidth: maxW),
           decoration: BoxDecoration(
             borderRadius: radius,
-            color: bgColor,
+            gradient: isUser
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primary.withValues(alpha: 0.95),
+                      primary.withValues(alpha: 0.80),
+                      primary.withValues(alpha: 0.90),
+                    ],
+                  )
+                : null,
+            color: isUser ? null : bgColor,
             border: Border(
               top: BorderSide(color: borderColor, width: 1.0),
               right: BorderSide(color: borderColor, width: 1.0),
@@ -6112,10 +6222,17 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             boxShadow: [
               if (!isUser)
                 BoxShadow(
-                  color: Colors.cyanAccent.withValues(alpha: 0.15),
-                  blurRadius: 12,
+                  color: Colors.cyanAccent.withValues(alpha: 0.22),
+                  blurRadius: 18,
                   spreadRadius: 0,
                 ),
+              BoxShadow(
+                color: (isUser ? primary : Colors.cyanAccent)
+                    .withValues(alpha: isGhost ? 0.08 : 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+                spreadRadius: -2,
+              ),
             ],
           ),
           child: Padding(
@@ -6140,31 +6257,37 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               end: Alignment.bottomRight,
               colors: isUser
                   ? [
-                      primary.withValues(alpha: isGhost ? 0.35 : 0.76),
-                      primary.withValues(alpha: isGhost ? 0.23 : 0.60),
+                      primary.withValues(alpha: isGhost ? 0.45 : 0.85),
+                      primary.withValues(alpha: isGhost ? 0.30 : 0.65),
+                      primary.withValues(alpha: isGhost ? 0.20 : 0.50),
                     ]
                   : [
                       aiGlassTop,
                       aiGlassBottom,
+                      aiGlassTop.withValues(alpha: 0.5),
                     ],
+              stops: isUser ? null : [0.0, 0.6, 1.0],
             ),
             border: Border.all(
-              color: isUser ? Colors.white30 : Colors.cyanAccent.withValues(alpha: 0.3),
+              color: isUser
+                  ? Colors.white.withValues(alpha: 0.4)
+                  : Colors.cyanAccent.withValues(alpha: 0.4),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
                 color: (isUser ? primary : Colors.cyanAccent)
-                    .withValues(alpha: isGhost ? 0.12 : 0.18),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
+                    .withValues(alpha: isGhost ? 0.18 : 0.28),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
                 spreadRadius: 2,
               ),
               if (!isUser)
                 BoxShadow(
-                  color: Colors.cyanAccent.withValues(alpha: isGhost ? 0.05 : 0.1),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: Colors.cyanAccent
+                      .withValues(alpha: isGhost ? 0.08 : 0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
                   spreadRadius: 1,
                 ),
             ],
@@ -6487,13 +6610,27 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(colors: colors),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.28),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: colors.first.withValues(alpha: 0.30),
-                blurRadius: 12,
+                color: colors.first.withValues(alpha: 0.40),
+                blurRadius: 16,
                 offset: const Offset(0, 4),
+                spreadRadius: 1,
+              ),
+              BoxShadow(
+                color: colors.first.withValues(alpha: 0.15),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+                spreadRadius: -1,
               ),
             ],
           ),
@@ -6510,17 +6647,27 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: 0.10),
+            Colors.white.withValues(alpha: 0.12),
             const Color(0x22130A15),
             const Color(0x66140A18),
           ],
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
+        border: Border.all(
+          color: primary.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.22),
-            blurRadius: 16,
+            color: primary.withValues(alpha: 0.28),
+            blurRadius: 20,
             offset: const Offset(0, 6),
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: primary.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: -2,
           ),
         ],
       ),
@@ -6648,7 +6795,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           ],
                         ),
                       ),
-                      child: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
+                      child: const Icon(Icons.arrow_upward_rounded,
+                          color: Colors.white),
                     ),
                   ),
                 ),
@@ -6731,20 +6879,34 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Widget _buildInAppNotificationPopup() {
     final primary = Theme.of(context).primaryColor;
     final top = MediaQuery.of(context).padding.top + kToolbarHeight + 6;
-    
+
     // Determine icon based on notification content
     IconData getNotificationIcon() {
       final text = _inAppNotifText.toLowerCase();
-      if (text.contains('achievement') || text.contains('unlocked')) return Icons.star_rounded;
-      if (text.contains('streak')) return Icons.local_fire_department_rounded;
-      if (text.contains('affection') || text.contains('❤')) return Icons.favorite_rounded;
-      if (text.contains('level') || text.contains('up')) return Icons.trending_up_rounded;
-      if (text.contains('reward') || text.contains('gold')) return Icons.card_giftcard_rounded;
-      if (text.contains('event')) return Icons.celebration_rounded;
-      if (text.contains('sleep') || text.contains('timer')) return Icons.schedule_rounded;
+      if (text.contains('achievement') || text.contains('unlocked')) {
+        return Icons.star_rounded;
+      }
+      if (text.contains('streak')) {
+        return Icons.local_fire_department_rounded;
+      }
+      if (text.contains('affection') || text.contains('❤')) {
+        return Icons.favorite_rounded;
+      }
+      if (text.contains('level') || text.contains('up')) {
+        return Icons.trending_up_rounded;
+      }
+      if (text.contains('reward') || text.contains('gold')) {
+        return Icons.card_giftcard_rounded;
+      }
+      if (text.contains('event')) {
+        return Icons.celebration_rounded;
+      }
+      if (text.contains('sleep') || text.contains('timer')) {
+        return Icons.schedule_rounded;
+      }
       return Icons.notifications_active_rounded;
     }
-    
+
     return Positioned(
       top: top,
       left: 12,
@@ -6772,7 +6934,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
@@ -6865,9 +7028,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       const SizedBox(width: 12),
                       // → Arrow
                       ScaleTransition(
-                        scale: _showInAppNotif ? Tween(begin: 0.8, end: 1.0).animate(
-                          CurvedAnimation(parent: ModalRoute.of(context)?.animation ?? AlwaysStoppedAnimation(1), curve: Curves.easeOut),
-                        ) : AlwaysStoppedAnimation(1.0),
+                        scale: _showInAppNotif
+                            ? Tween(begin: 0.8, end: 1.0).animate(
+                                CurvedAnimation(
+                                    parent: ModalRoute.of(context)?.animation ??
+                                        AlwaysStoppedAnimation(1),
+                                    curve: Curves.easeOut),
+                              )
+                            : AlwaysStoppedAnimation(1.0),
                         child: Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 16,
@@ -7301,5 +7469,3 @@ class _MiniMusicPlayerBarState extends State<_MiniMusicPlayerBar> {
     );
   }
 }
-
-

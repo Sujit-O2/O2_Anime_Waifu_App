@@ -24,6 +24,10 @@ class MultiAgentBrainService {
   MultiAgentBrainService._();
 
   static const _planKey = 'mab_next_plan_v1';
+  static DateTime? _lastCallTime;
+  static const Duration _minCallInterval = Duration(seconds: 10);
+  static int _callCount = 0;
+  static const int _maxCallsPerHour = 30;
 
   String _nextPlan = 'respond_normally';
   String get nextPlan => _nextPlan;
@@ -36,6 +40,29 @@ class MultiAgentBrainService {
     required String personaName,
     required String topic,
   }) async {
+    // Rate limit: max 1 call per 10 seconds
+    if (_lastCallTime != null) {
+      final elapsed = DateTime.now().difference(_lastCallTime!);
+      if (elapsed < _minCallInterval) {
+        return; // Skip this call
+      }
+    }
+
+    // Cost guard: max 30 calls per hour
+    _callCount++;
+    if (_callCount > _maxCallsPerHour) {
+      // Reset counter every hour
+      final now = DateTime.now();
+      if (_lastCallTime != null && 
+          now.difference(_lastCallTime!).inHours >= 1) {
+        _callCount = 1;
+      } else {
+        return; // Skip - over limit
+      }
+    }
+
+    _lastCallTime = DateTime.now();
+
     // Run all 4 agents in parallel
     await Future.wait([
       _runPlanner(userMessage, aiReply, personaName),

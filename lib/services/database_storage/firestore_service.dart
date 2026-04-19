@@ -47,8 +47,13 @@ class FirestoreService {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  DocumentReference _doc(String collection) =>
-      _db.collection(collection).doc(FirebaseAuth.instance.currentUser!.uid);
+  DocumentReference _doc(String collection) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      throw StateError('User not authenticated');
+    }
+    return _db.collection(collection).doc(uid);
+  }
 
   // Uses SecureEncryption for strong encryption instead of weak XOR
   static const String _encryptionPassword = 'anime-waifu-vault-key-2026';
@@ -149,7 +154,8 @@ class FirestoreService {
       'pin': encrypted,
       'pin_updated_at': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-    await _logAuditEvent('pin_set', {'uid': FirebaseAuth.instance.currentUser?.uid});
+    await _logAuditEvent(
+        'pin_set', {'uid': FirebaseAuth.instance.currentUser?.uid});
   }
 
   Future<bool> verifyPin(String pin) async {
@@ -163,7 +169,8 @@ class FirestoreService {
         final decrypted = SecureEncryption.decrypt(stored, _encryptionPassword);
         final verified = (decrypted ?? '') == pin;
         if (!verified) {
-          await _logAuditEvent('pin_verification_failed', {'uid': FirebaseAuth.instance.currentUser?.uid});
+          await _logAuditEvent('pin_verification_failed',
+              {'uid': FirebaseAuth.instance.currentUser?.uid});
         }
         return verified;
       }
@@ -182,10 +189,10 @@ class FirestoreService {
         final data = snap.data() as Map<String, dynamic>?;
         final raw = data?['notes'] as String?;
         if (raw != null && raw.isNotEmpty) {
-          final decrypted = SecureEncryption.decrypt(raw, _encryptionPassword) ?? '';
-          return List<Map<String, String>>.from(
-              (jsonDecode(decrypted) as List)
-                  .map((e) => Map<String, String>.from(e as Map)));
+          final decrypted =
+              SecureEncryption.decrypt(raw, _encryptionPassword) ?? '';
+          return List<Map<String, String>>.from((jsonDecode(decrypted) as List)
+              .map((e) => Map<String, String>.from(e as Map)));
         }
       }
     } catch (e) {
@@ -203,26 +210,28 @@ class FirestoreService {
       'content': content,
       'ts': DateTime.now().toIso8601String(),
     });
-    final encrypted = SecureEncryption.encrypt(jsonEncode(notes), _encryptionPassword);
-    await _doc('vault')
-        .set({
-          'notes': encrypted,
-          'notes_updated_at': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-    await _logAuditEvent('secret_note_created', {'uid': FirebaseAuth.instance.currentUser?.uid});
+    final encrypted =
+        SecureEncryption.encrypt(jsonEncode(notes), _encryptionPassword);
+    await _doc('vault').set({
+      'notes': encrypted,
+      'notes_updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    await _logAuditEvent(
+        'secret_note_created', {'uid': FirebaseAuth.instance.currentUser?.uid});
   }
 
   Future<void> deleteSecretNote(String id) async {
     await init();
     final notes = await getSecretNotes();
     notes.removeWhere((n) => n['id'] == id);
-    final encrypted = SecureEncryption.encrypt(jsonEncode(notes), _encryptionPassword);
-    await _doc('vault')
-        .set({
-          'notes': encrypted,
-          'notes_updated_at': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-    await _logAuditEvent('secret_note_deleted', {'uid': FirebaseAuth.instance.currentUser?.uid, 'note_id': id});
+    final encrypted =
+        SecureEncryption.encrypt(jsonEncode(notes), _encryptionPassword);
+    await _doc('vault').set({
+      'notes': encrypted,
+      'notes_updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    await _logAuditEvent('secret_note_deleted',
+        {'uid': FirebaseAuth.instance.currentUser?.uid, 'note_id': id});
   }
 
   Future<void> clearSecretNotes() async {
@@ -231,7 +240,8 @@ class FirestoreService {
       'notes': '',
       'notes_updated_at': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-    await _logAuditEvent('secret_notes_cleared', {'uid': FirebaseAuth.instance.currentUser?.uid});
+    await _logAuditEvent('secret_notes_cleared',
+        {'uid': FirebaseAuth.instance.currentUser?.uid});
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -641,12 +651,13 @@ class FirestoreService {
   // AUDIT LOGGING (Security & Compliance)
   // ─────────────────────────────────────────────────────────────────────────
 
-  Future<void> _logAuditEvent(String event, Map<String, dynamic> details) async {
+  Future<void> _logAuditEvent(
+      String event, Map<String, dynamic> details) async {
     await init();
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
-      
+
       await _db.collection('audit_logs').add({
         'uid': uid,
         'event': event,
@@ -794,5 +805,3 @@ class FirestoreService {
     }
   }
 }
-
-

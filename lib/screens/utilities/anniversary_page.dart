@@ -29,8 +29,10 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
       return;
     }
     try {
-      final snap =
-          await FirebaseFirestore.instance.collection('profiles').doc(user.uid).get();
+      final snap = await FirebaseFirestore.instance
+          .collection('profiles')
+          .doc(user.uid)
+          .get();
       if (snap.exists) {
         final iso = (snap.data() ?? {})['anniversaryDate'] as String?;
         if (iso != null && iso.isNotEmpty) {
@@ -61,11 +63,14 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
     if (picked == null || !mounted) return;
     setState(() => _saving = true);
     try {
-      final user = FirebaseAuth.instance.currentUser!;
-      await FirebaseFirestore.instance
-          .collection('profiles')
-          .doc(user.uid)
-          .set({'anniversaryDate': picked.toIso8601String()}, SetOptions(merge: true));
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        showSuccessSnackbar(context, 'Please sign in to save anniversary.');
+        return;
+      }
+      await FirebaseFirestore.instance.collection('profiles').doc(user.uid).set(
+          {'anniversaryDate': picked.toIso8601String()},
+          SetOptions(merge: true));
       if (!mounted) return;
       setState(() => _startDate = picked);
       AffectionService.instance.addPoints(5);
@@ -105,7 +110,8 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
         centerTitle: true,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Colors.pinkAccent))
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.pinkAccent))
           : WaifuBackground(
               opacity: 0.08,
               tint: V2Theme.surfaceDark,
@@ -222,7 +228,9 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
                           : const Icon(Icons.calendar_today_outlined,
                               color: Colors.white),
                       label: Text(
-                        _startDate == null ? 'Set Our Start Date' : 'Change Date',
+                        _startDate == null
+                            ? 'Set Our Start Date'
+                            : 'Change Date',
                         style: GoogleFonts.outfit(
                             fontWeight: FontWeight.bold, fontSize: 15),
                       ),
@@ -266,14 +274,19 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(children: [
-              Icon(reached ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-                  color: reached ? Colors.greenAccent : Colors.white24, size: 18),
+              Icon(
+                  reached
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked,
+                  color: reached ? Colors.greenAccent : Colors.white24,
+                  size: 18),
               const SizedBox(width: 10),
               Text(m.$2,
                   style: GoogleFonts.outfit(
                       color: reached ? Colors.white : Colors.white38,
                       fontSize: 13,
-                      fontWeight: reached ? FontWeight.bold : FontWeight.normal)),
+                      fontWeight:
+                          reached ? FontWeight.bold : FontWeight.normal)),
             ]),
           );
         }),
@@ -281,6 +294,3 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
     );
   }
 }
-
-
-

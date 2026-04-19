@@ -17,7 +17,8 @@ void main(List<String> args) async {
   if (args.isNotEmpty) {
     recipientEmail = args[0];
   } else {
-    recipientEmail = Platform.environment['RECIPIENT_EMAIL'] ?? 'sujitswain077@gmail.com';
+    recipientEmail =
+        Platform.environment['RECIPIENT_EMAIL'] ?? 'sujitswain077@gmail.com';
   }
 
   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -61,43 +62,50 @@ void main(List<String> args) async {
   const maxRetries = 3;
   for (var attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      print('Sending email to $recipientEmail... (attempt $attempt/$maxRetries)');
-      final response = await http.post(
-        url,
-        headers: {
-          'api-key': apiKey,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          "sender": {"name": "Zero Two", "email": "zerozerotwoxsujit@gmail.com"},
-          "to": [
-            {"email": recipientEmail}
-          ],
-          "subject": subject,
-          "htmlContent": htmlFinal,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      print(
+          'Sending email to $recipientEmail... (attempt $attempt/$maxRetries)');
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'api-key': apiKey,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              "sender": {
+                "name": "Zero Two",
+                "email": "zerozerotwoxsujit@gmail.com"
+              },
+              "to": [
+                {"email": recipientEmail}
+              ],
+              "subject": subject,
+              "htmlContent": htmlFinal,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
-    print('Status Code: ${response.statusCode}');
-    print('Response Body: ${response.body}');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('\n✅ Mail sent successfully using the REAL template!');
-      print('   Check $recipientEmail inbox to verify rendering.');
-      break;
-    } else if (attempt < maxRetries) {
-      print('   Retrying in 2 seconds...');
-      await Future.delayed(const Duration(seconds: 2));
-    } else {
-      print('\n❌ Mail send failed after $maxRetries attempts.');
-    }
-  } catch (e) {
-    if (attempt < maxRetries) {
-      print('❌ Error: $e. Retrying in 2 seconds...');
-      await Future.delayed(const Duration(seconds: 2));
-    } else {
-      print('\n❌ Error after $maxRetries attempts: $e');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('\n✅ Mail sent successfully using the REAL template!');
+        print('   Check $recipientEmail inbox to verify rendering.');
+        break;
+      } else if (attempt < maxRetries) {
+        print('   Retrying in 2 seconds...');
+        await Future.delayed(const Duration(seconds: 2));
+      } else {
+        print('\n❌ Mail send failed after $maxRetries attempts.');
+      }
+    } catch (err) {
+      if (attempt < maxRetries) {
+        print('❌ Error: $err. Retrying in 2 seconds...');
+        await Future.delayed(const Duration(seconds: 2));
+      } else {
+        print('\n❌ Error after $maxRetries attempts: $err');
+      }
     }
   }
 }

@@ -22,29 +22,31 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
   final CustomThemeService _customThemeService = CustomThemeService();
 
   static const _themeDescriptions = <AppThemeMode, String>{
-    AppThemeMode.zeroTwo:       'Blood crimson & sakura pink — her signature aesthetic',
-    AppThemeMode.cyberPhantom:  'Electric cyan & violet — neon-drenched cyberpunk',
-    AppThemeMode.velvetNoir:    'Rose gold & champagne — luxury dark elegance',
-    AppThemeMode.toxicVenom:    'Acid green & lime — terminal hacker aesthetic',
-    AppThemeMode.astralDream:   'Lavender & aurora pink — ethereal cosmic dream',
-    AppThemeMode.infernoCore:   'Molten orange & lava red — volcanic intensity',
-    AppThemeMode.arcticBlade:   'Ice blue & frost white — minimal arctic blade',
+    AppThemeMode.zeroTwo:
+        'Blood crimson & sakura pink — her signature aesthetic',
+    AppThemeMode.cyberPhantom:
+        'Electric cyan & violet — neon-drenched cyberpunk',
+    AppThemeMode.velvetNoir: 'Rose gold & champagne — luxury dark elegance',
+    AppThemeMode.toxicVenom: 'Acid green & lime — terminal hacker aesthetic',
+    AppThemeMode.astralDream: 'Lavender & aurora pink — ethereal cosmic dream',
+    AppThemeMode.infernoCore: 'Molten orange & lava red — volcanic intensity',
+    AppThemeMode.arcticBlade: 'Ice blue & frost white — minimal arctic blade',
     AppThemeMode.goldenEmperor: '24K gold & bronze — royal opulence',
     AppThemeMode.phantomViolet: 'Deep purple & magenta — dark mystery',
-    AppThemeMode.oceanAbyss:    'Bioluminescent teal — deep sea glow',
+    AppThemeMode.oceanAbyss: 'Bioluminescent teal — deep sea glow',
   };
 
   static const _themeEmojis = <AppThemeMode, String>{
-    AppThemeMode.zeroTwo:       '🩸',
-    AppThemeMode.cyberPhantom:  '⚡',
-    AppThemeMode.velvetNoir:    '🥀',
-    AppThemeMode.toxicVenom:    '☠️',
-    AppThemeMode.astralDream:   '✨',
-    AppThemeMode.infernoCore:   '🌋',
-    AppThemeMode.arcticBlade:   '❄️',
+    AppThemeMode.zeroTwo: '🩸',
+    AppThemeMode.cyberPhantom: '⚡',
+    AppThemeMode.velvetNoir: '🥀',
+    AppThemeMode.toxicVenom: '☠️',
+    AppThemeMode.astralDream: '✨',
+    AppThemeMode.infernoCore: '🌋',
+    AppThemeMode.arcticBlade: '❄️',
     AppThemeMode.goldenEmperor: '👑',
     AppThemeMode.phantomViolet: '🔮',
-    AppThemeMode.oceanAbyss:    '🌊',
+    AppThemeMode.oceanAbyss: '🌊',
   };
 
   @override
@@ -81,18 +83,18 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
               child: Column(
                 children: [
                   Text('ATMOSPHERE',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.5,
-                    )),
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.5,
+                      )),
                   const SizedBox(height: 6),
                   Text('10 premium themes with unique fonts, effects & vibes',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white38,
-                      fontSize: 11,
-                    )),
+                      style: GoogleFonts.outfit(
+                        color: Colors.white38,
+                        fontSize: 11,
+                      )),
                 ],
               ),
             ),
@@ -131,12 +133,12 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('CREATE CUSTOM',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                    )),
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
+                      )),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: _showCreateThemeDialog,
@@ -145,27 +147,42 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.06),
+                            Colors.white.withValues(alpha: 0.02),
+                          ],
+                        ),
                         border: Border.all(
-                          color: Colors.white24,
+                          color: Colors.white.withValues(alpha: 0.18),
                           width: 1.5,
                         ),
-                        color: Colors.white.withValues(alpha: 0.03),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                            spreadRadius: 0,
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.add_circle_outline_rounded,
                             color: Colors.white54,
                             size: 24,
                           ),
                           const SizedBox(width: 12),
                           Text('Create New Theme',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white54,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            )),
+                              style: GoogleFonts.outfit(
+                                color: Colors.white54,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              )),
                         ],
                       ),
                     ),
@@ -190,19 +207,20 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('YOUR CUSTOM THEMES (${customThemes.length})',
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
-                        )),
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          )),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 120,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: customThemes.length,
-                          itemBuilder: (ctx, i) => _buildCustomThemePreview(customThemes[i]),
+                          itemBuilder: (ctx, i) =>
+                              _buildCustomThemePreview(customThemes[i]),
                         ),
                       ),
                     ],
@@ -229,7 +247,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: Text('Create New Theme', style: GoogleFonts.outfit(color: Colors.white)),
+        title: Text('Create New Theme',
+            style: GoogleFonts.outfit(color: Colors.white)),
         content: StatefulBuilder(
           builder: (dialogCtx, setState) => SingleChildScrollView(
             child: Column(
@@ -250,7 +269,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 ValueListenableBuilder<Color>(
                   valueListenable: primaryColorNotifier,
                   builder: (_, pc, __) => _colorPickerRow(
-                    'Primary', pc,
+                    'Primary',
+                    pc,
                     (c) {
                       primaryColorNotifier.value = c;
                       setState(() {});
@@ -261,7 +281,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 ValueListenableBuilder<Color>(
                   valueListenable: accentColorNotifier,
                   builder: (_, ac, __) => _colorPickerRow(
-                    'Accent', ac,
+                    'Accent',
+                    ac,
                     (c) {
                       accentColorNotifier.value = c;
                       setState(() {});
@@ -272,7 +293,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 ValueListenableBuilder<Color>(
                   valueListenable: backgroundColorNotifier,
                   builder: (_, bc, __) => _colorPickerRow(
-                    'Background', bc,
+                    'Background',
+                    bc,
                     (c) {
                       backgroundColorNotifier.value = c;
                       setState(() {});
@@ -283,7 +305,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 ValueListenableBuilder<Color>(
                   valueListenable: secondaryColorNotifier,
                   builder: (_, sc, __) => _colorPickerRow(
-                    'Secondary', sc,
+                    'Secondary',
+                    sc,
                     (c) {
                       secondaryColorNotifier.value = c;
                       setState(() {});
@@ -297,13 +320,15 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isNotEmpty) {
-                String hexColor(Color c) => '#${c.value.toRadixString(16).substring(2).toUpperCase()}';
-                
+                String hexColor(Color c) =>
+                    '#${c.value.toRadixString(16).substring(2).toUpperCase()}';
+
                 final theme = CustomTheme(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   name: nameCtrl.text.trim(),
@@ -321,7 +346,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 }
               }
             },
-            child: const Text('Create', style: TextStyle(color: Colors.greenAccent)),
+            child: const Text('Create',
+                style: TextStyle(color: Colors.greenAccent)),
           ),
         ],
       ),
@@ -332,10 +358,18 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
+        Text(label,
+            style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
         GestureDetector(
           onTap: () {
-            final colors = [Colors.red, Colors.blue, Colors.green, Colors.purple, Colors.orange, Colors.pink];
+            final colors = [
+              Colors.red,
+              Colors.blue,
+              Colors.green,
+              Colors.purple,
+              Colors.orange,
+              Colors.pink
+            ];
             int currentIndex = 0;
             for (int i = 0; i < colors.length; i++) {
               if (colors[i].value == color.value) {
@@ -374,19 +408,24 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text(theme.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            )),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              )),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _swatch(Color(int.parse(theme.primaryColor.replaceFirst('#', '0xff'))), 12),
+              _swatch(
+                  Color(
+                      int.parse(theme.primaryColor.replaceFirst('#', '0xff'))),
+                  12),
               const SizedBox(width: 4),
-              _swatch(Color(int.parse(theme.accentColor.replaceFirst('#', '0xff'))), 10),
+              _swatch(
+                  Color(int.parse(theme.accentColor.replaceFirst('#', '0xff'))),
+                  10),
             ],
           ),
           Row(
@@ -397,7 +436,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   // Apply custom theme
                   debugPrint('Applying custom theme: ${theme.name}');
                 },
-                child: const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 16),
+                child: const Icon(Icons.check_circle_outline,
+                    color: Colors.greenAccent, size: 16),
               ),
               const SizedBox(width: 8),
               GestureDetector(
@@ -405,7 +445,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   await _customThemeService.deleteCustomTheme(theme.id);
                   setState(() {});
                 },
-                child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                child: const Icon(Icons.delete_outline,
+                    color: Colors.redAccent, size: 16),
               ),
             ],
           ),
@@ -453,26 +494,26 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('ACTIVE THEME',
-                      style: GoogleFonts.outfit(
-                        color: primary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                      )),
+                        style: GoogleFonts.outfit(
+                          color: primary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                        )),
                     const SizedBox(height: 2),
                     Text(name,
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      )),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                        )),
                     const SizedBox(height: 4),
                     Text(_themeDescriptions[mode] ?? '',
-                      style: GoogleFonts.outfit(
-                        color: Colors.white54,
-                        fontSize: 11,
-                        height: 1.3,
-                      )),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white54,
+                          fontSize: 11,
+                          height: 1.3,
+                        )),
                   ],
                 ),
               ),
@@ -483,7 +524,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildThemeCard(AppThemeMode mode, AppThemeMode current, ThemeProvider tp) {
+  Widget _buildThemeCard(
+      AppThemeMode mode, AppThemeMode current, ThemeProvider tp) {
     final isActive = mode == current;
     final td = AppThemes.getRawTheme(mode);
     final primary = td.colorScheme.primary;
@@ -510,17 +552,36 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
               gradient[0],
               gradient[1],
               gradient[2],
+              gradient.length > 3 ? gradient[3] : gradient[2],
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           border: Border.all(
-            color: isActive ? primary : Colors.white.withValues(alpha: 0.08),
+            color: isActive
+                ? primary.withValues(alpha: 0.8)
+                : Colors.white.withValues(alpha: 0.08),
             width: isActive ? 2.5 : 1,
           ),
           boxShadow: isActive
-              ? [BoxShadow(color: primary.withValues(alpha: 0.35), blurRadius: 20, spreadRadius: 2)]
-              : [],
+              ? [
+                  BoxShadow(
+                      color: primary.withValues(alpha: 0.45),
+                      blurRadius: 24,
+                      spreadRadius: 2),
+                  BoxShadow(
+                      color: primary.withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                      spreadRadius: -2),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Stack(
           children: [
@@ -548,19 +609,33 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       Text(emoji, style: const TextStyle(fontSize: 28)),
                       if (isActive)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: primary.withValues(alpha: 0.3),
+                            gradient: LinearGradient(
+                              colors: [
+                                primary.withValues(alpha: 0.4),
+                                primary.withValues(alpha: 0.2),
+                              ],
+                            ),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: primary.withValues(alpha: 0.6)),
+                            border: Border.all(
+                                color: primary.withValues(alpha: 0.7)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Text('ACTIVE',
-                            style: GoogleFonts.outfit(
-                              color: primary,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1,
-                            )),
+                              style: GoogleFonts.outfit(
+                                color: primary,
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
+                              )),
                         ),
                     ],
                   ),
@@ -568,22 +643,22 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
 
                   // Theme name
                   Text(name,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    )),
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      )),
                   const SizedBox(height: 4),
 
                   // Description
                   Text(_themeDescriptions[mode] ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white38,
-                      fontSize: 9.5,
-                      height: 1.3,
-                    )),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white38,
+                        fontSize: 9.5,
+                        height: 1.3,
+                      )),
                   const SizedBox(height: 10),
 
                   // Color swatches
@@ -597,7 +672,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       const Spacer(),
                       // Style badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(6),
@@ -620,7 +696,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       color: Colors.white.withValues(alpha: 0.04),
                       child: Text(
                         style.hintText,
@@ -647,26 +724,34 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
         shape: BoxShape.circle,
         color: c,
         boxShadow: [BoxShadow(color: c.withValues(alpha: 0.4), blurRadius: 6)],
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
       ),
     );
   }
 
   String _particleName(ParticleType t) {
     switch (t) {
-      case ParticleType.sakura:  return '🌸 sakura';
-      case ParticleType.rain:    return '🌧 rain';
-      case ParticleType.circles: return '○ circles';
-      case ParticleType.lines:   return '║ lines';
-      case ParticleType.stars:   return '★ stars';
-      case ParticleType.embers:  return '🔥 embers';
-      case ParticleType.snow:    return '❄ snow';
-      case ParticleType.squares: return '◆ squares';
-      case ParticleType.bubbles: return '○ bubbles';
-      case ParticleType.leaves:  return '🍃 leaves';
+      case ParticleType.sakura:
+        return '🌸 sakura';
+      case ParticleType.rain:
+        return '🌧 rain';
+      case ParticleType.circles:
+        return '○ circles';
+      case ParticleType.lines:
+        return '║ lines';
+      case ParticleType.stars:
+        return '★ stars';
+      case ParticleType.embers:
+        return '🔥 embers';
+      case ParticleType.snow:
+        return '❄ snow';
+      case ParticleType.squares:
+        return '◆ squares';
+      case ParticleType.bubbles:
+        return '○ bubbles';
+      case ParticleType.leaves:
+        return '🍃 leaves';
     }
   }
 }
-
-
-

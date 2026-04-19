@@ -97,10 +97,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.pinkAccent.withValues(alpha: 0.4),
-                              blurRadius: 20,
+                              color: Colors.pinkAccent.withValues(alpha: 0.5),
+                              blurRadius: 24,
                               spreadRadius: 4,
-                            )
+                            ),
+                            BoxShadow(
+                              color: Colors.pinkAccent.withValues(alpha: 0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                              spreadRadius: -2,
+                            ),
                           ],
                         ),
                         child: CircleAvatar(
@@ -198,8 +204,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withValues(alpha: 0.04),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.06),
+            Colors.white.withValues(alpha: 0.02),
+          ],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: children),
@@ -274,7 +295,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 }
-
-
-
-

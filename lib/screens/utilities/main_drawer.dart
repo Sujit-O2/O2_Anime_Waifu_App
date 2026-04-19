@@ -17,27 +17,43 @@ extension _MainDrawerExtension on _ChatHomePageState {
           gradient: selected
               ? LinearGradient(
                   colors: [
-                    primary.withValues(alpha: 0.28),
-                    primary.withValues(alpha: 0.08)
+                    primary.withValues(alpha: 0.32),
+                    primary.withValues(alpha: 0.10)
                   ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 )
-              : null,
+              : LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.03),
+                    Colors.white.withValues(alpha: 0.01),
+                  ],
+                ),
           border: Border.all(
             color: selected
-                ? primary.withValues(alpha: 0.5)
+                ? primary.withValues(alpha: 0.6)
                 : Colors.white.withValues(alpha: 0.04),
             width: selected ? 1.5 : 1,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                      color: primary.withValues(alpha: 0.25),
-                      blurRadius: 16,
+                      color: primary.withValues(alpha: 0.35),
+                      blurRadius: 20,
                       spreadRadius: -2),
+                  BoxShadow(
+                      color: primary.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                      spreadRadius: -1),
                 ]
-              : null,
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -61,7 +77,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   color: primary,
                   boxShadow: [
                     BoxShadow(
-                        color: primary.withValues(alpha: 0.7), blurRadius: 6)
+                        color: primary.withValues(alpha: 0.8), blurRadius: 8)
                   ],
                 ),
               ),
@@ -74,17 +90,21 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   borderRadius: BorderRadius.circular(8),
                   gradient: selected
                       ? LinearGradient(
-                          colors: [primary, primary.withValues(alpha: 0.65)],
+                          colors: [primary, primary.withValues(alpha: 0.7)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
-                      : null,
-                  color: selected ? null : Colors.white.withValues(alpha: 0.07),
+                      : LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.09),
+                            Colors.white.withValues(alpha: 0.04),
+                          ],
+                        ),
                   boxShadow: selected
                       ? [
                           BoxShadow(
-                              color: primary.withValues(alpha: 0.4),
-                              blurRadius: 10)
+                              color: primary.withValues(alpha: 0.5),
+                              blurRadius: 12),
                         ]
                       : null,
                 ),
@@ -108,10 +128,10 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                        colors: [primary, primary.withValues(alpha: 0.6)]),
+                        colors: [primary, primary.withValues(alpha: 0.7)]),
                     boxShadow: [
                       BoxShadow(
-                          color: primary.withValues(alpha: 0.5), blurRadius: 6)
+                          color: primary.withValues(alpha: 0.6), blurRadius: 8),
                     ],
                   ),
                   child: Center(
@@ -1406,6 +1426,3 @@ class _XPShimmerOverlayState extends State<_XPShimmerOverlay>
     );
   }
 }
-
-
-

@@ -1,6 +1,17 @@
 import 'package:flutter/foundation.dart';
 
-import 'constants.dart';
+/// Error message constants
+class ErrorMessages {
+  static const String networkError =
+      'Network error. Please check your connection.';
+  static const String networkTimeout = 'Request timed out. Please try again.';
+  static const String unauthorized = 'Session expired. Please sign in again.';
+  static const String forbidden = 'Access denied.';
+  static const String notFound = 'Resource not found.';
+  static const String invalidInput = 'Invalid input provided.';
+  static const String databaseError = 'Database operation failed.';
+  static const String unexpectedError = 'An unexpected error occurred.';
+}
 
 /// Custom exception classes for the application
 class AppException implements Exception {
@@ -21,35 +32,43 @@ class AppException implements Exception {
 }
 
 class NetworkException extends AppException {
-  NetworkException({String? message}) : super(message: message ?? ErrorMessages.networkError);
+  NetworkException({String? message})
+      : super(message: message ?? ErrorMessages.networkError);
 }
 
 class TimeoutException extends AppException {
-  TimeoutException({String? message}) : super(message: message ?? ErrorMessages.networkTimeout);
+  TimeoutException({String? message})
+      : super(message: message ?? ErrorMessages.networkTimeout);
 }
 
 class UnauthorizedException extends AppException {
-  UnauthorizedException({String? message}) : super(message: message ?? ErrorMessages.unauthorized);
+  UnauthorizedException({String? message})
+      : super(message: message ?? ErrorMessages.unauthorized);
 }
 
 class ForbiddenException extends AppException {
-  ForbiddenException({String? message}) : super(message: message ?? ErrorMessages.forbidden);
+  ForbiddenException({String? message})
+      : super(message: message ?? ErrorMessages.forbidden);
 }
 
 class NotFoundException extends AppException {
-  NotFoundException({String? message}) : super(message: message ?? ErrorMessages.notFound);
+  NotFoundException({String? message})
+      : super(message: message ?? ErrorMessages.notFound);
 }
 
 class ValidationException extends AppException {
-  ValidationException({String? message}) : super(message: message ?? ErrorMessages.invalidInput);
+  ValidationException({String? message})
+      : super(message: message ?? ErrorMessages.invalidInput);
 }
 
 class DatabaseException extends AppException {
-  DatabaseException({String? message}) : super(message: message ?? ErrorMessages.databaseError);
+  DatabaseException({String? message})
+      : super(message: message ?? ErrorMessages.databaseError);
 }
 
 class CacheException extends AppException {
-  CacheException({String? message}) : super(message: message ?? 'Cache operation failed');
+  CacheException({String? message})
+      : super(message: message ?? 'Cache operation failed');
 }
 
 /// Central error handler for the application
@@ -63,7 +82,8 @@ class ErrorHandler {
   ErrorHandler._internal();
 
   /// Handle network exceptions
-  static AppException handleNetworkException(dynamic error, StackTrace? stackTrace) {
+  static AppException handleNetworkException(
+      dynamic error, StackTrace? stackTrace) {
     if (error is TimeoutException) {
       return TimeoutException();
     } else if (error is NetworkException) {
@@ -73,7 +93,8 @@ class ErrorHandler {
   }
 
   /// Handle Firebase exceptions
-  static AppException handleFirebaseException(dynamic error, StackTrace? stackTrace) {
+  static AppException handleFirebaseException(
+      dynamic error, StackTrace? stackTrace) {
     final errorString = error.toString();
 
     if (errorString.contains('permission-denied')) {
@@ -130,7 +151,9 @@ class ErrorHandler {
     } else if (exception is DatabaseException) {
       return ErrorMessages.databaseError;
     }
-    return exception.message.isEmpty ? ErrorMessages.unexpectedError : exception.message;
+    return exception.message.isEmpty
+        ? ErrorMessages.unexpectedError
+        : exception.message;
   }
 
   /// Log error to console (development only)
@@ -224,7 +247,8 @@ class Result<T> {
   }
 
   /// Get error message or null
-  String? getErrorMessage() => isSuccess ? null : ErrorHandler.getUserMessage(error!);
+  String? getErrorMessage() =>
+      isSuccess ? null : ErrorHandler.getUserMessage(error!);
 }
 
 /// Safe async wrapper
@@ -250,5 +274,3 @@ Result<T> safe<T>(T Function() operation) {
     );
   }
 }
-
-

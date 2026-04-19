@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:anime_waifu/core/constants.dart';
 import 'package:anime_waifu/services/ai_personalization/offline_ai_service.dart';
 import 'package:anime_waifu/services/database_storage/long_term_memory_db.dart';
 import 'package:flutter/foundation.dart';
@@ -96,49 +97,6 @@ class ApiService {
     final now = DateTime.now().toString();
     String timeContext =
         " [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]";
-
-    // Phase 2: AI Evolution & Intimacy (Personality & Auto-Learning)
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final customPrompt = prefs.getString('ai_personality_prompt');
-      if (customPrompt != null && customPrompt.isNotEmpty) {
-        timeContext += '\n[PERSONALITY OVERRIDE: $customPrompt]';
-      }
-
-      final autoPrefsStr = prefs.getString('auto_learning_prefs');
-      if (autoPrefsStr != null) {
-        final autoPrefs = jsonDecode(autoPrefsStr) as Map<String, dynamic>;
-        final overrides = <String>[];
-        if (((autoPrefs['humor'] as num?) ?? 50) > 75) {
-          overrides.add('Use high amounts of humor and jokes.');
-        }
-        if (((autoPrefs['humor'] as num?) ?? 50) < 25) {
-          overrides.add('Be extremely serious, zero jokes.');
-        }
-        if (((autoPrefs['sass'] as num?) ?? 50) > 75) {
-          overrides.add('Act highly sarcastic and playfully tease the user.');
-        }
-        if (((autoPrefs['techTalk'] as num?) ?? 50) > 75) {
-          overrides.add('Use advanced software engineering jargon seamlessly.');
-        }
-        if (((autoPrefs['techTalk'] as num?) ?? 50) < 25) {
-          overrides.add('Explain things very simply, avoid technical terms.');
-        }
-        if (((autoPrefs['formality'] as num?) ?? 50) > 75) {
-          overrides.add('Speak formally, like a polite assistant.');
-        }
-        if (((autoPrefs['formality'] as num?) ?? 50) < 25) {
-          overrides.add('Speak casually with slang and lower-case text.');
-        }
-
-        if (overrides.isNotEmpty) {
-          timeContext += '\n[AUTO-LEARNED TRAITS: ${overrides.join(' ')}]';
-        }
-      }
-    } catch (e) {
-      debugPrint('AI Evolution Override Error: $e');
-    }
 
     // Extract the valid user/assistant history
     var historyMessages = messages.where((m) => m['role'] != 'system').toList();
@@ -246,9 +204,9 @@ class ApiService {
           final emailRegex =
               RegExp(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}");
           final match = emailRegex.firstMatch(content);
-          var mail = "Sujitswain077@gmail.com";
-          if (match != null) {
-            mail = match.group(0)!.toString();
+          var mail = Defaults.defaultEmail;
+          if (match != null && match.group(0) != null) {
+            mail = match.group(0)!;
             debugPrint("Extracted Email: ${match.group(0)}");
           }
           const extSub = "Zero Two";
@@ -360,7 +318,8 @@ class ApiService {
 
     // Validate API key format (should start with xkeysib-)
     if (!brevoKey.startsWith('xkeysib-')) {
-      debugPrint("❌ Brevo API key format invalid. Expected to start with 'xkeysib-'");
+      debugPrint(
+          "❌ Brevo API key format invalid. Expected to start with 'xkeysib-'");
       return "❌ Brevo API key format is invalid. Check that it starts with 'xkeysib-'.";
     }
 
@@ -400,7 +359,7 @@ class ApiService {
             body: jsonEncode({
               "sender": {
                 "name": "Zero Two",
-                "email": "zerozerotwoxsujit@gmail.com"
+                "email": Defaults.defaultSenderEmail
               },
               "to": [
                 {"email": normalizedMail}
@@ -436,14 +395,14 @@ class ApiService {
     }
   }
 
-  /// Auto-feeds user interactions into the Memory Stack & Knowledge Graph
+  /// Auto-feeds user interactions into the Memory Stack
   Future<void> _updateBrainArchitecture(String userMessage) async {
     if (userMessage.trim().isEmpty) return;
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // 1. Update Memory Stack (Short-term)
-      final memData = prefs.getString('memory_stack_data');
+      // Update Memory Stack (Short-term)
+      final memData = prefs.getString(PrefsKeys.memoryStackData);
       Map<String, dynamic> memories = {
         'short': [],
         'long': [],
@@ -472,48 +431,11 @@ class ApiService {
       });
       if (shortMem.length > 20) shortMem = shortMem.sublist(0, 20);
       memories['short'] = shortMem;
-      await prefs.setString('memory_stack_data', jsonEncode(memories));
-
-      // 2. Update Knowledge Graph (Pseudo-Extraction)
-      if (userMessage.length > 15) {
-        final graphData = prefs.getString('knowledge_graph_data');
-        List nodes = [];
-        List edges = [];
-
-        if (graphData != null) {
-          final decoded = jsonDecode(graphData);
-          nodes = decoded['nodes'] ?? [];
-          edges = decoded['edges'] ?? [];
-        }
-
-        // Find longest word as dummy entity extraction for graph evolution
-        final words = userMessage.replaceAll(RegExp(r'[^\w\s]'), '').split(' ');
-        words.sort((a, b) => b.length.compareTo(a.length));
-        if (words.isNotEmpty && words.first.length > 4) {
-          final entity = words.first.toLowerCase();
-          final nodeId = 'node_\${DateTime.now().millisecondsSinceEpoch}';
-
-          // Check if entity exists
-          bool exists =
-              nodes.any((n) => n['label'].toString().toLowerCase() == entity);
-          if (!exists) {
-            nodes.add({'id': nodeId, 'label': entity, 'type': 'concept'});
-            edges.add(
-                {'source': 'user', 'target': nodeId, 'label': 'mentioned'});
-
-            // Keep graph visual clean
-            if (nodes.length > 40) nodes.removeAt(1); // Keep 'user' root at 0
-            if (edges.length > 40) edges.removeAt(0);
-
-            await prefs.setString('knowledge_graph_data',
-                jsonEncode({'nodes': nodes, 'edges': edges}));
-          }
-        }
-      }
+      await prefs.setString(PrefsKeys.memoryStackData, jsonEncode(memories));
     } catch (e) {
-      debugPrint('Brain Architecture Sync Error: \$e');
+      if (kDebugMode) {
+        debugPrint('Brain Architecture Sync Error: $e');
+      }
     }
   }
 }
-
-

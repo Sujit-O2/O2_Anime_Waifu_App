@@ -55,48 +55,49 @@ class MasterStateObject {
     // Collect active conversation thread topics
     final threads = ConversationThreadMemory.instance.allThreads;
     final activeTopics = threads.entries
-        .where((e) => DateTime.now().difference(e.value.lastUpdated).inHours < 24)
+        .where(
+            (e) => DateTime.now().difference(e.value.lastUpdated).inHours < 24)
         .map((e) => e.key)
         .take(3)
         .toList();
 
     return MasterSnapshot(
       // ── Personality & Emotion ─────────────────────────────────────────────
-      personalityAffection:  pe.affection,
-      personalityJealousy:   pe.jealousy,
-      personalityTrust:      pe.trust,
+      personalityAffection: pe.affection,
+      personalityJealousy: pe.jealousy,
+      personalityTrust: pe.trust,
       personalityPlayfulness: pe.playfulness,
       personalityDependency: pe.dependency,
-      mood:                  pe.mood.name,
-      moodLabel:             pe.mood.label,
+      mood: pe.mood.name,
+      moodLabel: pe.mood.label,
 
       // ── Attention & Engagement ─────────────────────────────────────────────
-      attentionLevel:        attn.level,
-      avgReplySpeedSeconds:  attn.avgReplySpeedSeconds,
-      silenceDuration:       emotion.silenceDuration,
+      attentionLevel: attn.level,
+      avgReplySpeedSeconds: attn.avgReplySpeedSeconds,
+      silenceDuration: emotion.silenceDuration,
 
       // ── Life State ────────────────────────────────────────────────────────
-      lifeState:             lifeSvc.current,
-      lifeEnergy:            lifeSvc.energy,
-      isAiSleeping:          lifeSvc.isSleeping,
+      lifeState: lifeSvc.current,
+      lifeEnergy: lifeSvc.energy,
+      isAiSleeping: lifeSvc.isSleeping,
 
       // ── Real World Context ──────────────────────────────────────────────
-      deviceContext:         presence.current,
+      deviceContext: presence.current,
 
       // ── Relationship Progress ─────────────────────────────────────────────
-      affectionPoints:       affSvc.points,
-      streakDays:            affSvc.streakDays,
-      worldLevel:            world.world.level,
-      worldTheme:            world.world.theme,
+      affectionPoints: affSvc.points,
+      streakDays: affSvc.streakDays,
+      worldLevel: world.world.level,
+      worldTheme: world.world.theme,
 
       // ── Conversation State ────────────────────────────────────────────────
-      activeThreadTopics:    activeTopics,
-      timeOfDay:             ContextAwarenessService.getTimePeriod(),
-      isWeekend:             ContextAwarenessService.isWeekend,
+      activeThreadTopics: activeTopics,
+      timeOfDay: ContextAwarenessService.getTimePeriod(),
+      isWeekend: ContextAwarenessService.isWeekend,
 
       // ── Habit ──────────────────────────────────────────────────────────────
-      routineHour:           habit.model.routineHour,
-      snapshotAt:            DateTime.now(),
+      routineHour: habit.model.routineHour,
+      snapshotAt: DateTime.now(),
     );
   }
 
@@ -115,7 +116,8 @@ class MasterStateObject {
 
     // Conversation threads (same-topic history)
     final currentTopic = snap.activeThreadTopics.firstOrNull ?? 'general';
-    buf.write(ConversationThreadMemory.instance.getRelevantThreadsBlock(currentTopic));
+    buf.write(ConversationThreadMemory.instance
+        .getRelevantThreadsBlock(currentTopic));
 
     // World state
     buf.write(PersonalWorldBuilder.instance.getWorldContextBlock());
@@ -131,19 +133,23 @@ class MasterStateObject {
 
     // Attention-based instruction
     if (snap.attentionLevel == AttentionLevel.low) {
-      buf.writeln('// CRITICAL: User attention is LOW. Keep response under 2 sentences. Be impactful.');
+      buf.writeln(
+          '// CRITICAL: User attention is LOW. Keep response under 2 sentences. Be impactful.');
     } else if (snap.attentionLevel == AttentionLevel.high) {
-      buf.writeln('// User is fully engaged. You can go deeper, be more expressive.');
+      buf.writeln(
+          '// User is fully engaged. You can go deeper, be more expressive.');
     }
 
     // Silence state
     final silenceMins = snap.silenceDuration.inMinutes;
     if (silenceMins > 5) {
-      buf.writeln('// User has been quiet for $silenceMins minute(s). React to this naturally.');
+      buf.writeln(
+          '// User has been quiet for $silenceMins minute(s). React to this naturally.');
     }
 
     // World-based atmosphere hint
-    buf.writeln('// Shared world: Level ${snap.worldLevel} — ${snap.worldTheme.displayName}');
+    buf.writeln(
+        '// Shared world: Level ${snap.worldLevel} — ${snap.worldTheme.displayName}');
 
     return buf.toString();
   }
@@ -151,7 +157,8 @@ class MasterStateObject {
   // ── Proactive Router ───────────────────────────────────────────────────────
   /// Single entry point for ALL proactive/autonomous messages.
   /// Returns the highest-priority message to send, or null.
-  Future<String?> checkForAutonomousMessage({required String personaName}) async {
+  Future<String?> checkForAutonomousMessage(
+      {required String personaName}) async {
     final snap = await getSnapshot();
 
     // 1. Life state message (morning wake-up, late night, etc.)
@@ -159,7 +166,8 @@ class MasterStateObject {
     if (lifMsg != null) return lifMsg;
 
     // 2. Real-world presence reaction (app, music, battery)
-    final presenceMsg = await RealWorldPresenceEngine.instance.checkForAutonomousReaction(
+    final presenceMsg =
+        await RealWorldPresenceEngine.instance.checkForAutonomousReaction(
       personaName: personaName,
       silenceSince: snap.silenceDuration,
     );
@@ -178,7 +186,8 @@ class MasterStateObject {
     }
 
     // 5. Self-initiated topic / absence message
-    final initiatedMsg = await SelfInitiatedTopicsService.instance.checkForInitiation(
+    final initiatedMsg =
+        await SelfInitiatedTopicsService.instance.checkForInitiation(
       silenceDuration: snap.silenceDuration,
       personaName: personaName,
     );
@@ -261,5 +270,3 @@ class MasterSnapshot {
     required this.snapshotAt,
   });
 }
-
-

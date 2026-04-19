@@ -29,25 +29,96 @@ class EmotionBubbleTheme {
 
   static EmotionBubbleTheme detect(String text) {
     final t = text.toLowerCase();
-    if (_any(t, ['love', 'adore', 'cherish', 'miss you', 'i love', 'heart', '❤', '💕', '💗', 'kisses'])) {
+    if (_any(t, [
+      'love',
+      'adore',
+      'cherish',
+      'miss you',
+      'i love',
+      'heart',
+      '❤',
+      '💕',
+      '💗',
+      'kisses'
+    ])) {
       return _love;
     }
-    if (_any(t, ['haha', 'lol', 'funny', 'laugh', 'lmao', '😂', '🤣', 'hilarious', 'joke', 'tease'])) {
+    if (_any(t, [
+      'haha',
+      'lol',
+      'funny',
+      'laugh',
+      'lmao',
+      '😂',
+      '🤣',
+      'hilarious',
+      'joke',
+      'tease'
+    ])) {
       return _amused;
     }
-    if (_any(t, ['sad', 'cry', 'sorry', 'hurt', 'lonely', 'miss', 'broken', '😢', '😭', 'depressed'])) {
+    if (_any(t, [
+      'sad',
+      'cry',
+      'sorry',
+      'hurt',
+      'lonely',
+      'miss',
+      'broken',
+      '😢',
+      '😭',
+      'depressed'
+    ])) {
       return _sad;
     }
-    if (_any(t, ['angry', 'mad', 'upset', 'hate', 'jealous', 'possessive', '😠', '😤', 'frustrated'])) {
+    if (_any(t, [
+      'angry',
+      'mad',
+      'upset',
+      'hate',
+      'jealous',
+      'possessive',
+      '😠',
+      '😤',
+      'frustrated'
+    ])) {
       return _angry;
     }
-    if (_any(t, ['wow', 'amazing', 'excited', 'yay', 'incredible', '🎉', '✨', 'awesome', 'fantastic'])) {
+    if (_any(t, [
+      'wow',
+      'amazing',
+      'excited',
+      'yay',
+      'incredible',
+      '🎉',
+      '✨',
+      'awesome',
+      'fantastic'
+    ])) {
       return _excited;
     }
-    if (_any(t, ['shy', 'blush', '>///<', 'embarrassed', 'flustered', 'b-baka', 'uwu'])) {
+    if (_any(t, [
+      'shy',
+      'blush',
+      '>///<',
+      'embarrassed',
+      'flustered',
+      'b-baka',
+      'uwu'
+    ])) {
       return _shy;
     }
-    if (_any(t, ['night', 'sleep', 'tired', 'dream', 'rest', 'sleepy', '🌙', '💤', 'good night'])) {
+    if (_any(t, [
+      'night',
+      'sleep',
+      'tired',
+      'dream',
+      'rest',
+      'sleepy',
+      '🌙',
+      '💤',
+      'good night'
+    ])) {
       return _sleepy;
     }
     return _neutral;
@@ -228,15 +299,59 @@ class _MoodGradientBackgroundState extends State<MoodGradientBackground>
 
   static List<Color> _colorsForMood(String label) {
     final l = label.toLowerCase();
-    if (l.contains('happy'))   return [const Color(0xFF1A0A1E), const Color(0xFF2D0A24), const Color(0xFF1A0A1E)];
-    if (l.contains('playful')) return [const Color(0xFF1A0D00), const Color(0xFF2A1500), const Color(0xFF0D0A00)];
-    if (l.contains('clingy'))  return [const Color(0xFF1E0015), const Color(0xFF3A0030), const Color(0xFF1A0015)];
-    if (l.contains('jealous')) return [const Color(0xFF1A0800), const Color(0xFF2A1000), const Color(0xFF150600)];
-    if (l.contains('cold'))    return [const Color(0xFF001629), const Color(0xFF00203D), const Color(0xFF001020)];
-    if (l.contains('guarded')) return [const Color(0xFF120020), const Color(0xFF1E0035), const Color(0xFF0E0018)];
-    if (l.contains('sad'))     return [const Color(0xFF080E1A), const Color(0xFF0F1628), const Color(0xFF060A14)];
-    if (l.contains('sleepy'))  return [const Color(0xFF050810), const Color(0xFF0A0E1B), const Color(0xFF040609)];
-    return [const Color(0xFF0D0D19), const Color(0xFF16161E), const Color(0xFF0D0D19)];
+    if (l.contains('happy'))
+      return [
+        const Color(0xFF1A0A1E),
+        const Color(0xFF2D0A24),
+        const Color(0xFF1A0A1E)
+      ];
+    if (l.contains('playful'))
+      return [
+        const Color(0xFF1A0D00),
+        const Color(0xFF2A1500),
+        const Color(0xFF0D0A00)
+      ];
+    if (l.contains('clingy'))
+      return [
+        const Color(0xFF1E0015),
+        const Color(0xFF3A0030),
+        const Color(0xFF1A0015)
+      ];
+    if (l.contains('jealous'))
+      return [
+        const Color(0xFF1A0800),
+        const Color(0xFF2A1000),
+        const Color(0xFF150600)
+      ];
+    if (l.contains('cold'))
+      return [
+        const Color(0xFF001629),
+        const Color(0xFF00203D),
+        const Color(0xFF001020)
+      ];
+    if (l.contains('guarded'))
+      return [
+        const Color(0xFF120020),
+        const Color(0xFF1E0035),
+        const Color(0xFF0E0018)
+      ];
+    if (l.contains('sad'))
+      return [
+        const Color(0xFF080E1A),
+        const Color(0xFF0F1628),
+        const Color(0xFF060A14)
+      ];
+    if (l.contains('sleepy'))
+      return [
+        const Color(0xFF050810),
+        const Color(0xFF0A0E1B),
+        const Color(0xFF040609)
+      ];
+    return [
+      const Color(0xFF0D0D19),
+      const Color(0xFF16161E),
+      const Color(0xFF0D0D19)
+    ];
   }
 
   @override
@@ -310,8 +425,14 @@ class _Particle {
   double size;
   double opacity;
   String emoji;
-  _Particle({required this.x, required this.y, required this.vx,
-    required this.vy, required this.size, required this.opacity, required this.emoji});
+  _Particle(
+      {required this.x,
+      required this.y,
+      required this.vx,
+      required this.vy,
+      required this.size,
+      required this.opacity,
+      required this.emoji});
 }
 
 class ParticleOverlay extends StatefulWidget {
@@ -329,9 +450,10 @@ class ParticleOverlayState extends State<ParticleOverlay>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 60))
-      ..addListener(_tick)
-      ..repeat();
+    _ctrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 60))
+          ..addListener(_tick)
+          ..repeat();
   }
 
   void trigger(String emotion) {
@@ -355,12 +477,18 @@ class ParticleOverlayState extends State<ParticleOverlay>
 
   static List<String> _emojisFor(String emotion) {
     switch (emotion) {
-      case 'love':     return ['❤️', '💕', '💗', '💖', '✨'];
-      case 'amused':   return ['😂', '⭐', '✨', '🌟', '💫'];
-      case 'excited':  return ['🎉', '✨', '🌟', '💫', '🎊'];
-      case 'sad':      return ['🥹', '💙', '🌊', '💧', '🫶'];
-      case 'love_sent': return ['💌', '💕', '❤️', '🌸', '💗'];
-      default:         return ['✨', '💫', '⭐', '🌟', '💖'];
+      case 'love':
+        return ['❤️', '💕', '💗', '💖', '✨'];
+      case 'amused':
+        return ['😂', '⭐', '✨', '🌟', '💫'];
+      case 'excited':
+        return ['🎉', '✨', '🌟', '💫', '🎊'];
+      case 'sad':
+        return ['🥹', '💙', '🌊', '💧', '🫶'];
+      case 'love_sent':
+        return ['💌', '💕', '❤️', '🌸', '💗'];
+      default:
+        return ['✨', '💫', '⭐', '🌟', '💖'];
     }
   }
 
@@ -416,7 +544,8 @@ class EnhancedTypingIndicator extends StatefulWidget {
   const EnhancedTypingIndicator({super.key, required this.moodLabel});
 
   @override
-  State<EnhancedTypingIndicator> createState() => _EnhancedTypingIndicatorState();
+  State<EnhancedTypingIndicator> createState() =>
+      _EnhancedTypingIndicatorState();
 }
 
 class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
@@ -429,7 +558,7 @@ class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
   static int _speedMs(String mood) {
     final l = mood.toLowerCase();
     if (l.contains('excited') || l.contains('playful')) return 220;
-    if (l.contains('happy'))  return 300;
+    if (l.contains('happy')) return 300;
     if (l.contains('sad') || l.contains('sleepy')) return 600;
     if (l.contains('cold') || l.contains('guarded')) return 500;
     return 380;
@@ -437,24 +566,24 @@ class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
 
   static Color _dotColor(String mood) {
     final l = mood.toLowerCase();
-    if (l.contains('jealous'))  return const Color(0xFFFF6B35);
-    if (l.contains('cold'))     return const Color(0xFF79C0FF);
-    if (l.contains('sad'))      return const Color(0xFF79C0FF);
-    if (l.contains('guarded'))  return const Color(0xFFBB52FF);
-    if (l.contains('clingy'))   return const Color(0xFFFF4FA8);
-    if (l.contains('playful'))  return const Color(0xFFFFD700);
+    if (l.contains('jealous')) return const Color(0xFFFF6B35);
+    if (l.contains('cold')) return const Color(0xFF79C0FF);
+    if (l.contains('sad')) return const Color(0xFF79C0FF);
+    if (l.contains('guarded')) return const Color(0xFFBB52FF);
+    if (l.contains('clingy')) return const Color(0xFFFF4FA8);
+    if (l.contains('playful')) return const Color(0xFFFFD700);
     return const Color(0xFFFF4FA8);
   }
 
   static String _moodText(String mood) {
     final l = mood.toLowerCase();
-    if (l.contains('sad'))     return 'thinking slowly...';
-    if (l.contains('sleepy'))  return 'yawning...';
+    if (l.contains('sad')) return 'thinking slowly...';
+    if (l.contains('sleepy')) return 'yawning...';
     if (l.contains('excited')) return 'typing fast!!';
     if (l.contains('jealous')) return 'hmph...';
-    if (l.contains('cold'))    return '...';
+    if (l.contains('cold')) return '...';
     if (l.contains('playful')) return 'teehee~';
-    if (l.contains('clingy'))  return 'thinking of you~';
+    if (l.contains('clingy')) return 'thinking of you~';
     return 'typing...';
   }
 
@@ -462,19 +591,22 @@ class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
   void initState() {
     super.initState();
     final speed = _speedMs(widget.moodLabel);
-    _dotCtrls = List.generate(3, (i) => AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: speed),
-    ));
-    _dotAnims = _dotCtrls.map((c) =>
-      Tween<double>(begin: 0, end: -8).animate(
-        CurvedAnimation(parent: c, curve: Curves.easeInOut))).toList();
+    _dotCtrls = List.generate(
+        3,
+        (i) => AnimationController(
+              vsync: this,
+              duration: Duration(milliseconds: speed),
+            ));
+    _dotAnims = _dotCtrls
+        .map((c) => Tween<double>(begin: 0, end: -8)
+            .animate(CurvedAnimation(parent: c, curve: Curves.easeInOut)))
+        .toList();
     _blushCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _blushAnim = Tween<double>(begin: 0.3, end: 0.7)
-        .animate(CurvedAnimation(parent: _blushCtrl, curve: Curves.easeInOutSine));
+    _blushAnim = Tween<double>(begin: 0.3, end: 0.7).animate(
+        CurvedAnimation(parent: _blushCtrl, curve: Curves.easeInOutSine));
     _startBounce();
   }
 
@@ -506,37 +638,71 @@ class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.07),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.09),
+            dotColor.withValues(alpha: 0.06),
+          ],
+        ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: dotColor.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: dotColor.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: dotColor.withValues(alpha: 0.18),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        // Animated blush circle
+        // Animated blush circle with glow
         AnimatedBuilder(
           animation: _blushAnim,
           builder: (_, __) => Container(
-            width: 8, height: 8,
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(
               color: dotColor.withValues(alpha: _blushAnim.value),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: dotColor.withValues(alpha: _blushAnim.value * 0.6),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 8),
-        ...List.generate(3, (i) => AnimatedBuilder(
-          animation: _dotAnims[i],
-          builder: (_, __) => Transform.translate(
-            offset: Offset(0, _dotAnims[i].value),
-            child: Container(
-              width: 7, height: 7,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(color: dotColor.withValues(alpha: 0.85), shape: BoxShape.circle),
-            ),
-          ),
-        )),
+        ...List.generate(
+            3,
+            (i) => AnimatedBuilder(
+                  animation: _dotAnims[i],
+                  builder: (_, __) => Transform.translate(
+                    offset: Offset(0, _dotAnims[i].value),
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      decoration: BoxDecoration(
+                          color: dotColor.withValues(alpha: 0.85),
+                          shape: BoxShape.circle),
+                    ),
+                  ),
+                )),
         const SizedBox(width: 8),
-        Text(text, style: GoogleFonts.outfit(
-          color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic)),
+        Text(text,
+            style: GoogleFonts.outfit(
+                color: Colors.white38,
+                fontSize: 11,
+                fontStyle: FontStyle.italic)),
       ]),
     );
   }
@@ -562,7 +728,8 @@ class _StreakBadgeState extends State<StreakBadge>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
     _scaleAnim = TweenSequence([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.35), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.35, end: 1.0), weight: 60),
@@ -577,7 +744,10 @@ class _StreakBadgeState extends State<StreakBadge>
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -587,21 +757,27 @@ class _StreakBadgeState extends State<StreakBadge>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: isHot
-              ? [const Color(0xFFFF6B35), const Color(0xFFFF4FA8)]
-              : [const Color(0xFFFF5252), const Color(0xFFD50000)]),
+          gradient: LinearGradient(
+              colors: isHot
+                  ? [const Color(0xFFFF6B35), const Color(0xFFFF4FA8)]
+                  : [const Color(0xFFFF5252), const Color(0xFFD50000)]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(
-            color: (isHot ? const Color(0xFFFF4FA8) : const Color(0xFFFF5252))
-                .withValues(alpha: 0.4),
-            blurRadius: 8,
-          )],
+          boxShadow: [
+            BoxShadow(
+              color: (isHot ? const Color(0xFFFF4FA8) : const Color(0xFFFF5252))
+                  .withValues(alpha: 0.4),
+              blurRadius: 8,
+            )
+          ],
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(isHot ? '🔥' : '⚡', style: const TextStyle(fontSize: 13)),
           const SizedBox(width: 4),
-          Text('${widget.streak}d', style: GoogleFonts.outfit(
-            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
+          Text('${widget.streak}d',
+              style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12)),
         ]),
       ),
     );
@@ -627,10 +803,13 @@ class MessageReactionBar extends StatelessWidget {
         color: const Color(0xFF1E1E2E),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        boxShadow: [BoxShadow(
-          color: Colors.black.withValues(alpha: 0.4),
-          blurRadius: 12, offset: const Offset(0, 4),
-        )],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -672,14 +851,18 @@ class _SurpriseMeButtonState extends State<SurpriseMeButton>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500))
       ..repeat(reverse: true);
     _glowAnim = Tween<double>(begin: 0.4, end: 1.0)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutSine));
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -697,17 +880,23 @@ class _SurpriseMeButtonState extends State<SurpriseMeButton>
               colors: [Color(0xFFBB52FF), Color(0xFFFF4FA8)],
             ),
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(
-              color: const Color(0xFFBB52FF).withValues(alpha: _glowAnim.value * 0.5),
-              blurRadius: 14,
-              spreadRadius: 2,
-            )],
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFBB52FF)
+                    .withValues(alpha: _glowAnim.value * 0.5),
+                blurRadius: 14,
+                spreadRadius: 2,
+              )
+            ],
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Text('🎲', style: TextStyle(fontSize: 15)),
             const SizedBox(width: 6),
-            Text('Surprise me!', style: GoogleFonts.outfit(
-              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+            Text('Surprise me!',
+                style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12)),
           ]),
         ),
       ),
@@ -724,16 +913,23 @@ class EmotionStickerBar extends StatelessWidget {
   final String emotion;
   final Function(String sticker) onSend;
 
-  const EmotionStickerBar({super.key, required this.emotion, required this.onSend});
+  const EmotionStickerBar(
+      {super.key, required this.emotion, required this.onSend});
 
   static List<String> stickersFor(String emotion) {
     switch (emotion.toLowerCase()) {
-      case 'love':    return ['💕 Sending love', '🥰 I love you too~', '💗 Awww~'];
-      case 'sad':     return ['🥺 It\'s okay...', '🤗 I\'m here for you', '💙 Don\'t cry~'];
-      case 'amused':  return ['😂 LOL!', '🤣 Stop it~', '😝 You\'re funny!'];
-      case 'excited': return ['🎉 Yay!!', '✨ Amazing!!', '🔥 Let\'s go!!'];
-      case 'angry':   return ['😌 Calm down~', '🫂 I get it', '🙏 Sorry~'];
-      default:        return ['💬 Tell me more', '🤔 Interesting!', '💕 Aww~'];
+      case 'love':
+        return ['💕 Sending love', '🥰 I love you too~', '💗 Awww~'];
+      case 'sad':
+        return ['🥺 It\'s okay...', '🤗 I\'m here for you', '💙 Don\'t cry~'];
+      case 'amused':
+        return ['😂 LOL!', '🤣 Stop it~', '😝 You\'re funny!'];
+      case 'excited':
+        return ['🎉 Yay!!', '✨ Amazing!!', '🔥 Let\'s go!!'];
+      case 'angry':
+        return ['😌 Calm down~', '🫂 I get it', '🙏 Sorry~'];
+      default:
+        return ['💬 Tell me more', '🤔 Interesting!', '💕 Aww~'];
     }
   }
 
@@ -743,28 +939,32 @@ class EmotionStickerBar extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: stickers.map((s) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onSend(s);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-              ),
-              child: Text(s, style: GoogleFonts.outfit(
-                color: Colors.white.withValues(alpha: 0.9), fontSize: 13)),
-            ),
-          ),
-        )).toList(),
+        children: stickers
+            .map((s) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      onSend(s);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18)),
+                      ),
+                      child: Text(s,
+                          style: GoogleFonts.outfit(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 13)),
+                    ),
+                  ),
+                ))
+            .toList(),
       ),
     );
   }
 }
-
-

@@ -191,9 +191,15 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.purpleAccent.withValues(alpha: 0.4),
-                          blurRadius: 40,
-                          spreadRadius: 10,
+                          color: Colors.purpleAccent.withValues(alpha: 0.5),
+                          blurRadius: 50,
+                          spreadRadius: 12,
+                        ),
+                        BoxShadow(
+                          color: Colors.purpleAccent.withValues(alpha: 0.2),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                          spreadRadius: -4,
                         ),
                       ],
                     ),
@@ -311,9 +317,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                             shuffle
                                 ? Icons.shuffle_on_rounded
                                 : Icons.shuffle_rounded,
-                            color: shuffle
-                                ? Colors.purpleAccent
-                                : Colors.white38,
+                            color:
+                                shuffle ? Colors.purpleAccent : Colors.white38,
                             size: 24,
                           ),
                           onPressed: _service.toggleShuffle,
@@ -330,13 +335,17 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF9B59B6), Color(0xFF3498DB)],
+                                  colors: [
+                                    Color(0xFF9B59B6),
+                                    Color(0xFF3498DB)
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.purpleAccent.withValues(alpha: 0.5),
+                                    color: Colors.purpleAccent
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 20,
                                     spreadRadius: 2,
                                   ),
@@ -352,17 +361,16 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                             ),
                           ),
                         ),
-                        _ctrlBtn(
-                            Icons.skip_next_rounded, 36, () => _service.skipNext()),
+                        _ctrlBtn(Icons.skip_next_rounded, 36,
+                            () => _service.skipNext()),
                         // Repeat
                         IconButton(
                           icon: Icon(
                             repeat
                                 ? Icons.repeat_one_on_rounded
                                 : Icons.repeat_rounded,
-                            color: repeat
-                                ? Colors.purpleAccent
-                                : Colors.white38,
+                            color:
+                                repeat ? Colors.purpleAccent : Colors.white38,
                             size: 24,
                           ),
                           onPressed: _service.toggleRepeat,
@@ -375,7 +383,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             ),
 
             const SizedBox(height: 8),
-
           ],
         ),
       ),
@@ -834,6 +841,3 @@ class MiniMusicPlayer extends StatelessWidget {
     );
   }
 }
-
-
-

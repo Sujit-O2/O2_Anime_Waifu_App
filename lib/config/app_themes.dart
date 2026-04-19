@@ -361,6 +361,13 @@ class AppThemes {
       splashColor: effectivePrimary.withValues(alpha: 0.08),
       highlightColor: Colors.white.withValues(alpha: 0.03),
       textTheme: textTheme,
+      // Modern page transitions
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: ColorScheme.dark(
         primary: effectivePrimary,
         secondary: secondary,
@@ -370,6 +377,7 @@ class AppThemes {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
         foregroundColor: Colors.white,
         titleTextStyle: textTheme.titleLarge?.copyWith(
@@ -378,80 +386,202 @@ class AppThemes {
         ),
       ),
       cardColor: surface,
+      cardTheme: CardThemeData(
+        color: surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
       dividerColor: Colors.white.withValues(alpha: 0.08),
+      dividerTheme: DividerThemeData(
+        color: Colors.white.withValues(alpha: 0.06),
+        thickness: 1,
+        space: 1,
+      ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: elevatedSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+      ),
+      // Modern dialog theme
+      dialogTheme: DialogThemeData(
+        backgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.04),
+          bg.withValues(alpha: 0.98),
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 24,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+          fontSize: 18,
+        ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white70,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: elevatedSurface,
         hintStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white54,
+          color: Colors.white38,
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 18,
+          vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           borderSide:
-              BorderSide(color: effectivePrimary.withValues(alpha: 0.7)),
+              BorderSide(color: effectivePrimary.withValues(alpha: 0.7), width: 1.5),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: elevatedSurface,
-        selectedColor: effectivePrimary.withValues(alpha: 0.18),
+        selectedColor: effectivePrimary.withValues(alpha: 0.22),
         disabledColor: Colors.white.withValues(alpha: 0.04),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
         ),
-        labelStyle: textTheme.bodySmall?.copyWith(color: Colors.white70),
+        labelStyle: textTheme.bodySmall?.copyWith(color: Colors.white70, fontWeight: FontWeight.w600),
+        showCheckmark: false,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: effectivePrimary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle:
-              textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+              textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle:
               textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
-      bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: elevatedSurface,
-        modalBackgroundColor: elevatedSurface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: effectivePrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle:
+              textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return effectivePrimary;
+          return Colors.white54;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return effectivePrimary.withValues(alpha: 0.35);
+          return Colors.white.withValues(alpha: 0.1);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: effectivePrimary,
+        inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+        thumbColor: effectivePrimary,
+        overlayColor: effectivePrimary.withValues(alpha: 0.12),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: effectivePrimary,
+        linearTrackColor: Colors.white.withValues(alpha: 0.08),
+        circularTrackColor: Colors.white.withValues(alpha: 0.08),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.03),
+          bg.withValues(alpha: 0.98),
+        ),
+        modalBackgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.03),
+          bg.withValues(alpha: 0.98),
+        ),
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        dragHandleColor: Colors.white.withValues(alpha: 0.2),
+        showDragHandle: true,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: elevatedSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        textStyle: textTheme.bodySmall?.copyWith(color: Colors.white70),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.05),
+          bg.withValues(alpha: 0.97),
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        iconColor: Colors.white54,
+        titleTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+        subtitleTextStyle: textTheme.bodySmall?.copyWith(
+          color: Colors.white54,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: bg.withValues(alpha: 0.95),
+        indicatorColor: effectivePrimary.withValues(alpha: 0.2),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
     );
   }

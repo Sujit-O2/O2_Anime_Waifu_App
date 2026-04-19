@@ -1,8 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Premium animated bottom navigation bar for the main chat screen.
-/// Replaces the full-drawer primary nav with 5 quick-access tabs.
+/// Premium floating glassmorphic bottom navigation bar.
+/// Modern, responsive design with smooth micro-animations.
 class MainBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -25,30 +28,49 @@ class MainBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
-      height: 72 + MediaQuery.of(context).padding.bottom,
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D0D1A),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: List.generate(_items.length, (i) => Expanded(
-            child: _NavButton(
-              item: _items[i],
-              isSelected: currentIndex == i,
-              accentColor: accentColor,
-              onTap: () => onTap(i),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: const Color(0xFF0D0D1A).withValues(alpha: 0.85),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.08),
+                  blurRadius: 32,
+                  offset: const Offset(0, -4),
+                  spreadRadius: -4,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-          )),
+            child: Row(
+              children: List.generate(_items.length, (i) => Expanded(
+                child: _NavButton(
+                  item: _items[i],
+                  isSelected: currentIndex == i,
+                  accentColor: accentColor,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onTap(i);
+                  },
+                ),
+              )),
+            ),
+          ),
         ),
       ),
     );
@@ -85,11 +107,12 @@ class _NavButtonState extends State<_NavButton> with SingleTickerProviderStateMi
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _scale = Tween<double>(begin: 1.0, end: 1.15).animate(
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _scale = Tween<double>(begin: 1.0, end: 1.18).animate(
         CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
     _glow = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    if (widget.isSelected) _ctrl.forward();
   }
 
   @override
@@ -121,41 +144,59 @@ class _NavButtonState extends State<_NavButton> with SingleTickerProviderStateMi
             Stack(
               alignment: Alignment.center,
               children: [
-                // Glow background pill
-                if (widget.isSelected)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 48,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: widget.accentColor.withValues(alpha: 0.18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: widget.accentColor.withValues(alpha: 0.3 * _glow.value),
-                          blurRadius: 16,
-                        ),
-                      ],
-                    ),
+                // Animated glow indicator pill
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeOutCubic,
+                  width: widget.isSelected ? 52 : 0,
+                  height: widget.isSelected ? 34 : 0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(17),
+                    gradient: widget.isSelected
+                        ? LinearGradient(
+                            colors: [
+                              widget.accentColor.withValues(alpha: 0.25),
+                              widget.accentColor.withValues(alpha: 0.08),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          )
+                        : null,
+                    boxShadow: widget.isSelected
+                        ? [
+                            BoxShadow(
+                              color: widget.accentColor.withValues(alpha: 0.3 * _glow.value),
+                              blurRadius: 20,
+                              spreadRadius: -2,
+                            ),
+                          ]
+                        : null,
                   ),
+                ),
                 Transform.scale(
                   scale: _scale.value,
                   child: Icon(
                     widget.isSelected ? widget.item.activeIcon : widget.item.icon,
-                    color: widget.isSelected ? widget.accentColor : Colors.white38,
+                    color: widget.isSelected
+                        ? widget.accentColor
+                        : Colors.white.withValues(alpha: 0.35),
                     size: 22,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              widget.item.label,
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 250),
               style: GoogleFonts.outfit(
-                color: widget.isSelected ? widget.accentColor : Colors.white38,
-                fontSize: 10,
+                color: widget.isSelected
+                    ? widget.accentColor
+                    : Colors.white.withValues(alpha: 0.3),
+                fontSize: widget.isSelected ? 10.5 : 10,
                 fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w400,
+                letterSpacing: widget.isSelected ? 0.5 : 0,
               ),
+              child: Text(widget.item.label),
             ),
           ],
         ),
@@ -163,5 +204,3 @@ class _NavButtonState extends State<_NavButton> with SingleTickerProviderStateMi
     );
   }
 }
-
-

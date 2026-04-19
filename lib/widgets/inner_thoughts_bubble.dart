@@ -30,7 +30,8 @@ class _InnerThoughtsBubbleState extends State<InnerThoughtsBubble>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
     _fadeScale = CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut);
     if (widget.visible) _ctrl.forward();
   }
@@ -65,17 +66,34 @@ class _InnerThoughtsBubbleState extends State<InnerThoughtsBubble>
                 // Thought bubble
                 Container(
                   constraints: const BoxConstraints(maxWidth: 260),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
-                    color: const Color(0xFF1A0E2E).withValues(alpha: 0.92),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF1A0E2E).withValues(alpha: 0.95),
+                        const Color(0xFF120820).withValues(alpha: 0.92),
+                      ],
+                    ),
                     border: Border.all(
-                      color: const Color(0xFFBB52FF).withValues(alpha: 0.35),
+                      color: const Color(0xFFBB52FF).withValues(alpha: 0.45),
+                      width: 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFBB52FF).withValues(alpha: 0.2),
-                        blurRadius: 16,
+                        color: const Color(0xFFBB52FF).withValues(alpha: 0.28),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                        spreadRadius: 1,
+                      ),
+                      BoxShadow(
+                        color: const Color(0xFFBB52FF).withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                        spreadRadius: -1,
                       ),
                     ],
                   ),
@@ -122,7 +140,9 @@ class _ThoughtDotsState extends State<ThoughtDotsIndicator>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+    _ctrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat();
   }
 
   @override
@@ -146,7 +166,8 @@ class _ThoughtDotsState extends State<ThoughtDotsIndicator>
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFFBB52FF).withValues(alpha: 0.4 + phase * 0.4),
+              color:
+                  const Color(0xFFBB52FF).withValues(alpha: 0.4 + phase * 0.4),
             ),
           );
         }),
@@ -172,7 +193,10 @@ class _InnerThoughtsManagerState extends State<InnerThoughtsManager> {
   void showThought() {
     final mood = PersonalityEngine.instance.mood;
     final t = ProactiveAIService.generateInnerThought(mood);
-    setState(() { _thought = t; _visible = true; });
+    setState(() {
+      _thought = t;
+      _visible = true;
+    });
     Future.delayed(const Duration(seconds: 4), hide);
   }
 
@@ -188,7 +212,8 @@ class _InnerThoughtsManagerState extends State<InnerThoughtsManager> {
         if (_visible)
           Positioned(
             bottom: 120,
-            left: 0, right: 0,
+            left: 0,
+            right: 0,
             child: Center(
               child: InnerThoughtsBubble(
                 thought: _thought,
@@ -201,6 +226,3 @@ class _InnerThoughtsManagerState extends State<InnerThoughtsManager> {
     );
   }
 }
-
-
-
