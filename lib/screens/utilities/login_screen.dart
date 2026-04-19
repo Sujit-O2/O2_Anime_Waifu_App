@@ -34,23 +34,32 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _animCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1000));
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
     _fadeIn = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic);
-    _slideUp = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
-        .animate(
-            CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
+    _slideUp = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
 
     _pulseCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2000))
-      ..repeat(reverse: true);
-    _pulse = Tween<double>(begin: 0.7, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    _pulse = Tween<double>(
+      begin: 0.7,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
 
     _floatCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 3000))
-      ..repeat(reverse: true);
-    _float = Tween<double>(begin: -6, end: 6)
-        .animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..repeat(reverse: true);
+    _float = Tween<double>(
+      begin: -6,
+      end: 6,
+    ).animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
 
     _animCtrl.forward();
   }
@@ -77,8 +86,10 @@ class _LoginScreenState extends State<LoginScreen>
       _errorMessage = null;
     });
     try {
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.message ?? 'Login failed.');
@@ -176,8 +187,9 @@ class _LoginScreenState extends State<LoginScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.pinkAccent
-                              .withValues(alpha: 0.12 * _pulse.value),
+                          color: Colors.pinkAccent.withValues(
+                            alpha: 0.12 * _pulse.value,
+                          ),
                           blurRadius: 140,
                           spreadRadius: 50,
                         ),
@@ -195,8 +207,9 @@ class _LoginScreenState extends State<LoginScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.deepPurple
-                              .withValues(alpha: 0.18 * _pulse.value),
+                          color: Colors.deepPurple.withValues(
+                            alpha: 0.18 * _pulse.value,
+                          ),
                           blurRadius: 120,
                           spreadRadius: 40,
                         ),
@@ -242,78 +255,91 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLogo(bool isCompact) {
     return AnimatedBuilder(
       animation: _float,
-      builder: (_, child) => Transform.translate(
-        offset: Offset(0, _float.value),
-        child: child,
-      ),
-      child: Column(children: [
-        // Circular avatar with animated glow ring
-        AnimatedBuilder(
-          animation: _pulse,
-          builder: (_, __) => Container(
-            width: isCompact ? 80 : 100,
-            height: isCompact ? 80 : 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF4D8D), Color(0xFF9B59B6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      builder: (_, child) =>
+          Transform.translate(offset: Offset(0, _float.value), child: child),
+      child: Column(
+        children: [
+          // Circular avatar with animated glow ring
+          AnimatedBuilder(
+            animation: _pulse,
+            builder: (_, __) => Container(
+              width: isCompact ? 80 : 100,
+              height: isCompact ? 80 : 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF4D8D), Color(0xFF9B59B6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.pinkAccent.withValues(
+                      alpha: 0.35 * _pulse.value,
+                    ),
+                    blurRadius: 40,
+                    spreadRadius: 8,
+                  ),
+                  BoxShadow(
+                    color: Colors.deepPurple.withValues(
+                      alpha: 0.2 * _pulse.value,
+                    ),
+                    blurRadius: 60,
+                    spreadRadius: -4,
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      Colors.pinkAccent.withValues(alpha: 0.35 * _pulse.value),
-                  blurRadius: 40,
-                  spreadRadius: 8,
-                ),
-                BoxShadow(
-                  color:
-                      Colors.deepPurple.withValues(alpha: 0.2 * _pulse.value),
-                  blurRadius: 60,
-                  spreadRadius: -4,
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(3),
-            child: ClipOval(
-              child: Image.asset('assets/img/logi.jpg',
+              padding: const EdgeInsets.all(3),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/img/logi.jpg',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome,
-                      color: Colors.white, size: 44)),
-            ),
-          ),
-        ),
-        SizedBox(height: isCompact ? 10 : 16),
-        // Pixel-art title logo
-        Image.asset(
-          'assets/img/front.png',
-          width: MediaQuery.of(context).size.width * 0.72,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6), Color(0xFF5FE2FF)],
-            ).createShader(bounds),
-            child: Text(
-              'ZERO TWO',
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 6,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.auto_awesome,
+                    color: Colors.white,
+                    size: 44,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text('Welcome back, Darling 💕',
+          SizedBox(height: isCompact ? 10 : 16),
+          // Pixel-art title logo
+          Image.asset(
+            'assets/img/front.png',
+            width: MediaQuery.of(context).size.width * 0.72,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFFFF4D8D),
+                  Color(0xFFB44FD6),
+                  Color(0xFF5FE2FF),
+                ],
+              ).createShader(bounds),
+              child: Text(
+                'ZERO TWO',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 6,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Welcome back, Darling 💕',
             style: GoogleFonts.outfit(
               color: Colors.white.withValues(alpha: 0.5),
               fontSize: 14,
               fontWeight: FontWeight.w400,
               letterSpacing: 0.5,
-            )),
-      ]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -345,80 +371,95 @@ class _LoginScreenState extends State<LoginScreen>
         borderRadius: BorderRadius.circular(28),
         child: Padding(
           padding: const EdgeInsets.all(28),
-          child: Column(children: [
-            // Email
-            _buildField(
+          child: Column(
+            children: [
+              // Email
+              _buildField(
                 controller: _emailController,
                 hint: 'Email address',
                 icon: Icons.alternate_email_rounded,
-                obscure: false),
-            const SizedBox(height: 16),
+                obscure: false,
+              ),
+              const SizedBox(height: 16),
 
-            // Password
-            _buildField(
-              controller: _passwordController,
-              hint: 'Password',
-              icon: Icons.lock_outline_rounded,
-              obscure: _obscurePassword,
-              suffix: IconButton(
-                icon: Icon(
+              // Password
+              _buildField(
+                controller: _passwordController,
+                hint: 'Password',
+                icon: Icons.lock_outline_rounded,
+                obscure: _obscurePassword,
+                suffix: IconButton(
+                  icon: Icon(
                     _obscurePassword
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                     color: Colors.white30,
-                    size: 20),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Error
-            if (_errorMessage != null) ...[
-              _buildErrorBanner(),
-              const SizedBox(height: 16),
-            ],
-
-            // Sign In button
-            _buildSignInButton(),
-            const SizedBox(height: 20),
-
-            // Divider
-            Row(children: [
-              Expanded(
-                  child: Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    Colors.transparent,
-                    Colors.white.withValues(alpha: 0.15),
-                  ]),
+                    size: 20,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
-              )),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text('or',
-                    style: GoogleFonts.outfit(
+              ),
+              const SizedBox(height: 24),
+
+              // Error
+              if (_errorMessage != null) ...[
+                _buildErrorBanner(),
+                const SizedBox(height: 16),
+              ],
+
+              // Sign In button
+              _buildSignInButton(),
+              const SizedBox(height: 20),
+
+              // Divider
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Colors.white.withValues(alpha: 0.15),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'or',
+                      style: GoogleFonts.outfit(
                         color: Colors.white24,
                         fontSize: 12,
-                        fontWeight: FontWeight.w600)),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.15),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                  child: Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    Colors.white.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ]),
-                ),
-              )),
-            ]),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Google button
-            _buildGoogleButton(),
-          ]),
+              // Google button
+              _buildGoogleButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -445,13 +486,20 @@ class _LoginScreenState extends State<LoginScreen>
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.outfit(
-              color: Colors.white.withValues(alpha: 0.25), fontSize: 14),
-          prefixIcon: Icon(icon,
-              color: Colors.pinkAccent.withValues(alpha: 0.6), size: 20),
+            color: Colors.white.withValues(alpha: 0.25),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: Colors.pinkAccent.withValues(alpha: 0.6),
+            size: 20,
+          ),
           suffixIcon: suffix,
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 18,
+            horizontal: 4,
+          ),
         ),
       ),
     );
@@ -476,25 +524,34 @@ class _LoginScreenState extends State<LoginScreen>
           color: Colors.redAccent.withValues(alpha: 0.1),
           border: Border.all(color: Colors.redAccent.withValues(alpha: 0.25)),
         ),
-        child: Row(children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: Colors.redAccent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+        child: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.redAccent,
+                size: 16,
+              ),
             ),
-            child: const Icon(Icons.error_outline_rounded,
-                color: Colors.redAccent, size: 16),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-              child: Text(_errorMessage!,
-                  style: GoogleFonts.outfit(
-                      color: Colors.redAccent.withValues(alpha: 0.9),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500))),
-        ]),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _errorMessage!,
+                style: GoogleFonts.outfit(
+                  color: Colors.redAccent.withValues(alpha: 0.9),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -511,10 +568,11 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           boxShadow: [
             BoxShadow(
-                color: const Color(0xFFFF4D8D).withValues(alpha: 0.35),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-                spreadRadius: -4),
+              color: const Color(0xFFFF4D8D).withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+              spreadRadius: -4,
+            ),
           ],
         ),
         child: ElevatedButton(
@@ -522,21 +580,28 @@ class _LoginScreenState extends State<LoginScreen>
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
           child: _isLoading
               ? const SizedBox(
                   width: 22,
                   height: 22,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2.5, color: Colors.white))
-              : Text('SIGN IN',
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  'SIGN IN',
                   style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                      color: Colors.white)),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ),
     );
@@ -561,23 +626,45 @@ class _LoginScreenState extends State<LoginScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             RichText(
-                text: const TextSpan(
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-              children: [
-                TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
-                TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))),
-                TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))),
-                TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))),
-                TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))),
-                TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
-              ],
-            )),
+              text: const TextSpan(
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                children: [
+                  TextSpan(
+                    text: 'G',
+                    style: TextStyle(color: Color(0xFF4285F4)),
+                  ),
+                  TextSpan(
+                    text: 'o',
+                    style: TextStyle(color: Color(0xFFEA4335)),
+                  ),
+                  TextSpan(
+                    text: 'o',
+                    style: TextStyle(color: Color(0xFFFBBC05)),
+                  ),
+                  TextSpan(
+                    text: 'g',
+                    style: TextStyle(color: Color(0xFF4285F4)),
+                  ),
+                  TextSpan(
+                    text: 'l',
+                    style: TextStyle(color: Color(0xFF34A853)),
+                  ),
+                  TextSpan(
+                    text: 'e',
+                    style: TextStyle(color: Color(0xFFEA4335)),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(width: 12),
-            Text('Continue with Google',
-                style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.85))),
+            Text(
+              'Continue with Google',
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
+            ),
           ],
         ),
       ),
@@ -588,7 +675,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       children: [
         Text(
-          'v6.0 · Zero Two AI',
+          'v7.0.2 · Zero Two AI',
           style: GoogleFonts.jetBrainsMono(
             color: Colors.white.withValues(alpha: 0.15),
             fontSize: 10,
