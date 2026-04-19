@@ -53,13 +53,10 @@ class AdvancedSecurityService {
       final isAvailable = await isBiometricAvailable();
       if (!isAvailable) throw Exception('Biometric not available');
 
-      await FirebaseFirestore.instance
-          .collection('settings')
-          .doc(uid)
-          .set(
-            {'biometricLockEnabled': true, 'updatedAt': FieldValue.serverTimestamp()},
-            SetOptions(merge: true),
-          );
+      await FirebaseFirestore.instance.collection('settings').doc(uid).set({
+        'biometricLockEnabled': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error enabling biometric lock: $e');
     }
@@ -68,10 +65,9 @@ class AdvancedSecurityService {
   /// Disable biometric lock
   static Future<void> disableBiometricLock(String uid) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('settings')
-          .doc(uid)
-          .update({'biometricLockEnabled': false});
+      await FirebaseFirestore.instance.collection('settings').doc(uid).update({
+        'biometricLockEnabled': false,
+      });
     } catch (e) {
       debugPrint('Error disabling biometric lock: $e');
     }
@@ -116,8 +112,7 @@ class AdvancedSecurityService {
   /// Detect if device is jailbroken/rooted
   static Future<bool> isDeviceCompromised() async {
     try {
-      final result =
-          await platform.invokeMethod<bool>('isDeviceCompromised');
+      final result = await platform.invokeMethod<bool>('isDeviceCompromised');
       return result ?? false;
     } catch (e) {
       return false;
@@ -133,16 +128,13 @@ class AdvancedSecurityService {
       await FirebaseFirestore.instance
           .collection('user_data_sync')
           .doc(uid)
-          .set(
-            {
-              'deviceFingerprint': fingerprint,
-              'lastDeviceCheck': FieldValue.serverTimestamp(),
-              'isDeviceCompromised': isCompromised,
-              'platform': Platform.operatingSystem,
-              'osVersion': Platform.operatingSystemVersion,
-            },
-            SetOptions(merge: true),
-          );
+          .set({
+            'deviceFingerprint': fingerprint,
+            'lastDeviceCheck': FieldValue.serverTimestamp(),
+            'isDeviceCompromised': isCompromised,
+            'platform': Platform.operatingSystem,
+            'osVersion': Platform.operatingSystemVersion,
+          }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error storing device fingerprint: $e');
     }
@@ -191,9 +183,7 @@ class AdvancedSecurityService {
         'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
         'sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=',
       ],
-      'firebaseio.com': [
-        'sha256/CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC=',
-      ],
+      'firebaseio.com': ['sha256/CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC='],
     };
   }
 
@@ -218,16 +208,14 @@ class AdvancedSecurityService {
     required String severity,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('security_alerts')
-          .add({
-            'uid': uid,
-            'message': message,
-            'severity': severity,
-            'timestamp': FieldValue.serverTimestamp(),
-            'platform': Platform.operatingSystem,
-            'appVersion': '2.0.0', // Update with actual version
-          });
+      await FirebaseFirestore.instance.collection('security_alerts').add({
+        'uid': uid,
+        'message': message,
+        'severity': severity,
+        'timestamp': FieldValue.serverTimestamp(),
+        'platform': Platform.operatingSystem,
+        'appVersion': '7.0.2', // Update with actual version
+      });
     } catch (e) {
       debugPrint('Error logging security alert: $e');
     }
@@ -256,8 +244,7 @@ class AdvancedSecurityService {
   /// Clear old security alerts (retention policy)
   static Future<void> clearOldSecurityAlerts(String uid) async {
     try {
-      final thirtyDaysAgo =
-          DateTime.now().subtract(const Duration(days: 30));
+      final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
 
       await FirebaseFirestore.instance
           .collection('security_alerts')
@@ -319,5 +306,3 @@ class AdvancedSecurityService {
     }
   }
 }
-
-

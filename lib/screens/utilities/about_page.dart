@@ -17,9 +17,7 @@ extension _AboutPageExtension on _ChatHomePageState {
           child: ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.12),
-              ),
+              child: Container(color: Colors.black.withValues(alpha: 0.12)),
             ),
           ),
         ),
@@ -38,9 +36,7 @@ extension _AboutPageExtension on _ChatHomePageState {
             ),
           ),
         ),
-        const Positioned.fill(
-          child: _AboutFireflyLayer(),
-        ),
+        const Positioned.fill(child: _AboutFireflyLayer()),
         SafeArea(
           child: Column(
             children: [
@@ -53,7 +49,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                     constraints: const BoxConstraints(maxWidth: 860),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: BackdropFilter(
@@ -63,7 +61,8 @@ extension _AboutPageExtension on _ChatHomePageState {
                               color: Colors.black.withValues(alpha: 0.24),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.18)),
+                                color: Colors.white.withValues(alpha: 0.18),
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.30),
@@ -76,30 +75,72 @@ extension _AboutPageExtension on _ChatHomePageState {
                               physics: const BouncingScrollPhysics(),
                               padding: EdgeInsets.zero,
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  24,
+                                  16,
+                                  24,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _AboutAnimatedItem(index: 2, child: _buildSectionTitle('DASHBOARD')),
+                                    _AboutAnimatedItem(
+                                      index: 2,
+                                      child: _buildSectionTitle('DASHBOARD'),
+                                    ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(index: 3, child: _buildSubNavigationDashboard()),
+                                    _AboutAnimatedItem(
+                                      index: 3,
+                                      child: _buildSubNavigationDashboard(),
+                                    ),
                                     const SizedBox(height: 28),
-                                    _AboutAnimatedItem(index: 4, child: _buildSectionTitle('SYSTEM STATUS')),
+                                    _AboutAnimatedItem(
+                                      index: 4,
+                                      child: _buildSectionTitle(
+                                        'SYSTEM STATUS',
+                                      ),
+                                    ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(index: 5, child: _buildStatusGrid()),
+                                    _AboutAnimatedItem(
+                                      index: 5,
+                                      child: _buildStatusGrid(),
+                                    ),
                                     const SizedBox(height: 28),
-                                    _AboutAnimatedItem(index: 6, child: _buildSectionTitle('DEVELOPER & PROJECT INFO')),
+                                    _AboutAnimatedItem(
+                                      index: 6,
+                                      child: _buildSectionTitle(
+                                        'DEVELOPER & PROJECT INFO',
+                                      ),
+                                    ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(index: 7, child: _buildProjectInfoCard()),
+                                    _AboutAnimatedItem(
+                                      index: 7,
+                                      child: _buildProjectInfoCard(),
+                                    ),
                                     const SizedBox(height: 28),
-                                    _AboutAnimatedItem(index: 8, child: _buildSectionTitle('WHAT\'S NEW IN V4')),
+                                    _AboutAnimatedItem(
+                                      index: 8,
+                                      child: _buildSectionTitle(
+                                        'WHAT\'S NEW IN V4',
+                                      ),
+                                    ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(index: 9, child: _buildV4FeaturesCard()),
+                                    _AboutAnimatedItem(
+                                      index: 9,
+                                      child: _buildV4FeaturesCard(),
+                                    ),
                                     const SizedBox(height: 28),
-                                    _AboutAnimatedItem(index: 10, child: _buildSectionTitle('ABOUT US & CREDITS')),
+                                    _AboutAnimatedItem(
+                                      index: 10,
+                                      child: _buildSectionTitle(
+                                        'ABOUT US & CREDITS',
+                                      ),
+                                    ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(index: 11, child: _buildAboutUsCard()),
+                                    _AboutAnimatedItem(
+                                      index: 11,
+                                      child: _buildAboutUsCard(),
+                                    ),
                                     const SizedBox(height: 30),
                                   ],
                                 ),
@@ -152,8 +193,11 @@ extension _AboutPageExtension on _ChatHomePageState {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: Colors.white10,
-                  child:
-                      const Icon(Icons.face, color: Colors.white38, size: 40),
+                  child: const Icon(
+                    Icons.face,
+                    color: Colors.white38,
+                    size: 40,
+                  ),
                 ),
               ),
             ),
@@ -246,8 +290,10 @@ extension _AboutPageExtension on _ChatHomePageState {
                 subtitle: 'All capabilities',
                 icon: Icons.auto_awesome_rounded,
                 color: Colors.cyanAccent,
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const FeaturesPage())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FeaturesPage()),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -258,9 +304,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                 icon: Icons.insert_chart_rounded,
                 color: Colors.orangeAccent,
                 onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const StatsAndHabitsPage())),
+                  context,
+                  MaterialPageRoute(builder: (_) => const StatsAndHabitsPage()),
+                ),
               ),
             ),
           ],
@@ -274,8 +320,10 @@ extension _AboutPageExtension on _ChatHomePageState {
                 subtitle: 'Voice syntax',
                 icon: Icons.terminal_rounded,
                 color: Colors.pinkAccent,
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const CommandsPage())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CommandsPage()),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -287,8 +335,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                 color: Colors.greenAccent,
                 onTap: () {
                   showDialog(
-                      context: context,
-                      builder: (ctx) => _FeatureGuideDialog());
+                    context: context,
+                    builder: (ctx) => _FeatureGuideDialog(),
+                  );
                 },
               ),
             ),
@@ -374,14 +423,26 @@ extension _AboutPageExtension on _ChatHomePageState {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _statusChip('Wake', _wakeWordService.isRunning ? 'ACTIVE' : 'IDLE',
-            _wakeWordService.isRunning ? Colors.greenAccent : Colors.redAccent),
-        _statusChip('Foreground', _isInForeground ? 'YES' : 'NO',
-            _isInForeground ? Colors.cyanAccent : Colors.orangeAccent),
-        _statusChip('Assistant', _assistantModeEnabled ? 'ON' : 'OFF',
-            _assistantModeEnabled ? Colors.pinkAccent : Colors.white54),
-        _statusChip('Idle Timer', _idleTimerEnabled ? 'ON' : 'OFF',
-            _idleTimerEnabled ? Colors.yellowAccent : Colors.white54),
+        _statusChip(
+          'Wake',
+          _wakeWordService.isRunning ? 'ACTIVE' : 'IDLE',
+          _wakeWordService.isRunning ? Colors.greenAccent : Colors.redAccent,
+        ),
+        _statusChip(
+          'Foreground',
+          _isInForeground ? 'YES' : 'NO',
+          _isInForeground ? Colors.cyanAccent : Colors.orangeAccent,
+        ),
+        _statusChip(
+          'Assistant',
+          _assistantModeEnabled ? 'ON' : 'OFF',
+          _assistantModeEnabled ? Colors.pinkAccent : Colors.white54,
+        ),
+        _statusChip(
+          'Idle Timer',
+          _idleTimerEnabled ? 'ON' : 'OFF',
+          _idleTimerEnabled ? Colors.yellowAccent : Colors.white54,
+        ),
       ],
     );
   }
@@ -445,8 +506,9 @@ extension _AboutPageExtension on _ChatHomePageState {
       decoration: BoxDecoration(
         color: Colors.lightBlueAccent.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Colors.lightBlueAccent.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: Colors.lightBlueAccent.withValues(alpha: 0.3),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.lightBlueAccent.withValues(alpha: 0.05),
@@ -461,10 +523,18 @@ extension _AboutPageExtension on _ChatHomePageState {
           Row(
             children: [
               _buildModernDevChip(
-                  Icons.code, 'Dev By', 'Sujit 02', Colors.pinkAccent),
+                Icons.code,
+                'Dev By',
+                'Sujit 02',
+                Colors.pinkAccent,
+              ),
               const SizedBox(width: 10),
               _buildModernDevChip(
-                  Icons.new_releases, 'Version', 'v6.0.2 (Beast)', Colors.cyanAccent),
+                Icons.new_releases,
+                'Version',
+                'v7.0.2 (Beast)',
+                Colors.cyanAccent,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -486,8 +556,11 @@ extension _AboutPageExtension on _ChatHomePageState {
                       color: Colors.white10,
                       shape: BoxShape.circle,
                     ),
-                    child:
-                        const Icon(Icons.link, color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.link,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -512,8 +585,11 @@ extension _AboutPageExtension on _ChatHomePageState {
                       ],
                     ),
                   ),
-                  const Icon(Icons.open_in_new,
-                      color: Colors.white38, size: 16),
+                  const Icon(
+                    Icons.open_in_new,
+                    color: Colors.white38,
+                    size: 16,
+                  ),
                 ],
               ),
             ),
@@ -535,15 +611,35 @@ extension _AboutPageExtension on _ChatHomePageState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _v4FeatureRow(Icons.favorite, 'Proactive Wife Mode', 'She checks in on you without prompting'),
+          _v4FeatureRow(
+            Icons.favorite,
+            'Proactive Wife Mode',
+            'She checks in on you without prompting',
+          ),
           const SizedBox(height: 12),
-          _v4FeatureRow(Icons.record_voice_over, 'Voice Clone Capabilities', 'Multiple realistic dynamic voices'),
+          _v4FeatureRow(
+            Icons.record_voice_over,
+            'Voice Clone Capabilities',
+            'Multiple realistic dynamic voices',
+          ),
           const SizedBox(height: 12),
-          _v4FeatureRow(Icons.tv_rounded, 'Anime & Manga/Doujin Hub', 'New vast streaming & reading integration'),
+          _v4FeatureRow(
+            Icons.tv_rounded,
+            'Anime & Manga/Doujin Hub',
+            'New vast streaming & reading integration',
+          ),
           const SizedBox(height: 12),
-          _v4FeatureRow(Icons.psychology_rounded, 'Deep Memory Extraction', 'She permanently remembers facts about you'),
+          _v4FeatureRow(
+            Icons.psychology_rounded,
+            'Deep Memory Extraction',
+            'She permanently remembers facts about you',
+          ),
           const SizedBox(height: 12),
-          _v4FeatureRow(Icons.star_rounded, 'Premium Aesthetics', 'Overhauled UI, glassmorphism, & animations'),
+          _v4FeatureRow(
+            Icons.star_rounded,
+            'Premium Aesthetics',
+            'Overhauled UI, glassmorphism, & animations',
+          ),
         ],
       ),
     );
@@ -556,8 +652,9 @@ extension _AboutPageExtension on _ChatHomePageState {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-              color: Colors.pinkAccent.withValues(alpha: 0.1),
-              shape: BoxShape.circle),
+            color: Colors.pinkAccent.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
           child: Icon(icon, color: Colors.pinkAccent, size: 16),
         ),
         const SizedBox(width: 12),
@@ -565,15 +662,19 @@ extension _AboutPageExtension on _ChatHomePageState {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(desc,
-                  style: GoogleFonts.outfit(
-                      color: Colors.white60, fontSize: 11)),
+              Text(
+                desc,
+                style: GoogleFonts.outfit(color: Colors.white60, fontSize: 11),
+              ),
             ],
           ),
         ),
@@ -582,7 +683,11 @@ extension _AboutPageExtension on _ChatHomePageState {
   }
 
   Widget _buildModernDevChip(
-      IconData icon, String label, String value, Color color) {
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -624,7 +729,6 @@ extension _AboutPageExtension on _ChatHomePageState {
     );
   }
 
-
   Widget _buildAboutUsCard() {
     return Container(
       width: double.infinity,
@@ -632,7 +736,9 @@ extension _AboutPageExtension on _ChatHomePageState {
       decoration: BoxDecoration(
         color: Colors.deepPurpleAccent.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.deepPurpleAccent.withValues(alpha: 0.25)),
+        border: Border.all(
+          color: Colors.deepPurpleAccent.withValues(alpha: 0.25),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.deepPurpleAccent.withValues(alpha: 0.05),
@@ -656,7 +762,9 @@ extension _AboutPageExtension on _ChatHomePageState {
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: Colors.pinkAccent.withValues(alpha: 0.2),
+              ),
             ),
             child: Column(
               children: [
@@ -686,12 +794,15 @@ extension _AboutPageExtension on _ChatHomePageState {
           const SizedBox(height: 16),
 
           // Developer info
-          Text('DEVELOPER',
-              style: GoogleFonts.outfit(
-                  color: Colors.white38,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5)),
+          Text(
+            'DEVELOPER',
+            style: GoogleFonts.outfit(
+              color: Colors.white38,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -701,33 +812,46 @@ extension _AboutPageExtension on _ChatHomePageState {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
-                      colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)]),
+                    colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)],
+                  ),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.pinkAccent.withValues(alpha: 0.3),
-                        blurRadius: 12),
+                      color: Colors.pinkAccent.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                    ),
                   ],
                 ),
                 child: const Center(
-                    child: Text('S',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900))),
+                  child: Text(
+                    'S',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Sujit O2',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800)),
-                    Text('Solo Developer & Creator',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white54, fontSize: 11)),
+                    Text(
+                      'Sujit O2',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      'Solo Developer & Creator',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white54,
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -736,12 +860,15 @@ extension _AboutPageExtension on _ChatHomePageState {
           const SizedBox(height: 16),
 
           // Tech stack
-          Text('TECH STACK',
-              style: GoogleFonts.outfit(
-                  color: Colors.white38,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5)),
+          Text(
+            'TECH STACK',
+            style: GoogleFonts.outfit(
+              color: Colors.white38,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -759,12 +886,15 @@ extension _AboutPageExtension on _ChatHomePageState {
           const SizedBox(height: 16),
 
           // Open source credits
-          Text('OPEN SOURCE',
-              style: GoogleFonts.outfit(
-                  color: Colors.white38,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5)),
+          Text(
+            'OPEN SOURCE',
+            style: GoogleFonts.outfit(
+              color: Colors.white38,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Built with love using open source libraries including '
@@ -789,14 +919,17 @@ extension _AboutPageExtension on _ChatHomePageState {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(label,
-          style: GoogleFonts.outfit(
-              color: color, fontSize: 10, fontWeight: FontWeight.w700)),
+      child: Text(
+        label,
+        style: GoogleFonts.outfit(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
-
 }
-
 
 class _Firefly {
   double x;
@@ -834,12 +967,10 @@ class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )
-      ..addListener(_updateParticles)
-      ..repeat();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 10))
+          ..addListener(_updateParticles)
+          ..repeat();
   }
 
   void _initParticles(Size size) {
@@ -848,18 +979,20 @@ class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
     const colors = [
       Colors.amberAccent,
       Colors.orangeAccent,
-      Colors.deepOrangeAccent
+      Colors.deepOrangeAccent,
     ];
     for (int i = 0; i < 40; i++) {
-      _fireflies.add(_Firefly(
-        x: random.nextDouble() * size.width,
-        y: random.nextDouble() * size.height,
-        vx: (random.nextDouble() - 0.5) * 0.5,
-        vy: -0.2 - random.nextDouble() * 0.8,
-        size: 1.5 + random.nextDouble() * 2.5,
-        alphaBase: 0.2 + random.nextDouble() * 0.6,
-        color: colors[random.nextInt(colors.length)],
-      ));
+      _fireflies.add(
+        _Firefly(
+          x: random.nextDouble() * size.width,
+          y: random.nextDouble() * size.height,
+          vx: (random.nextDouble() - 0.5) * 0.5,
+          vy: -0.2 - random.nextDouble() * 0.8,
+          size: 1.5 + random.nextDouble() * 2.5,
+          alphaBase: 0.2 + random.nextDouble() * 0.6,
+          color: colors[random.nextInt(colors.length)],
+        ),
+      );
     }
   }
 
@@ -912,7 +1045,9 @@ class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
             animation: _controller,
             builder: (_, __) => CustomPaint(
               painter: _AboutFireflyPainter(
-                  t: _controller.value, fireflies: _fireflies),
+                t: _controller.value,
+                fireflies: _fireflies,
+              ),
               size: Size.infinite,
             ),
           ),
@@ -970,9 +1105,13 @@ class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 700));
-    _slide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
 
     Future.delayed(Duration(milliseconds: 120 * widget.index), () {
@@ -990,10 +1129,7 @@ class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fade,
-      child: SlideTransition(
-        position: _slide,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }
@@ -1029,8 +1165,11 @@ class _FeatureGuideDialog extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.menu_book_rounded,
-                      color: Colors.white, size: 22),
+                  const Icon(
+                    Icons.menu_book_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -1305,6 +1444,3 @@ class _FeatureGuideDialog extends StatelessWidget {
     );
   }
 }
-
-
-

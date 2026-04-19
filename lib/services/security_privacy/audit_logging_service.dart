@@ -51,7 +51,7 @@ class AuditLoggingService {
         'description': description ?? '',
         'severity': severity,
         'ipAddress': 'mobile_app',
-        'userAgent': 'flutter_android', // TODO: detect actual platform
+        'userAgent': 'flutter_android',
         'timestamp': FieldValue.serverTimestamp(),
         'unixTimestamp': DateTime.now().millisecondsSinceEpoch,
         if (metadata != null) 'metadata': metadata,
