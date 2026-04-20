@@ -1,7 +1,7 @@
 name: anime_waifu
 description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
 publish_to: "none"
-version: 2.0.0+2
+version: 6.0.2+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -11,20 +11,22 @@ dependencies:
     sdk: flutter
 
   flutter_dotenv: ^6.0.0
+  uuid: ^4.5.1
   http: ^1.2.0
   flutter_tts: ^4.2.3
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.5
   intl: ^0.20.1
   audioplayers: ^6.0.0
-  porcupine_flutter: ^4.0.0
+  flutter_onnxruntime: ^1.6.3
   record: ^6.0.0
   speech_to_text: ^7.3.0
   path_provider: ^2.1.5
   permission_handler: ^12.0.1
-  image_picker: ^1.1.2
+  geolocator: ^14.0.2
+  image_picker: ^1.2.1
   google_fonts: ^8.0.2
-  video_player: ^2.9.2
-  url_launcher: ^6.3.1
+  video_player: ^2.11.1
+  url_launcher: ^6.3.2
   share_plus: ^12.0.1
   local_auth: ^3.0.1
   flutter_contacts: ^2.0.0
@@ -36,11 +38,36 @@ dependencies:
   home_widget: ^0.9.0
   firebase_core: ^4.5.0
   cloud_firestore: ^6.1.3
-  device_info_plus: ^12.3.0
+
   firebase_auth: ^6.2.0
-  google_sign_in: ^7.2.0
- # This is a dependency of porcupine_flutter, might be implicitly added
-  # ... other packages
+  google_sign_in: ^6.2.1
+  html: ^0.15.6
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.3.1
+
+  chewie: ^1.13.0
+  flutter_inappwebview: ^6.1.5
+  sensors_plus: ^7.0.0
+  provider: ^6.1.2
+  file_picker: ^10.3.10
+  web_socket_channel: ^3.0.3
+  mobile_scanner: ^6.0.2
+  qr_flutter: ^4.1.0
+
+  model_viewer_plus: ^1.10.0
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  receive_sharing_intent: ^1.8.1
+  shimmer: ^3.0.0
+  fl_chart: ^1.2.0
+  glassmorphism: ^3.0.0
+  workmanager: ^0.9.0+3
+  flutter_local_notifications: ^21.0.0
+  crypto: ^3.0.3
+  # firebase_crashlytics and firebase_analytics were removed as they conflict
+  # with firebase_core ^4.5.0 used by cloud_firestore ^6.1.3.
+  # To add crash reporting: upgrade all Firebase packages together to the same
+  # BoM version. Run: flutter pub upgrade --major-versions firebase_core
 
 
 dev_dependencies:
@@ -58,10 +85,12 @@ flutter:
     - assets/img/
     - assets/gif/
     - assets/wakeword/
+    - assets/template/
+    - assets/models/
     - .env
 
 # Launcher icon config
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/img/logi.png"
+  image_path: "assets/img/logi.jpg"

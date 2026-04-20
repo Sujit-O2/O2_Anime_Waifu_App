@@ -1,27 +1,22 @@
-import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-// ─── Waifu Background Widget ──────────────────────────────────────────────────
-// Uses waifu.pics API to show random waifu images/gifs as page backgrounds.
-// Falls back gracefully to a gradient if no network.
+import 'package:flutter/material.dart';
 
 enum WaifuBgType { sfw, action, waifuGif }
 
 class WaifuBackground extends StatefulWidget {
-  final Widget child;
-  final WaifuBgType type;
-  final double opacity;
-  final Color tint;
-
   const WaifuBackground({
     super.key,
     required this.child,
     this.type = WaifuBgType.sfw,
-    this.opacity = 0.22, // was 0.13 — now more vivid
+    this.opacity = 0.22,
     this.tint = Colors.black,
   });
+
+  final Widget child;
+  final WaifuBgType type;
+  final double opacity;
+  final Color tint;
 
   @override
   State<WaifuBackground> createState() => _WaifuBackgroundState();
@@ -29,43 +24,25 @@ class WaifuBackground extends StatefulWidget {
 
 class _WaifuBackgroundState extends State<WaifuBackground>
     with SingleTickerProviderStateMixin {
-  String? _imageUrl;
-  bool _loaded = false;
-  late AnimationController _pulseCtrl;
+  late final AnimationController _pulseCtrl;
+  late final String _assetPath;
 
-  static const _fallbackUrls = [
-    'https://i.waifu.pics/s0TF6gn.jpg',
-    'https://i.waifu.pics/YbGFLj0.jpg',
-    'https://i.waifu.pics/j7kqSvT.jpg',
-    'https://i.waifu.pics/b2VNwkU.jpg',
-    'https://i.waifu.pics/lxlKnIT.jpg',
-    'https://i.waifu.pics/0d6YXVs.jpg',
+  static const List<String> _sfwAssets = [
+    'assets/img/bg.jpg',
+    'assets/img/bg2.jpg',
+    'assets/img/z2s.jpg',
+    'assets/img/z12.jpg',
   ];
 
-  static const _sfwCategories = [
-    'waifu',
-    'neko',
-    'shinobu',
-    'megumin',
-    'bully',
-    'cuddle',
-    'cry',
-    'hug',
-    'kiss',
-    'lick',
-    'pat',
-    'smug',
-    'bonk',
-    'blush',
-    'smile',
-    'wave',
-    'bite',
-    'glomp',
-    'happy',
-    'wink',
-    'poke',
-    'dance',
-    'cringe',
+  static const List<String> _actionAssets = [
+    'assets/img/bll.jpg',
+    'assets/img/front.png',
+    'assets/img/bg2.jpg',
+  ];
+
+  static const List<String> _gifAssets = [
+    'assets/gif/background_of_about_section_blurry.gif',
+    'assets/gif/sidebar_bg.gif',
   ];
 
   @override
@@ -73,9 +50,9 @@ class _WaifuBackgroundState extends State<WaifuBackground>
     super.initState();
     _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 6),
+      duration: const Duration(seconds: 12),
     )..repeat(reverse: true);
-    _fetchWaifu();
+    _assetPath = _pickAsset();
   }
 
   @override
@@ -84,159 +61,146 @@ class _WaifuBackgroundState extends State<WaifuBackground>
     super.dispose();
   }
 
-  Future<void> _fetchWaifu() async {
-    try {
-      final category = _sfwCategories[Random().nextInt(_sfwCategories.length)];
-      final endpoint = widget.type == WaifuBgType.waifuGif
-          ? 'https://api.waifu.pics/sfw/$category'
-          : 'https://api.waifu.pics/sfw/waifu';
-      final res = await http
-          .get(Uri.parse(endpoint))
-          .timeout(const Duration(seconds: 5));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final url = data['url'] as String?;
-        if (url != null && mounted) {
-          setState(() => _imageUrl = url);
-        }
-      } else {
-        _useFallback();
-      }
-    } catch (_) {
-      _useFallback();
-    }
-  }
-
-  void _useFallback() {
-    if (!mounted) return;
-    setState(() {
-      _imageUrl = _fallbackUrls[Random().nextInt(_fallbackUrls.length)];
-    });
+  String _pickAsset() {
+    final random = Random();
+    final pool = switch (widget.type) {
+      WaifuBgType.action => _actionAssets,
+      WaifuBgType.waifuGif => _gifAssets,
+      WaifuBgType.sfw => _sfwAssets,
+    };
+    return pool[random.nextInt(pool.length)];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Deep space background gradient
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF0D0826), // deep purple
-                Color(0xFF100A22),
-                Color(0xFF070D1E), // deep blue-black
-              ],
-            ),
-          ),
-        ),
+    return AnimatedBuilder(
+      animation: _pulseCtrl,
+      builder: (context, _) {
+        final wave = _pulseCtrl.value;
 
-        // Ambient moving pink/purple radial glow (always on)
-        AnimatedBuilder(
-          animation: _pulseCtrl,
-          builder: (_, __) {
-            final v = _pulseCtrl.value;
-            return Positioned(
-              top: -60 + v * 30,
-              right: -80 + v * 20,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFFFF4D8D).withOpacity(0.12 + v * 0.06),
-                      Colors.transparent,
-                    ],
-                  ),
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF070B14),
+                    Color(0xFF101827),
+                    Color(0xFF1A0E21),
+                    Color(0xFF06080F),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
-
-        AnimatedBuilder(
-          animation: _pulseCtrl,
-          builder: (_, __) {
-            final v = 1.0 - _pulseCtrl.value;
-            return Positioned(
-              bottom: -40 + v * 20,
-              left: -60 + v * 15,
-              child: Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF9B59B6).withOpacity(0.10 + v * 0.05),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-
-        // Waifu image (loaded from waifu.pics or fallback)
-        if (_imageUrl != null)
-          Positioned.fill(
-            child: Opacity(
-              opacity: widget.opacity,
-              child: _imageUrl!.endsWith('.gif')
-                  ? Image.network(
-                      _imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    )
-                  : Image.network(
-                      _imageUrl!,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (ctx, child, progress) {
-                        if (progress == null) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted && !_loaded) {
-                              setState(() => _loaded = true);
-                            }
-                          });
-                          return AnimatedOpacity(
-                            duration: const Duration(milliseconds: 900),
-                            opacity: _loaded ? 1.0 : 0.0,
-                            child: child,
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
             ),
-          ),
-
-        // Gradient overlay — bottom-heavy for text readability
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+            Positioned(
+              top: -80 + wave * 28,
+              right: -50 + wave * 18,
+              child: _Orb(
+                size: 260,
                 colors: [
-                  widget.tint.withOpacity(0.65),
-                  widget.tint.withOpacity(0.45),
-                  widget.tint.withOpacity(0.78),
+                  const Color(0xFFFF5B7F).withValues(alpha: 0.18),
+                  Colors.transparent,
                 ],
               ),
             ),
-          ),
-        ),
-
-        // Main content
-        widget.child,
-      ],
+            Positioned(
+              left: -70 + (1 - wave) * 18,
+              bottom: -60 + (1 - wave) * 22,
+              child: _Orb(
+                size: 240,
+                colors: [
+                  const Color(0xFF5FE2FF).withValues(alpha: 0.16),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            Positioned(
+              top: 80 - wave * 12,
+              left: 40 + wave * 10,
+              child: _Orb(
+                size: 180,
+                colors: [
+                  const Color(0xFFFFC857).withValues(alpha: 0.10),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            Positioned.fill(
+              child: Opacity(
+                opacity: widget.opacity,
+                child: Transform.scale(
+                  scale: 1.03 + wave * 0.02,
+                  child: Image.asset(
+                    _assetPath,
+                    fit: BoxFit.cover,
+                    alignment: Alignment(0, -0.1 + wave * 0.1),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      widget.tint.withValues(alpha: 0.54),
+                      widget.tint.withValues(alpha: 0.26),
+                      widget.tint.withValues(alpha: 0.72),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.03),
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.12),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            widget.child,
+          ],
+        );
+      },
     );
   }
 }
+
+class _Orb extends StatelessWidget {
+  const _Orb({
+    required this.size,
+    required this.colors,
+  });
+
+  final double size;
+  final List<Color> colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(colors: colors),
+      ),
+    );
+  }
+}
+
+

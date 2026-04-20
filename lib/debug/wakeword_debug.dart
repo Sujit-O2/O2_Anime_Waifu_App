@@ -1,4 +1,4 @@
-import 'package:anime_waifu/load_wakeword_code.dart';
+import 'package:anime_waifu/utils/load_wakeword_code.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -72,3 +72,5 @@ class WakewordDebugPage extends StatelessWidget {
     );
   }
 }
+
+

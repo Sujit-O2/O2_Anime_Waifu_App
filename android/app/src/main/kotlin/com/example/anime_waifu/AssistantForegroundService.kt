@@ -69,7 +69,7 @@ class AssistantForegroundService : Service() {
     private var ttsModel: String? = null
     private var ttsVoice: String? = null
     private var ttsSpeed: Double = 1.0
-    private var intervalMs: Long = 10000 // Default 10s for testing
+    private var intervalMs: Long = 1800000 // Default 30min — battery optimized
     private var isGenerating = false
     private var proactiveEnabled = true
     private var proactiveRandomEnabled = false
@@ -120,15 +120,17 @@ class AssistantForegroundService : Service() {
     private val wakeTranscriptionLanguage = "en"
     private val minWakeAudioBytes = 1536L
     private val proactiveRandomIntervalsMs = longArrayOf(
-        10 * 60 * 1000L,
-        30 * 60 * 1000L,
-        60 * 60 * 1000L,
-        2 * 60 * 60 * 1000L,
-        5 * 60 * 60 * 1000L
+        45 * 60 * 1000L,
+        90 * 60 * 1000L,
+        3 * 60 * 60 * 1000L,
+        5 * 60 * 60 * 1000L,
+        8 * 60 * 60 * 1000L
     )
     private val wakeCaptureRunnable = object : Runnable {
         override fun run() {
-            val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+            // Disabled continuous background wake (wakeModeEnabled) to let Flutter ONNX handle it.
+            // Only allow background capture if it's an explicit overlay listen session.
+            val listeningAllowed = overlayListenSessionActive
             if (!isRunning || !listeningAllowed || !hasMicPermission()) {
                 return
             }
@@ -140,11 +142,11 @@ class AssistantForegroundService : Service() {
     private val wakeWatchdogRunnable = object : Runnable {
         override fun run() {
             if (!isRunning) return
-            if (wakeModeEnabled && !wakeLoopRunning && hasMicPermission()) {
+            if (overlayListenSessionActive && !wakeLoopRunning && hasMicPermission()) {
                 Log.w(TAG, "WakeWatchdog: wake loop dead — restarting via applyWakeRecognizerState")
                 applyWakeRecognizerState()
             }
-            handler.postDelayed(this, 45_000L)
+            handler.postDelayed(this, 300_000L)
         }
     }
 
@@ -198,9 +200,9 @@ class AssistantForegroundService : Service() {
         // Flutter SharedPreferences stores interval as Int, but we need Long.
         // Try Long first; fall back to Int if a ClassCastException occurs.
         intervalMs = try {
-            prefs.getLong("interval_ms", 10000L)
+            prefs.getLong("interval_ms", 1800000L)
         } catch (_: ClassCastException) {
-            prefs.getInt("interval_ms", 10000).toLong()
+            prefs.getInt("interval_ms", 1800000).toLong()
         }
         proactiveEnabled = prefs.getBoolean("proactive_enabled", true)
         proactiveRandomEnabled = prefs.getBoolean("proactive_random_enabled", false)
@@ -587,7 +589,9 @@ class AssistantForegroundService : Service() {
         if (proactiveRandomEnabled) {
             return proactiveRandomIntervalsMs[random.nextInt(proactiveRandomIntervalsMs.size)]
         }
-        return if (intervalMs > 0) intervalMs else 15000L
+        // Enforce 30-minute minimum to save battery
+        val minInterval = 1800000L
+        return if (intervalMs > minInterval) intervalMs else minInterval
     }
 
     private fun fetchAndShowProactiveMessage() {
@@ -613,7 +617,7 @@ class AssistantForegroundService : Service() {
                 conn.doOutput = true
 
                 val payload = JSONObject().apply {
-                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
+                    put("model", if (model.isNullOrEmpty()) "meta-llama/llama-4-scout-17b-16e-instruct" else model)
                     val messages = JSONArray().apply {
                         put(JSONObject().apply {
                             put("role", "system")
@@ -677,11 +681,11 @@ class AssistantForegroundService : Service() {
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("💕 Zero Two misses you~")
+            .setContentTitle("Zero Two misses you~")
             .setContentText(content)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("💕 Zero Two says:")
+                    .setBigContentTitle("Zero Two says:")
                     .bigText(content)
                     .setSummaryText("Tap to chat with Zero Two")
             )
@@ -699,7 +703,7 @@ class AssistantForegroundService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.sym_action_chat,
-                "Reply 💕",
+                "Reply",
                 pendingIntent
             )
             .addAction(
@@ -993,7 +997,7 @@ class AssistantForegroundService : Service() {
             stopWakeCaptureLoop()
             return
         }
-        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        val listeningAllowed = overlayListenSessionActive // ONNX handles continuous wake now
         if (listeningAllowed) {
             if (!hasMicPermission()) {
                 Log.w(TAG, "Wake mode requested without mic permission; disabling wake mode")
@@ -1146,7 +1150,7 @@ class AssistantForegroundService : Service() {
     }
 
     private fun scheduleNextWakeCapture(delayMs: Long) {
-        val listeningAllowed = wakeModeEnabled || overlayListenSessionActive
+        val listeningAllowed = overlayListenSessionActive // ONNX handles continuous wake now
         if (!wakeLoopRunning || !isRunning || !listeningAllowed) return
         handler.removeCallbacks(wakeCaptureRunnable)
         handler.postDelayed(wakeCaptureRunnable, delayMs.coerceAtLeast(80L))
@@ -1355,7 +1359,7 @@ class AssistantForegroundService : Service() {
                 conn.doOutput = true
 
                 val payload = JSONObject().apply {
-                    put("model", if (model.isNullOrEmpty()) "moonshotai/kimi-k2-instruct" else model)
+                    put("model", if (model.isNullOrEmpty()) "meta-llama/llama-4-scout-17b-16e-instruct" else model)
                     val messages = buildVoiceRequestMessages(command)
                     put("messages", messages)
                 }

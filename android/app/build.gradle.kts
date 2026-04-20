@@ -18,16 +18,22 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
+}
+
+android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.anime_waifu"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = flutter.minSdkVersion  // Required by flutter_inappwebview (WebView APIs)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -37,8 +43,7 @@ android {
         release {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // Enable R8 shrinking with rules that protect Porcupine's JNI bridge.
-            // Without this, R8 silently strips native classes and wake word fails.
+            // Enable R8 shrinking for production builds
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -57,4 +62,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.28")
     implementation("androidx.cardview:cardview:1.0.0")
+    // ONNX Runtime for on-device Whisper STT + Sentiment Analysis
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
+    // Gson for JSON parsing theme colors
+    implementation("com.google.code.gson:gson:2.10.1")
 }

@@ -97,8 +97,9 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFFFF4D8D).withOpacity(0.25 + _glowCtrl.value * 0.12),
-                              const Color(0xFF9B59B6).withOpacity(0.10),
+                              const Color(0xFFFF4D8D).withValues(
+                                  alpha: 0.25 + _glowCtrl.value * 0.12),
+                              const Color(0xFF9B59B6).withValues(alpha: 0.10),
                               Colors.transparent,
                             ],
                           ),
@@ -121,19 +122,20 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF4D8D).withOpacity(0.4 + _glowCtrl.value * 0.2),
+                              color: const Color(0xFFFF4D8D).withValues(
+                                  alpha: 0.4 + _glowCtrl.value * 0.2),
                               blurRadius: 20 + _glowCtrl.value * 10,
                               spreadRadius: 2,
                             ),
                           ],
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 2,
                           ),
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/img/bg.png',
+                            'assets/img/bg.jpg',
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(
                               Icons.favorite_rounded,
@@ -171,7 +173,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               // ── Greeting text ────────────────────────────────────────────
               Text(
@@ -179,18 +181,20 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                 textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
                   color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
                   shadows: [
                     Shadow(
-                      color: const Color(0xFFFF4D8D).withOpacity(0.6),
-                      blurRadius: 12,
+                      color: const Color(0xFFFF4D8D).withValues(alpha: 0.5),
+                      blurRadius: 16,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // ── Subtitle ─────────────────────────────────────────────────
               Text(
@@ -204,13 +208,13 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // ── Quick action pills ───────────────────────────────────────
+              // ── Quick action pills ───────────────────────────
               Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 10,
+                runSpacing: 10,
                 children: [
                   _pill('💬 Chat', const Color(0xFFFF4D8D)),
                   _pill('🎯 Daily', const Color(0xFF9B59B6)),
@@ -235,24 +239,26 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF4D8D).withOpacity(0.10),
-                const Color(0xFF9B59B6).withOpacity(0.10),
+                const Color(0xFFFF4D8D).withValues(alpha: 0.10),
+                const Color(0xFF9B59B6).withValues(alpha: 0.10),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFFF4D8D).withOpacity(0.25 + _glowCtrl.value * 0.1),
+              color: const Color(0xFFFF4D8D)
+                  .withValues(alpha: 0.25 + _glowCtrl.value * 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF4D8D).withOpacity(0.06 + _glowCtrl.value * 0.04),
+                color: const Color(0xFFFF4D8D)
+                    .withValues(alpha: 0.06 + _glowCtrl.value * 0.04),
                 blurRadius: 12,
               ),
             ],
           ),
           child: Row(
             children: [
-              Text('🌸', style: const TextStyle(fontSize: 28)),
+              const Text('🌸', style: TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -284,7 +290,7 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                   color: Colors.greenAccent,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.greenAccent.withOpacity(0.5),
+                      color: Colors.greenAccent.withValues(alpha: 0.5),
                       blurRadius: 6,
                     ),
                   ],
@@ -301,9 +307,9 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Text(
         label,
@@ -331,3 +337,5 @@ class _HeartParticle {
         alpha = 0.4 + rng.nextDouble() * 0.5,
         emoji = ['❤️', '💕', '💗', '🌸', '✨', '💖'][rng.nextInt(6)];
 }
+
+

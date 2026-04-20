@@ -119,7 +119,7 @@ class AppLockWrapperState extends State<AppLockWrapper>
           ),
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.black.withOpacity(0.5)),
+            child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -157,3 +157,5 @@ class AppLockWrapperState extends State<AppLockWrapper>
     );
   }
 }
+
+

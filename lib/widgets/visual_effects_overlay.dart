@@ -116,3 +116,5 @@ class _CinemaPainter extends CustomPainter {
   bool shouldRepaint(covariant _CinemaPainter oldDelegate) =>
       oldDelegate.mode != mode;
 }
+
+

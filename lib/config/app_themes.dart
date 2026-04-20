@@ -2,51 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ============================================================
-//   THEME STYLE ENUMS â€” Drive per-theme visual identity
+//   THEME STYLE ENUMS — Drive per-theme visual identity
 // ============================================================
 
-enum BubbleStyle {
-  glassmorphic, // Frosted glass, soft blur
-  terminal, // Monospace text, no bubble fill
-  outlined, // Hollow border glow, no fill
-  solid, // Opaque single-color fill
-  luxury, // Rich card with border shimmer
-}
+enum BubbleStyle { glassmorphic, terminal, outlined, solid, luxury }
 
-enum InputStyle {
-  pill, // Rounded pill, frosted glass (classic)
-  squareNeon, // Sharp rectangle, neon border glow
-  underline, // Just a bottom line, minimal
-  terminal, // Monospace, cursor blink style
-  luxury, // Gold/silver bordered card style
-}
+enum InputStyle { pill, squareNeon, underline, terminal, luxury }
 
-enum AnimStyle {
-  elastic, // Bounce spring (current)
-  slideSide, // Slides in from the bubble's side
-  glitch, // Fast scale-overshoot then settle
-  fadeZoom, // Fade + gentle zoom in
-  press, // Scale up from nothing, quick
-}
+enum AnimStyle { elastic, slideSide, glitch, fadeZoom, press }
 
-/// How the chat body lays out messages
-enum LayoutMode {
-  classic, // User right, AI left (standard)
-  terminal, // All left-aligned, full-width, no bubble border
-  centered, // All centered on screen
-  wideCard, // Full-width card each message, left-aligned label
-}
+enum LayoutMode { classic, terminal, centered, wideCard }
 
-/// AppBar visual style
-enum AppBarStyle {
-  transparent, // Classic glass with no background
-  neonBorder, // Dark bar with glowing bottom border
-  solid, // Opaque colored bar
-  minimal, // Just the title, no border or color, floating
-  banner, // Full gradient banner with larger title
-}
+enum AppBarStyle { transparent, neonBorder, solid, minimal, banner }
 
-/// Encapsulates the full visual identity for one theme
 class ThemeStyle {
   final TextStyle Function(double size, Color color) font;
   final BubbleStyle bubbleStyle;
@@ -59,9 +27,8 @@ class ThemeStyle {
   final bool leftAccentBar;
   final Color Function(Color primary) borderColor;
   final String hintText;
-  final String
-      labelUser; // How the user is labeled in terminal/wideCard layouts
-  final String labelAI; // How Zero Two is labeled
+  final String labelUser;
+  final String labelAI;
 
   const ThemeStyle({
     required this.font,
@@ -80,48 +47,62 @@ class ThemeStyle {
   });
 }
 
+// ── 15 Premium Themes (10 Original + 5 New) ─────────────────────────────────
 enum AppThemeMode {
-  // â”€â”€ TIER 1: ICONIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  bloodMoon, // Zero Two: deep crimson cinematic
-  voidMatrix, // Pure black cyberpunk, green data rain
-  angelFall, // Sakura + celestial white haze
-  titanSoul, // Amber brutal war-torn
-  cosmicRift, // Deep space purple + aurora shimmer
+  zeroTwo, // 1. Crimson blood — the OG
+  cyberPhantom, // 2. Electric cyan + violet — cyberpunk
+  velvetNoir, // 3. Rose gold + champagne — luxury
+  toxicVenom, // 4. Acid green + lime — matrix hacker
+  astralDream, // 5. Lavender + aurora pink — ethereal
+  infernoCore, // 6. Molten orange + lava red — volcanic
+  arcticBlade, // 7. Ice blue + frost white — minimal arctic
+  goldenEmperor, // 8. 24K gold + bronze — royal opulent
+  phantomViolet, // 9. Deep purple + magenta — mysterious
+  oceanAbyss, // 10. Deep teal + bioluminescent — deep sea
 
-  // â”€â”€ TIER 2: ULTRA-PREMIUM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  neonSerpent, // Poison jade viper energy
-  chromaStorm, // Magenta + cyan glitch aberration
-  goldenRuler, // 24k luxury gold + ink black
-  frozenDivine, // Glacier arctic crystalline
-  infernoGod, // Volcanic lava obsidian
+  // ─────── NEW THEMES (11-15) ──────────────────────────────────────────────
+  neonPulse, // 11. Electric neon with pulsing animations
+  moonlitMagic, // 12. Ethereal moonlight with smooth flows
+  solsticeBlaze, // 13. Fiery summer solstice with dynamics
+  auroraBorealis, // 14. Northern lights with gradient flows
+  midnightEclipse, // 15. Dark luxury with sophisticated layers
 
-  // â”€â”€ TIER 3: ANIME LEGENDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  shadowBlade, // Samurai ink, matte black + silver slash
-  pinkChaos, // Yuno Gasai: hot pink + white corruption
-  abyssWatcher, // Abyss: midnight navy + faint teal glow
-  solarFlare, // Naruto warm orange + deep red energy
-  demonSlayer, // Inosuke: jade beast + dark forest
-
-  // â”€â”€ TIER 4: LUXURY & FASHION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  midnightSilk, // Deep navy + rose gold shimmer
-  obsidianRose, // Matte black + blooming pink
-  onyxEmerald, // Gunmetal + rich emerald jewel
-  velvetCrown, // Deep purple + pale gold crown
-  platinumDawn, // Cool silver + dawn peach luxury
-
-  // â”€â”€ TIER 5: SCI-FI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  hypergate, // Electric blue + white dimension portal
-  xenoCore, // Alien bioluminescent teal + void black
-  dataStream, // Cyan cascading data on black
-  gravityBend, // Dark indigo + warped light orange
-  quartzPulse, // Crystal white + pulsing violet
-
-  // â”€â”€ TIER 6: NATURE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  midnightForest, // Dark wood green + moonlit silver
-  volcanicSea, // Deep ocean blue + molten orange seam
-  stormDesert, // Warm sand beige + electric storm grey
-  sakuraNight, // Ink black + falling pink sakura petals
-  arcticSoul, // Pure ice blue + barely-there aurora violet
+  // Legacy aliases — kept so old SharedPreferences indices don't crash.
+  bloodMoon,
+  voidMatrix,
+  angelFall,
+  titanSoul,
+  cosmicRift,
+  neonSerpent,
+  chromaStorm,
+  goldenRuler,
+  frozenDivine,
+  infernoGod,
+  shadowBlade,
+  pinkChaos,
+  abyssWatcher,
+  solarFlare,
+  demonSlayer,
+  midnightSilk,
+  obsidianRose,
+  onyxEmerald,
+  velvetCrown,
+  platinumDawn,
+  hypergate,
+  xenoCore,
+  dataStream,
+  gravityBend,
+  quartzPulse,
+  midnightForest,
+  volcanicSea,
+  stormDesert,
+  sakuraNight,
+  arcticSoul,
+  amethystDream,
+  titaniumFrost,
+  sunsetRider,
+  midnightRaven,
+  electricLime,
 }
 
 enum ParticleType {
@@ -134,762 +115,877 @@ enum ParticleType {
   leaves,
   snow,
   stars,
-  rain,
+  rain
 }
 
 class AppThemes {
-  // Global override for primary neon elements
-  static Color? customAccentColor;
-
-  // ==========================================================
-  //  PRIMARY GETTER
-  // ==========================================================
-  static ThemeData getRawTheme(AppThemeMode mode) {
-    Color? old = customAccentColor;
-    customAccentColor = null;
-    ThemeData t = getTheme(mode);
-    customAccentColor = old;
-    return t;
+  static Color? _customAccentColor;
+  static Color? get customAccentColor => _customAccentColor;
+  static set customAccentColor(Color? c) {
+    if (_customAccentColor == c) return;
+    _customAccentColor = c;
+    _themeCache.clear();
+    _styleCache.clear();
   }
 
-  static ThemeData getTheme(AppThemeMode mode) {
+  static final Map<AppThemeMode, ThemeData> _themeCache = {};
+  static final Map<AppThemeMode, ThemeStyle> _styleCache = {};
+
+  // ── Resolve legacy aliases to new modes ──────────────────────────────────
+  static AppThemeMode _resolve(AppThemeMode mode) {
     switch (mode) {
+      case AppThemeMode.zeroTwo:
       case AppThemeMode.bloodMoon:
-        return _build(
-          primary: const Color(0xFFFF1744),
-          secondary: const Color(0xFF880E4F),
-          bg: const Color(0xFF0A0003),
-          accent: const Color(0xFFFF4081),
-        );
-      case AppThemeMode.voidMatrix:
-        return _build(
-          primary: const Color(0xFF00FF41),
-          secondary: const Color(0xFF00E676),
-          bg: const Color(0xFF000A00),
-          accent: const Color(0xFF69FF47),
-        );
-      case AppThemeMode.angelFall:
-        return _build(
-          primary: const Color(0xFFFFCDD2),
-          secondary: const Color(0xFFF8BBD0),
-          bg: const Color(0xFF100810),
-          accent: const Color(0xFFFF80AB),
-        );
-      case AppThemeMode.titanSoul:
-        return _build(
-          primary: const Color(0xFFFFAB40),
-          secondary: const Color(0xFFBF360C),
-          bg: const Color(0xFF0C0600),
-          accent: const Color(0xFFFFCC02),
-        );
-      case AppThemeMode.cosmicRift:
-        return _build(
-          primary: const Color(0xFFEA80FC),
-          secondary: const Color(0xFF7C4DFF),
-          bg: const Color(0xFF040008),
-          accent: const Color(0xFF00E5FF),
-        );
-      case AppThemeMode.neonSerpent:
-        return _build(
-          primary: const Color(0xFF39FF14),
-          secondary: const Color(0xFF00C853),
-          bg: const Color(0xFF010D06),
-          accent: const Color(0xFFB2FF59),
-        );
-      case AppThemeMode.chromaStorm:
-        return _build(
-          primary: const Color(0xFFFF00FF),
-          secondary: const Color(0xFF00E5FF),
-          bg: const Color(0xFF05000F),
-          accent: const Color(0xFFFF4081),
-        );
-      case AppThemeMode.goldenRuler:
-        return _build(
-          primary: const Color(0xFFFFD700),
-          secondary: const Color(0xFFFF8F00),
-          bg: const Color(0xFF050300),
-          accent: const Color(0xFFFFF9C4),
-        );
-      case AppThemeMode.frozenDivine:
-        return _build(
-          primary: const Color(0xFFB3E5FC),
-          secondary: const Color(0xFF4FC3F7),
-          bg: const Color(0xFF00050F),
-          accent: const Color(0xFFE1F5FE),
-        );
-      case AppThemeMode.infernoGod:
-        return _build(
-            primary: const Color(0xFFFF3D00),
-            secondary: const Color(0xFFBF360C),
-            bg: const Color(0xFF060000),
-            accent: const Color(0xFFFF6D00));
-      // â”€â”€ TIER 3: ANIME LEGENDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.shadowBlade:
-        return _build(
-            primary: const Color(0xFFBDBDBD),
-            secondary: const Color(0xFF616161),
-            bg: const Color(0xFF030303),
-            accent: const Color(0xFFEEEEEE));
       case AppThemeMode.pinkChaos:
-        return _build(
-            primary: const Color(0xFFFF4081),
-            secondary: const Color(0xFFAD1457),
-            bg: const Color(0xFF0D0009),
-            accent: const Color(0xFFFF80AB));
-      case AppThemeMode.abyssWatcher:
-        return _build(
-            primary: const Color(0xFF26C6DA),
-            secondary: const Color(0xFF006064),
-            bg: const Color(0xFF00050F),
-            accent: const Color(0xFF80DEEA));
-      case AppThemeMode.solarFlare:
-        return _build(
-            primary: const Color(0xFFFF6D00),
-            secondary: const Color(0xFFBF360C),
-            bg: const Color(0xFF0F0500),
-            accent: const Color(0xFFFFAB40));
-      case AppThemeMode.demonSlayer:
-        return _build(
-            primary: const Color(0xFF43A047),
-            secondary: const Color(0xFF1B5E20),
-            bg: const Color(0xFF020D02),
-            accent: const Color(0xFFA5D6A7));
-      // â”€â”€ TIER 4: LUXURY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.midnightSilk:
-        return _build(
-            primary: const Color(0xFFD4A5A5),
-            secondary: const Color(0xFF1A237E),
-            bg: const Color(0xFF01010D),
-            accent: const Color(0xFFE8C8C8));
       case AppThemeMode.obsidianRose:
-        return _build(
-            primary: const Color(0xFFEC407A),
-            secondary: const Color(0xFF880E4F),
-            bg: const Color(0xFF060208),
-            accent: const Color(0xFFF48FB1));
-      case AppThemeMode.onyxEmerald:
-        return _build(
-            primary: const Color(0xFF26A69A),
-            secondary: const Color(0xFF00695C),
-            bg: const Color(0xFF01080A),
-            accent: const Color(0xFF80CBC4));
-      case AppThemeMode.velvetCrown:
-        return _build(
-            primary: const Color(0xFFCE93D8),
-            secondary: const Color(0xFF6A1B9A),
-            bg: const Color(0xFF080010),
-            accent: const Color(0xFFFFD54F));
-      case AppThemeMode.platinumDawn:
-        return _build(
-            primary: const Color(0xFFE0E0E0),
-            secondary: const Color(0xFF9E9E9E),
-            bg: const Color(0xFF040404),
-            accent: const Color(0xFFFFCCBC));
-      // â”€â”€ TIER 5: SCI-FI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.hypergate:
-        return _build(
-            primary: const Color(0xFF40C4FF),
-            secondary: const Color(0xFF0091EA),
-            bg: const Color(0xFF000A14),
-            accent: const Color(0xFFFFFFFF));
-      case AppThemeMode.xenoCore:
-        return _build(
-            primary: const Color(0xFF1DE9B6),
-            secondary: const Color(0xFF00BFA5),
-            bg: const Color(0xFF00050A),
-            accent: const Color(0xFFA7FFEB));
+        return AppThemeMode.zeroTwo;
+
+      case AppThemeMode.cyberPhantom:
+      case AppThemeMode.voidMatrix:
       case AppThemeMode.dataStream:
-        return _build(
-            primary: const Color(0xFF00E5FF),
-            secondary: const Color(0xFF006064),
-            bg: const Color(0xFF000B0F),
-            accent: const Color(0xFF84FFFF));
-      case AppThemeMode.gravityBend:
-        return _build(
-            primary: const Color(0xFFFF6F00),
-            secondary: const Color(0xFF311B92),
-            bg: const Color(0xFF040010),
-            accent: const Color(0xFFFFD180));
-      case AppThemeMode.quartzPulse:
-        return _build(
-            primary: const Color(0xFFD500F9),
-            secondary: const Color(0xFF6200EA),
-            bg: const Color(0xFF060008),
-            accent: const Color(0xFFEA80FC));
-      // â”€â”€ TIER 6: NATURE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.midnightForest:
-        return _build(
-            primary: const Color(0xFF81C784),
-            secondary: const Color(0xFF2E7D32),
-            bg: const Color(0xFF010A01),
-            accent: const Color(0xFFC8E6C9));
-      case AppThemeMode.volcanicSea:
-        return _build(
-            primary: const Color(0xFFFF7043),
-            secondary: const Color(0xFF01579B),
-            bg: const Color(0xFF030712),
-            accent: const Color(0xFFFF8A65));
-      case AppThemeMode.stormDesert:
-        return _build(
-            primary: const Color(0xFFBCAAA4),
-            secondary: const Color(0xFF4E342E),
-            bg: const Color(0xFF0C0804),
-            accent: const Color(0xFFF5F5DC));
-      case AppThemeMode.sakuraNight:
-        return _build(
-            primary: const Color(0xFFFFB7C5),
-            secondary: const Color(0xFF880E4F),
-            bg: const Color(0xFF040008),
-            accent: const Color(0xFFFFE0E6));
+      case AppThemeMode.hypergate:
+        return AppThemeMode.cyberPhantom;
+
+      case AppThemeMode.velvetNoir:
+      case AppThemeMode.midnightSilk:
+      case AppThemeMode.platinumDawn:
+      case AppThemeMode.velvetCrown:
+        return AppThemeMode.velvetNoir;
+
+      case AppThemeMode.toxicVenom:
+      case AppThemeMode.neonSerpent:
+      case AppThemeMode.electricLime:
+      case AppThemeMode.demonSlayer:
+        return AppThemeMode.toxicVenom;
+
+      case AppThemeMode.astralDream:
+      case AppThemeMode.angelFall:
+      case AppThemeMode.cosmicRift:
+      case AppThemeMode.amethystDream:
+        return AppThemeMode.astralDream;
+
+      case AppThemeMode.infernoCore:
+      case AppThemeMode.infernoGod:
+      case AppThemeMode.solarFlare:
+      case AppThemeMode.sunsetRider:
+        return AppThemeMode.infernoCore;
+
+      case AppThemeMode.arcticBlade:
+      case AppThemeMode.frozenDivine:
       case AppThemeMode.arcticSoul:
-        return _build(
-            primary: const Color(0xFFB3E5FC),
-            secondary: const Color(0xFF80D8FF),
-            bg: const Color(0xFF000508),
-            accent: const Color(0xFFE0F7FA));
+      case AppThemeMode.titaniumFrost:
+        return AppThemeMode.arcticBlade;
+
+      case AppThemeMode.goldenEmperor:
+      case AppThemeMode.goldenRuler:
+      case AppThemeMode.titanSoul:
+      case AppThemeMode.stormDesert:
+        return AppThemeMode.goldenEmperor;
+
+      case AppThemeMode.phantomViolet:
+      case AppThemeMode.chromaStorm:
+      case AppThemeMode.quartzPulse:
+      case AppThemeMode.gravityBend:
+      case AppThemeMode.midnightRaven:
+        return AppThemeMode.phantomViolet;
+
+      case AppThemeMode.oceanAbyss:
+      case AppThemeMode.abyssWatcher:
+      case AppThemeMode.xenoCore:
+      case AppThemeMode.onyxEmerald:
+      case AppThemeMode.midnightForest:
+      case AppThemeMode.volcanicSea:
+      case AppThemeMode.sakuraNight:
+      case AppThemeMode.shadowBlade:
+        return AppThemeMode.oceanAbyss;
+
+      // ─ New Themes (pass through) ──
+      case AppThemeMode.neonPulse:
+        return AppThemeMode.neonPulse;
+      case AppThemeMode.moonlitMagic:
+        return AppThemeMode.moonlitMagic;
+      case AppThemeMode.solsticeBlaze:
+        return AppThemeMode.solsticeBlaze;
+      case AppThemeMode.auroraBorealis:
+        return AppThemeMode.auroraBorealis;
+      case AppThemeMode.midnightEclipse:
+        return AppThemeMode.midnightEclipse;
     }
   }
 
-  static ThemeData _build({
-    required Color primary,
-    required Color secondary,
-    required Color bg,
-    required Color accent,
-  }) {
-    final effectivePrimary = customAccentColor ?? primary;
-    final effectiveAccent = customAccentColor ?? accent;
+  static ThemeData getRawTheme(AppThemeMode mode) {
+    final Color? old = _customAccentColor;
+    _customAccentColor = null;
+    _themeCache.clear();
+    final ThemeData t = getTheme(mode);
+    _customAccentColor = old;
+    _themeCache.clear();
+    return t;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  THEME DATA (Colors)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static ThemeData getTheme(AppThemeMode mode) {
+    final resolved = _resolve(mode);
+    return _themeCache[resolved] ??= _buildTheme(resolved);
+  }
+
+  static ThemeData _buildTheme(AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.zeroTwo:
+        return _build(
+            primary: const Color(0xFFFF1744),
+            secondary: const Color(0xFF880E4F),
+            bg: const Color(0xFF0A0003),
+            accent: const Color(0xFFFF4081));
+      case AppThemeMode.cyberPhantom:
+        return _build(
+            primary: const Color(0xFF00E5FF),
+            secondary: const Color(0xFF7C4DFF),
+            bg: const Color(0xFF020810),
+            accent: const Color(0xFF18FFFF));
+      case AppThemeMode.velvetNoir:
+        return _build(
+            primary: const Color(0xFFB76E79),
+            secondary: const Color(0xFF3E2723),
+            bg: const Color(0xFF0C0808),
+            accent: const Color(0xFFF7E7CE));
+      case AppThemeMode.toxicVenom:
+        return _build(
+            primary: const Color(0xFF39FF14),
+            secondary: const Color(0xFF00C853),
+            bg: const Color(0xFF010D02),
+            accent: const Color(0xFFADFF2F));
+      case AppThemeMode.astralDream:
+        return _build(
+            primary: const Color(0xFFB388FF),
+            secondary: const Color(0xFFCE93D8),
+            bg: const Color(0xFF080010),
+            accent: const Color(0xFFFF80AB));
+      case AppThemeMode.infernoCore:
+        return _build(
+            primary: const Color(0xFFFF6D00),
+            secondary: const Color(0xFFD50000),
+            bg: const Color(0xFF0C0200),
+            accent: const Color(0xFFFFAB00));
+      case AppThemeMode.arcticBlade:
+        return _build(
+            primary: const Color(0xFF80D8FF),
+            secondary: const Color(0xFF4FC3F7),
+            bg: const Color(0xFF020A10),
+            accent: const Color(0xFFE0F7FA));
+      case AppThemeMode.goldenEmperor:
+        return _build(
+            primary: const Color(0xFFFFD700),
+            secondary: const Color(0xFFCD7F32),
+            bg: const Color(0xFF0A0600),
+            accent: const Color(0xFFFFF8E1));
+      case AppThemeMode.phantomViolet:
+        return _build(
+            primary: const Color(0xFFD500F9),
+            secondary: const Color(0xFF6200EA),
+            bg: const Color(0xFF0A0010),
+            accent: const Color(0xFFEA80FC));
+      case AppThemeMode.oceanAbyss:
+        return _build(
+            primary: const Color(0xFF1DE9B6),
+            secondary: const Color(0xFF006064),
+            bg: const Color(0xFF00080A),
+            accent: const Color(0xFF84FFFF));
+      
+      // ─ NEW THEMES (11-15) ─────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return _build(
+            primary: const Color(0xFF00FF88),
+            secondary: const Color(0xFFFF00FF),
+            bg: const Color(0xFF0A0E27),
+            accent: const Color(0xFF00FFFF));
+      case AppThemeMode.moonlitMagic:
+        return _build(
+            primary: const Color(0xFFE0E3FF),
+            secondary: const Color(0xFF9D8FD1),
+            bg: const Color(0xFF0F0B1E),
+            accent: const Color(0xFFC8B6FF));
+      case AppThemeMode.solsticeBlaze:
+        return _build(
+            primary: const Color(0xFFFF4500),
+            secondary: const Color(0xFFFF1744),
+            bg: const Color(0xFF1A0A00),
+            accent: const Color(0xFFFFB74D));
+      case AppThemeMode.auroraBorealis:
+        return _build(
+            primary: const Color(0xFF00D9A3),
+            secondary: const Color(0xFF00E5B3),
+            bg: const Color(0xFF0A1F1F),
+            accent: const Color(0xFF7FFF00));
+      case AppThemeMode.midnightEclipse:
+        return _build(
+            primary: const Color(0xFFC9A961),
+            secondary: const Color(0xFF2D2D44),
+            bg: const Color(0xFF0D0D0D),
+            accent: const Color(0xFFE5D4B1));
+      
+      default:
+        return _build(
+            primary: const Color(0xFFFF1744),
+            secondary: const Color(0xFF880E4F),
+            bg: const Color(0xFF0A0003),
+            accent: const Color(0xFFFF4081));
+    }
+  }
+
+  static ThemeData _build(
+      {required Color primary,
+      required Color secondary,
+      required Color bg,
+      required Color accent}) {
+    final effectivePrimary = _customAccentColor ?? primary;
+    final effectiveAccent = _customAccentColor ?? accent;
+    final textTheme = GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme);
+    final surface = Color.alphaBlend(
+      effectivePrimary.withValues(alpha: 0.08),
+      bg.withValues(alpha: 0.96),
+    );
+    final elevatedSurface = Color.alphaBlend(
+      effectiveAccent.withValues(alpha: 0.08),
+      bg.withValues(alpha: 0.92),
+    );
 
     return ThemeData(
       brightness: Brightness.dark,
       primaryColor: effectivePrimary,
       scaffoldBackgroundColor: bg,
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+      canvasColor: surface,
+      splashColor: effectivePrimary.withValues(alpha: 0.08),
+      highlightColor: Colors.white.withValues(alpha: 0.03),
+      textTheme: textTheme,
+      // Modern page transitions
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: ColorScheme.dark(
         primary: effectivePrimary,
         secondary: secondary,
-        surface: bg,
+        surface: surface,
         tertiary: effectiveAccent,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        foregroundColor: Colors.white,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
+      cardColor: surface,
+      cardTheme: CardThemeData(
+        color: surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      dividerColor: Colors.white.withValues(alpha: 0.08),
+      dividerTheme: DividerThemeData(
+        color: Colors.white.withValues(alpha: 0.06),
+        thickness: 1,
+        space: 1,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: elevatedSurface,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+      ),
+      // Modern dialog theme
+      dialogTheme: DialogThemeData(
+        backgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.04),
+          bg.withValues(alpha: 0.98),
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 24,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+          fontSize: 18,
+        ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white70,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: elevatedSurface,
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white38,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide:
+              BorderSide(color: effectivePrimary.withValues(alpha: 0.7), width: 1.5),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: elevatedSurface,
+        selectedColor: effectivePrimary.withValues(alpha: 0.22),
+        disabledColor: Colors.white.withValues(alpha: 0.04),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        labelStyle: textTheme.bodySmall?.copyWith(color: Colors.white70, fontWeight: FontWeight.w600),
+        showCheckmark: false,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: effectivePrimary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle:
+              textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle:
+              textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: effectivePrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle:
+              textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return effectivePrimary;
+          return Colors.white54;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return effectivePrimary.withValues(alpha: 0.35);
+          return Colors.white.withValues(alpha: 0.1);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: effectivePrimary,
+        inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+        thumbColor: effectivePrimary,
+        overlayColor: effectivePrimary.withValues(alpha: 0.12),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: effectivePrimary,
+        linearTrackColor: Colors.white.withValues(alpha: 0.08),
+        circularTrackColor: Colors.white.withValues(alpha: 0.08),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.03),
+          bg.withValues(alpha: 0.98),
+        ),
+        modalBackgroundColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.03),
+          bg.withValues(alpha: 0.98),
+        ),
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        dragHandleColor: Colors.white.withValues(alpha: 0.2),
+        showDragHandle: true,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: elevatedSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        textStyle: textTheme.bodySmall?.copyWith(color: Colors.white70),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: 0.05),
+          bg.withValues(alpha: 0.97),
+        ),
+        surfaceTintColor: Colors.transparent,
+        elevation: 12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        iconColor: Colors.white54,
+        titleTextStyle: textTheme.bodyMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+        subtitleTextStyle: textTheme.bodySmall?.copyWith(
+          color: Colors.white54,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: bg.withValues(alpha: 0.95),
+        indicatorColor: effectivePrimary.withValues(alpha: 0.2),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
     );
   }
 
-  // ==========================================================
-  //  ULTRA-RICH MULTI-STOP GRADIENTS (3-5 stops each)
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  GRADIENTS (5-color deep background gradients)
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static List<Color> getGradient(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
-        // Deep obsidian â†’ blood crimson haze â†’ night void
-        return [
-          const Color(0xFF1C000A),
-          const Color(0xFF3D0014),
-          const Color(0xFF1A000A),
-          const Color(0xFF0A0003),
-          const Color(0xFF000000),
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
+        // Obsidian → blood crimson → dark rose → purple shadow → void
+        return const [
+          Color(0xFF0A0010),
+          Color(0xFF3D0014),
+          Color(0xFF6B0020),
+          Color(0xFF1A0030),
+          Color(0xFF000006)
         ];
-      case AppThemeMode.voidMatrix:
-        // Void black â†’ matrix green trace â†’ terminal dark
-        return [
-          const Color(0xFF001500),
-          const Color(0xFF002A00),
-          const Color(0xFF001000),
-          const Color(0xFF000000),
+      case AppThemeMode.cyberPhantom:
+        // Deep space → electric blue → violet pulse → cyan haze → void
+        return const [
+          Color(0xFF000810),
+          Color(0xFF001A3D),
+          Color(0xFF1A004A),
+          Color(0xFF003040),
+          Color(0xFF000408)
         ];
-      case AppThemeMode.angelFall:
-        // Twilight black â†’ rose petal mist â†’ faint white aether
-        return [
-          const Color(0xFF1E0C1A),
-          const Color(0xFF3D1F2F),
-          const Color(0xFF2B1120),
-          const Color(0xFF100810),
-          const Color(0xFF000000),
+      case AppThemeMode.velvetNoir:
+        // Ink velvet → rose shadow → champagne glow → mahogany → noir
+        return const [
+          Color(0xFF080404),
+          Color(0xFF2A1018),
+          Color(0xFF3D2420),
+          Color(0xFF1A0C08),
+          Color(0xFF040202)
         ];
-      case AppThemeMode.titanSoul:
-        // War-ash black â†’ burnt amber â†’ volcanic ember â†’ shadow
-        return [
-          const Color(0xFF1F0F00),
-          const Color(0xFF3D1A00),
-          const Color(0xFF2B1000),
-          const Color(0xFF0C0600),
-          const Color(0xFF000000),
+      case AppThemeMode.toxicVenom:
+        // Void → toxic jade → serpent green → acid glow → shadow
+        return const [
+          Color(0xFF000A02),
+          Color(0xFF003810),
+          Color(0xFF005020),
+          Color(0xFF0A4000),
+          Color(0xFF000800)
         ];
-      case AppThemeMode.cosmicRift:
-        // Singularity black â†’ deep space violet â†’ aurora plasma edge
-        return [
-          const Color(0xFF0D0018),
-          const Color(0xFF1E0040),
-          const Color(0xFF0A0030),
-          const Color(0xFF040008),
-          const Color(0xFF000000),
+      case AppThemeMode.astralDream:
+        // Cosmic void → lavender mist → aurora pink → violet haze → deep
+        return const [
+          Color(0xFF060010),
+          Color(0xFF1A0040),
+          Color(0xFF3A1060),
+          Color(0xFF200030),
+          Color(0xFF040008)
         ];
-      case AppThemeMode.neonSerpent:
-        // Jungle shadow â†’ toxic jade â†’ serpent neon â†’ void
-        return [
-          const Color(0xFF001A06),
-          const Color(0xFF002E0F),
-          const Color(0xFF001A08),
-          const Color(0xFF010D06),
-          const Color(0xFF000000),
+      case AppThemeMode.infernoCore:
+        // Obsidian → volcanic red → molten orange → lava glow → ash
+        return const [
+          Color(0xFF060000),
+          Color(0xFF3D0000),
+          Color(0xFF5E1400),
+          Color(0xFF3D0A00),
+          Color(0xFF0A0000)
         ];
-      case AppThemeMode.chromaStorm:
-        // Absolute black â†’ plasma magenta core â†’ electric cyan halo
-        return [
-          const Color(0xFF0F000A),
-          const Color(0xFF1E0030),
-          const Color(0xFF0A001A),
-          const Color(0xFF05000F),
-          const Color(0xFF000000),
+      case AppThemeMode.arcticBlade:
+        // Polar dark → deep arctic → ice blue → aurora teal → frost
+        return const [
+          Color(0xFF000510),
+          Color(0xFF001830),
+          Color(0xFF003050),
+          Color(0xFF001A38),
+          Color(0xFF000308)
         ];
-      case AppThemeMode.goldenRuler:
-        // Ink black â†’ 24k gold trace â†’ burnished amber â†’ shadow
-        return [
-          const Color(0xFF150D00),
-          const Color(0xFF2A1800),
-          const Color(0xFF1C1000),
-          const Color(0xFF050300),
-          const Color(0xFF000000),
+      case AppThemeMode.goldenEmperor:
+        // Ancient ink → 24k shimmer → burnished amber → cognac → shadow
+        return const [
+          Color(0xFF080400),
+          Color(0xFF3D2600),
+          Color(0xFF604000),
+          Color(0xFF3D1800),
+          Color(0xFF0A0500)
         ];
-      case AppThemeMode.frozenDivine:
-        // Glacial abyss â†’ ice blue depth â†’ crystal mist â†’ dark
-        return [
-          const Color(0xFF001020),
-          const Color(0xFF00203D),
-          const Color(0xFF001530),
-          const Color(0xFF00050F),
-          const Color(0xFF000000),
+      case AppThemeMode.phantomViolet:
+        // Void → violet surge → magenta crystal → deep purple → black
+        return const [
+          Color(0xFF040006),
+          Color(0xFF180028),
+          Color(0xFF380058),
+          Color(0xFF200038),
+          Color(0xFF040006)
         ];
-      case AppThemeMode.infernoGod:
-        return [
-          const Color(0xFF1A0000),
-          const Color(0xFF3D0000),
-          const Color(0xFF060000),
-          const Color(0xFF000000)
+      case AppThemeMode.oceanAbyss:
+        // Abyss → deep teal → biolume green → midnight navy → void
+        return const [
+          Color(0xFF000604),
+          Color(0xFF002818),
+          Color(0xFF004028),
+          Color(0xFF001828),
+          Color(0xFF000402)
         ];
-      case AppThemeMode.shadowBlade:
-        return [
-          const Color(0xFF0A0A0A),
-          const Color(0xFF1C1C1C),
-          const Color(0xFF0A0A0A),
-          const Color(0xFF000000)
+      
+      // ─ NEW THEME GRADIENTS ────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        // Neon electric gradient with high energy
+        return const [
+          Color(0xFF0A0E27),
+          Color(0xFF0F1A3A),
+          Color(0xFF1A0F2E),
+          Color(0xFF0F1A2E),
+          Color(0xFF050709)
         ];
-      case AppThemeMode.pinkChaos:
-        return [
-          const Color(0xFF1A0010),
-          const Color(0xFF3D0025),
-          const Color(0xFF150010),
-          const Color(0xFF0D0009)
+      case AppThemeMode.moonlitMagic:
+        // Ethereal moonlit purple gradient
+        return const [
+          Color(0xFF0F0B1E),
+          Color(0xFF1A0F3A),
+          Color(0xFF2D1B4E),
+          Color(0xFF14082F),
+          Color(0xFF060409)
         ];
-      case AppThemeMode.abyssWatcher:
-        return [
-          const Color(0xFF001820),
-          const Color(0xFF003040),
-          const Color(0xFF001020),
-          const Color(0xFF00050F)
+      case AppThemeMode.solsticeBlaze:
+        // Fiery orange-red gradient
+        return const [
+          Color(0xFF1A0A00),
+          Color(0xFF3D1000),
+          Color(0xFF5E1400),
+          Color(0xFF3D0A00),
+          Color(0xFF0A0000)
         ];
-      case AppThemeMode.solarFlare:
-        return [
-          const Color(0xFF1A0A00),
-          const Color(0xFF3D1800),
-          const Color(0xFF200A00),
-          const Color(0xFF0F0500)
+      case AppThemeMode.auroraBorealis:
+        // Northern lights teal-green gradient
+        return const [
+          Color(0xFF0A1F1F),
+          Color(0xFF001A2E),
+          Color(0xFF0F2E3A),
+          Color(0xFF0A1F28),
+          Color(0xFF040808)
         ];
-      case AppThemeMode.demonSlayer:
-        return [
-          const Color(0xFF021402),
-          const Color(0xFF042804),
-          const Color(0xFF021002),
-          const Color(0xFF020D02)
+      case AppThemeMode.midnightEclipse:
+        // Sophisticated dark gold gradient
+        return const [
+          Color(0xFF0D0D0D),
+          Color(0xFF1A1A2E),
+          Color(0xFF2D2D44),
+          Color(0xFF161625),
+          Color(0xFF000000)
         ];
-      case AppThemeMode.midnightSilk:
-        return [
-          const Color(0xFF08082A),
-          const Color(0xFF14144A),
-          const Color(0xFF0A0A20),
-          const Color(0xFF01010D)
-        ];
-      case AppThemeMode.obsidianRose:
-        return [
-          const Color(0xFF18000E),
-          const Color(0xFF32001C),
-          const Color(0xFF180010),
-          const Color(0xFF060208)
-        ];
-      case AppThemeMode.onyxEmerald:
-        return [
-          const Color(0xFF001A18),
-          const Color(0xFF003030),
-          const Color(0xFF001818),
-          const Color(0xFF01080A)
-        ];
-      case AppThemeMode.velvetCrown:
-        return [
-          const Color(0xFF100020),
-          const Color(0xFF200040),
-          const Color(0xFF0C0020),
-          const Color(0xFF080010)
-        ];
-      case AppThemeMode.platinumDawn:
-        return [
-          const Color(0xFF0C0C0C),
-          const Color(0xFF181818),
-          const Color(0xFF080808),
-          const Color(0xFF040404)
-        ];
-      case AppThemeMode.hypergate:
-        return [
-          const Color(0xFF001A28),
-          const Color(0xFF00304A),
-          const Color(0xFF001520),
-          const Color(0xFF000A14)
-        ];
-      case AppThemeMode.xenoCore:
-        return [
-          const Color(0xFF001A14),
-          const Color(0xFF003025),
-          const Color(0xFF001510),
-          const Color(0xFF00050A)
-        ];
-      case AppThemeMode.dataStream:
-        return [
-          const Color(0xFF001820),
-          const Color(0xFF003040),
-          const Color(0xFF001020),
-          const Color(0xFF000B0F)
-        ];
-      case AppThemeMode.gravityBend:
-        return [
-          const Color(0xFF100020),
-          const Color(0xFF1C001A),
-          const Color(0xFF0A0010),
-          const Color(0xFF040010)
-        ];
-      case AppThemeMode.quartzPulse:
-        return [
-          const Color(0xFF100012),
-          const Color(0xFF200030),
-          const Color(0xFF0C000E),
-          const Color(0xFF060008)
-        ];
-      case AppThemeMode.midnightForest:
-        return [
-          const Color(0xFF011401),
-          const Color(0xFF022502),
-          const Color(0xFF01100A),
-          const Color(0xFF010A01)
-        ];
-      case AppThemeMode.volcanicSea:
-        return [
-          const Color(0xFF040C14),
-          const Color(0xFF0A1828),
-          const Color(0xFF040A18),
-          const Color(0xFF030712)
-        ];
-      case AppThemeMode.stormDesert:
-        return [
-          const Color(0xFF1A1410),
-          const Color(0xFF2C221C),
-          const Color(0xFF140E0A),
-          const Color(0xFF0C0804)
-        ];
-      case AppThemeMode.sakuraNight:
-        return [
-          const Color(0xFF14000E),
-          const Color(0xFF28001C),
-          const Color(0xFF10000C),
-          const Color(0xFF040008)
-        ];
-      case AppThemeMode.arcticSoul:
-        return [
-          const Color(0xFF000E18),
-          const Color(0xFF001A2C),
-          const Color(0xFF000A14),
-          const Color(0xFF000508)
+      
+      default:
+        return const [
+          Color(0xFF0A0010),
+          Color(0xFF3D0014),
+          Color(0xFF6B0020),
+          Color(0xFF1A0030),
+          Color(0xFF000006)
         ];
     }
   }
 
-  // ==========================================================
-  //  PARTICLE PHYSICS MAPPING
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  PARTICLES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static ParticleType getParticleType(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
-        return ParticleType.sakura; // Crimson petals falling
-      case AppThemeMode.voidMatrix:
-        return ParticleType.rain; // Data rain
-      case AppThemeMode.angelFall:
-        return ParticleType.sakura; // White/pink petals
-      case AppThemeMode.titanSoul:
-        return ParticleType.embers; // Battle embers
-      case AppThemeMode.cosmicRift:
-        return ParticleType.stars; // Drifting stars & aurora
-      case AppThemeMode.neonSerpent:
-        return ParticleType.bubbles; // Toxic bubbles rising
-      case AppThemeMode.chromaStorm:
-        return ParticleType.lines; // Lightning traces
-      case AppThemeMode.goldenRuler:
-        return ParticleType.circles; // Gold dust motes
-      case AppThemeMode.frozenDivine:
-        return ParticleType.snow; // Divine snowfall
-      case AppThemeMode.infernoGod:
-        return ParticleType.embers;
-      case AppThemeMode.shadowBlade:
-        return ParticleType.lines;
-      case AppThemeMode.pinkChaos:
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
         return ParticleType.sakura;
-      case AppThemeMode.abyssWatcher:
-        return ParticleType.bubbles;
-      case AppThemeMode.solarFlare:
-        return ParticleType.embers;
-      case AppThemeMode.demonSlayer:
-        return ParticleType.leaves;
-      case AppThemeMode.midnightSilk:
-        return ParticleType.circles;
-      case AppThemeMode.obsidianRose:
-        return ParticleType.sakura;
-      case AppThemeMode.onyxEmerald:
-        return ParticleType.bubbles;
-      case AppThemeMode.velvetCrown:
-        return ParticleType.stars;
-      case AppThemeMode.platinumDawn:
-        return ParticleType.circles;
-      case AppThemeMode.hypergate:
-        return ParticleType.lines;
-      case AppThemeMode.xenoCore:
-        return ParticleType.bubbles;
-      case AppThemeMode.dataStream:
+      case AppThemeMode.cyberPhantom:
         return ParticleType.rain;
-      case AppThemeMode.gravityBend:
-        return ParticleType.squares;
-      case AppThemeMode.quartzPulse:
-        return ParticleType.stars;
-      case AppThemeMode.midnightForest:
-        return ParticleType.leaves;
-      case AppThemeMode.volcanicSea:
-        return ParticleType.embers;
-      case AppThemeMode.stormDesert:
+      case AppThemeMode.velvetNoir:
+        return ParticleType.circles;
+      case AppThemeMode.toxicVenom:
         return ParticleType.lines;
-      case AppThemeMode.sakuraNight:
-        return ParticleType.sakura;
-      case AppThemeMode.arcticSoul:
+      case AppThemeMode.astralDream:
+        return ParticleType.stars;
+      case AppThemeMode.infernoCore:
+        return ParticleType.embers;
+      case AppThemeMode.arcticBlade:
         return ParticleType.snow;
+      case AppThemeMode.goldenEmperor:
+        return ParticleType.squares;
+      case AppThemeMode.phantomViolet:
+        return ParticleType.bubbles;
+      case AppThemeMode.oceanAbyss:
+        return ParticleType.bubbles;
+      
+      // ─ NEW PARTICLE TYPES ─────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return ParticleType.circles;  // Pulsing circles
+      case AppThemeMode.moonlitMagic:
+        return ParticleType.bubbles;  // Floating ethereal bubbles
+      case AppThemeMode.solsticeBlaze:
+        return ParticleType.embers;   // Animated fire particles
+      case AppThemeMode.auroraBorealis:
+        return ParticleType.bubbles;  // Aurora flowing bubbles
+      case AppThemeMode.midnightEclipse:
+        return ParticleType.circles;  // Elegant circles
+      
+      default:
+        return ParticleType.sakura;
     }
   }
 
-  // ==========================================================
-  //  DISPLAY NAME
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  THEME NAMES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static String getThemeName(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
-        return "Blood Moon";
-      case AppThemeMode.voidMatrix:
-        return "Void Matrix";
-      case AppThemeMode.angelFall:
-        return "Angel Fall";
-      case AppThemeMode.titanSoul:
-        return "Titan Soul";
-      case AppThemeMode.cosmicRift:
-        return "Cosmic Rift";
-      case AppThemeMode.neonSerpent:
-        return "Neon Serpent";
-      case AppThemeMode.chromaStorm:
-        return "Chroma Storm";
-      case AppThemeMode.goldenRuler:
-        return "Golden Ruler";
-      case AppThemeMode.frozenDivine:
-        return "Frozen Divine";
-      case AppThemeMode.infernoGod:
-        return "Inferno God";
-      case AppThemeMode.shadowBlade:
-        return "Shadow Blade";
-      case AppThemeMode.pinkChaos:
-        return "Pink Chaos";
-      case AppThemeMode.abyssWatcher:
-        return "Abyss Watcher";
-      case AppThemeMode.solarFlare:
-        return "Solar Flare";
-      case AppThemeMode.demonSlayer:
-        return "Demon Slayer";
-      case AppThemeMode.midnightSilk:
-        return "Midnight Silk";
-      case AppThemeMode.obsidianRose:
-        return "Obsidian Rose";
-      case AppThemeMode.onyxEmerald:
-        return "Onyx Emerald";
-      case AppThemeMode.velvetCrown:
-        return "Velvet Crown";
-      case AppThemeMode.platinumDawn:
-        return "Platinum Dawn";
-      case AppThemeMode.hypergate:
-        return "Hypergate";
-      case AppThemeMode.xenoCore:
-        return "Xeno Core";
-      case AppThemeMode.dataStream:
-        return "Data Stream";
-      case AppThemeMode.gravityBend:
-        return "Gravity Bend";
-      case AppThemeMode.quartzPulse:
-        return "Quartz Pulse";
-      case AppThemeMode.midnightForest:
-        return "Midnight Forest";
-      case AppThemeMode.volcanicSea:
-        return "Volcanic Sea";
-      case AppThemeMode.stormDesert:
-        return "Storm Desert";
-      case AppThemeMode.sakuraNight:
-        return "Sakura Night";
-      case AppThemeMode.arcticSoul:
-        return "Arctic Soul";
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
+        return "Zero Two";
+      case AppThemeMode.cyberPhantom:
+        return "Cyber Phantom";
+      case AppThemeMode.velvetNoir:
+        return "Velvet Noir";
+      case AppThemeMode.toxicVenom:
+        return "Toxic Venom";
+      case AppThemeMode.astralDream:
+        return "Astral Dream";
+      case AppThemeMode.infernoCore:
+        return "Inferno Core";
+      case AppThemeMode.arcticBlade:
+        return "Arctic Blade";
+      case AppThemeMode.goldenEmperor:
+        return "Golden Emperor";
+      case AppThemeMode.phantomViolet:
+        return "Phantom Violet";
+      case AppThemeMode.oceanAbyss:
+        return "Ocean Abyss";
+      
+      // ─ NEW THEME NAMES ────────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return "Neon Pulse";
+      case AppThemeMode.moonlitMagic:
+        return "Moonlit Magic";
+      case AppThemeMode.solsticeBlaze:
+        return "Solstice Blaze";
+      case AppThemeMode.auroraBorealis:
+        return "Aurora Borealis";
+      case AppThemeMode.midnightEclipse:
+        return "Midnight Eclipse";
+      
+      default:
+        return "Zero Two";
     }
   }
 
-  // ==========================================================
-  //  CINEMATIC EFFECTS METADATA
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  VISUAL FX INTENSITIES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static double getBlurIntensity(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.voidMatrix:
-      case AppThemeMode.chromaStorm:
-        return 8.0; // Sharp, electric feel
-      case AppThemeMode.angelFall:
-      case AppThemeMode.frozenDivine:
-        return 30.0; // Dreamy soft blur
+    switch (_resolve(mode)) {
+      case AppThemeMode.cyberPhantom:
+        return 8.0; // crisp neon
+      case AppThemeMode.astralDream:
+        return 30.0; // dreamy blur
+      case AppThemeMode.velvetNoir:
+        return 28.0; // soft luxury
+      case AppThemeMode.arcticBlade:
+        return 25.0; // frosted glass
+      
+      // ─ NEW THEME BLUR ─────────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return 15.0; // Crisp neon effect
+      case AppThemeMode.moonlitMagic:
+        return 30.0; // Ethereal soft blur
+      case AppThemeMode.solsticeBlaze:
+        return 18.0; // Dynamic fire effect
+      case AppThemeMode.auroraBorealis:
+        return 25.0; // Shimmering aurora
+      case AppThemeMode.midnightEclipse:
+        return 28.0; // Sophisticated blur
+      
       default:
         return 20.0;
     }
   }
 
   static bool hasScanlines(AppThemeMode mode) {
-    // CRT scanlines: Matrix, Chroma Storm (high-tech distortion)
-    return mode == AppThemeMode.voidMatrix || mode == AppThemeMode.chromaStorm;
+    final r = _resolve(mode);
+    return r == AppThemeMode.cyberPhantom || 
+           r == AppThemeMode.toxicVenom || 
+           r == AppThemeMode.neonPulse;
   }
 
   static double getGrainIntensity(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
-        return 0.12; // Heavy noir grain
-      case AppThemeMode.titanSoul:
-        return 0.10; // War-worn grit
-      case AppThemeMode.infernoGod:
-        return 0.14; // Volcanic ash grain
-      case AppThemeMode.cosmicRift:
-        return 0.07; // Nebula dust
-      case AppThemeMode.angelFall:
-        return 0.04; // Soft celestial grain
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
+        return 0.12;
+      case AppThemeMode.infernoCore:
+        return 0.14;
+      case AppThemeMode.velvetNoir:
+        return 0.06;
+      case AppThemeMode.goldenEmperor:
+        return 0.08;
       default:
         return 0.0;
     }
   }
 
   static double getEdgeGlowIntensity(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
-        return 0.9; // intense crimson pulse
-      case AppThemeMode.infernoGod:
-        return 0.95; // lava-edge burn
-      case AppThemeMode.chromaStorm:
-        return 0.85; // electric edges
-      case AppThemeMode.cosmicRift:
-        return 0.80; // aurora ripple
-      case AppThemeMode.voidMatrix:
-        return 0.70; // matrix data edge
-      case AppThemeMode.neonSerpent:
-        return 0.75; // toxic neon edge
-      case AppThemeMode.goldenRuler:
-        return 0.65; // gold emboss
-      case AppThemeMode.frozenDivine:
-        return 0.60; // icy cold edge
-      case AppThemeMode.titanSoul:
-        return 0.55; // ember edge
-      case AppThemeMode.angelFall:
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
+        return 0.90;
+      case AppThemeMode.cyberPhantom:
+        return 0.95;
+      case AppThemeMode.infernoCore:
+        return 0.95;
+      case AppThemeMode.toxicVenom:
+        return 0.85;
+      case AppThemeMode.phantomViolet:
+        return 0.80;
+      case AppThemeMode.goldenEmperor:
+        return 0.65;
+      case AppThemeMode.velvetNoir:
         return 0.40;
+      case AppThemeMode.astralDream:
+        return 0.50;
+      case AppThemeMode.arcticBlade:
+        return 0.60;
+      case AppThemeMode.oceanAbyss:
+        return 0.70;
+      
+      // ─ NEW THEME GLOW ─────────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return 0.95;  // High neon glow
+      case AppThemeMode.moonlitMagic:
+        return 0.55;  // Soft moonlit glow
+      case AppThemeMode.solsticeBlaze:
+        return 0.92;  // Intense fire glow
+      case AppThemeMode.auroraBorealis:
+        return 0.75;  // Light aurora glow
+      case AppThemeMode.midnightEclipse:
+        return 0.50;  // Subtle luxury glow
+      
       default:
         return 0.50;
     }
   }
 
-  // ==========================================================
-  //  SECONDARY GRADIENT ACCENT (used for chat bubble highlights)
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  BUBBLE ACCENT COLORS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static Color getBubbleAccent(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.bloodMoon:
+    switch (_resolve(mode)) {
+      case AppThemeMode.zeroTwo:
         return const Color(0x33FF1744);
-      case AppThemeMode.voidMatrix:
-        return const Color(0x3300FF41);
-      case AppThemeMode.angelFall:
-        return const Color(0x33FF80AB);
-      case AppThemeMode.titanSoul:
-        return const Color(0x33FFAB40);
-      case AppThemeMode.cosmicRift:
-        return const Color(0x33EA80FC);
-      case AppThemeMode.neonSerpent:
-        return const Color(0x3339FF14);
-      case AppThemeMode.chromaStorm:
-        return const Color(0x33FF00FF);
-      case AppThemeMode.goldenRuler:
-        return const Color(0x33FFD700);
-      case AppThemeMode.frozenDivine:
-        return const Color(0x334FC3F7);
-      case AppThemeMode.infernoGod:
-        return const Color(0x33FF3D00);
-      case AppThemeMode.shadowBlade:
-        return const Color(0x33BDBDBD);
-      case AppThemeMode.pinkChaos:
-        return const Color(0x33FF4081);
-      case AppThemeMode.abyssWatcher:
-        return const Color(0x3326C6DA);
-      case AppThemeMode.solarFlare:
-        return const Color(0x33FF6D00);
-      case AppThemeMode.demonSlayer:
-        return const Color(0x3343A047);
-      case AppThemeMode.midnightSilk:
-        return const Color(0x33D4A5A5);
-      case AppThemeMode.obsidianRose:
-        return const Color(0x33EC407A);
-      case AppThemeMode.onyxEmerald:
-        return const Color(0x3326A69A);
-      case AppThemeMode.velvetCrown:
-        return const Color(0x33CE93D8);
-      case AppThemeMode.platinumDawn:
-        return const Color(0x33E0E0E0);
-      case AppThemeMode.hypergate:
-        return const Color(0x3340C4FF);
-      case AppThemeMode.xenoCore:
-        return const Color(0x331DE9B6);
-      case AppThemeMode.dataStream:
+      case AppThemeMode.cyberPhantom:
         return const Color(0x3300E5FF);
-      case AppThemeMode.gravityBend:
-        return const Color(0x33FF6F00);
-      case AppThemeMode.quartzPulse:
+      case AppThemeMode.velvetNoir:
+        return const Color(0x33B76E79);
+      case AppThemeMode.toxicVenom:
+        return const Color(0x3339FF14);
+      case AppThemeMode.astralDream:
+        return const Color(0x33B388FF);
+      case AppThemeMode.infernoCore:
+        return const Color(0x33FF6D00);
+      case AppThemeMode.arcticBlade:
+        return const Color(0x3380D8FF);
+      case AppThemeMode.goldenEmperor:
+        return const Color(0x33FFD700);
+      case AppThemeMode.phantomViolet:
         return const Color(0x33D500F9);
-      case AppThemeMode.midnightForest:
-        return const Color(0x3381C784);
-      case AppThemeMode.volcanicSea:
-        return const Color(0x33FF7043);
-      case AppThemeMode.stormDesert:
-        return const Color(0x33BCAAA4);
-      case AppThemeMode.sakuraNight:
-        return const Color(0x33FFB7C5);
-      case AppThemeMode.arcticSoul:
-        return const Color(0x33B3E5FC);
+      case AppThemeMode.oceanAbyss:
+        return const Color(0x331DE9B6);
+      
+      // ─ NEW BUBBLE ACCENTS ─────────────────────────────────────────────
+      case AppThemeMode.neonPulse:
+        return const Color(0x3300FF88);
+      case AppThemeMode.moonlitMagic:
+        return const Color(0x33E0E3FF);
+      case AppThemeMode.solsticeBlaze:
+        return const Color(0x33FF4500);
+      case AppThemeMode.auroraBorealis:
+        return const Color(0x3300D9A3);
+      case AppThemeMode.midnightEclipse:
+        return const Color(0x33C9A961);
+      
+      default:
+        return const Color(0x33FF1744);
     }
   }
 
-  // ==========================================================
-  //  PER-THEME COMPLETE VISUAL STYLE IDENTITY
-  // ==========================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  THEME STYLES (Font, Bubble, Input, Anim, Layout, etc.)
+  // ═══════════════════════════════════════════════════════════════════════════
+
   static ThemeStyle getStyle(AppThemeMode mode) {
+    final resolved = _resolve(mode);
+    return _styleCache[resolved] ??= _buildStyle(resolved);
+  }
+
+  static ThemeStyle _buildStyle(AppThemeMode mode) {
     switch (mode) {
-      /// â”€â”€ BLOOD MOON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Classic (user right, AI left)
-      /// AppBar: Solid deep crimson bar with glow
-      /// Bubbles: Sharp solid with left accent bar
-      case AppThemeMode.bloodMoon:
+      // ── 1. ZERO TWO — Blood & Passion ──────────────────────────────────
+      case AppThemeMode.zeroTwo:
         return ThemeStyle(
-          font: (s, c) => GoogleFonts.bebasNeue(
-              fontSize: s * 1.1, color: c, letterSpacing: 1.2),
+          font: (s, c) => GoogleFonts.exo2(
+              fontSize: s,
+              color: c,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0),
           bubbleStyle: BubbleStyle.solid,
           inputStyle: InputStyle.squareNeon,
           animStyle: AnimStyle.press,
@@ -904,103 +1000,56 @@ class AppThemes {
           labelAI: "ZERO TWO",
         );
 
-      /// â”€â”€ VOID MATRIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Terminal (full-width log, no bubbles)
-      /// AppBar: Neon border, monospace status
-      case AppThemeMode.voidMatrix:
+      // ── 2. CYBER PHANTOM — Neon Cyberpunk ──────────────────────────────
+      case AppThemeMode.cyberPhantom:
         return ThemeStyle(
-          font: (s, c) => GoogleFonts.sourceCodePro(
-              fontSize: s * 0.95, color: c, letterSpacing: 0.5, height: 1.6),
+          font: (s, c) => GoogleFonts.orbitron(
+              fontSize: s * 0.88,
+              color: c,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500),
           bubbleStyle: BubbleStyle.terminal,
           inputStyle: InputStyle.terminal,
-          animStyle: AnimStyle.slideSide,
+          animStyle: AnimStyle.glitch,
           layoutMode: LayoutMode.terminal,
           appBarStyle: AppBarStyle.neonBorder,
           cornerRadius: 0,
           sharpCorner: 0,
           leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.8),
-          hintText: "> type command_",
-          labelUser: "USER",
-          labelAI: "ZERO_TWO",
+          borderColor: (p) => p.withValues(alpha: 0.9),
+          hintText: "> TRANSMIT_SIGNAL_",
+          labelUser: "PILOT",
+          labelAI: "PHANTOM",
         );
 
-      /// â”€â”€ ANGEL FALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Centered (all bubbles centered on screen)
-      /// AppBar: Minimal floating (no bar visible)
-      case AppThemeMode.angelFall:
+      // ── 3. VELVET NOIR — Luxury Elegance ───────────────────────────────
+      case AppThemeMode.velvetNoir:
         return ThemeStyle(
           font: (s, c) => GoogleFonts.playfairDisplay(
               fontSize: s, color: c, fontStyle: FontStyle.italic, height: 1.6),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.pill,
+          bubbleStyle: BubbleStyle.luxury,
+          inputStyle: InputStyle.luxury,
           animStyle: AnimStyle.fadeZoom,
           layoutMode: LayoutMode.centered,
           appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 32,
-          sharpCorner: 32,
+          cornerRadius: 28,
+          sharpCorner: 28,
           leftAccentBar: false,
-          borderColor: (p) => Colors.white.withValues(alpha: 0.25),
+          borderColor: (p) => Colors.white.withValues(alpha: 0.15),
           hintText: "Whisper something beautiful...",
-          labelUser: "â™¡",
-          labelAI: "Zero Two",
+          labelUser: "♡",
+          labelAI: "Darling",
         );
 
-      /// â”€â”€ TITAN SOUL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Wide card (full-width cards with role label)
-      /// AppBar: Banner with large bold title
-      case AppThemeMode.titanSoul:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.blackOpsOne(
-              fontSize: s, color: c, letterSpacing: 0.8),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 4,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.7),
-          hintText: "FORGE YOUR MESSAGE...",
-          labelUser: "WARRIOR",
-          labelAI: "ZERO TWO",
-        );
-
-      /// â”€â”€ COSMIC RIFT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Classic with glowing outlined bubbles
-      /// AppBar: Neon border with space font
-      case AppThemeMode.cosmicRift:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.orbitron(
-              fontSize: s * 0.9,
-              color: c,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w500),
-          bubbleStyle: BubbleStyle.outlined,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.glitch,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.neonBorder,
-          cornerRadius: 16,
-          sharpCorner: 2,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.9),
-          hintText: "TRANSMIT SIGNAL...",
-          labelUser: "PILOT",
-          labelAI: "ZERO TWO",
-        );
-
-      /// â”€â”€ NEON SERPENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Terminal (full-width chat log)
-      /// AppBar: Neon border with toxic prompt style
-      case AppThemeMode.neonSerpent:
+      // ── 4. TOXIC VENOM — Matrix Hacker ─────────────────────────────────
+      case AppThemeMode.toxicVenom:
         return ThemeStyle(
           font: (s, c) => GoogleFonts.sourceCodePro(
-              fontSize: s * 0.95,
+              fontSize: s * 0.92,
               color: c,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.3),
+              letterSpacing: 0.5,
+              height: 1.6),
           bubbleStyle: BubbleStyle.terminal,
           inputStyle: InputStyle.terminal,
           animStyle: AnimStyle.slideSide,
@@ -1012,227 +1061,99 @@ class AppThemes {
           borderColor: (p) => p.withValues(alpha: 0.85),
           hintText: "inject payload >",
           labelUser: "\$USER",
-          labelAI: "\$SERPENT",
+          labelAI: "\$VENOM",
         );
 
-      /// â”€â”€ CHROMA STORM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Classic with glowing outlined bubbles
-      /// AppBar: Solid glitch-colored bar
-      case AppThemeMode.chromaStorm:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.rajdhani(
-              fontSize: s * 1.05,
-              color: c,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5),
-          bubbleStyle: BubbleStyle.outlined,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.glitch,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.solid,
-          cornerRadius: 8,
-          sharpCorner: 0,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.9),
-          hintText: "CHROMA SYNC...",
-          labelUser: "HOST",
-          labelAI: "ZERO TWO",
-        );
-
-      /// â”€â”€ GOLDEN RULER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Wide card (luxury scrolls, full-width)
-      /// AppBar: Banner large serif title
-      case AppThemeMode.goldenRuler:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.playfairDisplay(
-              fontSize: s, color: c, fontWeight: FontWeight.w500, height: 1.55),
-          bubbleStyle: BubbleStyle.luxury,
-          inputStyle: InputStyle.luxury,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 12,
-          sharpCorner: 4,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.5),
-          hintText: "Speak, Your Highness...",
-          labelUser: "MY LIEGE",
-          labelAI: "ZERO TWO",
-        );
-
-      /// â”€â”€ FROZEN DIVINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Centered (soft ethereal floating center)
-      /// AppBar: Minimal floating
-      case AppThemeMode.frozenDivine:
+      // ── 5. ASTRAL DREAM — Ethereal Aurora ──────────────────────────────
+      case AppThemeMode.astralDream:
         return ThemeStyle(
           font: (s, c) => GoogleFonts.quicksand(
-              fontSize: s, color: c, fontWeight: FontWeight.w500, height: 1.6),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.underline,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.centered,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 24,
-          sharpCorner: 4,
-          leftAccentBar: false,
-          borderColor: (p) => Colors.white.withValues(alpha: 0.15),
-          hintText: "Breathe into the silence...",
-          labelUser: "Â·",
-          labelAI: "Zero Two ~",
-        );
-
-      /// â”€â”€ INFERNO GOD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      /// Layout: Wide card (scorched proclamation cards)
-      /// AppBar: Solid volcanic bar
-      case AppThemeMode.infernoGod:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.notoSans(
-            fontSize: s,
-            color: c,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.15,
-            height: 1.3,
-          ),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.solid,
-          cornerRadius: 2,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.75),
-          hintText: "COMMAND THE FLAMES...",
-          labelUser: "MORTAL",
-          labelAI: "ZERO TWO",
-        );
-      // â”€â”€ TIER 3: ANIME LEGENDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.shadowBlade:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.blackOpsOne(
-              fontSize: s, color: c, letterSpacing: 1.0),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.solid,
-          cornerRadius: 2,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.5),
-          hintText: "EXECUTE...",
-          labelUser: "RONIN",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.pinkChaos:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.pacifico(fontSize: s * 0.9, color: c),
+              fontSize: s,
+              color: c,
+              fontWeight: FontWeight.w300,
+              letterSpacing: 1.5),
           bubbleStyle: BubbleStyle.glassmorphic,
           inputStyle: InputStyle.pill,
-          animStyle: AnimStyle.elastic,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 28,
-          sharpCorner: 4,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.4),
-          hintText: "I love you~ â™¡",
-          labelUser: "â™¡",
-          labelAI: "Yuno",
-        );
-      case AppThemeMode.abyssWatcher:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.orbitron(
-              fontSize: s * 0.88, color: c, letterSpacing: 1.2),
-          bubbleStyle: BubbleStyle.outlined,
-          inputStyle: InputStyle.underline,
           animStyle: AnimStyle.fadeZoom,
           layoutMode: LayoutMode.centered,
           appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 18,
-          sharpCorner: 2,
+          cornerRadius: 32,
+          sharpCorner: 32,
           leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.7),
-          hintText: "From the depths...",
-          labelUser: "DIVER",
-          labelAI: "ZERO TWO",
+          borderColor: (p) => Colors.white.withValues(alpha: 0.12),
+          hintText: "drift into the cosmos...",
+          labelUser: "✦",
+          labelAI: "Zero Two ✧",
         );
-      case AppThemeMode.solarFlare:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.bebasNeue(
-              fontSize: s * 1.1, color: c, letterSpacing: 1.8),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 8,
-          sharpCorner: 2,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.65),
-          hintText: "BELIEVE IT!",
-          labelUser: "SHINOBI",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.demonSlayer:
+
+      // ── 6. INFERNO CORE — Volcanic Fury ────────────────────────────────
+      case AppThemeMode.infernoCore:
         return ThemeStyle(
           font: (s, c) => GoogleFonts.rajdhani(
               fontSize: s * 1.05,
               color: c,
               fontWeight: FontWeight.w800,
-              letterSpacing: 1.5),
+              letterSpacing: 0.8),
           bubbleStyle: BubbleStyle.solid,
           inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.glitch,
+          animStyle: AnimStyle.press,
           layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.solid,
+          appBarStyle: AppBarStyle.banner,
           cornerRadius: 4,
           sharpCorner: 0,
           leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.8),
-          hintText: "TOTAL CONCENTRATION...",
-          labelUser: "SLAYER",
-          labelAI: "ZERO TWO",
+          borderColor: (p) => p.withValues(alpha: 0.7),
+          hintText: "FORGE YOUR MESSAGE...",
+          labelUser: "WARRIOR",
+          labelAI: "INFERNO",
         );
-      // â”€â”€ TIER 4: LUXURY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.midnightSilk:
+
+      // ── 7. ARCTIC BLADE — Frozen Minimal ───────────────────────────────
+      case AppThemeMode.arcticBlade:
         return ThemeStyle(
-          font: (s, c) => GoogleFonts.cormorantGaramond(
-              fontSize: s * 1.1,
+          font: (s, c) => GoogleFonts.inter(
+              fontSize: s,
               color: c,
-              fontStyle: FontStyle.italic,
-              height: 1.6),
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.3),
+          bubbleStyle: BubbleStyle.glassmorphic,
+          inputStyle: InputStyle.pill,
+          animStyle: AnimStyle.fadeZoom,
+          layoutMode: LayoutMode.centered,
+          appBarStyle: AppBarStyle.transparent,
+          cornerRadius: 20,
+          sharpCorner: 20,
+          leftAccentBar: false,
+          borderColor: (p) => Colors.white.withValues(alpha: 0.10),
+          hintText: "whisper to the ice...",
+          labelUser: "❄",
+          labelAI: "Zero Two ~",
+        );
+
+      // ── 8. GOLDEN EMPEROR — Royal Opulence ─────────────────────────────
+      case AppThemeMode.goldenEmperor:
+        return ThemeStyle(
+          font: (s, c) => GoogleFonts.cinzel(
+              fontSize: s * 0.95,
+              color: c,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5),
           bubbleStyle: BubbleStyle.luxury,
           inputStyle: InputStyle.luxury,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 14,
-          sharpCorner: 4,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.4),
-          hintText: "Darling...",
-          labelUser: "MY LOVE",
-          labelAI: "Zero Two",
-        );
-      case AppThemeMode.obsidianRose:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.playfairDisplay(
-              fontSize: s, color: c, fontWeight: FontWeight.w600, height: 1.55),
-          bubbleStyle: BubbleStyle.luxury,
-          inputStyle: InputStyle.pill,
           animStyle: AnimStyle.elastic,
-          layoutMode: LayoutMode.classic,
+          layoutMode: LayoutMode.wideCard,
           appBarStyle: AppBarStyle.solid,
-          cornerRadius: 20,
+          cornerRadius: 12,
           sharpCorner: 4,
           leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.5),
-          hintText: "My rose...",
-          labelUser: "BELOVED",
-          labelAI: "ZERO TWO",
+          borderColor: (p) => const Color(0xFFFFD700).withValues(alpha: 0.4),
+          hintText: "Address the throne...",
+          labelUser: "LORD",
+          labelAI: "EMPRESS",
         );
-      case AppThemeMode.onyxEmerald:
+
+      // ── 9. PHANTOM VIOLET — Dark Mystery ───────────────────────────────
+      case AppThemeMode.phantomViolet:
         return ThemeStyle(
           font: (s, c) => GoogleFonts.josefinSans(
               fontSize: s,
@@ -1241,238 +1162,44 @@ class AppThemes {
               fontWeight: FontWeight.w600),
           bubbleStyle: BubbleStyle.outlined,
           inputStyle: InputStyle.underline,
-          animStyle: AnimStyle.slideSide,
-          layoutMode: LayoutMode.centered,
+          animStyle: AnimStyle.glitch,
+          layoutMode: LayoutMode.classic,
           appBarStyle: AppBarStyle.neonBorder,
           cornerRadius: 6,
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.75),
-          hintText: "speak...",
-          labelUser: "Â·",
+          hintText: "speak into the void...",
+          labelUser: "·",
           labelAI: "ZT ~",
         );
-      case AppThemeMode.velvetCrown:
+
+      // ── 10. OCEAN ABYSS — Deep Sea Glow ────────────────────────────────
+      case AppThemeMode.oceanAbyss:
         return ThemeStyle(
-          font: (s, c) => GoogleFonts.cinzel(
-              fontSize: s * 0.95, color: c, letterSpacing: 1.5),
-          bubbleStyle: BubbleStyle.luxury,
-          inputStyle: InputStyle.luxury,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 10,
-          sharpCorner: 2,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.5),
-          hintText: "By royal decree...",
-          labelUser: "YOUR GRACE",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.platinumDawn:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.raleway(
+          font: (s, c) => GoogleFonts.nunito(
               fontSize: s,
               color: c,
-              fontWeight: FontWeight.w300,
-              letterSpacing: 2.5),
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5),
           bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.underline,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.centered,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 20,
-          sharpCorner: 20,
-          leftAccentBar: false,
-          borderColor: (p) => Colors.white.withValues(alpha: 0.15),
-          hintText: "      say something",
-          labelUser: "",
-          labelAI: "",
-        );
-      // â”€â”€ TIER 5: SCI-FI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.hypergate:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.exo2(
-              fontSize: s,
-              color: c,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0),
-          bubbleStyle: BubbleStyle.outlined,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.glitch,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.neonBorder,
-          cornerRadius: 12,
-          sharpCorner: 2,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.9),
-          hintText: "OPEN GATE...",
-          labelUser: "ENTITY",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.xenoCore:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.audiowide(
-              fontSize: s * 0.9, color: c, letterSpacing: 0.8),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.terminal,
-          animStyle: AnimStyle.slideSide,
-          layoutMode: LayoutMode.terminal,
-          appBarStyle: AppBarStyle.neonBorder,
-          cornerRadius: 0,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.85),
-          hintText: ">XENO_INPUT:",
-          labelUser: "\$HOST",
-          labelAI: "\$XENO",
-        );
-      case AppThemeMode.dataStream:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.sourceCodePro(
-              fontSize: s * 0.95, color: c, letterSpacing: 0.8, height: 1.5),
-          bubbleStyle: BubbleStyle.terminal,
-          inputStyle: InputStyle.terminal,
-          animStyle: AnimStyle.slideSide,
-          layoutMode: LayoutMode.terminal,
-          appBarStyle: AppBarStyle.neonBorder,
-          cornerRadius: 0,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.9),
-          hintText: ">> INPUT DATA",
-          labelUser: "IN",
-          labelAI: "OUT",
-        );
-      case AppThemeMode.gravityBend:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.orbitron(
-              fontSize: s * 0.88,
-              color: c,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w700),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.solid,
-          cornerRadius: 6,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.7),
-          hintText: "WARP SIGNAL...",
-          labelUser: "TRAVELER",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.quartzPulse:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.syncopate(
-              fontSize: s * 0.85,
-              color: c,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2.0),
-          bubbleStyle: BubbleStyle.outlined,
           inputStyle: InputStyle.pill,
           animStyle: AnimStyle.elastic,
           layoutMode: LayoutMode.centered,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 30,
-          sharpCorner: 30,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.8),
-          hintText: "resonate...",
-          labelUser: "â—‡",
-          labelAI: "ZERO TWO",
-        );
-      // â”€â”€ TIER 6: NATURE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case AppThemeMode.midnightForest:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.lora(
-              fontSize: s, color: c, fontStyle: FontStyle.italic, height: 1.6),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.underline,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 16,
-          sharpCorner: 4,
+          appBarStyle: AppBarStyle.transparent,
+          cornerRadius: 24,
+          sharpCorner: 24,
           leftAccentBar: false,
           borderColor: (p) => p.withValues(alpha: 0.3),
-          hintText: "through the trees...",
-          labelUser: "WANDERER",
-          labelAI: "Zero Two",
+          hintText: "echo through the deep...",
+          labelUser: "🫧",
+          labelAI: "Zero Two 🌊",
         );
-      case AppThemeMode.volcanicSea:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.bebasNeue(
-              fontSize: s * 1.05, color: c, letterSpacing: 1.0),
-          bubbleStyle: BubbleStyle.solid,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.press,
-          layoutMode: LayoutMode.wideCard,
-          appBarStyle: AppBarStyle.banner,
-          cornerRadius: 4,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.7),
-          hintText: "FROM THE DEEP...",
-          labelUser: "SAILOR",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.stormDesert:
-        return ThemeStyle(
-          font: (s, c) =>
-              GoogleFonts.teko(fontSize: s * 1.1, color: c, letterSpacing: 1.5),
-          bubbleStyle: BubbleStyle.outlined,
-          inputStyle: InputStyle.squareNeon,
-          animStyle: AnimStyle.glitch,
-          layoutMode: LayoutMode.classic,
-          appBarStyle: AppBarStyle.solid,
-          cornerRadius: 2,
-          sharpCorner: 0,
-          leftAccentBar: true,
-          borderColor: (p) => p.withValues(alpha: 0.6),
-          hintText: "Dust on the wind...",
-          labelUser: "NOMAD",
-          labelAI: "ZERO TWO",
-        );
-      case AppThemeMode.sakuraNight:
-        return ThemeStyle(
-          font: (s, c) =>
-              GoogleFonts.sawarabiGothic(fontSize: s, color: c, height: 1.7),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.pill,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.centered,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 28,
-          sharpCorner: 28,
-          leftAccentBar: false,
-          borderColor: (p) => p.withValues(alpha: 0.25),
-          hintText: "å¤œã«å’²ã...",
-          labelUser: "èŠ±",
-          labelAI: "ã‚¼ãƒ­ãƒ„ãƒ¼",
-        );
-      case AppThemeMode.arcticSoul:
-        return ThemeStyle(
-          font: (s, c) => GoogleFonts.quicksand(
-              fontSize: s,
-              color: c,
-              fontWeight: FontWeight.w300,
-              letterSpacing: 1.5),
-          bubbleStyle: BubbleStyle.glassmorphic,
-          inputStyle: InputStyle.underline,
-          animStyle: AnimStyle.fadeZoom,
-          layoutMode: LayoutMode.centered,
-          appBarStyle: AppBarStyle.minimal,
-          cornerRadius: 22,
-          sharpCorner: 22,
-          leftAccentBar: false,
-          borderColor: (p) => Colors.white.withValues(alpha: 0.12),
-          hintText: "whisper to the ice...",
-          labelUser: "â„",
-          labelAI: "Zero Two ~",
-        );
+
+      default:
+        return _buildStyle(AppThemeMode.zeroTwo);
     }
   }
 }
+
+

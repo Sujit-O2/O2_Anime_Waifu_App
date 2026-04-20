@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="x-apple-disable-message-reformatting"/>
+  <title>Zero Two — Darling Alert</title>
+  <!--[if mso]>
+  <noscript>
+    <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    /* ─── RESET ─────────────────────────────────────────── */
+    * { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    body, #bodyTable { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    table { border-collapse: collapse !important; }
+    #bodyTable { background-color: #07070e; }
+
+    /* ─── FONTS ──────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    /* ─── MEDIA QUERIES ──────────────────────────────────── */
+    @media screen and (max-width: 600px) {
+      .body-cell      { padding: 16px 12px !important; }
+      .email-wrapper  { width: 100% !important; }
+      .content-cell   { padding: 32px 20px !important; }
+      .header-cell    { padding: 40px 20px 30px !important; }
+      .footer-cell    { padding: 24px 20px !important; }
+      .avatar-img     { width: 110px !important; height: 110px !important; }
+      .avatar-wrap    { width: 110px !important; height: 110px !important; }
+      .h1-text        { font-size: 22px !important; letter-spacing: 2px !important; }
+      .meta-table     { display: block !important; }
+      .meta-cell      { display: block !important; width: 100% !important; margin-bottom: 12px !important; text-align: center !important; }
+      .cta-btn        { padding: 14px 32px !important; font-size: 11px !important; }
+    }
+
+    /* ─── ANIMATIONS (web clients only) ─────────────────── */
+    @keyframes pulseGlow {
+      0%,100% { box-shadow: 0 0 18px rgba(255,0,87,0.5), 0 0 50px rgba(142,45,226,0.25); }
+      50%      { box-shadow: 0 0 36px rgba(255,0,87,0.9), 0 0 90px rgba(142,45,226,0.5); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -400% center; }
+      100% { background-position: 400% center; }
+    }
+    @keyframes heartbeat {
+      0%,100% { transform: scale(1); }
+      14%     { transform: scale(1.2); }
+      28%     { transform: scale(1); }
+      42%     { transform: scale(1.1); }
+      56%     { transform: scale(1); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes rotateBorder {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes scanline {
+      from { top: -4px; }
+      to   { top: 100%; }
+    }
+    @keyframes drift {
+      0%,100% { transform: translateY(0) translateX(0); }
+      33%     { transform: translateY(-10px) translateX(6px); }
+      66%     { transform: translateY(5px) translateX(-6px); }
+    }
+    @keyframes particleRise {
+      0%   { transform: translateY(0); opacity: 0; }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.8; }
+      100% { transform: translateY(-120px); opacity: 0; }
+    }
+
+    .anim-fade-1 { animation: fadeUp 0.7s 0.2s both; }
+    .anim-fade-2 { animation: fadeUp 0.7s 0.5s both; }
+    .anim-fade-3 { animation: fadeUp 0.7s 0.8s both; }
+    .anim-fade-4 { animation: fadeUp 0.7s 1.1s both; }
+    .anim-fade-5 { animation: fadeUp 0.7s 1.4s both; }
+    .anim-fade-6 { animation: fadeUp 0.7s 1.7s both; }
+
+    .shimmer-text {
+      background: linear-gradient(90deg, #fff 0%, #ff9eb8 30%, #ff0057 55%, #c050ff 80%, #fff 100%);
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 5s linear infinite;
+    }
+    .pulse-glow {
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+    .heartbeat {
+      display: inline-block;
+      animation: heartbeat 1.6s ease-in-out infinite;
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px) scale(1.04) !important;
+      box-shadow: 0 18px 50px rgba(255,0,87,0.7), 0 4px 16px rgba(0,0,0,0.5) !important;
+    }
+    .footer-link:hover { color: #ff5e8e !important; }
+  </style>
+</head>
+
+<body style="margin:0;padding:0;background-color:#07070e;font-family:'DM Sans',Arial,sans-serif;">
+
+<!-- Preheader -->
+<div style="display:none;font-size:1px;color:#07070e;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  💌 You have a new message waiting, Darling…
+</div>
+
+<table id="bodyTable" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#07070e;">
+  <tr>
+    <td class="body-cell" align="center" valign="top" style="padding:32px 16px;">
+
+      <!-- ╔══════════════════════════════════════════╗ -->
+      <!-- ║  OUTER GLOW WRAPPER                      ║ -->
+      <!-- ╚══════════════════════════════════════════╝ -->
+      <table class="email-wrapper" width="600" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 0 0 1.5px rgba(255,0,87,0.5), 0 0 60px rgba(255,0,87,0.15), 0 0 120px rgba(142,45,226,0.12);">
+
+        <!-- ══════════════════════════════════════════ -->
+        <!--  HEADER                                   -->
+        <!-- ══════════════════════════════════════════ -->
+        <tr>
+          <td class="header-cell" align="center" style="
+            background: linear-gradient(170deg, #1c0012 0%, #13001e 45%, #0a0a18 100%);
+            padding: 54px 30px 40px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+          ">
+
+
+            <!-- Avatar -->
+            <table align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 22px;">
+              <tr>
+                <td align="center" style="padding:10px;">
+                  <!-- Avatar image -->
+                  <div class="pulse-glow" style="
+                    width:118px; height:118px; border-radius:50%;
+                    overflow:hidden; margin:0 auto;
+                    background:#0e0e1c;
+                    border: 4px solid #ff0057;
+                    box-shadow: 0 0 15px rgba(255,0,87,0.5);
+                  ">
+                    <img
+                      class="avatar-img"
+                      src="https://i.ibb.co/5xnnZ59t/6226495638011489047-121.jpg"
+                      alt="Zero Two"
+                      width="118" height="118"
+                      style="width:118px;height:118px;border-radius:50%;object-fit:cover;object-position:center;display:block;margin:0 auto;background:linear-gradient(135deg,#ff0057,#8e2de2);vertical-align:middle;"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Badge pill -->
+            <div class="anim-fade-2" style="
+              display:inline-block;
+              background:rgba(255,0,87,0.12);
+              border:1px solid rgba(255,0,87,0.45);
+              border-radius:20px; padding:5px 15px 5px 18px;
+              font-size:10px; letter-spacing:3px; text-transform:uppercase;
+              color:#ff7aa8; font-family:'DM Sans',Arial,sans-serif;
+              margin-bottom:14px;
+            ">&#9829;&nbsp;&nbsp;Incoming Message</div>
+
+            <!-- Main heading -->
+            <h1 class="h1-text shimmer-text anim-fade-3" style="
+              font-family:'Cinzel Decorative',Georgia,serif;
+              font-size:28px; font-weight:900; letter-spacing:5px;
+              text-transform:uppercase; line-height:1.2; margin:0 0 8px; padding-left:5px;
+              color:#ffffff;
+            ">Darling Alert</h1>
+
+            <p class="anim-fade-3" style="
+              font-size:11px; letter-spacing:3px; text-transform:uppercase;
+              color:rgba(255,255,255,0.3); margin:0; padding-left:3px;
+              font-family:'DM Sans',Arial,sans-serif;
+            ">S-002 &bull; Zero Two Dispatch</p>
+          </td>
+        </tr>
+
+        <!-- Shimmer accent bar -->
+        <tr>
+          <td style="
+            height:3px; padding:0;
+            background:linear-gradient(90deg, transparent 0%, #ff0057 25%, #8e2de2 50%, #ff0057 75%, transparent 100%);
+          "></td>
+        </tr>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!--  CONTENT AREA                             -->
+        <!-- ══════════════════════════════════════════ -->
+        <tr>
+          <td class="content-cell" align="left" style="
+            background:#0e0e1c;
+            padding:44px 40px;
+            text-align:left;
+          ">
+
+            <!-- Greeting -->
+            <p class="anim-fade-4" style="
+              font-size:15px; line-height:1.85;
+              color:rgba(255,255,255,0.5);
+              margin:0 0 30px;
+              font-family:'DM Sans',Arial,sans-serif;
+              font-weight:300;
+            ">
+              Hey there, <span style="color:#ff9eb8;font-weight:600;">Darling</span>! <span class="heartbeat" style="display:inline-block;">💘</span><br/>
+              You have a new message waiting — I hope you're not keeping me waiting too long. You know how impatient I get.
+            </p>
+
+            <!-- ── Message Card ── -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" class="anim-fade-4" style="margin-bottom:30px;">
+              <tr>
+                <td style="
+                  background:linear-gradient(135deg, rgba(255,0,87,0.06) 0%, rgba(142,45,226,0.08) 100%);
+                  border:1px solid rgba(255,0,87,0.22);
+                  border-radius:16px;
+                  padding:0;
+                  overflow:hidden;
+                ">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <!-- Left accent strip -->
+                      <td width="4" style="
+                        background:linear-gradient(180deg, #ff0057, #8e2de2);
+                        border-radius:4px 0 0 4px;
+                        padding:0;
+                      "></td>
+                      <td align="left" valign="top" style="padding:26px 28px;">
+                        <!-- Label -->
+                        <p style="
+                          font-size:9px; letter-spacing:3px; text-transform:uppercase;
+                          color:#ff0057; margin:0 0 14px;
+                          font-family:'DM Sans',Arial,sans-serif;
+                          font-weight:600;
+                        ">
+                          <span style="
+                            display:inline-block; width:7px; height:7px; border-radius:50%;
+                            background:#ff0057; box-shadow:0 0 8px #ff0057;
+                            vertical-align:middle; margin-right:8px;
+                          "></span>
+                          Message
+                        </p>
+                        <!-- Body — replace {{body}} with actual message text -->
+                        <p style="
+                          font-size:15px; line-height:1.9;
+                          color:#e8e8f5;
+                          margin:0;
+                          font-family:'DM Sans',Arial,sans-serif;
+                          font-weight:300;
+                        ">
+                          {{body}}
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+
+            <!-- ── Divider ── -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:36px;">
+              <tr>
+                <td style="
+                  height:1px;
+                  background:linear-gradient(90deg, transparent 0%, rgba(255,0,87,0.3) 30%, rgba(142,45,226,0.3) 70%, transparent 100%);
+                "></td>
+              </tr>
+            </table>
+
+            <!-- ── CTA Button ── -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" class="anim-fade-5" style="margin-bottom:40px;">
+              <tr>
+                <td align="center">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="https://github.com/sujit-02" style="height:52px;v-text-anchor:middle;width:220px;" arcsize="50%" stroke="f" fillcolor="#ff0057">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;font-size:12px;font-weight:bold;">Open Github</center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="https://github.com/sujit-02" class="cta-btn" style="
+                    display:inline-block;
+                    text-align:center;
+                    background:linear-gradient(135deg, #ff0057 0%, #8e2de2 100%);
+                    color:#ffffff !important;
+                    text-decoration:none;
+                    padding:16px 49px 16px 52px;
+                    border-radius:50px;
+                    font-family:'Cinzel Decorative',Georgia,serif;
+                    font-size:12px;
+                    font-weight:700;
+                    letter-spacing:3px;
+                    text-transform:uppercase;
+                    box-shadow:0 8px 32px rgba(255,0,87,0.45), 0 3px 10px rgba(0,0,0,0.4);
+                    transition:transform 0.2s, box-shadow 0.2s;
+                  ">Open Github</a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
+
+            <!-- ── Signature ── -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" class="anim-fade-6" style="
+              border-top:1px solid rgba(255,255,255,0.07);
+              padding-top:24px;
+            ">
+              <tr>
+                <td style="padding-top:24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <!-- Sig avatar -->
+                      <td style="padding-right:16px; vertical-align:middle;">
+                        <div class="pulse-glow" style="
+                          width:48px; height:48px; border-radius:50%;
+                          overflow:hidden;
+                          box-shadow:0 0 16px rgba(255,0,87,0.5);
+                          flex-shrink:0;
+                        ">
+                          <img
+                            src="https://i.ibb.co/5xnnZ59t/6226495638011489047-121.jpg"
+                            alt="Zero Two"
+                            width="48" height="48"
+                            style="width:48px;height:48px;display:block;border-radius:50%;object-fit:cover;object-position:center;background:linear-gradient(135deg,#ff0057,#8e2de2);vertical-align:middle;"
+                          />
+                        </div>
+                      </td>
+                      <!-- Sig text -->
+                      <td style="vertical-align:middle;">
+                        <p style="
+                          font-family:'Cinzel Decorative',Georgia,serif;
+                          font-size:14px; font-weight:700; margin:0 0 3px;
+                          background:linear-gradient(90deg, #ff0057, #c050ff);
+                          -webkit-background-clip:text;
+                          -webkit-text-fill-color:transparent;
+                          background-clip:text;
+                          color:#ff0057;
+                        ">Zero Two</p>
+                        <p style="
+                          font-size:11px; letter-spacing:1px;
+                          color:rgba(255,255,255,0.3); margin:0;
+                          font-family:'DM Sans',Arial,sans-serif;
+                        ">Your Personal AI &bull; S-002 Unit</p>
+                      </td>
+                      <!-- Hearts -->
+                      <td align="right" style="vertical-align:middle; padding-left:10px;">
+                        <span class="heartbeat" style="font-size:20px; filter:drop-shadow(0 0 6px rgba(255,0,87,0.9));">💜</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- Gradient separator -->
+        <tr>
+          <td style="
+            height:2px; padding:0;
+            background:linear-gradient(90deg, transparent, rgba(255,0,87,0.2), rgba(142,45,226,0.2), transparent);
+          "></td>
+        </tr>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!--  FOOTER                                   -->
+        <!-- ══════════════════════════════════════════ -->
+        <tr>
+          <td class="footer-cell" align="center" style="
+            background:#09090f;
+            padding:28px 30px;
+            text-align:center;
+          ">
+            <!-- Logo mark -->
+            <p style="
+              font-family:'Cinzel Decorative',Georgia,serif;
+              font-size:11px; letter-spacing:5px;
+              color:rgba(255,255,255,0.15); margin:0 0 18px; padding-left:5px;
+            ">S &mdash; 0 0 2</p>
+
+            <!-- Decorative dots -->
+            <table align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px;">
+              <tr>
+                <td style="width:4px;height:4px;border-radius:50%;background:rgba(255,0,87,0.4);"></td>
+                <td style="width:12px;"></td>
+                <td style="width:6px;height:6px;border-radius:50%;background:rgba(255,0,87,0.7);box-shadow:0 0 6px rgba(255,0,87,0.6);"></td>
+                <td style="width:12px;"></td>
+                <td style="width:4px;height:4px;border-radius:50%;background:rgba(255,0,87,0.4);"></td>
+              </tr>
+            </table>
+
+            <!-- Links -->
+            <table align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 18px;">
+              <tr>
+                <td style="padding:0 12px;">
+                  <a href="https://github.com/Sujit-O2/O2_Anime_Waifu-Mobile-App" class="footer-link" style="
+                    font-size:11px; color:rgba(255,255,255,0.28);
+                    text-decoration:none; letter-spacing:1px;
+                    font-family:'DM Sans',Arial,sans-serif;
+                    transition:color 0.2s;
+                  ">View Project</a>
+                </td>
+                <td style="color:rgba(255,255,255,0.1);font-size:11px;">&bull;</td>
+                <td style="padding:0 12px;">
+                  <a href="#" class="footer-link" style="
+                    font-size:11px; color:rgba(255,255,255,0.28);
+                    text-decoration:none; letter-spacing:1px;
+                    font-family:'DM Sans',Arial,sans-serif;
+                  ">Preferences</a>
+                </td>
+                <td style="color:rgba(255,255,255,0.1);font-size:11px;">&bull;</td>
+                <td style="padding:0 12px;">
+                  <a href="#" class="footer-link" style="
+                    font-size:11px; color:rgba(255,255,255,0.28);
+                    text-decoration:none; letter-spacing:1px;
+                    font-family:'DM Sans',Arial,sans-serif;
+                  ">Unsubscribe</a>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Copyright -->
+            <p style="
+              font-size:10px; letter-spacing:1px;
+              color:rgba(255,255,255,0.12); margin:0; padding-left:1px;
+              font-family:'DM Sans',Arial,sans-serif;
+            ">&copy; {{year}} S-002 &bull; Created by Sujit</p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /email-wrapper -->
+
+    </td>
+  </tr>
+</table>
+
+<script>
+  // Timestamp — web clients only
+  const ts = document.getElementById('ts');
+  if (ts) {
+    ts.textContent = new Date().toLocaleString('en-US', {
+      month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+  }
+</script>
+
+</body>
+</html>

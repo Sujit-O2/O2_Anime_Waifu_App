@@ -1,47 +1,378 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Only authenticated users can read/write their own data
+    // ─────────────────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ─────────────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    function isFriend(userId, otherUserId) {
+      return isAuth() && 
+        get(/databases/$(database)/documents/friends/$(userId)).data.friends.hasAny([otherUserId]);
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // PRIVATE USER COLLECTIONS (user-scoped, auth required)
+    // ─────────────────────────────────────────────────────────
+    
     match /chats/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /vault/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /profiles/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /affection/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /memory/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /quests/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /mood/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /settings/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /alarm/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /scores/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /achievements/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /user_data_sync/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
+    
     match /scheduled_messages/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
-    // Deny everything else
+    
+    match /dreams/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /gratitude/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /habits/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /bucket/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /pinned_messages/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /checkins/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /zt_diary/{userId}/entries/{entry} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/feature_data/{key} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/moodEntries/{entry} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/conversationSummaries/{summary} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/personality/{doc} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/dreamInterpretations/{dream} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/coupleChallenge/{doc} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/emotional_memories/{memory} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/memory_facts/{fact} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/life_events/{event} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /users/{userId}/ai_content/{type}/{date} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // SEMI-PUBLIC COLLECTIONS
+    // ─────────────────────────────────────────────────────────
+    
+    // Users collection - limited public profile (no email!)
+    match /users/{userId} {
+      // Read allowed for all authenticated users (email is not exposed in client code)
+      allow read: if isAuth();
+      
+      // Only own data can be written
+      allow write: if isOwner(userId);
+    }
+    
+    // Friends collection - semi-public
+    match /friends/{userId} {
+      allow read: if isAuth();
+      allow write: if isOwner(userId) || 
+        (isAuth() && request.auth.uid in get(/databases/$(database)/documents/friends/$(userId)).data.get('friends', []));
+    }
+    
+    // Leaderboard - read-only, public to authenticated users
+    match /leaderboard/{userId} {
+      allow read: if isAuth();
+      allow write: if isOwner(userId);
+    }
+    
+    // Global quests - public read, system writes only
+    match /global_quests/{questId} {
+      allow read: if isAuth();
+      allow write: if false; // Only via Cloud Functions/Admin SDK
+    }
+    
+    // Quest completions - per-user tracking
+    match /quest_completions/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.data.uid == request.auth.uid;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // AUDIT LOGGING & COMPLIANCE
+    // ─────────────────────────────────────────────────────────
+    
+    // Audit logs - immutable security logs
+    match /audit_logs/{docId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.uid;
+      allow create: if isAuth();
+      allow update, delete: if false;
+    }
+    
+    // Deletion logs - GDPR compliance
+    match /deletion_logs/{docId} {
+      allow read, write: if false; // Admin only
+    }
+    
+    // Data exports - user data portability
+    match /data_exports/{docId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.uid;
+      allow create: if isAuth();
+      allow update, delete: if false;
+    }
+    
+    // Security alerts - threat detection
+    match /security_alerts/{docId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.uid;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // ANALYTICS & MONITORING
+    // ─────────────────────────────────────────────────────────
+    
+    // Analytics events - app tracking
+    match /analytics_events/{eventId} {
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow read: if false; // Analytics read only via secure backend
+    }
+    
+    // Performance metrics
+    match /performance_metrics/{metricId} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+    
+    // Crash reports
+    match /crash_reports/{reportId} {
+      allow create: if isAuth();
+      allow read: if false;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // NOTIFICATIONS & MESSAGING
+    // ─────────────────────────────────────────────────────────
+    
+    // Notifications - user scoped
+    match /notifications/{notifId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-only writes
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read: if isAuth() && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.characterId
+      );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && request.auth.uid == resource.data.userId &&
+        // Only allow editing content and isRead
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['content', 'isRead']);
+      allow delete: if false; // Messages are immutable
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // CHARACTERS & PUBLIC DATA
+    // ─────────────────────────────────────────────────────────
+    
+    // Characters - public read
+    match /characters/{charId} {
+      allow read: if isAuth();
+      allow write: if false; // Server only
+    }
+    
+    // Character affection - user scoped
+    match /character_affection/{docId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+    }
+    
+    // Character vault - user scoped
+    match /character_vault/{docId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow write: if isAuth() && request.auth.uid == resource.data.userId;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // SOCIAL FEATURES
+    // ─────────────────────────────────────────────────────────
+    
+    // Social connections
+    match /social_connections/{userId} {
+      allow read: if isAuth();
+      allow write: if isOwner(userId);
+    }
+    
+    // Activity feed
+    match /activity_feed/{feedId} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // VOICE COMMANDS
+    // ─────────────────────────────────────────────────────────
+    
+    match /voice_command_history/{cmdId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // AR EXPERIENCES
+    // ─────────────────────────────────────────────────────────
+    
+    match /ar_statistics/{statId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+    }
+    
+    match /ar_settings/{docId} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // OFFLINE SYNC
+    // ─────────────────────────────────────────────────────────
+    
+    match /pending_operations/{opId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && request.auth.uid == resource.data.userId;
+      allow delete: if isAuth() && request.auth.uid == resource.data.userId;
+    }
+    
+    match /offline_sessions/{sessionId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.userId;
+      allow write: if isAuth() && request.auth.uid in resource.data.participants;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // ADMIN ONLY COLLECTIONS
+    // ─────────────────────────────────────────────────────────
+    
+    match /admin_users/{userId} {
+      allow read, write: if false; // Admin SDK only
+    }
+    
+    match /admin_logs/{logId} {
+      allow read, write: if false; // Admin SDK only
+    }
+    
+    match /reported_content/{reportId} {
+      allow create: if isAuth() && request.resource.data.reportedBy == request.auth.uid;
+      allow read: if false; // Admin tools only
+      allow write: if false;
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // TTL POLICIES & AUTO-CLEANUP
+    // ─────────────────────────────────────────────────────────
+    // Note: Set Firestore to auto-delete documents with __ttl field
+    // Analytics events: 90 days
+    // Crash reports: 30 days
+    // Voice command history: 30 days
+    // Offline sessions: 7 days
+    // Pending operations: 3 days
+    // Admin logs: 180 days
+    
+    // ─────────────────────────────────────────────────────────
+    // RATE LIMITING (approximate - for traffic shaping)
+    // ─────────────────────────────────────────────────────────
+    
+    match /rate_limit/{userId} {
+      allow read: if isAuth() && isOwner(userId);
+      allow write: if false; // Server-side rate limiting
+    }
+    
+    // ─────────────────────────────────────────────────────────
+    // DENY EVERYTHING ELSE
+    // ─────────────────────────────────────────────────────────
+    
     match /{document=**} {
       allow read, write: if false;
     }

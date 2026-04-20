@@ -180,9 +180,12 @@ object AssistantOverlayController {
 
         for (item in sessionHistory) {
             val isUser = item.first.equals("You", ignoreCase = true)
-            val layoutId = if (isUser) R.layout.overlay_chat_bubble_user else R.layout.overlay_chat_bubble_assistant
+            val layoutId = if (isUser) R.layout.overlay_chat_bubble_user_modern else R.layout.overlay_chat_bubble_assistant_modern
             val bubble = inflater.inflate(layoutId, list, false)
             bubble.findViewById<TextView>(R.id.chatBubbleText).text = item.second
+            // Add fade-in animation
+            bubble.alpha = 0f
+            bubble.animate().alpha(1f).setDuration(400).setInterpolator(DecelerateInterpolator()).start()
             list.addView(bubble)
         }
 
@@ -213,7 +216,7 @@ object AssistantOverlayController {
         try {
             val wm = context.getSystemService(WindowManager::class.java) ?: return
             val root = LayoutInflater.from(context)
-                .inflate(R.layout.assistant_overlay_compact, null)
+                .inflate(R.layout.assistant_overlay_modern, null)
 
             val scrim = root.findViewById<View>(R.id.overlayScrim)
             val sheet = root.findViewById<View>(R.id.assistantOverlaySheet)
@@ -637,6 +640,41 @@ object AssistantOverlayController {
             hideRunnable = r
             mainHandler.postDelayed(r, autoHideMs)
         }
+    }
+
+    private fun animateHeaderPulse() {
+        val statusView = statusView ?: return
+        val dot = statusDotView ?: return
+        
+        // Subtle header scale pulse
+        statusView.animate()
+            .scaleX(1.02f)
+            .scaleY(1.02f)
+            .setDuration(200L)
+            .withEndAction {
+                statusView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(200L)
+                    .start()
+            }
+            .start()
+
+        // Glow pulse effect on status dot
+        dot.animate()
+            .scaleX(1.3f)
+            .scaleY(1.3f)
+            .alpha(0.3f)
+            .setDuration(400L)
+            .withEndAction {
+                dot.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+                    .setDuration(300L)
+                    .start()
+            }
+            .start()
     }
 
     private fun dp(context: Context, value: Int): Int =

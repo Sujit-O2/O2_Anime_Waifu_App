@@ -3,11 +3,11 @@
 -keep class io.flutter.plugins.** { *; }
 -dontwarn io.flutter.embedding.**
 
-# ── Porcupine / Picovoice ────────────────────────────────────────────────────
-# Keep all Picovoice JNI bridge classes so R8 doesn't strip them in release.
--keep class ai.picovoice.** { *; }
--keepclassmembers class ai.picovoice.** { *; }
--dontwarn ai.picovoice.**
+# ── ONNX Runtime ─────────────────────────────────────────────────────────────
+# Keep ONNX Runtime JNI bridge classes so R8 doesn't strip them in release.
+-keep class ai.onnxruntime.** { *; }
+-keepclassmembers class ai.onnxruntime.** { *; }
+-dontwarn ai.onnxruntime.**
 
 # ── record (audio recorder) ──────────────────────────────────────────────────
 -keep class com.llfbandit.record.** { *; }
