@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.anime_waifu"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -33,8 +33,8 @@ android {
         applicationId = "com.example.anime_waifu"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion  // Required by flutter_inappwebview (WebView APIs)
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24  // Required by flutter_inappwebview (WebView APIs)
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -59,11 +59,11 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.28")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
     implementation("androidx.cardview:cardview:1.0.0")
     // ONNX Runtime for on-device Whisper STT + Sentiment Analysis
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
     // Gson for JSON parsing theme colors
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.11.0")
 }

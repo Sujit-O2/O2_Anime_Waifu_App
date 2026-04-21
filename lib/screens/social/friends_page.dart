@@ -44,9 +44,9 @@ class _FriendsPageState extends State<FriendsPage>
     final aff = AffectionService.instance;
     await FirebaseFirestore.instance.collection('users').doc(_myUid).set({
       'uid': _myUid,
-      'name': _user?.displayName ?? _user?.email?.split('@').first ?? 'Darling',
-      'photoUrl': _user?.photoURL ?? '',
-      'email': _user?.email ?? '',
+      'name': _user!.displayName ?? _user!.email?.split('@').first ?? 'Darling',
+      'photoUrl': _user!.photoURL ?? '',
+      'email': _user!.email ?? '',
       'xp': aff.points,
       'level': aff.levelName,
       'updatedAt': FieldValue.serverTimestamp(),

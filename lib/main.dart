@@ -343,22 +343,20 @@ Future<void> _refreshAllWidgets() async {
   // Streak & Mood
   try {
     final svc = AffectionService.instance;
+    final levelName = svc.levelName;
+    // Map-based emoji lookup instead of nested ternary chain
+    const emojiMap = {
+      '💍': '💍', '🥂': '🥂', '💕': '💕',
+      '💖': '💖', '💞': '💞', '👑': '👑',
+    };
+    final emoji = emojiMap.entries
+        .where((e) => levelName.contains(e.key))
+        .map((e) => e.value)
+        .firstOrNull ?? '♾️';
     await HomeWidgetService.updateStreakAndMood(
       svc.streakDays,
-      svc.levelName,
-      svc.levelName.contains('💍')
-          ? '💍'
-          : svc.levelName.contains('🥂')
-              ? '🥂'
-              : svc.levelName.contains('💕')
-                  ? '💕'
-                  : svc.levelName.contains('💖')
-                      ? '💖'
-                      : svc.levelName.contains('💞')
-                          ? '💞'
-                          : svc.levelName.contains('👑')
-                              ? '👑'
-                              : '♾️',
+      levelName,
+      emoji,
     );
   } catch (e) {
     debugPrint('Streak/Mood widget update error: $e');

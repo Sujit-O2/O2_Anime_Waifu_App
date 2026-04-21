@@ -168,7 +168,7 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
       buffer.writeln('- $person: ${_currency(_perPerson)}');
     }
 
-    SharePlus.instance.share(ShareParams(text: buffer.toString()));
+    Share.share(buffer.toString());
     HapticFeedback.mediumImpact();
     showSuccessSnackbar(context, 'Split summary ready to share.');
   }

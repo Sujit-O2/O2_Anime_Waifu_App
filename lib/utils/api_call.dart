@@ -17,7 +17,7 @@ class ApiService {
   ApiService._internal();
 
   final _defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
-  static const Duration _chatTimeout = Duration(seconds: 25);
+  static const Duration _chatTimeout = Duration(seconds: 30);
   static const Duration _mailTimeout = Duration(seconds: 20);
   String _apiKeyOverride = "";
   String _modelOverride = "";
@@ -31,7 +31,7 @@ class ApiService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
-    return "meta-llama/llama-4-scout-17b-16e-instruct";
+    return "meta-llama/llama-4-maverick-17b-128e-instruct";
   }
 
   String get _effectiveUrl {
@@ -148,7 +148,7 @@ class ApiService {
       "model": modelOverride ?? _effectiveModel,
       "messages": payloadMessages,
       "temperature": 0.9,
-      "max_completion_tokens": 1024,
+      "max_completion_tokens": 2048,
       "top_p": 1,
     };
 
@@ -159,6 +159,11 @@ class ApiService {
     for (int attempt = 0; attempt < keys.length; attempt++) {
       final idx = (startIdx + attempt) % keys.length;
       final apiKey = keys[idx];
+      // Exponential backoff: wait before retry (skip first attempt)
+      if (attempt > 0) {
+        final backoffMs = (200 * (1 << (attempt - 1))).clamp(0, 3000);
+        await Future.delayed(Duration(milliseconds: backoffMs));
+      }
       try {
         final res = await http
             .post(
@@ -235,6 +240,7 @@ class ApiService {
     // --- Model Fallback: try backup model before going offline ---
     final usedModel = modelOverride ?? _effectiveModel;
     const fallbackModels = [
+      'meta-llama/llama-4-maverick-17b-128e-instruct',
       'meta-llama/llama-4-scout-17b-16e-instruct',
       'llama-3.3-70b-versatile',
       'llama-3.1-8b-instant',
