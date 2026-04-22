@@ -4,6 +4,23 @@
 
 ---
 
+## 🚀 v7.0 — Production Hardening Update
+
+### What's New
+- **🧠 AI Model Upgrade**: Default LLM upgraded to `llama-4-maverick-17b-128e-instruct` (superior reasoning). 4-tier fallback chain: Maverick → Scout → 70B → 8B → Offline.
+- **⚡ Performance**: Particle system frame budget optimization, reduced particle counts, zero-cost idle for emoji overlays. Animated background runs at 120fps budget with graceful degradation.
+- **🎨 Premium Transitions**: All navigation now uses buttery slide-fade-scale page transitions via `AppRouter.onGenerateRoute`.
+- **💬 Richer Responses**: `max_completion_tokens` increased from 1024 → 2048 for more detailed AI responses.
+- **🔄 Smart Retries**: Exponential backoff on API key rotation instead of instant retry.
+- **📦 Dependency Sync**: 18 packages updated — Firebase suite (4.7/6.3/6.4), ONNX Runtime 1.20, Desugar JDK 2.1.5, Gson 2.11.
+- **🏗️ Android 15**: compileSdk/targetSdk 35, minSdk 24, nonTransitiveRClass for faster builds.
+- **🛡️ Build Stability**: Re-enabled Kotlin incremental compilation + Gradle caching (stable with Kotlin 2.2.20).
+- **✨ Animation Upgrades**: Staggered emoji reaction bar entrance, rotating particle overlays, sinusoidal sway physics.
+- **🧹 Code Quality**: Zero `dart analyze` issues. Stricter lint rules. Map-based emoji lookup. Null-safety fixes.
+- **📡 Network Awareness**: Added `connectivity_plus` for proper online/offline detection.
+
+---
+
 ## 🌌 System Overview
 
 O2-WAIFU is not just a chat app; it is a full-scale **Neural Companion Framework** built on Flutter. It leverages low-latency edge computing (Groq) for real-time speech-to-text (STT), large language model (LLM) reasoning, and neural text-to-speech (TTS). The system is designed to be "Always-On" via a robust Android Foreground Service that maintains high-fidelity wake-word detection even in deep sleep states.
