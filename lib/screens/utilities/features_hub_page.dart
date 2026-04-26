@@ -161,6 +161,72 @@ import 'package:anime_waifu/screens/wellness/pomodoro_page.dart';
 import 'package:anime_waifu/screens/wellness/sleep_mode_page.dart';
 import 'package:anime_waifu/screens/wellness/study_timer_page.dart';
 import 'package:anime_waifu/screens/wellness/wellness_reminders_page.dart';
+// ── Media Gallery ──
+import 'package:anime_waifu/screens/media/gif_viewer_page.dart';
+import 'package:anime_waifu/screens/utilities/image_pack_page.dart';
+import 'package:anime_waifu/screens/utilities/anime_sticker_sheet.dart';
+
+// ── Social (Extended) ──
+import 'package:anime_waifu/screens/social/gift_intelligence_page.dart';
+import 'package:anime_waifu/screens/social/conflict_resolution_page.dart';
+import 'package:anime_waifu/screens/social/long_distance_relationship_page.dart';
+import 'package:anime_waifu/screens/social/social_event_planner_page.dart';
+
+// ── Travel ──
+import 'package:anime_waifu/screens/travel/travel_planner_page.dart';
+
+// ── Productivity ──
+import 'package:anime_waifu/screens/productivity/academic_research_page.dart';
+import 'package:anime_waifu/screens/productivity/meeting_intelligence_page.dart';
+
+// ── Financial ──
+import 'package:anime_waifu/screens/financial/budget_coach_page.dart';
+import 'package:anime_waifu/screens/financial/investment_companion_page.dart';
+
+// ── Educational ──
+import 'package:anime_waifu/screens/educational/language_learning_page.dart';
+import 'package:anime_waifu/screens/educational/personalized_learning_page.dart';
+import 'package:anime_waifu/screens/educational/skill_gap_analyzer_page.dart';
+import 'package:anime_waifu/screens/educational/debate_critical_thinking_page.dart';
+
+// ── Creative ──
+import 'package:anime_waifu/screens/creative/art_direction_page.dart';
+import 'package:anime_waifu/screens/creative/collaborative_storytelling_page.dart';
+import 'package:anime_waifu/screens/creative/game_master_page.dart';
+import 'package:anime_waifu/screens/creative/music_composition_page.dart';
+
+// ── Wellness Advanced ──
+import 'package:anime_waifu/screens/wellness_advanced/hydration_nutrition_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/stress_detection_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/meditation_guide_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/sleep_tracking_page.dart';
+
+// ── Memory & AI ──
+import 'package:anime_waifu/screens/memory_ai/voice_clone_training_page.dart';
+import 'package:anime_waifu/screens/memory_ai/enhanced_dream_journal_page.dart';
+import 'package:anime_waifu/screens/memory_ai/relationship_heatmap_page.dart';
+import 'package:anime_waifu/screens/memory_ai/smart_photo_memory_page.dart';
+import 'package:anime_waifu/screens/memory_ai/conversation_bookmarks_page.dart';
+import 'package:anime_waifu/screens/memory_ai/emotion_memory_timeline_page.dart';
+
+// ── AI Advanced ──
+import 'package:anime_waifu/screens/ai_advanced/personality_evolution_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/semantic_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/conversation_mode_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/smart_reply_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/enhanced_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/ai_copilot_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/alter_ego_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/voice_emotion_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/ai_content_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_ai_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_recovery_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/self_reflection_page.dart';
+
+// ── Social Advanced ──
+import 'package:anime_waifu/screens/social_advanced/contacts_lookup_page.dart';
+import 'package:anime_waifu/screens/social_advanced/social_features_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1071,19 +1137,19 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(
                 label: 'GIF Viewer',
                 icon: Icons.gif_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const GifViewerPage()),
             _HubItem(
                 label: 'Image Packs',
                 icon: Icons.photo_library_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ImagePackPage()),
             _HubItem(
                 label: 'Wallpapers',
                 icon: Icons.wallpaper_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ImagePackPage()),
             _HubItem(
                 label: 'Sticker Gallery',
                 icon: Icons.emoji_emotions_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const AnimeStickerSheet()),
           ],
         ),
 
@@ -1091,29 +1157,30 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
         _HubCategory(
           title: 'Social & Travel',
           emoji: '🌍',
-          description: 'Relationship tools, event planning, and travel companions',
+          description:
+              'Relationship tools, event planning, and travel companions',
           color: Colors.orangeAccent,
           items: [
             _HubItem(
                 label: 'Gift Intelligence',
                 icon: Icons.card_giftcard_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const GiftIntelligencePage()),
             _HubItem(
                 label: 'Conflict Resolution',
                 icon: Icons.handshake_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ConflictResolutionPage()),
             _HubItem(
                 label: 'Long Distance Love',
                 icon: Icons.favorite_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const LongDistanceRelationshipPage()),
             _HubItem(
                 label: 'Event Planner',
                 icon: Icons.event_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SocialEventPlannerPage()),
             _HubItem(
                 label: 'Travel Planner',
                 icon: Icons.flight_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const TravelPlannerPage()),
           ],
         ),
 
@@ -1121,25 +1188,26 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
         _HubCategory(
           title: 'Productivity',
           emoji: '💼',
-          description: 'Academic research, meeting intelligence, and smart tracking',
+          description:
+              'Academic research, meeting intelligence, and smart tracking',
           color: Colors.cyan.shade700,
           items: [
             _HubItem(
                 label: 'Academic Research',
                 icon: Icons.school_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const AcademicResearchPage()),
             _HubItem(
                 label: 'Meeting Intelligence',
                 icon: Icons.groups_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const MeetingIntelligencePage()),
             _HubItem(
                 label: 'Smart Habit Tracker',
                 icon: Icons.track_changes_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const HabitTrackerPage()),
             _HubItem(
                 label: 'Goal Tracker',
                 icon: Icons.flag_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const GoalTrackerPage()),
           ],
         ),
 
@@ -1153,11 +1221,11 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(
                 label: 'Budget Coach',
                 icon: Icons.account_balance_wallet_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const BudgetCoachPage()),
             _HubItem(
                 label: 'Investment Companion',
                 icon: Icons.trending_up_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const InvestmentCompanionPage()),
           ],
         ),
 
@@ -1165,25 +1233,26 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
         _HubCategory(
           title: 'Educational',
           emoji: '🎓',
-          description: 'Language learning, personalized education, and skill development',
+          description:
+              'Language learning, personalized education, and skill development',
           color: Colors.indigo.shade700,
           items: [
             _HubItem(
                 label: 'Language Learning',
                 icon: Icons.language_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const LanguageLearningPage()),
             _HubItem(
                 label: 'Personalized Learning',
                 icon: Icons.psychology_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const PersonalizedLearningPage()),
             _HubItem(
                 label: 'Skill Gap Analyzer',
                 icon: Icons.analytics_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SkillGapAnalyzerPage()),
             _HubItem(
                 label: 'Debate & Critical Thinking',
                 icon: Icons.forum_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const DebateCriticalThinkingPage()),
           ],
         ),
 
@@ -1191,25 +1260,26 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
         _HubCategory(
           title: 'Creative',
           emoji: '🎨',
-          description: 'Art direction, storytelling, game mastering, and music composition',
+          description:
+              'Art direction, storytelling, game mastering, and music composition',
           color: Colors.pink.shade700,
           items: [
             _HubItem(
                 label: 'Art Direction',
                 icon: Icons.brush_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ArtDirectionPage()),
             _HubItem(
                 label: 'Collaborative Storytelling',
                 icon: Icons.auto_stories_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const CollaborativeStorytellingPage()),
             _HubItem(
                 label: 'Game Master',
                 icon: Icons.casino_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const GameMasterPage()),
             _HubItem(
                 label: 'Music Composition',
                 icon: Icons.music_note_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const MusicCompositionPage()),
           ],
         ),
 
@@ -1223,19 +1293,19 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(
                 label: 'Hydration & Nutrition',
                 icon: Icons.local_drink_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const HydrationNutritionPage()),
             _HubItem(
                 label: 'Stress Detection',
                 icon: Icons.warning_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const StressDetectionPage()),
             _HubItem(
                 label: 'Guided Meditation',
                 icon: Icons.self_improvement_rounded,
-                builder: (_) => Container()),
+                builder: (_) => const MeditationGuidePage()),
             _HubItem(
                 label: 'Sleep Tracking',
                 icon: Icons.bedtime_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SleepTrackingPage()),
           ],
         ),
 
@@ -1249,27 +1319,27 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(
                 label: 'Voice Clone Training',
                 icon: Icons.record_voice_over_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const VoiceCloneTrainingPage()),
             _HubItem(
                 label: 'Dream Journal',
                 icon: Icons.nightlight_round,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EnhancedDreamJournalPage()),
             _HubItem(
                 label: 'Relationship Heatmap',
                 icon: Icons.thermostat_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const RelationshipHeatmapPage()),
             _HubItem(
                 label: 'Smart Photo Memory',
                 icon: Icons.photo_camera_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SmartPhotoMemoryPage()),
             _HubItem(
                 label: 'Conversation Bookmarks',
                 icon: Icons.bookmark_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ConversationBookmarksPage()),
             _HubItem(
                 label: 'Emotion Timeline',
                 icon: Icons.timeline_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EmotionMemoryTimelinePage()),
           ],
         ),
 
@@ -1277,61 +1347,62 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
         _HubCategory(
           title: 'AI Advanced',
           emoji: '🤖',
-          description: 'Cutting-edge AI features for personality, memory, and intelligence',
+          description:
+              'Cutting-edge AI features for personality, memory, and intelligence',
           color: Colors.purple.shade700,
           items: [
             _HubItem(
                 label: 'Personality Evolution',
                 icon: Icons.trending_up_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const PersonalityEvolutionPage()),
             _HubItem(
                 label: 'Semantic Memory',
                 icon: Icons.memory_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SemanticMemoryPage()),
             _HubItem(
                 label: 'Conversation Modes',
                 icon: Icons.chat_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ConversationModePage()),
             _HubItem(
                 label: 'Emotional Memory',
                 icon: Icons.favorite_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EmotionalMemoryPage()),
             _HubItem(
                 label: 'Smart Reply',
                 icon: Icons.smart_button_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SmartReplyPage()),
             _HubItem(
                 label: 'Enhanced Memory',
                 icon: Icons.enhance_photo_translate_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EnhancedMemoryPage()),
             _HubItem(
                 label: 'AI Copilot',
                 icon: Icons.assistant_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const AiCopilotPage()),
             _HubItem(
                 label: 'Alter Ego Personas',
                 icon: Icons.person_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const AlterEgoPage()),
             _HubItem(
                 label: 'Voice Emotion',
                 icon: Icons.mic_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const VoiceEmotionPage()),
             _HubItem(
                 label: 'AI Content Generator',
                 icon: Icons.create_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const AiContentPage()),
             _HubItem(
                 label: 'Emotional AI',
                 icon: Icons.psychology_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EmotionalAiPage()),
             _HubItem(
                 label: 'Emotional Recovery',
                 icon: Icons.healing_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const EmotionalRecoveryPage()),
             _HubItem(
                 label: 'Self Reflection',
                 icon: Icons.self_improvement_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SelfReflectionPage()),
           ],
         ),
 
@@ -1345,11 +1416,11 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
             _HubItem(
                 label: 'Contacts Lookup',
                 icon: Icons.contacts_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const ContactsLookupPage()),
             _HubItem(
                 label: 'Social Features',
                 icon: Icons.groups_rounded,
-                builder: (_) => Container()), // Placeholder
+                builder: (_) => const SocialFeaturesPage()),
           ],
         ),
 
@@ -1495,7 +1566,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                     begin: Alignment.topCenter,
@@ -1507,7 +1581,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                     Row(children: [
                       IconButton(
                         icon: Icon(Icons.arrow_back_ios_new_rounded,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.7),
                             size: 20),
                         onPressed: () {
                           if (widget.onBack != null) {
@@ -1520,35 +1597,49 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('FEATURES HUB',
-                                style: GoogleFonts.outfit(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 24,
-                                    letterSpacing: 1.5)),
-                            const SizedBox(height: 4),
-                            Text('Explore all Zero Two features',
-                                style: GoogleFonts.outfit(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500)),
-                          ]),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('FEATURES HUB',
+                                  style: GoogleFonts.outfit(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 24,
+                                      letterSpacing: 1.5)),
+                              const SizedBox(height: 4),
+                              Text('Explore all Zero Two features',
+                                  style: GoogleFonts.outfit(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500)),
+                            ]),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           gradient: LinearGradient(
                             colors: [
-                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
+                              Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.8),
+                              Theme.of(context)
+                                  .colorScheme
+                                  .secondary
+                                  .withValues(alpha: 0.6),
                             ],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -1573,9 +1664,13 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
                     // Search Bar
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outline,
@@ -1585,7 +1680,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                       child: Row(
                         children: [
                           Icon(Icons.search_rounded,
-                              color: Theme.of(context).colorScheme.onSurface, size: 20),
+                              color: Theme.of(context).colorScheme.onSurface,
+                              size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
@@ -1596,7 +1692,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                               decoration: InputDecoration(
                                 hintText: 'Search features...',
                                 hintStyle: GoogleFonts.outfit(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
@@ -1613,7 +1710,9 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                           if (_query.isNotEmpty)
                             IconButton(
                               icon: Icon(Icons.clear_rounded,
-                                  color: Theme.of(context).colorScheme.onSurface, size: 18),
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  size: 18),
                               onPressed: () {
                                 setState(() => _query = '');
                                 _saveHubPrefs();
@@ -1743,9 +1842,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: isOpen
-              ? cat.color.withValues(alpha: 0.4)
-              : tokens.outline,
+          color: isOpen ? cat.color.withValues(alpha: 0.4) : tokens.outline,
           width: isOpen ? 2 : 1,
         ),
         boxShadow: isOpen
@@ -1818,7 +1915,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                           : null,
                     ),
                     child: Center(
-                      child: Text(cat.emoji, style: const TextStyle(fontSize: 24)),
+                      child:
+                          Text(cat.emoji, style: const TextStyle(fontSize: 24)),
                     ),
                   ),
 
@@ -1851,7 +1949,8 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
                   // Count badge with premium design
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       gradient: LinearGradient(
@@ -1881,9 +1980,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                     curve: Curves.easeOutCubic,
                     child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: isOpen
-                          ? cat.color
-                          : tokens.textMuted,
+                      color: isOpen ? cat.color : tokens.textMuted,
                       size: 24,
                     ),
                   ),

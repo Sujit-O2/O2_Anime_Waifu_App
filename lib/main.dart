@@ -6882,9 +6882,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       builder: (context, value, _) {
         final hasTypedText = value.text.trim().isNotEmpty;
         final canSend = hasTypedText || _selectedImage != null;
-        final inputTextStyle =
-            style.font(15, theme.colorScheme.onSurface.withValues(alpha: 0.96));
-        final hintTextStyle = style.font(14, tokens.textSoft);
+        final inputTextStyle = style.font(15, theme.colorScheme.onSurface)
+            .copyWith(
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              height: 1.4,
+              letterSpacing: 0.2,
+            );
+        final hintTextStyle = style.font(14, tokens.textSoft)
+            .copyWith(
+              fontStyle: FontStyle.normal,
+              letterSpacing: 0.3,
+            );
 
         Widget actionCircle({
           required VoidCallback onTap,
@@ -7111,16 +7120,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                         maxLines: 5,
                         textInputAction: TextInputAction.send,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: InputDecoration(
-                          hintText: hint,
-                          hintStyle: hintTextStyle,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 15,
-                            horizontal: 16,
-                          ),
-                          isDense: true,
-                        ),
+                         decoration: InputDecoration(
+                           hintText: hint,
+                           hintStyle: hintTextStyle,
+                           border: InputBorder.none,
+                           contentPadding: const EdgeInsets.symmetric(
+                             vertical: 16,
+                             horizontal: 18,
+                           ),
+                           isDense: true,
+                           filled: true,
+                           fillColor: theme.colorScheme.surface.withValues(alpha: 0.6),
+                         ),
                         onSubmitted: (_) => unawaited(_handleTextInput()),
                       ),
                     ),
@@ -7136,27 +7147,32 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                         child: actionCircle(
                           onTap: () => unawaited(_toggleManualMic()),
                           icon: _isSpeaking
-                              ? Icons.stop_rounded
+                              ? Icons.stop_circle_rounded
                               : (isListening
                                   ? Icons.mic_rounded
                                   : (isReady
-                                      ? Icons.mic_rounded
-                                      : Icons.mic_none_rounded)),
+                                      ? Icons.mic_none_rounded
+                                      : Icons.mic_off_rounded)),
                           colors: isListening
                               ? [
-                                  primary.withValues(alpha: 0.95),
-                                  primary.withValues(alpha: 0.62)
+                                  theme.colorScheme.primary.withValues(alpha: 0.95),
+                                  theme.colorScheme.primary.withValues(alpha: 0.70)
                                 ]
-                              : (isReady
+                              : (_isSpeaking
                                   ? [
-                                      primary.withValues(alpha: 0.50),
-                                      primary.withValues(alpha: 0.30)
+                                      theme.colorScheme.error.withValues(alpha: 0.9),
+                                      theme.colorScheme.error.withValues(alpha: 0.6)
                                     ]
-                                  : [
-                                      tokens.panelElevated,
-                                      tokens.panelMuted,
-                                    ]),
-                          size: 46,
+                                  : (isReady
+                                      ? [
+                                          primary.withValues(alpha: 0.55),
+                                          primary.withValues(alpha: 0.35)
+                                        ]
+                                      : [
+                                          tokens.panelElevated,
+                                          tokens.panelMuted,
+                                        ])),
+                          size: 48,
                         ),
                       );
                     },
