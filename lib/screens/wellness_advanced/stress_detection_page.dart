@@ -9,8 +9,6 @@ class StressDetectionPage extends StatefulWidget {
 }
 
 class _StressDetectionPageState extends State<StressDetectionPage> {
-  final _service = StressDetectionService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +45,8 @@ class _StressDetectionPageState extends State<StressDetectionPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text('Recommendations', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Recommendations',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
                     Text('• Take breaks'),
                     Text('• Practice breathing'),

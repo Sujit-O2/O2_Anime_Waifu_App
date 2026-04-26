@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/anime_media/manga_service.dart';
 import 'package:anime_waifu/services/anime_media/watchlist_service.dart';
-import 'package:anime_waifu/widgets/theme_animation_helpers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -300,27 +300,6 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     }
   }
 
-  void _onSearchChanged(String val) {
-    _debounce?.cancel();
-    setState(() {
-      _searchQuery = val;
-      _loadingSearch = val.isNotEmpty;
-      _selectedGenreId = null;
-      _selectedGenreName = null;
-    });
-    _persistState();
-    if (val.isEmpty) {
-      setState(() {
-        _searchResults = <MangaItem>[];
-        _loadingSearch = false;
-      });
-      return;
-    }
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
-      await _performSearch(val, persist: false);
-    });
-  }
-
   Future<void> _selectGenre(String id, String name,
       {bool persist = true}) async {
     setState(() {
@@ -602,67 +581,13 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                   ),
                 ),
                 _buildSourceTabs(),
-                _buildSearchBar(),
-                _buildGenreChips(),
+                _buildGenreChips(compact),
                 Expanded(child: _buildBody()),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    final compact = _isCompactScreen;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, compact ? 10 : 14, 20, compact ? 2 : 6),
-      child: Row(children: [
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.white54, size: 18),
-        ),
-        const SizedBox(width: 14),
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('MANGA READER',
-              style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: compact ? 18 : 22,
-                  letterSpacing: 2.5)),
-          Text('${MangaService.sourceName}  ·  Tap tabs to switch source',
-              style: GoogleFonts.outfit(
-                  color: Colors.white30, fontSize: compact ? 9 : 10)),
-        ]),
-        const Spacer(),
-        AnimatedBuilder(
-          animation: _pulseCtrl,
-          builder: (_, __) => PulsingGlowWidget(
-            glowColor: V2Theme.primaryColor,
-            glowRadius: 12,
-            duration: const Duration(milliseconds: 1500),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(colors: [
-                  const Color(0xFFBB52FF)
-                      .withValues(alpha: 0.6 + _pulseCtrl.value * 0.4),
-                  const Color(0xFF6C4EFF)
-                      .withValues(alpha: 0.6 + _pulseCtrl.value * 0.4),
-                ]),
-                boxShadow: [
-                  BoxShadow(
-                      color: const Color(0xFFBB52FF)
-                          .withValues(alpha: 0.4 * _pulseCtrl.value),
-                      blurRadius: 12)
-                ],
-              ),
-            ),
-          ),
-        ),
-      ]),
     );
   }
 
@@ -879,10 +804,9 @@ class _MangaSectionPageState extends State<MangaSectionPage>
       MangaSource.flamescans,
       MangaSource.luminous
     ];
+
     final List<MangaSource> adult =
         MangaSource.values.where((s) => !standard.contains(s)).toList();
-
-    final theme = Theme.of(context);
     final tokens = context.appTokens;
 
     return Container(
@@ -920,11 +844,15 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                               letterSpacing: 1)),
                       const SizedBox(height: 8),
                       Row(
-                        children: standard.map((src) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _sourceTab(
-                              MangaService.sourceDisplayName(src), src, src.color),
-                        )).toList(),
+                        children: standard
+                            .map((src) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: _sourceTab(
+                                      MangaService.sourceDisplayName(src),
+                                      src,
+                                      src.color),
+                                ))
+                            .toList(),
                       ),
                     ],
                   ),
@@ -945,11 +873,15 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                                 letterSpacing: 1)),
                         const SizedBox(height: 8),
                         Row(
-                          children: adult.map((src) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: _sourceTab(
-                                MangaService.sourceDisplayName(src), src, src.color),
-                          )).toList(),
+                          children: adult
+                              .map((src) => Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: _sourceTab(
+                                        MangaService.sourceDisplayName(src),
+                                        src,
+                                        src.color),
+                                  ))
+                              .toList(),
                         ),
                       ],
                     ),
@@ -994,9 +926,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                   ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isActive
-                  ? color.withValues(alpha: 0.4)
-                  : tokens.outline,
+              color: isActive ? color.withValues(alpha: 0.4) : tokens.outline,
               width: isActive ? 2 : 1,
             ),
             boxShadow: isActive
@@ -1017,95 +947,67 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
                 letterSpacing: 0.5,
-            )),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: GlassCard(
-        margin: EdgeInsets.zero,
-        padding: const EdgeInsets.all(16),
-        child: V2SearchBar(
-          controller: _searchCtrl,
-          initialValue: _searchQuery,
-          hintText: 'Search manga, manhwa, manhua...',
-          onChanged: _onSearchChanged,
+              )),
         ),
       ),
     );
   }
 
-  Widget _buildGenreChips() {
-    final genres = _genres;
-    if (genres.isEmpty) return const SizedBox.shrink();
+  Widget _buildGenreChips(bool compact) {
+    if (_genres.isEmpty) return const SizedBox.shrink();
+
     return SizedBox(
-      height: 34,
+      height: 50,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         children: [
-          if (_selectedGenreId != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: GestureDetector(
-                onTap: _clearGenre,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white30),
-                  ),
-                  child: Row(children: [
-                    const Icon(Icons.close_rounded,
-                        color: Colors.white, size: 13),
-                    const SizedBox(width: 4),
-                    Text('Clear',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold)),
-                  ]),
+          GestureDetector(
+            onTap: _clearGenre,
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: _selectedGenreId == null
+                    ? Colors.deepPurpleAccent
+                    : Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'All',
+                style: GoogleFonts.outfit(
+                  color:
+                      _selectedGenreId == null ? Colors.white : Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ..._genres.entries.map((e) {
-            final isSelected = _selectedGenreId == e.value;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: GestureDetector(
-                onTap: () =>
-                    isSelected ? _clearGenre() : _selectGenre(e.value, e.key),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+          ),
+          ..._genres.entries.map((entry) => GestureDetector(
+                onTap: () => _selectGenre(entry.key, entry.value),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFBB52FF).withValues(alpha: 0.3)
-                        : Colors.white.withValues(alpha: 0.06),
+                    color: _selectedGenreId == entry.key
+                        ? Colors.deepPurpleAccent
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFBB52FF)
-                          : Colors.white.withValues(alpha: 0.12),
+                  ),
+                  child: Text(
+                    entry.value,
+                    style: GoogleFonts.outfit(
+                      color: _selectedGenreId == entry.key
+                          ? Colors.white
+                          : Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: Text(e.key,
-                      style: GoogleFonts.outfit(
-                        color: isSelected ? Colors.white : Colors.white60,
-                        fontSize: 11,
-                        fontWeight:
-                            isSelected ? FontWeight.w800 : FontWeight.w500,
-                      )),
                 ),
-              ),
-            );
-          }),
+              )),
         ],
       ),
     );
@@ -1175,7 +1077,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                 padding: EdgeInsets.zero,
                 title: label,
                 subtitle:
-                    'Tap a cover to dive in, or long press the heart lane by saving favorites.',
+                    'Tap a cover to dive in, or long press the heart to save favorites.',
               ),
             ),
           ),

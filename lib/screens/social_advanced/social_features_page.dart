@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/integrations/social_features_service.dart';
 
 class SocialFeaturesPage extends StatefulWidget {
   const SocialFeaturesPage({super.key});
@@ -9,7 +8,6 @@ class SocialFeaturesPage extends StatefulWidget {
 }
 
 class _SocialFeaturesPageState extends State<SocialFeaturesPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,15 +36,15 @@ class _SocialFeaturesPageState extends State<SocialFeaturesPage> {
             ),
             const SizedBox(height: 16),
             ...['Feature 1', 'Feature 2', 'Feature 3'].map((feature) => Card(
-              child: ListTile(
-                title: Text(feature),
-                subtitle: const Text('Social feature description'),
-                trailing: Switch(
-                  value: true,
-                  onChanged: (val) => setState(() {}),
-                ),
-              ),
-            )),
+                  child: ListTile(
+                    title: Text(feature),
+                    subtitle: const Text('Social feature description'),
+                    trailing: Switch(
+                      value: true,
+                      onChanged: (val) => setState(() {}),
+                    ),
+                  ),
+                )),
           ],
         ),
       ),

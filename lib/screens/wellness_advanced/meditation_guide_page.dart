@@ -9,8 +9,6 @@ class MeditationGuidePage extends StatefulWidget {
 }
 
 class _MeditationGuidePageState extends State<MeditationGuidePage> {
-  final _service = MeditationGuideService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -9,8 +9,6 @@ class SleepTrackingPage extends StatefulWidget {
 }
 
 class _SleepTrackingPageState extends State<SleepTrackingPage> {
-  final _service = SleepTrackingService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
