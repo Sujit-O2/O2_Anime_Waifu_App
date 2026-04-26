@@ -532,7 +532,7 @@ extension _AboutPageExtension on _ChatHomePageState {
               _buildModernDevChip(
                 Icons.new_releases,
                 'Version',
-                'v7.0.2 (Beast)',
+                'v8.0.2 (LEO)',
                 Colors.cyanAccent,
               ),
             ],
