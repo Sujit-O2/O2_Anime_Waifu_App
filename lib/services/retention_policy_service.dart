@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Service for implementing data retention policies (GDPR compliance)
 /// Automatically purges old data based on retention periods
@@ -27,7 +27,7 @@ class RetentionPolicyService {
     try {
       final cutoffDate = DateTime.now().subtract(Duration(days: daysToKeep));
 
-      debugPrint('[Retention] Purging $collectionName older than $daysToKeep days');
+      if (kDebugMode) debugPrint('[Retention] Purging $collectionName older than $daysToKeep days');
 
       int deletedCount = 0;
       const batchSize = 100;
@@ -42,18 +42,21 @@ class RetentionPolicyService {
         final snapshot = await query.limit(batchSize).get();
         if (snapshot.docs.isEmpty) break;
 
+        // Use WriteBatch for atomic, fast bulk deletion
+        final batch = _db.batch();
         for (final doc in snapshot.docs) {
-          await doc.reference.delete();
-          deletedCount++;
+          batch.delete(doc.reference);
         }
+        await batch.commit();
+        deletedCount += snapshot.docs.length;
 
-        debugPrint('[Retention] Deleted batch of ${snapshot.docs.length} from $collectionName');
+        if (kDebugMode) debugPrint('[Retention] Deleted batch of ${snapshot.docs.length} from $collectionName');
       }
 
-      debugPrint('[Retention] Purged $deletedCount documents from $collectionName');
+      if (kDebugMode) debugPrint('[Retention] Purged $deletedCount documents from $collectionName');
       return deletedCount;
     } catch (e) {
-      debugPrint('[Retention] Error purging $collectionName: $e');
+      if (kDebugMode) debugPrint('[Retention] Error purging $collectionName: $e');
       return 0;
     }
   }
@@ -92,10 +95,10 @@ class RetentionPolicyService {
         timestampField: 'flagged_at',
       );
 
-      debugPrint('[Retention] All policies executed: $results');
+      if (kDebugMode) debugPrint('[Retention] All policies executed: $results');
       return results;
     } catch (e) {
-      debugPrint('[Retention] Error running retention policies: $e');
+      if (kDebugMode) debugPrint('[Retention] Error running retention policies: $e');
       return {};
     }
   }
@@ -128,9 +131,9 @@ class RetentionPolicyService {
         'deleted_at': DateTime.now().toIso8601String(),
         'is_deleted': true,
       });
-      debugPrint('[Retention] Soft deleted $collection/$uid');
+      if (kDebugMode) debugPrint('[Retention] Soft deleted $collection/$uid');
     } catch (e) {
-      debugPrint('[Retention] Error soft deleting: $e');
+      if (kDebugMode) debugPrint('[Retention] Error soft deleting: $e');
     }
   }
 
@@ -155,7 +158,7 @@ class RetentionPolicyService {
       final snapshot = await query.count().get();
       return snapshot.count ?? 0;
     } catch (e) {
-      debugPrint('[Retention] Error counting pending deletion: $e');
+      if (kDebugMode) debugPrint('[Retention] Error counting pending deletion: $e');
       return 0;
     }
   }
@@ -174,9 +177,9 @@ class RetentionPolicyService {
         'archived_at': DateTime.now().toIso8601String(),
         'archive_reason': 'retention_policy',
       });
-      debugPrint('[Retention] Archived $collection/$uid');
+      if (kDebugMode) debugPrint('[Retention] Archived $collection/$uid');
     } catch (e) {
-      debugPrint('[Retention] Error archiving: $e');
+      if (kDebugMode) debugPrint('[Retention] Error archiving: $e');
     }
   }
 
@@ -207,7 +210,7 @@ class RetentionPolicyService {
 
       return report.toString();
     } catch (e) {
-      debugPrint('[Retention] Error generating report: $e');
+      if (kDebugMode) debugPrint('[Retention] Error generating report: $e');
       return '{}';
     }
   }
@@ -216,8 +219,8 @@ class RetentionPolicyService {
   /// In production, this would be a Cloud Function trigger
   /// This is a client-side fallback
   void schedulePeriodicPurge() {
-    debugPrint('[Retention] Note: In production, use Cloud Functions for periodic purging');
-    debugPrint('[Retention] Deploy function: firebase deploy --only functions');
-    debugPrint('[Retention] Schedule: Daily at 2:00 AM UTC');
+    if (kDebugMode) debugPrint('[Retention] Note: In production, use Cloud Functions for periodic purging');
+    if (kDebugMode) debugPrint('[Retention] Deploy function: firebase deploy --only functions');
+    if (kDebugMode) debugPrint('[Retention] Schedule: Daily at 2:00 AM UTC');
   }
 }

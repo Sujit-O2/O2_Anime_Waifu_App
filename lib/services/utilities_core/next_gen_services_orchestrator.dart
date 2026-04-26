@@ -6,7 +6,7 @@ import 'package:anime_waifu/services/integrations/friend_social_system_service.d
 import 'package:anime_waifu/services/user_profile/enhanced_user_profile_service.dart';
 import 'package:anime_waifu/services/utilities_core/crash_reporting_service.dart';
 import 'package:anime_waifu/services/utilities_core/monetization_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Comprehensive Next-Gen Services Orchestrator
 /// Manages all Tier 1, 2, and 3 features with unified initialization
@@ -36,14 +36,14 @@ class NextGenServicesOrchestrator {
   /// Initialize all next-gen services
   Future<void> initializeAll() async {
     try {
-      debugPrint('╔════════════════════════════════════════════╗');
-      debugPrint('║  🚀 INITIALIZING NEXT-GEN SERVICES SUITE  ║');
-      debugPrint('╚════════════════════════════════════════════╝');
+      if (kDebugMode) debugPrint('╔════════════════════════════════════════════╗');
+      if (kDebugMode) debugPrint('║  🚀 INITIALIZING NEXT-GEN SERVICES SUITE  ║');
+      if (kDebugMode) debugPrint('╚════════════════════════════════════════════╝');
 
       _initializationTime = DateTime.now();
 
       // Phase 1: AI & Core Services
-      debugPrint('\n📍 Phase 1: AI & Core Services');
+      if (kDebugMode) debugPrint('\n📍 Phase 1: AI & Core Services');
       _aiCopilot = AICopilotService();
       await _aiCopilot.initialize();
       _markServiceReady('AI Copilot', 'AI');
@@ -57,7 +57,7 @@ class NextGenServicesOrchestrator {
       _markServiceReady('Personalization', 'AI');
 
       // Phase 2: Data & Persistence
-      debugPrint('\n📍 Phase 2: Data & Persistence');
+      if (kDebugMode) debugPrint('\n📍 Phase 2: Data & Persistence');
       _offlineDb = OfflineFirstDatabaseService();
       await _offlineDb.initialize();
       _markServiceReady('Offline-First DB', 'Data');
@@ -67,19 +67,19 @@ class NextGenServicesOrchestrator {
       _markServiceReady('User Profile', 'Data');
 
       // Phase 3: Monetization & Economy
-      debugPrint('\n📍 Phase 3: Monetization & Economy');
+      if (kDebugMode) debugPrint('\n📍 Phase 3: Monetization & Economy');
       _monetization = MonetizationService();
       await _monetization.initialize();
       _markServiceReady('Monetization', 'Economy');
 
       // Phase 4: Social & Community
-      debugPrint('\n📍 Phase 4: Social & Community');
+      if (kDebugMode) debugPrint('\n📍 Phase 4: Social & Community');
       _friendSystem = FriendSocialSystemService();
       await _friendSystem.initialize();
       _markServiceReady('Friend System', 'Social');
 
       // Phase 5: DevOps & Monitoring
-      debugPrint('\n📍 Phase 5: DevOps & Monitoring');
+      if (kDebugMode) debugPrint('\n📍 Phase 5: DevOps & Monitoring');
       _crashReporting = CrashReportingService();
       await _crashReporting.initialize();
       _markServiceReady('Crash Reporting', 'DevOps');
@@ -87,9 +87,9 @@ class NextGenServicesOrchestrator {
       _isFullyInitialized = true;
       _printInitializationSummary();
 
-      debugPrint('\n✅ All services initialized successfully!');
+      if (kDebugMode) debugPrint('\n✅ All services initialized successfully!');
     } catch (e) {
-      debugPrint('❌ Initialization error: $e');
+      if (kDebugMode) debugPrint('❌ Initialization error: $e');
       rethrow;
     }
   }
@@ -145,7 +145,7 @@ class NextGenServicesOrchestrator {
         data: {'userId': userId, 'content': content},
       );
 
-      debugPrint('[Orchestrator] Interaction processed: $interactionType');
+      if (kDebugMode) debugPrint('[Orchestrator] Interaction processed: $interactionType');
     } catch (e) {
       await _crashReporting.logError(
         message: 'Error processing interaction: $e',
@@ -168,7 +168,7 @@ class NextGenServicesOrchestrator {
 
   /// Sync all user data
   Future<Map<String, dynamic>> syncAllUserData() async {
-    debugPrint('[Orchestrator] Starting full data sync...');
+    if (kDebugMode) debugPrint('[Orchestrator] Starting full data sync...');
 
     final results = <String, dynamic>{};
 
@@ -191,7 +191,7 @@ class NextGenServicesOrchestrator {
     await _friendSystem.getSocialStatistics('current_user');
     results['social'] = 'synced';
 
-    debugPrint('[Orchestrator] Data sync completed');
+    if (kDebugMode) debugPrint('[Orchestrator] Data sync completed');
     return results;
   }
 
@@ -242,13 +242,13 @@ ${_printServiceStatus()}
       initialized: true,
       initTime: DateTime.now(),
     );
-    debugPrint('  ✓ $serviceName [$category]');
+    if (kDebugMode) debugPrint('  ✓ $serviceName [$category]');
   }
 
   void _printInitializationSummary() {
-    debugPrint('\n╔════════════════════════════════════╗');
-    debugPrint('║    SERVICES INITIALIZATION SUMMARY  ║');
-    debugPrint('╚════════════════════════════════════╝');
+    if (kDebugMode) debugPrint('\n╔════════════════════════════════════╗');
+    if (kDebugMode) debugPrint('║    SERVICES INITIALIZATION SUMMARY  ║');
+    if (kDebugMode) debugPrint('╚════════════════════════════════════╝');
 
     final byCategory = <String, List<String>>{};
     for (final status in _serviceStatus.values) {
@@ -256,14 +256,14 @@ ${_printServiceStatus()}
     }
 
     for (final entry in byCategory.entries) {
-      debugPrint('\n${entry.key.toUpperCase()}:');
+      if (kDebugMode) debugPrint('\n${entry.key.toUpperCase()}:');
       for (final service in entry.value) {
-        debugPrint('  ✅ $service');
+        if (kDebugMode) debugPrint('  ✅ $service');
       }
     }
 
-    debugPrint('\nTotal Services: ${_serviceStatus.length}');
-    debugPrint('Init Duration: ${DateTime.now().difference(_initializationTime).inMilliseconds}ms');
+    if (kDebugMode) debugPrint('\nTotal Services: ${_serviceStatus.length}');
+    if (kDebugMode) debugPrint('Init Duration: ${DateTime.now().difference(_initializationTime).inMilliseconds}ms');
   }
 
   Map<String, dynamic> _getSystemHealth() {

@@ -247,7 +247,7 @@ class _QuestsPageState extends State<QuestsPage>
                     minHeight: 6,
                     backgroundColor: Colors.white12,
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.pinkAccent),
+                        const AlwaysStoppedAnimation<Color>(Colors.pinkAccent),
                   ),
                 ),
               ),
@@ -414,7 +414,7 @@ class _QuestsPageState extends State<QuestsPage>
             const SizedBox(height: 6),
             Row(
               children: [
-                Icon(Icons.favorite, color: Colors.pinkAccent, size: 12),
+                const Icon(Icons.favorite, color: Colors.pinkAccent, size: 12),
                 const SizedBox(width: 4),
                 Text('+${q.rewardPoints} pts',
                     style: GoogleFonts.outfit(

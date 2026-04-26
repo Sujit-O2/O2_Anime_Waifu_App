@@ -85,6 +85,7 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
@@ -227,14 +228,40 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
                       ],
                     ),
                   ),
-                  FilledButton.icon(
-                    onPressed: _total > 0 ? _shareResult : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.amberAccent.withValues(alpha: 0.2),
-                      foregroundColor: Colors.amberAccent,
-                    ),
-                    icon: const Icon(Icons.share_rounded, size: 16),
-                    label: const Text('Share'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_total > 0)
+                        IconButton(
+                          onPressed: () {
+                            HapticFeedback.mediumImpact();
+                            setState(() {
+                              _totalCtrl.clear();
+                              _tipPct = 10;
+                              _includeTax = false;
+                              _people
+                                ..clear()
+                                ..add('You');
+                            });
+                            _save();
+                            showSuccessSnackbar(context, 'Bill reset to fresh start.');
+                          },
+                          icon: Icon(
+                            Icons.restart_alt_rounded,
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                          tooltip: 'Reset',
+                        ),
+                      FilledButton.icon(
+                        onPressed: _total > 0 ? _shareResult : null,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.amberAccent.withValues(alpha: 0.2),
+                          foregroundColor: Colors.amberAccent,
+                        ),
+                        icon: const Icon(Icons.share_rounded, size: 16),
+                        label: const Text('Share'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -558,6 +585,40 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    // Quick-add presets
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: ['Partner', 'Friend', 'Roommate', 'Family']
+                          .where((name) => !_people.any(
+                              (p) => p.toLowerCase() == name.toLowerCase()))
+                          .map((name) => GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  setState(() => _people.add(name));
+                                  _save();
+                                  showSuccessSnackbar(context, '$name joined the split.');
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amberAccent.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.add_rounded, size: 13, color: Colors.amberAccent.withValues(alpha: 0.7)),
+                                      const SizedBox(width: 4),
+                                      Text(name, style: GoogleFonts.outfit(color: Colors.amberAccent.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
                     const SizedBox(height: 12),
                     ..._people.asMap().entries.map((entry) {
                       final int index = entry.key;
@@ -640,9 +701,9 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
               ),
               const SizedBox(height: 14),
               if (_total <= 0)
-                GlassCard(
+                const GlassCard(
                   margin: EdgeInsets.zero,
-                  child: const EmptyState(
+                  child: EmptyState(
                     icon: Icons.receipt_long_rounded,
                     title: 'No bill added yet',
                     subtitle:
@@ -694,19 +755,23 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
                               size: 20,
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              _currency(_perPerson),
-                              style: GoogleFonts.outfit(
-                                color: Colors.amberAccent,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: _perPerson),
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutCubic,
+                              builder: (_, val, __) => Text(
+                                _currency(val),
+                                style: GoogleFonts.outfit(
+                                  color: Colors.amberAccent,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                             Text(
                               ' / person',
                               style: GoogleFonts.outfit(
-                                color:
-                                    Colors.amberAccent.withValues(alpha: 0.6),
+                                color: Colors.amberAccent.withValues(alpha: 0.6),
                                 fontSize: 13,
                               ),
                             ),

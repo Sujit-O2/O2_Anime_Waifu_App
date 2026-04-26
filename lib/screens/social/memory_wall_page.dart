@@ -83,6 +83,7 @@ class _MemoryWallPageState extends State<MemoryWallPage>
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _memories = memories.reversed.toList();
       _loading = false;
@@ -293,6 +294,7 @@ class _MemoryWallPageState extends State<MemoryWallPage>
                                 ? null
                                 : () {
                                     _searchCtrl.clear();
+                                    if (!mounted) return;
                                     setState(() {
                                       _searchQuery = '';
                                       _applySearchFilter();

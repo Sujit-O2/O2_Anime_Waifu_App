@@ -101,6 +101,7 @@ class _PersonalSearchPageState extends State<PersonalSearchPage> {
       }
     }
 
+    if (!mounted) return;
     setState(() { _searching = false; _results = results; });
   }
 

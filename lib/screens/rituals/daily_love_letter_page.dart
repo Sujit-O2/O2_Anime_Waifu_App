@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 
 /// Daily Love Letter v2 — AI-generated daily letters with archive,
 /// animated paper effect, envelope open, calendar tracking, and persistence.
@@ -49,6 +50,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
     final prefs = await SharedPreferences.getInstance();
     final cached = prefs.getString(_todayKey);
     if (cached != null && cached.isNotEmpty) {
+      if (!mounted) return;
       setState(() => _letter = cached);
     } else {
       _generateLetter();
@@ -94,6 +96,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
       AffectionService.instance.addPoints(3);
       _saveToArchive(letter);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _letter = 'My Darling,\n\nSomething went wrong today, but know that I\'m always thinking of you... Try again in a moment.\n\nForever yours, Zero Two 💕');
     } finally {
       setState(() => _loading = false);
@@ -132,18 +135,105 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
       content: FadeTransition(
         opacity: _fadeCtrl,
         child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          Container(
+            margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.pinkAccent.withValues(alpha: 0.08),
+                  Colors.redAccent.withValues(alpha: 0.04),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.pinkAccent.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
             child: Row(children: [
               if (_letter.isNotEmpty)
-                GestureDetector(
-                  onTap: _copyLetter,
-                  child: Container(
-                    width: 36, height: 36,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(color: V2Theme.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10), border: Border.all(color: V2Theme.primaryColor.withValues(alpha: 0.3))),
-                    child: const Icon(Icons.copy, color: V2Theme.primaryColor, size: 16),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: _copyLetter,
+                    splashColor: Colors.pinkAccent.withValues(alpha: 0.1),
+                    highlightColor: Colors.pinkAccent.withValues(alpha: 0.05),
+                    child: Container(
+                      width: 40, height: 40,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.pinkAccent.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(Icons.copy_rounded,
+                          color: Colors.pinkAccent, size: 18),
+                    ),
                   ),
+                ),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('💌 Daily Love Letters',
+                        style: GoogleFonts.outfit(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text('${_archive.length} letters in your collection',
+                        style: GoogleFonts.outfit(
+                            color: context.appTokens.textSoft,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _loading ? null : _generateLetter,
+                  splashColor: Colors.pinkAccent.withValues(alpha: 0.1),
+                  highlightColor: Colors.pinkAccent.withValues(alpha: 0.05),
+                  child: Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      color: _loading
+                          ? Colors.pinkAccent.withValues(alpha: 0.1)
+                          : context.appTokens.panelElevated,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _loading
+                            ? Colors.pinkAccent.withValues(alpha: 0.3)
+                            : context.appTokens.outline,
+                        width: 1,
+                      ),
+                    ),
+                    child: _loading
+                      ? Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.pinkAccent,
+                          ),
+                        )
+                      : Icon(Icons.refresh_rounded,
+                          color: context.appTokens.textSoft, size: 18),
+                  ),
+                ),
+              ),
+            ]),
+          ),
                 ),
               const Spacer(),
               Text('${_archive.length} letters collected', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
@@ -177,31 +267,114 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
                       ),
                     ),
                   ),
-              const SizedBox(height: 12),
-              Text('A new letter awaits you every day~ 🌸', style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11)),
-              const SizedBox(height: 6),
-              Text('+3 XP 💕', style: GoogleFonts.outfit(color: V2Theme.primaryColor.withValues(alpha: 0.4), fontSize: 10)),
+              const SizedBox(height: 16),
+
+              // Romantic footer message
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.appTokens.panel.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: context.appTokens.outline,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text('A new letter awaits you every day~ 🌸',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                            color: context.appTokens.textSoft,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text('+3 XP 💕',
+                          style: GoogleFonts.outfit(
+                              color: Colors.pinkAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+              ),
 
               // ── Archive ──
               if (_archive.length > 1) ...[
-                const SizedBox(height: 24),
-                Align(alignment: Alignment.centerLeft,
-                  child: Text('LETTER ARCHIVE', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5))),
-                const SizedBox(height: 10),
+                const SizedBox(height: 32),
+                Text('LETTER ARCHIVE',
+                    style: GoogleFonts.outfit(
+                        color: context.appTokens.textSoft,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2)),
+                const SizedBox(height: 16),
                 ..._archive.skip(1).take(5).toList().asMap().entries.map((entry) {
                   final h = entry.value;
                   return AnimatedEntry(
                     index: 2 + entry.key,
-                    child: GlassCard(
-                      margin: const EdgeInsets.only(bottom: 8),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            context.appTokens.panel.withValues(alpha: 0.8),
+                            context.appTokens.panelElevated.withValues(alpha: 0.6),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: context.appTokens.outline,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: Row(children: [
-                        const Text('💌', style: TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.pinkAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text('💌', style: TextStyle(fontSize: 16)),
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(_formatDate(h['date']?.toString() ?? ''), style: GoogleFonts.outfit(color: V2Theme.primaryColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.pinkAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(_formatDate(h['date']?.toString() ?? ''),
+                                style: GoogleFonts.outfit(
+                                    color: Colors.pinkAccent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(height: 6),
                           Text(h['letter']?.toString().replaceAll('\n', ' ').substring(0, (h['letter']?.toString().length ?? 0).clamp(0, 80)) ?? '',
                             maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11, fontStyle: FontStyle.italic)),
+                            style: GoogleFonts.outfit(
+                                color: context.appTokens.textSoft,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic,
+                                height: 1.4)),
                         ])),
                       ]),
                     ),
@@ -218,31 +391,172 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
   }
 
   Widget _buildLoadingState() {
-    return GlassCard(
-      margin: EdgeInsets.zero,
-      glow: true,
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.pinkAccent.withValues(alpha: 0.06),
+            Colors.redAccent.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.pinkAccent.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
       child: Column(children: [
-        const SizedBox(width: 40, height: 40, child: CircularProgressIndicator(strokeWidth: 2, color: V2Theme.primaryColor)),
-        const SizedBox(height: 16),
-        Text('Zero Two is writing for you~', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic)),
-        const SizedBox(height: 4),
-        const Text('💕', style: TextStyle(fontSize: 24)),
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.pinkAccent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            color: Colors.pinkAccent,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text('Zero Two is writing for you~',
+            style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.italic)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.pinkAccent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Text('💕', style: TextStyle(fontSize: 20)),
+        ),
       ]),
     );
   }
 
   Widget _buildLetterCard(String dateStr) {
-    return GlassCard(
-      margin: EdgeInsets.zero,
-      glow: true,
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.pinkAccent.withValues(alpha: 0.08),
+            Colors.redAccent.withValues(alpha: 0.04),
+            Colors.purpleAccent.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.pinkAccent.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.pinkAccent.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.redAccent.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Header with romantic design
         Row(children: [
-          const Text('💌', style: TextStyle(fontSize: 24)),
-          const Spacer(),
-          Text(dateStr, style: GoogleFonts.outfit(color: Colors.white38, fontSize: 12, fontStyle: FontStyle.italic)),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.pinkAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text('💌', style: TextStyle(fontSize: 20)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text('My Dearest Love',
+                style: GoogleFonts.outfit(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    fontStyle: FontStyle.italic)),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.pinkAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.pinkAccent.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Text(dateStr,
+                style: GoogleFonts.outfit(
+                    color: Colors.pinkAccent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ),
         ]),
-        const Divider(color: Colors.white12, height: 24),
-        Text(_letter, style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.85), fontSize: 15, height: 1.8, fontStyle: FontStyle.italic)),
+
+        const SizedBox(height: 20),
+
+        // Decorative divider
+        Container(
+          height: 1,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.transparent,
+                Colors.pinkAccent.withValues(alpha: 0.3),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Letter content with premium typography
+        Text(_letter,
+            style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+                fontSize: 16,
+                height: 1.8,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w500)),
+
+        const SizedBox(height: 16),
+
+        // Romantic signature
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('With all my love, 💕',
+              style: GoogleFonts.outfit(
+                  color: Colors.pinkAccent,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontStyle: FontStyle.italic)),
+        ),
       ]),
     );
   }

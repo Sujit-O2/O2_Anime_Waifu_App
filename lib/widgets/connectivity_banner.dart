@@ -1,0 +1,163 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+/// A sleek connectivity banner that appears when the device goes offline.
+/// Slides in from the top with a smooth animation and auto-dismisses
+/// when the connection is restored.
+///
+/// Usage: Place at the top of your widget tree stack:
+/// ```dart
+/// Stack(children: [
+///   YourMainContent(),
+///   const ConnectivityBanner(),
+/// ])
+/// ```
+class ConnectivityBanner extends StatefulWidget {
+  const ConnectivityBanner({super.key});
+
+  @override
+  State<ConnectivityBanner> createState() => _ConnectivityBannerState();
+}
+
+class _ConnectivityBannerState extends State<ConnectivityBanner>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
+  Timer? _checkTimer;
+  bool _isOffline = false;
+  bool _wasOffline = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _slide = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+
+    // Poll connectivity every 5 seconds
+    _checkTimer = Timer.periodic(const Duration(seconds: 5), (_) => _check());
+    _check();
+  }
+
+  Future<void> _check() async {
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 3));
+      final online = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      _setOffline(!online);
+    } on SocketException {
+      _setOffline(true);
+    } on TimeoutException {
+      _setOffline(true);
+    } catch (_) {
+      // Don't change state on unknown errors
+    }
+  }
+
+  void _setOffline(bool offline) {
+    if (!mounted) return;
+    if (_isOffline == offline) return;
+    setState(() {
+      _wasOffline = _isOffline;
+      _isOffline = offline;
+    });
+    if (offline) {
+      _ctrl.forward();
+    } else {
+      // Show "Back Online" for 2 seconds before hiding
+      if (_wasOffline) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && !_isOffline) _ctrl.reverse();
+        });
+      } else {
+        _ctrl.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _checkTimer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SlideTransition(
+        position: _slide,
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: _isOffline
+                  ? const Color(0xCC2D1B1B)
+                  : const Color(0xCC1B2D1B),
+              border: Border.all(
+                color: _isOffline
+                    ? Colors.redAccent.withValues(alpha: 0.4)
+                    : Colors.greenAccent.withValues(alpha: 0.4),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (_isOffline ? Colors.redAccent : Colors.greenAccent)
+                      .withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _isOffline
+                      ? Icons.wifi_off_rounded
+                      : Icons.wifi_rounded,
+                  color: _isOffline ? Colors.redAccent : Colors.greenAccent,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _isOffline
+                        ? 'No internet connection — using offline mode'
+                        : 'Back online ✨',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (_isOffline)
+                  GestureDetector(
+                    onTap: _check,
+                    child: const Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.white54,
+                      size: 18,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

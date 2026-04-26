@@ -51,6 +51,7 @@ class _FutureSimPageState extends State<FutureSimPage> with TickerProviderStateM
     final projectedLevel = projectedXp > 5000 ? 'Legendary' : projectedXp > 2000 ? 'Master' : projectedXp > 1000 ? 'Expert' : projectedXp > 500 ? 'Skilled' : 'Beginner';
     final consistency = streak >= 7 ? 'HIGH' : streak >= 3 ? 'MEDIUM' : 'LOW';
 
+    if (!mounted) return;
     setState(() {
       _simulating = false;
       _prediction = {

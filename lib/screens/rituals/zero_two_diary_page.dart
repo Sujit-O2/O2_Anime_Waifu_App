@@ -3,6 +3,7 @@ import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,7 +105,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
     if (mounted) setState(() => _generating = true);
     try {
       final aff = AffectionService.instance;
-      final systemPrompt =
+      const systemPrompt =
           'You are Zero Two from DARLING in the FRANXX. You are writing in your personal diary. '
           'Write naturally in first person as Zero Two. Keep it sweet, vivid, personal. '
           'Use emojis occasionally. Do NOT include any Action tags or special formatting.';
@@ -118,7 +119,9 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         {'role': 'user', 'content': prompt},
       ]);
 
-      if (reply.isEmpty || reply == 'No response' || reply.contains('Action:')) {
+      if (reply.isEmpty ||
+          reply == 'No response' ||
+          reply.contains('Action:')) {
         throw Exception('Invalid diary response from AI');
       }
 
@@ -137,11 +140,13 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
             'createdAt': FieldValue.serverTimestamp()
           });
         } catch (fbErr) {
-          debugPrint('Firebase diary save failed (permission/network): $fbErr');
+          if (kDebugMode)
+            debugPrint(
+                'Firebase diary save failed (permission/network): $fbErr');
           // We ignore this and let it save locally
         }
       }
-      
+
       // Always save locally too
       await _saveLocal(todayStr, reply);
 
@@ -153,12 +158,12 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
       }
       AffectionService.instance.addPoints(3);
     } catch (e) {
-      debugPrint('ZT Diary generation failed: $e');
+      if (kDebugMode) debugPrint('ZT Diary generation failed: $e');
       if (mounted) {
         setState(() {
-        _generating = false;
-        _error = 'Could not generate diary entry: $e';
-      });
+          _generating = false;
+          _error = 'Could not generate diary entry: $e';
+        });
       }
     }
   }
@@ -171,7 +176,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
       final todayStr =
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       final aff = AffectionService.instance;
-      final systemPrompt =
+      const systemPrompt =
           'You are Zero Two from DARLING in the FRANXX. You are writing in your personal diary. '
           'Write naturally in first person as Zero Two. Keep it sweet, vivid, personal. '
           'Use emojis occasionally. Do NOT include any Action tags or special formatting.';
@@ -185,7 +190,9 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         {'role': 'user', 'content': prompt},
       ]);
 
-      if (reply.isEmpty || reply == 'No response' || reply.contains('Action:')) {
+      if (reply.isEmpty ||
+          reply == 'No response' ||
+          reply.contains('Action:')) {
         throw Exception('Invalid diary response from AI');
       }
 
@@ -204,11 +211,12 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
             'createdAt': FieldValue.serverTimestamp()
           });
         } catch (fbErr) {
-          debugPrint('Firebase manual diary save failed: $fbErr');
+          if (kDebugMode)
+            debugPrint('Firebase manual diary save failed: $fbErr');
           // Ignore and save locally
         }
       }
-      
+
       // Always save locally too
       await _saveLocal(todayStr, reply);
 
@@ -232,8 +240,18 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
   }
 
   String _monthName(int m) => [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
       ][m - 1];
 
   String _formatDate(String d) {
@@ -301,7 +319,9 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         const SizedBox(height: 16),
         Text('No diary entries yet~',
             style: GoogleFonts.outfit(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text('Zero Two is writing her first entry…',
             style: GoogleFonts.outfit(color: Colors.white54, fontSize: 13)),
@@ -319,8 +339,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
               backgroundColor: Colors.pinkAccent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             ),
           ),
       ]),
@@ -334,8 +353,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
         const SizedBox(height: 12),
         Text(_error!,
             textAlign: TextAlign.center,
-            style:
-                GoogleFonts.outfit(color: Colors.white70, fontSize: 14)),
+            style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14)),
       ]),
     );
   }
@@ -347,8 +365,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         color: Colors.pinkAccent.withValues(alpha: 0.07),
-        border:
-            Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Zero Two is writing today\'s entry… 🌸',
@@ -396,8 +413,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
           if (isToday) ...[
             const Spacer(),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.pinkAccent.withValues(alpha: 0.2),
@@ -421,6 +437,3 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
     );
   }
 }
-
-
-

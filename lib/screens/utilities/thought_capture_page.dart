@@ -42,6 +42,7 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
   Future<void> _loadData() async {
     await V2Storage.init();
     final saved = V2Storage.getMap('thoughts_data');
+    if (!mounted) return;
     setState(() {
       if (saved != null && saved['thoughts'] != null) {
         _thoughts = (saved['thoughts'] as List)
@@ -138,7 +139,7 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
                   autofocus: true,
                   decoration: InputDecoration(
                       hintText: 'What\'s on your mind?',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: V2Theme.darkGlass,
                       border: OutlineInputBorder(
@@ -188,6 +189,7 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
                             content: contentController.text,
                             mood: mood,
                             createdAt: DateTime.now());
+                        if (!mounted) return;
                         setState(() => _thoughts.insert(0, thought));
                         _saveData();
                         Navigator.pop(ctx);
@@ -209,9 +211,11 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
   }
 
   void _deleteThought(CapturedThought thought) {
+    if (!mounted) return;
     setState(() => _thoughts.remove(thought));
     _saveData();
     showUndoSnackbar(context, 'Thought deleted', () {
+      if (!mounted) return;
       setState(() => _thoughts.insert(0, thought));
       _saveData();
     });
@@ -270,7 +274,10 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
               padding: const EdgeInsets.all(16),
               child: V2SearchBar(
                   hintText: 'Search thoughts...',
-                  onChanged: (v) => setState(() => _searchQuery = v)))),
+                  onChanged: (v) {
+                    if (!mounted) return;
+                    setState(() => _searchQuery = v);
+                  }))),
     );
   }
 
@@ -289,7 +296,10 @@ class _ThoughtCapturePageState extends State<ThoughtCapturePage>
                     child: FilterChip(
                       label: Text(mood),
                       selected: isSelected,
-                      onSelected: (s) => setState(() => _selectedMood = mood),
+                      onSelected: (s) {
+                        if (!mounted) return;
+                        setState(() => _selectedMood = mood);
+                      },
                       selectedColor: V2Theme.primaryColor,
                       backgroundColor: V2Theme.darkGlass,
                       labelStyle: TextStyle(
@@ -431,6 +441,3 @@ class CapturedThought {
         'createdAt': createdAt.toIso8601String()
       };
 }
-
-
-

@@ -253,6 +253,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     final confirmed = await _showConfirm(cat.def.label);
     if (!confirmed) return;
     HapticFeedback.heavyImpact();
+    if (!mounted) return;
     setState(() => _deletingKey = cat.def.key);
     try {
       await _db.collection(cat.def.collection).doc(uid).delete();
@@ -300,6 +301,7 @@ class _DataVaultPageState extends State<DataVaultPage>
     if (uid == null) return;
 
     HapticFeedback.heavyImpact();
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final collections = _defs.map((d) => d.collection).toSet();

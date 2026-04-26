@@ -1,4 +1,5 @@
 import 'package:anime_waifu/services/anime_media/manga_service.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -51,7 +52,10 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
     setState(() => _inReadingList = !_inReadingList);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_inReadingList ? '📚 Added to Reading List' : 'Removed from Reading List',
+        content: Text(
+            _inReadingList
+                ? '📚 Added to Reading List'
+                : 'Removed from Reading List',
             style: GoogleFonts.outfit()),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         duration: const Duration(seconds: 2),
@@ -62,8 +66,9 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   @override
   Widget build(BuildContext context) {
     final manga = widget.manga;
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(manga),
@@ -79,22 +84,29 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   }
 
   Widget _buildSliverAppBar(MangaItem manga) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final tokens = context.appTokens;
     return SliverAppBar(
       expandedHeight: 320,
       pinned: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+        icon: Icon(Icons.arrow_back_ios_new, color: colors.onSurface),
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
         IconButton(
           icon: Icon(
-            _inReadingList ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-            color: _inReadingList ? const Color(0xFFBB52FF) : Colors.white70,
+            _inReadingList
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_outline_rounded,
+            color: _inReadingList ? colors.primary : tokens.textMuted,
           ),
           onPressed: _toggleReadingList,
-          tooltip: _inReadingList ? 'Remove from Reading List' : 'Add to Reading List',
+          tooltip: _inReadingList
+              ? 'Remove from Reading List'
+              : 'Add to Reading List',
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
@@ -104,19 +116,24 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
             // Blurred background
             if (manga.coverUrl != null)
               ImageFiltered(
-                imageFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
-                child: AppCachedImage(url: manga.coverUrl!, width: double.infinity, height: double.infinity, fit: BoxFit.cover),
+                imageFilter:
+                    const ColorFilter.mode(Colors.black45, BlendMode.darken),
+                child: AppCachedImage(
+                    url: manga.coverUrl!,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover),
               )
             else
-              Container(color: const Color(0xFF1A0E2E)),
+              Container(color: tokens.panelElevated),
             // Gradient overlay
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color(0xFF080B18)],
-                  stops: [0.4, 1.0],
+                  colors: [Colors.transparent, theme.scaffoldBackgroundColor],
+                  stops: const [0.4, 1.0],
                 ),
               ),
             ),
@@ -133,9 +150,12 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                     height: 190,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: tokens.outlineStrong,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFBB52FF).withValues(alpha: 0.4),
+                          color: colors.primary.withValues(alpha: 0.28),
                           blurRadius: 30,
                           spreadRadius: 2,
                         ),
@@ -144,7 +164,11 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: manga.coverUrl != null
-                          ? AppCachedImage(url: manga.coverUrl!, width: double.infinity, height: double.infinity, fit: BoxFit.cover)
+                          ? AppCachedImage(
+                              url: manga.coverUrl!,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover)
                           : _placeholder(),
                     ),
                   ),
@@ -158,11 +182,19 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   }
 
   Widget _placeholder() => Container(
-        color: const Color(0xFF1A0E2E),
-        child: const Center(child: Icon(Icons.menu_book_outlined, color: Colors.white24, size: 48)),
+        color: context.appTokens.panelElevated,
+        child: Center(
+          child: Icon(
+            Icons.menu_book_outlined,
+            color: context.appTokens.textMuted,
+            size: 48,
+          ),
+        ),
       );
 
   Widget _buildInfo(MangaItem manga) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Column(
@@ -171,7 +203,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           Text(manga.title,
               textAlign: TextAlign.center,
               style: GoogleFonts.outfit(
-                  color: Colors.white,
+                  color: colors.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   height: 1.2)),
@@ -202,17 +234,86 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
                       )
                   : null,
               icon: const Icon(Icons.play_arrow_rounded, size: 20),
-              label: Text('Start Reading', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              label: Text('Start Reading',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                foregroundColor: Colors.white,
+                backgroundColor: colors.primary,
+                foregroundColor: colors.onPrimary,
+                elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: tokens.glassGradient,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: tokens.outline),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _metaStat(
+                    'Chapters',
+                    _loadingChapters ? '...' : '${_chapters.length}',
+                    Icons.menu_book_rounded,
+                  ),
+                ),
+                Expanded(
+                  child: _metaStat(
+                    'Status',
+                    _statusLabel(manga.status)
+                        .replaceFirst(RegExp(r'^[^A-Za-z]+'), '')
+                        .trim(),
+                    Icons.bolt_rounded,
+                  ),
+                ),
+                Expanded(
+                  child: _metaStat(
+                    'Rating',
+                    manga.contentRating.toUpperCase(),
+                    Icons.verified_user_rounded,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _metaStat(String label, String value, IconData icon) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
+    return Column(
+      children: [
+        Icon(icon, color: colors.primary, size: 18),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(
+            color: colors.onSurface,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(
+            color: tokens.textMuted,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -236,66 +337,87 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
   }
 
   Widget _buildTags(MangaItem manga) {
+    final tokens = context.appTokens;
     if (manga.tags.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Wrap(
         spacing: 6,
         runSpacing: 6,
-        children: manga.tags.take(8).map((tag) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Text(tag, style: GoogleFonts.outfit(color: Colors.white54, fontSize: 10)),
-        )).toList(),
+        children: manga.tags
+            .take(8)
+            .map((tag) => Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: tokens.panel,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: tokens.outline),
+                  ),
+                  child: Text(tag,
+                      style: GoogleFonts.outfit(
+                          color: tokens.textMuted, fontSize: 10)),
+                ))
+            .toList(),
       ),
     );
   }
 
   Widget _buildDescription(MangaItem manga) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     final desc = manga.description;
     if (desc.isEmpty) return const SizedBox.shrink();
     final truncated = desc.length > 200;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('SYNOPSIS',
-            style: GoogleFonts.outfit(
-                color: const Color(0xFFBB52FF),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.5)),
-        const SizedBox(height: 8),
-        Text(
-          _showFullDesc || !truncated ? desc : '${desc.substring(0, 200)}...',
-          style: GoogleFonts.outfit(color: Colors.white60, fontSize: 13, height: 1.5),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: tokens.glassGradient,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: tokens.outline),
         ),
-        if (truncated)
-          GestureDetector(
-            onTap: () => setState(() => _showFullDesc = !_showFullDesc),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                _showFullDesc ? 'Show less ▲' : 'Read more ▼',
-                style: GoogleFonts.outfit(
-                    color: const Color(0xFFBB52FF), fontSize: 12, fontWeight: FontWeight.w600),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('SYNOPSIS',
+              style: GoogleFonts.outfit(
+                  color: colors.primary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5)),
+          const SizedBox(height: 8),
+          Text(
+            _showFullDesc || !truncated ? desc : '${desc.substring(0, 200)}...',
+            style: GoogleFonts.outfit(
+                color: tokens.textSoft, fontSize: 13, height: 1.5),
+          ),
+          if (truncated)
+            GestureDetector(
+              onTap: () => setState(() => _showFullDesc = !_showFullDesc),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  _showFullDesc ? 'Show less ▲' : 'Read more ▼',
+                  style: GoogleFonts.outfit(
+                      color: colors.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600),
+                ),
               ),
             ),
-          ),
-      ]),
+        ]),
+      ),
     );
   }
 
   Widget _buildChapterHeader() {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
       child: Row(children: [
         Text('CHAPTERS',
             style: GoogleFonts.outfit(
-                color: const Color(0xFFBB52FF),
+                color: colors.primary,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.5)),
@@ -304,12 +426,14 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFBB52FF).withValues(alpha: 0.15),
+              color: colors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text('${_chapters.length}',
                 style: GoogleFonts.outfit(
-                    color: const Color(0xFFBB52FF), fontSize: 11, fontWeight: FontWeight.bold)),
+                    color: colors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold)),
           ),
       ]),
     );
@@ -321,7 +445,8 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(32),
-            child: CircularProgressIndicator(color: Color(0xFFBB52FF), strokeWidth: 2),
+            child: CircularProgressIndicator(
+                color: Color(0xFFBB52FF), strokeWidth: 2),
           ),
         ),
       );
@@ -332,7 +457,7 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text('No English chapters available',
-                style: GoogleFonts.outfit(color: Colors.white38)),
+                style: GoogleFonts.outfit(color: context.appTokens.textMuted)),
           ),
         ),
       );
@@ -351,19 +476,27 @@ class _MangaDetailPageState extends State<MangaDetailPage> {
 
   String _statusLabel(String s) {
     switch (s) {
-      case 'ongoing': return '● Ongoing';
-      case 'completed': return '✓ Completed';
-      case 'hiatus': return '⏸ Hiatus';
-      default: return s;
+      case 'ongoing':
+        return '● Ongoing';
+      case 'completed':
+        return '✓ Completed';
+      case 'hiatus':
+        return '⏸ Hiatus';
+      default:
+        return s;
     }
   }
 
   Color _statusColor(String s) {
     switch (s) {
-      case 'ongoing': return Colors.greenAccent;
-      case 'completed': return Colors.blueAccent;
-      case 'hiatus': return Colors.orangeAccent;
-      default: return Colors.grey;
+      case 'ongoing':
+        return Colors.greenAccent;
+      case 'completed':
+        return Colors.blueAccent;
+      case 'hiatus':
+        return Colors.orangeAccent;
+      default:
+        return Colors.grey;
     }
   }
 }
@@ -373,24 +506,28 @@ class _ChapterTile extends StatelessWidget {
   final ChapterItem chapter;
   final String mangaTitle;
   final int index;
-  const _ChapterTile({required this.chapter, required this.mangaTitle, required this.index});
+  const _ChapterTile(
+      {required this.chapter, required this.mangaTitle, required this.index});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     return InkWell(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => MangaReaderPage(chapter: chapter, mangaTitle: mangaTitle),
+          builder: (_) =>
+              MangaReaderPage(chapter: chapter, mangaTitle: mangaTitle),
         ),
       ),
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white.withValues(alpha: 0.04),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+          borderRadius: BorderRadius.circular(16),
+          gradient: tokens.glassGradient,
+          border: Border.all(color: tokens.outline),
         ),
         child: Row(children: [
           Container(
@@ -398,13 +535,13 @@ class _ChapterTile extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFFBB52FF).withValues(alpha: 0.12),
+              color: colors.primary.withValues(alpha: 0.12),
             ),
             child: Center(
               child: Text(
                 chapter.chapter ?? '?',
                 style: GoogleFonts.outfit(
-                    color: const Color(0xFFBB52FF),
+                    color: colors.primary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold),
               ),
@@ -412,24 +549,29 @@ class _ChapterTile extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(chapter.displayTitle,
                   style: GoogleFonts.outfit(
-                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      color: colors.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
               if (chapter.publishedAt != null)
                 Text(
                   _formatDate(chapter.publishedAt!),
-                  style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11),
+                  style:
+                      GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11),
                 ),
             ]),
           ),
           if (chapter.pageCount > 0)
             Text('${chapter.pageCount}p',
-                style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11)),
+                style:
+                    GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11)),
           const SizedBox(width: 8),
-          const Icon(Icons.chevron_right_rounded, color: Colors.white24, size: 18),
+          Icon(Icons.chevron_right_rounded, color: tokens.textMuted, size: 18),
         ]),
       ),
     );
@@ -450,6 +592,3 @@ class _ChapterTile extends StatelessWidget {
     }
   }
 }
-
-
-

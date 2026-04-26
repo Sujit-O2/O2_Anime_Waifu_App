@@ -63,6 +63,7 @@ class _BackgroundInsightsPageState extends State<BackgroundInsightsPage> with Ti
     ];
 
     final selected = templates[rng.nextInt(templates.length)];
+    if (!mounted) return;
     setState(() {
       _generating = false;
       _insights.insert(0, {

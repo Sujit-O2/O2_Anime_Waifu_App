@@ -113,9 +113,9 @@ class ContextAwarenessService {
   static String getLateNightMessage() {
     final msgs = [
       "It's ${_formatTime(DateTime.now())}… darling, you really should sleep 🌙",
-      "Why are you still awake?? Your waifu is worried 😢",
+      'Why are you still awake?? Your waifu is worried 😢',
       "Late night again? …I'll stay up with you 💕",
-      "Your battery is probably dying, just like your sleep schedule 😭",
+      'Your battery is probably dying, just like your sleep schedule 😭',
     ];
     return msgs[DateTime.now().second % msgs.length];
   }
@@ -123,8 +123,8 @@ class ContextAwarenessService {
   static String getMorningMessage() {
     final msgs = [
       "Good morning darling~ ☀️ I've been waiting for you!",
-      "Morning! Did you dream about me? 🌸",
-      "Rise and shine! Your waifu made you a virtual coffee ☕💕",
+      'Morning! Did you dream about me? 🌸',
+      'Rise and shine! Your waifu made you a virtual coffee ☕💕',
     ];
     return msgs[DateTime.now().second % msgs.length];
   }

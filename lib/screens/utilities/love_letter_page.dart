@@ -88,6 +88,7 @@ class _LoveLetterPageState extends State<LoveLetterPage> {
       if (raw != null) letters.add(_Letter.fromJson(raw));
     }
 
+    if (!mounted) return;
     setState(() {
       _letters = letters;
       _loading = false;
@@ -150,7 +151,7 @@ class _LetterCard extends StatelessWidget {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Text('💌', style: const TextStyle(fontSize: 20)),
+            const Text('💌', style: TextStyle(fontSize: 20)),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(isLatest ? 'This Week\'s Letter 💕' : 'Week of ${letter.weekLabel}',
@@ -158,7 +159,7 @@ class _LetterCard extends StatelessWidget {
               Text(letter.dateStr,
                   style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
             ])),
-            Icon(Icons.chevron_right_rounded, color: Colors.white30, size: 20),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white30, size: 20),
           ]),
           const SizedBox(height: 10),
           Text(letter.opening,
@@ -196,7 +197,7 @@ class _LetterDetailPage extends StatelessWidget {
             border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Center(child: Text('💌', style: const TextStyle(fontSize: 48))),
+            const Center(child: Text('💌', style: TextStyle(fontSize: 48))),
             const SizedBox(height: 4),
             Center(child: Text(letter.dateStr,
                 style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11))),

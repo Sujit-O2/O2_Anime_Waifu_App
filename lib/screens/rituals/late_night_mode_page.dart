@@ -48,6 +48,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _lateNightEnabled = prefs.getBool(_enabledKey) ?? true;
       _startTime = _decodeTime(
@@ -92,6 +93,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
     if (picked == null) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       if (isStart) {
         _startTime = picked;
@@ -259,6 +261,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
                             'Automatically shift the app into a quieter night presentation.',
                         value: _lateNightEnabled,
                         onChanged: (value) async {
+                          if (!mounted) return;
                           setState(() => _lateNightEnabled = value);
                           await _persistSettings();
                         },
@@ -291,6 +294,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
                             'Use softer voice delivery and calmer reply pacing.',
                         value: _cozyVoice,
                         onChanged: (value) async {
+                          if (!mounted) return;
                           setState(() => _cozyVoice = value);
                           await _persistSettings();
                         },
@@ -303,6 +307,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
                             'Let Zero Two nudge you toward rest during the window.',
                         value: _sleepReminder,
                         onChanged: (value) async {
+                          if (!mounted) return;
                           setState(() => _sleepReminder = value);
                           await _persistSettings();
                         },
@@ -315,6 +320,7 @@ class _LateNightModePageState extends State<LateNightModePage> {
                             'Tone down motion for a calmer night experience.',
                         value: _reduceAnimations,
                         onChanged: (value) async {
+                          if (!mounted) return;
                           setState(() => _reduceAnimations = value);
                           await _persistSettings();
                         },

@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -75,11 +75,11 @@ AI: $aiResponse
             'fact': result,
             'timestamp': DateTime.now().toIso8601String(),
           });
-          debugPrint('[MemoryVault] Saved permanent fact: $result');
+          if (kDebugMode) debugPrint('[MemoryVault] Saved permanent fact: $result');
         }
       }
     } catch (e) {
-      debugPrint('[MemoryVault] Failed to extract facts: $e');
+      if (kDebugMode) debugPrint('[MemoryVault] Failed to extract facts: $e');
     }
   }
 
@@ -108,7 +108,7 @@ AI: $aiResponse
 
       return results.map((e) => e['fact'] as String).toList();
     } catch (e) {
-      debugPrint('[MemoryVault] Query error: $e');
+      if (kDebugMode) debugPrint('[MemoryVault] Query error: $e');
       return [];
     }
   }

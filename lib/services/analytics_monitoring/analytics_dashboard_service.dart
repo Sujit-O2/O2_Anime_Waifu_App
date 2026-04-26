@@ -2,7 +2,7 @@ import 'package:anime_waifu/services/analytics_monitoring/email_success_analytic
 import 'package:anime_waifu/services/analytics_monitoring/firebase_analytics_service.dart';
 import 'package:anime_waifu/services/analytics_monitoring/theme_usage_analytics_service.dart';
 import 'package:anime_waifu/services/analytics_monitoring/user_action_logging_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Analytics Dashboard Service - Unified analytics dashboard and reporting
 class AnalyticsDashboardService {
@@ -18,7 +18,7 @@ class AnalyticsDashboardService {
   Future<void> initialize() async {
     _firebaseAnalyticsService = FirebaseAnalyticsService();
     _userActionLoggingService = UserActionLoggingService();
-    debugPrint('✅ Analytics Dashboard Service initialized');
+    if (kDebugMode) debugPrint('✅ Analytics Dashboard Service initialized');
   }
 
   /// Get comprehensive dashboard data
@@ -37,7 +37,7 @@ class AnalyticsDashboardService {
         cacheStats: null,
       );
     } catch (e) {
-      debugPrint('❌ Error getting dashboard data: $e');
+      if (kDebugMode) debugPrint('❌ Error getting dashboard data: $e');
       return DashboardData(
         timestamp: DateTime.now(),
         firebaseAnalytics: null,
@@ -67,7 +67,7 @@ class AnalyticsDashboardService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting KPI summary: $e');
+      if (kDebugMode) debugPrint('❌ Error getting KPI summary: $e');
       return KPISummary(
         totalThemeSessions: 0,
         totalThemeMinutes: 0,
@@ -93,7 +93,7 @@ class AnalyticsDashboardService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting performance insights: $e');
+      if (kDebugMode) debugPrint('❌ Error getting performance insights: $e');
       return PerformanceInsights(
         cacheUtilization: 0,
         cacheSize: 'N/A',
@@ -143,7 +143,7 @@ class AnalyticsDashboardService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting user behavior insights: $e');
+      if (kDebugMode) debugPrint('❌ Error getting user behavior insights: $e');
       return UserBehaviorInsights(
         totalActionsLogged: 0,
         uniqueScreensVisited: 0,
@@ -179,7 +179,7 @@ class AnalyticsDashboardService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ Error generating full report: $e');
+      if (kDebugMode) debugPrint('❌ Error generating full report: $e');
       return AnalyticsReport(
         timestamp: DateTime.now(),
         reportTitle: 'Anime Waifu Analytics Report',
@@ -268,7 +268,7 @@ class AnalyticsDashboardService {
 
       return buffer.toString();
     } catch (e) {
-      debugPrint('❌ Error exporting report: $e');
+      if (kDebugMode) debugPrint('❌ Error exporting report: $e');
       return 'Error generating report';
     }
   }

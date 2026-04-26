@@ -70,6 +70,7 @@ class _PoemGeneratorPageState extends State<PoemGeneratorPage> with SingleTicker
       ]);
       if (!mounted) return;
       HapticFeedback.heavyImpact();
+      if (!mounted) return;
       setState(() => _poem = reply.trim());
       AffectionService.instance.addPoints(3);
     } catch (e) {
@@ -271,12 +272,12 @@ class _PoemGeneratorPageState extends State<PoemGeneratorPage> with SingleTicker
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF1E0A2E),
-                    const Color(0xFF0A1A2E),
+                    Color(0xFF1E0A2E),
+                    Color(0xFF0A1A2E),
                   ],
                 ),
                 border:

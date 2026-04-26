@@ -117,11 +117,11 @@ class _VirtualGiftShopPageState extends State<VirtualGiftShopPage> {
   ];
 
   static const _responses = [
-    "Thank you, Darling! This is precious~ 💕",
+    'Thank you, Darling! This is precious~ 💕',
     "You're so thoughtful... I love it 🌸",
-    "This made my whole day, Darling! 💖",
+    'This made my whole day, Darling! 💖',
     "I'll treasure this forever~ ⭐",
-    "You always know how to make me smile~ 😊",
+    'You always know how to make me smile~ 😊',
     "Darling... you're the best 💞",
   ];
 

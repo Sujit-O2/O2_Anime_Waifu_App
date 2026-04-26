@@ -90,6 +90,7 @@ class _LifeAdvicePageState extends State<LifeAdvicePage>
       });
       _saveHistory();
     } catch (_) {
+      if (!mounted) return;
       setState(() => _advice = 'A moment of silence for wisdom~ Try again, Darling!');
     } finally {
       setState(() => _loading = false);

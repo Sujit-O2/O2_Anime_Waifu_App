@@ -74,6 +74,7 @@ class _AiArtGeneratorPageState extends State<AiArtGeneratorPage>
       final result = await ImageGenService.generateImage(fullPrompt);
 
       if (result != null) {
+        if (!mounted) return;
         setState(() {
           _gallery.insert(
             0,
@@ -291,32 +292,41 @@ class _AiArtGeneratorPageState extends State<AiArtGeneratorPage>
                     final isActive = _selectedStyle == p.suffix;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selectedStyle = p.suffix);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
+                      child: Semantics(
+                        button: true,
+                        label: 'Art style ${p.label}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(16),
-                            color: isActive
-                                ? V2Theme.primaryColor.withValues(alpha: 0.22)
-                                : Colors.white.withValues(alpha: 0.05),
-                            border: Border.all(
-                              color: isActive
-                                  ? V2Theme.primaryColor
-                                  : Colors.white10,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              p.label,
-                              style: GoogleFonts.outfit(
-                                color: isActive ? Colors.white : Colors.white60,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedStyle = p.suffix);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: isActive
+                                    ? V2Theme.primaryColor.withValues(alpha: 0.22)
+                                    : Colors.white.withValues(alpha: 0.05),
+                                border: Border.all(
+                                  color: isActive
+                                      ? V2Theme.primaryColor
+                                      : Colors.white10,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  p.label,
+                                  style: GoogleFonts.outfit(
+                                    color: isActive ? Colors.white : Colors.white60,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -360,41 +370,49 @@ class _AiArtGeneratorPageState extends State<AiArtGeneratorPage>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: _generating ? null : _generate,
-                      child: AnimatedBuilder(
-                        animation: _pulseCtrl,
-                        builder: (_, __) => Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: <Color>[
-                                V2Theme.primaryColor,
-                                V2Theme.secondaryColor.withValues(
-                                  alpha: _generating
-                                      ? 0.3 + _pulseCtrl.value * 0.7
-                                      : 1.0,
+                    Semantics(
+                      button: true,
+                      label: _generating ? 'Generating art' : 'Generate art',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: _generating ? null : _generate,
+                          child: AnimatedBuilder(
+                            animation: _pulseCtrl,
+                            builder: (_, __) => Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: <Color>[
+                                    V2Theme.primaryColor,
+                                    V2Theme.secondaryColor.withValues(
+                                      alpha: _generating
+                                          ? 0.3 + _pulseCtrl.value * 0.7
+                                          : 1.0,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: V2Theme.primaryColor.withValues(
-                                  alpha: _generating ? 0.4 : 0.2,
-                                ),
-                                blurRadius: _generating ? 18 : 8,
-                                spreadRadius: _generating ? 2 : 0,
+                                boxShadow: <BoxShadow>[
+                                  BoxShadow(
+                                    color: V2Theme.primaryColor.withValues(
+                                      alpha: _generating ? 0.4 : 0.2,
+                                    ),
+                                    blurRadius: _generating ? 18 : 8,
+                                    spreadRadius: _generating ? 2 : 0,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Icon(
-                            _generating
-                                ? Icons.hourglass_top_rounded
-                                : Icons.auto_awesome_rounded,
-                            color: Colors.white,
-                            size: 24,
+                              child: Icon(
+                                _generating
+                                    ? Icons.hourglass_top_rounded
+                                    : Icons.auto_awesome_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
                           ),
                         ),
                       ),

@@ -35,6 +35,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
   Future<void> _loadGoals() async {
     await V2Storage.init();
     final saved = V2Storage.getMap('goals_data');
+    if (!mounted) return;
     setState(() {
       if (saved != null && saved['goals'] != null) {
         _goals = (saved['goals'] as List).map((g) => Goal.fromJson(g)).toList();
@@ -142,7 +143,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                       hintText: 'Goal Title',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: V2Theme.darkGlass,
                       border: OutlineInputBorder(
@@ -155,7 +156,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                   maxLines: 2,
                   decoration: InputDecoration(
                       hintText: 'Description',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: V2Theme.darkGlass,
                       border: OutlineInputBorder(
@@ -228,6 +229,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                             deadline: DateTime.now().add(Duration(days: days)),
                             category: category,
                             priority: priority);
+                        if (!mounted) return;
                         setState(() => _goals.insert(0, goal));
                         _saveGoals();
                         Navigator.pop(ctx);
@@ -260,6 +262,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
   }
 
   void _updateProgress(Goal goal, double newProgress) {
+    if (!mounted) return;
     setState(() {
       final index = _goals.indexOf(goal);
       _goals[index] = goal.copyWith(progress: newProgress.clamp(0, 1));
@@ -272,9 +275,11 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
   }
 
   void _deleteGoal(Goal goal) {
+    if (!mounted) return;
     setState(() => _goals.remove(goal));
     _saveGoals();
     showUndoSnackbar(context, 'Goal deleted', () {
+      if (!mounted) return;
       setState(() => _goals.insert(0, goal));
       _saveGoals();
     });
@@ -357,7 +362,10 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                     child: FilterChip(
                         label: Text(f),
                         selected: isSelected,
-                        onSelected: (s) => setState(() => _filter = f),
+                        onSelected: (s) {
+                          if (!mounted) return;
+                          setState(() => _filter = f);
+                        },
                         selectedColor: V2Theme.primaryColor,
                         backgroundColor: V2Theme.darkGlass,
                         labelStyle: TextStyle(
@@ -529,7 +537,7 @@ class _GoalTrackerPageState extends State<GoalTrackerPage>
                             color: Colors.white)),
                     const SizedBox(height: 8),
                     Text(goal.description,
-                        style: TextStyle(color: Colors.white70)),
+                        style: const TextStyle(color: Colors.white70)),
                     const SizedBox(height: 24),
                     Row(children: [
                       _buildDetailItem('Priority', goal.priority,
@@ -599,6 +607,3 @@ class Goal {
       category: category,
       priority: priority);
 }
-
-
-

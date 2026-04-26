@@ -58,6 +58,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage>
     final key = 'horoscope_${_signs[_selectedIdx]['sign']}_${now.year}_${now.month}_${now.day}';
     final cached = prefs.getString(key);
     if (cached != null) {
+      if (!mounted) return;
       setState(() => _horoscope = cached);
     } else {
       _generate();
@@ -87,6 +88,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage>
       setState(() => _horoscope = reply);
       AffectionService.instance.addPoints(2);
     } catch (_) {
+      if (!mounted) return;
       setState(() => _horoscope = 'The stars are shy today, Darling~ Try again!');
     } finally {
       setState(() => _loading = false);

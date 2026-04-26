@@ -27,7 +27,7 @@ double calculateParallax(BuildContext context, GlobalKey key) {
   final box = key.currentContext?.findRenderObject() as RenderBox?;
   if (box == null) return 0.0;
   final pos = box.localToGlobal(Offset.zero);
-  final screenH = MediaQuery.of(context).size.height;
+  final screenH = MediaQuery.sizeOf(context).height;
   final center = screenH / 2;
   final itemCenter = pos.dy + box.size.height / 2;
   return (itemCenter - center) / screenH;
@@ -43,8 +43,8 @@ class HeartBurstOverlay {
   static void show(BuildContext context, {Offset? position}) {
     _entry?.remove();
     final pos = position ?? Offset(
-      MediaQuery.of(context).size.width / 2,
-      MediaQuery.of(context).size.height / 2,
+      MediaQuery.sizeOf(context).width / 2,
+      MediaQuery.sizeOf(context).height / 2,
     );
 
     _entry = OverlayEntry(builder: (_) => _HeartBurstWidget(
@@ -202,7 +202,7 @@ class _ConfettiWidgetState extends State<_ConfettiWidget>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) {

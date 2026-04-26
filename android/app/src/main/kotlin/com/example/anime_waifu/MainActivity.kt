@@ -248,15 +248,7 @@ class MainActivity : AudioServiceFragmentActivity() {
                         result.success(lookupContact(name))
                     }
                     "showAssistantOverlay" -> {
-                        // Triggered by the swipe right→left gesture on the input bar
-                        // Shows the floating assistant overlay immediately
-                        val sent = try {
-                            val intent = Intent("com.example.anime_waifu.SHOW_OVERLAY")
-                            intent.setPackage(packageName)
-                            sendBroadcast(intent)
-                            true
-                        } catch (e: Exception) { false }
-                        result.success(sent)
+                        result.success(showAssistantOverlay())
                     }
                     "getForegroundApp" -> {
                         val pkg = getForegroundApp()
@@ -628,8 +620,28 @@ class MainActivity : AudioServiceFragmentActivity() {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")
-            )
+            ).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             startActivity(intent)
+        }
+    }
+
+    private fun showAssistantOverlay(): Boolean {
+        if (!canDrawOverlays()) {
+            requestOverlayPermission()
+            return false
+        }
+
+        return try {
+            AssistantOverlayController.showNow(
+                applicationContext,
+                status = "Zero Two",
+                transcript = "How can I help?",
+                autoHideMs = 300_000L
+            )
+        } catch (_: Exception) {
+            false
         }
     }
 

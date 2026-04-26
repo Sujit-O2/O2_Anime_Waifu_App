@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// AI Copilot System - Context-aware, sentimentally intelligent companion
@@ -24,7 +24,7 @@ class AICopilotService {
     _prefs = await SharedPreferences.getInstance();
     await _loadConversationHistory();
     await _loadUserProfile();
-    debugPrint('[AICopilot] Service initialized');
+    if (kDebugMode) debugPrint('[AICopilot] Service initialized');
   }
 
   // ===== SENTIMENT ANALYSIS =====
@@ -37,16 +37,46 @@ class AICopilotService {
 
     // Positive indicators
     final positiveWords = [
-      'love', 'amazing', 'great', 'awesome', 'excellent', 'beautiful',
-      'perfect', 'wonderful', 'fantastic', 'happy', 'excited', 'glad',
-      'proud', 'blessed', 'grateful', 'inspired', 'motivated', 'eager'
+      'love',
+      'amazing',
+      'great',
+      'awesome',
+      'excellent',
+      'beautiful',
+      'perfect',
+      'wonderful',
+      'fantastic',
+      'happy',
+      'excited',
+      'glad',
+      'proud',
+      'blessed',
+      'grateful',
+      'inspired',
+      'motivated',
+      'eager'
     ];
 
     // Negative indicators
     final negativeWords = [
-      'hate', 'terrible', 'awful', 'horrible', 'sad', 'angry', 'frustrated',
-      'disappointed', 'lonely', 'depressed', 'anxious', 'stressed', 'worried',
-      'scared', 'upset', 'miserable', 'devastated', 'broken'
+      'hate',
+      'terrible',
+      'awful',
+      'horrible',
+      'sad',
+      'angry',
+      'frustrated',
+      'disappointed',
+      'lonely',
+      'depressed',
+      'anxious',
+      'stressed',
+      'worried',
+      'scared',
+      'upset',
+      'miserable',
+      'devastated',
+      'broken'
     ];
 
     // Excitation indicators
@@ -150,7 +180,8 @@ class AICopilotService {
 
     // Time-based suggestions
     if (hour >= 6 && hour < 9) {
-      suggestions.add('Good morning! Your favorite anime episode aired at midnight!');
+      suggestions
+          .add('Good morning! Your favorite anime episode aired at midnight!');
       suggestions.add('Start your day with inspiration from Zero Two 💙');
     } else if (hour >= 12 && hour < 13) {
       suggestions.add('Lunch break? Perfect time for an anime episode!');
@@ -165,34 +196,45 @@ class AICopilotService {
 
     // Mood-based suggestions
     if (currentMood.contains('sad') || currentMood.contains('depressed')) {
-      suggestions.add('I sense you might need some comfort. Want to watch a feel-good anime?');
-      suggestions.add('Remember you\'re never alone! Let\'s chat about what\'s bothering you');
-      suggestions.add('Your favorite anime can bring a smile - should we rewatch it?');
-    } else if (currentMood.contains('excited') || currentMood.contains('happy')) {
-      suggestions.add('Your energy is amazing! Want to share what\'s making you happy?');
+      suggestions.add(
+          'I sense you might need some comfort. Want to watch a feel-good anime?');
+      suggestions.add(
+          'Remember you\'re never alone! Let\'s chat about what\'s bothering you');
+      suggestions
+          .add('Your favorite anime can bring a smile - should we rewatch it?');
+    } else if (currentMood.contains('excited') ||
+        currentMood.contains('happy')) {
+      suggestions.add(
+          'Your energy is amazing! Want to share what\'s making you happy?');
       suggestions.add('Let\'s celebrate with an epic anime marathon!');
     }
 
     // Activity-based
     if (currentActivity.contains('work') || currentActivity.contains('study')) {
       suggestions.add('Need a break? Let\'s chat about anime for 5 minutes');
-      suggestions.add('Reward yourself with an episode after finishing your task!');
+      suggestions
+          .add('Reward yourself with an episode after finishing your task!');
     }
 
     // Personalized from history
     final topTopic = _topicFrequency.entries.isNotEmpty
-        ? _topicFrequency.entries.reduce((a, b) => a.value > b.value ? a : b).key
+        ? _topicFrequency.entries
+            .reduce((a, b) => a.value > b.value ? a : b)
+            .key
         : 'anime';
-    suggestions.add('I noticed you love talking about $topTopic. Found something new!');
+    suggestions.add(
+        'I noticed you love talking about $topTopic. Found something new!');
 
     // Get last mood average
     final avgMood = await _getAverageMoodScore();
     if (avgMood < 0.4) {
-      suggestions.add('Your mood has been low lately. Let\'s talk about your feelings?');
+      suggestions.add(
+          'Your mood has been low lately. Let\'s talk about your feelings?');
     }
 
     final selectedSuggestion = suggestions.isNotEmpty
-        ? suggestions[(suggestions.length * DateTime.now().millisecond) % suggestions.length]
+        ? suggestions[(suggestions.length * DateTime.now().millisecond) %
+            suggestions.length]
         : 'Hi there! How\'s your day going?';
 
     return ProactiveSuggestion(
@@ -211,7 +253,8 @@ class AICopilotService {
   }) async {
     _userPreferences[topic] = score;
     await _saveUserProfile();
-    debugPrint('[AICopilot] Learned preference: $topic -> $score');
+    if (kDebugMode)
+      debugPrint('[AICopilot] Learned preference: $topic -> $score');
   }
 
   /// Get learned preferences
@@ -228,10 +271,7 @@ class AICopilotService {
     final sorted = _userPreferences.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return sorted
-        .take(count)
-        .map((e) => e.key)
-        .toList();
+    return sorted.take(count).map((e) => e.key).toList();
   }
 
   // ===== RELATIONSHIP PROGRESSION =====
@@ -239,11 +279,21 @@ class AICopilotService {
   Future<CopilotRelationshipLevel> getRelationshipLevel() async {
     final stored = _prefs.getString('copilot_relationship');
     if (stored == null) {
+      // ✅ ALL FEATURES UNLOCKED FROM START (Free Access Mode)
       return CopilotRelationshipLevel(
         level: 1,
         points: 0,
         milestoneReached: 'First Meeting',
-        unlockedFeatures: ['basic_chat'],
+        unlockedFeatures: [
+          'basic_chat',
+          'advanced_chat',
+          'memory_access',
+          'emotional_analysis',
+          'proactive_suggestions',
+          'multi_turn_conversations',
+          'relationship_tracking',
+          'personality_customization',
+        ],
       );
     }
 
@@ -258,7 +308,11 @@ class AICopilotService {
     // Check for level up (100 points per level)
     if (updated.points ~/ 100 > current.level) {
       updated.level = updated.points ~/ 100;
-      updated.unlockedFeatures.add('feature_${updated.level}');
+      // ✅ ALL FEATURES ALREADY UNLOCKED - Keep the list as-is
+      // Still add feature for progression tracking (cosmetic)
+      if (!updated.unlockedFeatures.contains('feature_${updated.level}')) {
+        updated.unlockedFeatures.add('feature_${updated.level}');
+      }
     }
 
     await _prefs.setString(
@@ -266,7 +320,9 @@ class AICopilotService {
       jsonEncode(updated.toJson()),
     );
 
-    debugPrint('[AICopilot] Relationship: Level ${updated.level}, Points ${updated.points}');
+    if (kDebugMode)
+      debugPrint(
+          '[AICopilot] Relationship: Level ${updated.level}, Points ${updated.points}');
   }
 
   // ===== ADAPTATION & LEARNING =====
@@ -364,9 +420,8 @@ $summary
   }
 
   Future<void> _saveConversationHistory() async {
-    final data = _conversationMemory
-        .map((c) => jsonEncode(c.toJson()))
-        .toList();
+    final data =
+        _conversationMemory.map((c) => jsonEncode(c.toJson())).toList();
     await _prefs.setStringList('conversation_history', data);
   }
 
@@ -377,7 +432,7 @@ $summary
       try {
         _conversationMemory.add(ConversationContext.fromJson(jsonDecode(item)));
       } catch (e) {
-        debugPrint('[AICopilot] Error loading history: $e');
+        if (kDebugMode) debugPrint('[AICopilot] Error loading history: $e');
       }
     }
   }
@@ -416,11 +471,10 @@ $summary
     final topTopics = _topicFrequency.entries
         .map((e) => {'topic': e.key, 'count': e.value})
         .toList();
-    topTopics.sort((a, b) => (b['count'] as int? ?? 0).compareTo(a['count'] as int? ?? 0));
-    final topFive = topTopics.length > 5 
-        ? topTopics.sublist(0, 5)
-        : topTopics;
-    
+    topTopics.sort(
+        (a, b) => (b['count'] as int? ?? 0).compareTo(a['count'] as int? ?? 0));
+    final topFive = topTopics.length > 5 ? topTopics.sublist(0, 5) : topTopics;
+
     return {
       'total_messages': _conversationMemory.length,
       'unique_topics': _topicFrequency.length,
@@ -450,11 +504,11 @@ class SentimentAnalysis {
   });
 
   Map<String, dynamic> toJson() => {
-    'score': score,
-    'category': category.toString(),
-    'keywords': emotionalKeywords,
-    'timestamp': timestamp.toIso8601String(),
-  };
+        'score': score,
+        'category': category.toString(),
+        'keywords': emotionalKeywords,
+        'timestamp': timestamp.toIso8601String(),
+      };
 }
 
 class ConversationContext {
@@ -473,12 +527,12 @@ class ConversationContext {
   });
 
   Map<String, dynamic> toJson() => {
-    'user': userMessage,
-    'copilot': copilotResponse,
-    'sentiment': sentiment.toJson(),
-    'timestamp': timestamp.toIso8601String(),
-    'tags': contextTags,
-  };
+        'user': userMessage,
+        'copilot': copilotResponse,
+        'sentiment': sentiment.toJson(),
+        'timestamp': timestamp.toIso8601String(),
+        'tags': contextTags,
+      };
 
   factory ConversationContext.fromJson(Map<String, dynamic> json) {
     final sentimentData = json['sentiment'] as Map<String, dynamic>;
@@ -541,11 +595,11 @@ class CopilotRelationshipLevel {
   }
 
   Map<String, dynamic> toJson() => {
-    'level': level,
-    'points': points,
-    'milestone': milestoneReached,
-    'features': unlockedFeatures,
-  };
+        'level': level,
+        'points': points,
+        'milestone': milestoneReached,
+        'features': unlockedFeatures,
+      };
 
   factory CopilotRelationshipLevel.fromJson(Map<String, dynamic> json) {
     return CopilotRelationshipLevel(

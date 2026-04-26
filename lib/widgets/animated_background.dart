@@ -211,17 +211,20 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   late List<Particle> particles;
   Offset? interactionPoint;
   AppThemeMode? _lastMode;
+  DateTime _lastFrameTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   int _particleCountForTheme(AppThemeMode mode) {
     switch (AppThemes.getParticleType(mode)) {
       case ParticleType.rain:
+        return 8; // Rain is CPU-heavy with line draws
       case ParticleType.snow:
-        return 12;
+        return 10;
       case ParticleType.stars:
+        return 12; // Stars are cheap (static, just twinkling)
       case ParticleType.bubbles:
-        return 14;
+        return 10;
       default:
-        return 16;
+        return 14;
     }
   }
 
@@ -238,11 +241,14 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   }
 
   void _onScroll() {
-    if (widget.controller == null || !widget.controller!.hasClients) return;
+    if (widget.controller == null ||
+        !widget.controller!.hasClients ||
+        !widget.controller!.position.hasContentDimensions) return;
     final speed = widget.controller!.position.userScrollDirection ==
             ScrollDirection.reverse
         ? -1.2
         : 1.2;
+    // Direct mutation without setState — the animation loop will pick it up
     for (var p in particles) {
       p.vy += speed * (p.radius / 2.0);
     }
@@ -293,11 +299,17 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                       child: AnimatedBuilder(
                         animation: _controller,
                         builder: (context, _) {
-                          for (var p in particles) {
-                            p.update(
-                                Size(constraints.maxWidth,
-                                    constraints.maxHeight),
-                                interactionPoint);
+                          // Frame budget check: skip expensive update if behind
+                          final now = DateTime.now();
+                          final elapsed = now.difference(_lastFrameTime);
+                          if (elapsed.inMilliseconds > 8) {
+                            // ~120fps budget
+                            _lastFrameTime = now;
+                            final size = Size(
+                                constraints.maxWidth, constraints.maxHeight);
+                            for (var p in particles) {
+                              p.update(size, interactionPoint);
+                            }
                           }
 
                           return RepaintBoundary(
@@ -340,7 +352,18 @@ class _StaticBackgroundLayer extends StatelessWidget {
                 width: double.infinity,
                 height: double.infinity,
                 child: bgUrl.startsWith('http')
-                    ? Image.network(bgUrl, fit: BoxFit.cover)
+                    ? Image.network(
+                        bgUrl,
+                        fit: BoxFit.cover,
+                        filterQuality: FilterQuality.low,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFF0A0A1A),
+                          child: const Center(
+                            child: Icon(Icons.broken_image_outlined,
+                                color: Colors.white24, size: 32),
+                          ),
+                        ),
+                      )
                     : bgUrl.startsWith('assets/')
                         ? Image.asset(bgUrl, fit: BoxFit.cover)
                         : Image.network(
@@ -373,5 +396,3 @@ class _StaticBackgroundLayer extends StatelessWidget {
 }
 
 // Removed _CrepuscularPainter to save CPU payload.
-
-

@@ -70,6 +70,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
     if (raw != null) {
       try {
         final list = jsonDecode(raw) as List<dynamic>;
+        if (!mounted) return;
         setState(() => _memories = list
             .map((e) => _Memory.fromJson(e as Map<String, dynamic>))
             .toList());
@@ -161,6 +162,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
                         imagePath: _tempImagePath,
                       ));
                   _save();
+                  if (!mounted) return;
                   setState(() {});
                   AffectionService.instance.addPoints(3);
                   Navigator.pop(ctx);

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Offline sync service: Complete offline work, automatic sync on reconnect
 class OfflineSyncService {
@@ -26,7 +26,7 @@ class OfflineSyncService {
         cacheSizeBytes: 104857600, // 100MB
       );
     } catch (e) {
-      debugPrint('Error enabling offline persistence: $e');
+      if (kDebugMode) debugPrint('Error enabling offline persistence: $e');
     }
   }
 
@@ -39,7 +39,7 @@ class OfflineSyncService {
       // Load pending items from local storage
       await _loadPendingQueue();
     } catch (e) {
-      debugPrint('Error initializing offline sync: $e');
+      if (kDebugMode) debugPrint('Error initializing offline sync: $e');
     }
   }
 
@@ -100,7 +100,7 @@ class OfflineSyncService {
       _pendingQueue.add(queueItem);
       await _savePendingQueue();
     } catch (e) {
-      debugPrint('Error queueing operation: $e');
+      if (kDebugMode) debugPrint('Error queueing operation: $e');
     }
   }
 
@@ -108,9 +108,9 @@ class OfflineSyncService {
   Future<void> _savePendingQueue() async {
     try {
       // In real implementation, save to local storage (shared_preferences or sqflite)
-      debugPrint('Saved ${_pendingQueue.length} pending operations');
+      if (kDebugMode) debugPrint('Saved ${_pendingQueue.length} pending operations');
     } catch (e) {
-      debugPrint('Error saving queue: $e');
+      if (kDebugMode) debugPrint('Error saving queue: $e');
     }
   }
 
@@ -118,9 +118,9 @@ class OfflineSyncService {
   Future<void> _loadPendingQueue() async {
     try {
       // In real implementation, load from local storage
-      debugPrint('Loaded pending operations');
+      if (kDebugMode) debugPrint('Loaded pending operations');
     } catch (e) {
-      debugPrint('Error loading queue: $e');
+      if (kDebugMode) debugPrint('Error loading queue: $e');
     }
   }
 
@@ -145,7 +145,7 @@ class OfflineSyncService {
         }
       }
     } catch (e) {
-      debugPrint('Error syncing queue: $e');
+      if (kDebugMode) debugPrint('Error syncing queue: $e');
     }
   }
 
@@ -174,7 +174,7 @@ class OfflineSyncService {
           return false;
       }
     } catch (e) {
-      debugPrint('Error syncing operation: $e');
+      if (kDebugMode) debugPrint('Error syncing operation: $e');
       return false;
     }
   }
@@ -200,7 +200,7 @@ class OfflineSyncService {
         },
       );
     } catch (e) {
-      debugPrint('Error saving message offline: $e');
+      if (kDebugMode) debugPrint('Error saving message offline: $e');
     }
   }
 
@@ -212,7 +212,7 @@ class OfflineSyncService {
       // This would read from local database
       return [];
     } catch (e) {
-      debugPrint('Error getting offline history: $e');
+      if (kDebugMode) debugPrint('Error getting offline history: $e');
       return [];
     }
   }
@@ -235,7 +235,7 @@ class OfflineSyncService {
           .doc(docId)
           .set(mergedData, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error resolving conflict: $e');
+      if (kDebugMode) debugPrint('Error resolving conflict: $e');
     }
   }
 
@@ -259,7 +259,7 @@ class OfflineSyncService {
       _pendingQueue.clear();
       await _savePendingQueue();
     } catch (e) {
-      debugPrint('Error clearing queue: $e');
+      if (kDebugMode) debugPrint('Error clearing queue: $e');
     }
   }
 
@@ -305,7 +305,7 @@ class OfflineSyncService {
         'status': 'active',
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error starting offline session: $e');
+      if (kDebugMode) debugPrint('Error starting offline session: $e');
     }
   }
 
@@ -323,7 +323,7 @@ class OfflineSyncService {
       // Sync pending items
       await _instance._syncPendingQueue();
     } catch (e) {
-      debugPrint('Error ending offline session: $e');
+      if (kDebugMode) debugPrint('Error ending offline session: $e');
     }
   }
 

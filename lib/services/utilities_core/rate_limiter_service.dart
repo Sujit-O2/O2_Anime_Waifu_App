@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Rate Limiter Service - Prevent abuse with rate limiting
 class RateLimiterService {
@@ -20,7 +20,7 @@ class RateLimiterService {
       if (_blacklist.containsKey(identifier)) {
         final blacklistUntil = _blacklist[identifier]!;
         if (DateTime.now().isBefore(blacklistUntil)) {
-          debugPrint('⚠️ Request blocked: $identifier (blacklisted until $blacklistUntil)');
+          if (kDebugMode) debugPrint('⚠️ Request blocked: $identifier (blacklisted until $blacklistUntil)');
           return false;
         } else {
           _blacklist.remove(identifier);
@@ -41,16 +41,16 @@ class RateLimiterService {
 
       // Check if within limit
       if (_requestCounts[identifier]!.length >= maxRequests) {
-        debugPrint('⚠️ Rate limit exceeded: $identifier (${_requestCounts[identifier]!.length}/$maxRequests)');
+        if (kDebugMode) debugPrint('⚠️ Rate limit exceeded: $identifier (${_requestCounts[identifier]!.length}/$maxRequests)');
         return false;
       }
 
       // Add current request
       _requestCounts[identifier]!.add(now);
-      debugPrint('✅ Request allowed: $identifier (${_requestCounts[identifier]!.length}/$maxRequests)');
+      if (kDebugMode) debugPrint('✅ Request allowed: $identifier (${_requestCounts[identifier]!.length}/$maxRequests)');
       return true;
     } catch (e) {
-      debugPrint('❌ Error in rate limiter: $e');
+      if (kDebugMode) debugPrint('❌ Error in rate limiter: $e');
       return true; // Allow on error
     }
   }
@@ -74,7 +74,7 @@ class RateLimiterService {
           .length;
       return (maxRequests - validRequests).clamp(0, maxRequests);
     } catch (e) {
-      debugPrint('❌ Error getting remaining requests: $e');
+      if (kDebugMode) debugPrint('❌ Error getting remaining requests: $e');
       return maxRequests;
     }
   }
@@ -83,9 +83,9 @@ class RateLimiterService {
   void blacklistIdentifier(String identifier, Duration duration) {
     try {
       _blacklist[identifier] = DateTime.now().add(duration);
-      debugPrint('🚫 Blacklisted: $identifier for ${duration.inMinutes} minutes');
+      if (kDebugMode) debugPrint('🚫 Blacklisted: $identifier for ${duration.inMinutes} minutes');
     } catch (e) {
-      debugPrint('❌ Error blacklisting identifier: $e');
+      if (kDebugMode) debugPrint('❌ Error blacklisting identifier: $e');
     }
   }
 
@@ -109,9 +109,9 @@ class RateLimiterService {
         blacklistIdentifier(identifier, blacklistDuration);
       }
 
-      debugPrint('⚠️ Failed attempt recorded: $identifier ($failedCount/$maxFailedAttempts)');
+      if (kDebugMode) debugPrint('⚠️ Failed attempt recorded: $identifier ($failedCount/$maxFailedAttempts)');
     } catch (e) {
-      debugPrint('❌ Error recording failed attempt: $e');
+      if (kDebugMode) debugPrint('❌ Error recording failed attempt: $e');
     }
   }
 
@@ -121,9 +121,9 @@ class RateLimiterService {
       _requestCounts.remove(identifier);
       _requestCounts.remove('failed_$identifier');
       _blacklist.remove(identifier);
-      debugPrint('✅ Rate limit reset: $identifier');
+      if (kDebugMode) debugPrint('✅ Rate limit reset: $identifier');
     } catch (e) {
-      debugPrint('❌ Error resetting rate limit: $e');
+      if (kDebugMode) debugPrint('❌ Error resetting rate limit: $e');
     }
   }
 
@@ -139,7 +139,7 @@ class RateLimiterService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting rate limit stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting rate limit stats: $e');
       return RateLimitStats(
         totalTrackedIdentifiers: 0,
         blacklistedIdentifiers: 0,
@@ -153,9 +153,9 @@ class RateLimiterService {
     try {
       _requestCounts.clear();
       _blacklist.clear();
-      debugPrint('✅ All rate limit data cleared');
+      if (kDebugMode) debugPrint('✅ All rate limit data cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing rate limit data: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing rate limit data: $e');
     }
   }
 }

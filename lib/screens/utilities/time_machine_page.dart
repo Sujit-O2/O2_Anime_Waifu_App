@@ -164,6 +164,7 @@ class _TimeMachinePageState extends State<TimeMachinePage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _selectedDate = date;
       _events = events;
@@ -457,9 +458,9 @@ class _TimeMachinePageState extends State<TimeMachinePage> {
                   ),
                 )
               else if (_events.isEmpty)
-                GlassCard(
+                const GlassCard(
                   margin: EdgeInsets.zero,
-                  child: const EmptyState(
+                  child: EmptyState(
                     icon: Icons.travel_explore_rounded,
                     title: 'No memories for this date',
                     subtitle:

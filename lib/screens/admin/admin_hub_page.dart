@@ -1,4 +1,5 @@
-import 'package:anime_waifu/widgets/waifu_background.dart';
+import 'package:anime_waifu/config/app_themes.dart';
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -28,7 +29,7 @@ class _AdminHubPageState extends State<AdminHubPage> {
             'label': 'Admin Dashboard',
             'description': 'Moderation, analytics, feature flags',
             'icon': Icons.admin_panel_settings_rounded,
-            'page': AdminPanelPage(),
+            'page': const AdminPanelPage(),
           },
         ],
       },
@@ -40,7 +41,7 @@ class _AdminHubPageState extends State<AdminHubPage> {
             'label': 'Discord Webhooks',
             'description': 'Event streaming & achievement sharing',
             'icon': Icons.webhook_rounded,
-            'page': DiscordIntegrationPanelPage(),
+            'page': const DiscordIntegrationPanelPage(),
           },
         ],
       },
@@ -67,173 +68,206 @@ class _AdminHubPageState extends State<AdminHubPage> {
 
   void _onSystemHealth() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ System is running optimally')),
+      const SnackBar(content: Text('System is running optimally')),
     );
   }
 
   void _onBackup() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Last backup: Today at 10:30 AM')),
+      const SnackBar(content: Text('Last backup: Today at 10:30 AM')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: WaifuBackground(
-        opacity: 0.12,
-        tint: const Color(0xFF090714),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // ===== HEADER =====
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white60,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '⚙️ ADMIN HUB',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'System Control & Monitoring',
-                            style: GoogleFonts.outfit(
-                              color: Colors.cyanAccent.withValues(alpha: 0.6),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // ===== CATEGORY TABS =====
-              SizedBox(
-                height: 70,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _categories.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, idx) {
-                    final cat = _categories[idx];
-                    final isSelected = idx == _selectedCategory;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedCategory = idx),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.cyanAccent.withValues(alpha: 0.12)
-                              : Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.cyanAccent.withValues(alpha: 0.4)
-                                : Colors.white.withValues(alpha: 0.1),
-                            width: isSelected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              cat['icon'] as IconData,
-                              color: isSelected
-                                  ? Colors.cyanAccent
-                                  : Colors.white54,
-                              size: 20,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              cat['title']
-                                  .toString()
-                                  .split(' ')
-                                  .last,
-                              style: GoogleFonts.outfit(
-                                color: isSelected
-                                    ? Colors.cyanAccent
-                                    : Colors.white54,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              // ===== CONTENT =====
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _categories[_selectedCategory]['items'].length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, idx) {
-                    final item =
-                        _categories[_selectedCategory]['items'][idx]
-                            as Map<String, dynamic>;
-                    return _buildAdminTile(item);
-                  },
-                ),
-              ),
-            ],
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
+    final selectedCategory = _categories[_selectedCategory];
+    final selectedItems =
+        (selectedCategory['items'] as List).cast<Map<String, dynamic>>();
+    return FeaturePageV2(
+      title: 'Admin Hub',
+      subtitle: 'System control, monitoring, and integrations',
+      onBack: () => Navigator.pop(context),
+      actions: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: colors.primary.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.22)),
+          ),
+          child: Text(
+            '${selectedItems.length} tools',
+            style: GoogleFonts.outfit(
+              color: colors.primary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
+      ],
+      content: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: GlassCard(
+              margin: EdgeInsets.zero,
+              padding: const EdgeInsets.all(18),
+              glow: true,
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colors.primary.withValues(alpha: 0.30),
+                          colors.tertiary.withValues(alpha: 0.12),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border:
+                          Border.all(color: colors.primary.withValues(alpha: 0.28)),
+                    ),
+                    child: Icon(selectedCategory['icon'] as IconData,
+                        color: colors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          selectedCategory['title'] as String,
+                          style: GoogleFonts.outfit(
+                            color: colors.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Focused tools for operations, integrations, and system visibility.',
+                          style: GoogleFonts.outfit(
+                            color: tokens.textMuted,
+                            fontSize: 12,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 76,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, idx) {
+                final cat = _categories[idx];
+                final isSelected = idx == _selectedCategory;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = idx),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: isSelected
+                          ? tokens.glassGradient
+                          : LinearGradient(
+                              colors: [
+                                tokens.panelElevated,
+                                tokens.panel,
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isSelected
+                            ? colors.primary.withValues(alpha: 0.4)
+                            : tokens.outline,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: colors.primary.withValues(alpha: 0.18),
+                                blurRadius: 20,
+                                spreadRadius: -4,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          cat['icon'] as IconData,
+                          color:
+                              isSelected ? colors.primary : tokens.textMuted,
+                          size: 20,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          cat['title'].toString().split(' ').last,
+                          style: GoogleFonts.outfit(
+                            color:
+                                isSelected ? colors.primary : tokens.textMuted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              itemCount: selectedItems.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, idx) => _buildAdminTile(selectedItems[idx]),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAdminTile(Map<String, dynamic> item) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     return GestureDetector(
       onTap: () {
         if (item['page'] != null) {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => item['page'] as Widget,
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  item['page'] as Widget,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
                   opacity: animation,
                   child: SlideTransition(
-                    position: Tween<Offset>(begin: const Offset(0.1, 0.0), end: Offset.zero).animate(
-                      CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                    position: Tween<Offset>(
+                            begin: const Offset(0.1, 0.0), end: Offset.zero)
+                        .animate(
+                      CurvedAnimation(
+                          parent: animation, curve: Curves.easeOutCubic),
                     ),
                     child: child,
                   ),
@@ -246,33 +280,21 @@ class _AdminHubPageState extends State<AdminHubPage> {
           (item['callback'] as VoidCallback)();
         }
       },
-      child: Container(
+      child: GlassCard(
+        margin: EdgeInsets.zero,
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.cyanAccent.withValues(alpha: 0.15),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.cyanAccent.withValues(alpha: 0.08),
-              blurRadius: 16,
-              spreadRadius: -2,
-            )
-          ],
-        ),
+        glow: true,
         child: Row(
           children: [
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.cyanAccent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: colors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.cyanAccent.withValues(alpha: 0.15),
+                    color: colors.primary.withValues(alpha: 0.15),
                     blurRadius: 8,
                     spreadRadius: -2,
                   )
@@ -280,7 +302,7 @@ class _AdminHubPageState extends State<AdminHubPage> {
               ),
               child: Icon(
                 item['icon'] as IconData,
-                color: Colors.cyanAccent,
+                color: colors.primary,
                 size: 24,
               ),
             ),
@@ -292,8 +314,8 @@ class _AdminHubPageState extends State<AdminHubPage> {
                   Text(
                     item['label'] as String,
                     style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 14,
+                      color: colors.onSurface,
+                      fontSize: 14.5,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -301,8 +323,8 @@ class _AdminHubPageState extends State<AdminHubPage> {
                   Text(
                     item['description'] as String,
                     style: GoogleFonts.outfit(
-                      color: Colors.white54,
-                      fontSize: 11,
+                      color: tokens.textMuted,
+                      fontSize: 11.5,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -313,7 +335,7 @@ class _AdminHubPageState extends State<AdminHubPage> {
             const SizedBox(width: 12),
             Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Colors.white24,
+              color: tokens.textMuted,
               size: 16,
             ),
           ],
@@ -322,6 +344,3 @@ class _AdminHubPageState extends State<AdminHubPage> {
     );
   }
 }
-
-
-

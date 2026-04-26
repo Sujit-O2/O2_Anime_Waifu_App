@@ -71,6 +71,7 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _bestStreak = prefs.getInt('word_puzzle_best_streak_v2') ?? 0;
       _wins = prefs.getInt('word_puzzle_wins_v2') ?? 0;

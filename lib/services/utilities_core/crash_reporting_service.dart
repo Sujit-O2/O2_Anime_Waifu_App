@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Crash Reporting Service
@@ -25,7 +25,7 @@ class CrashReportingService {
     _prefs = await SharedPreferences.getInstance();
     await _loadCrashHistory();
     _isEnabled = true;
-    debugPrint('[CrashReporting] Service initialized');
+    if (kDebugMode) debugPrint('[CrashReporting] Service initialized');
   }
 
   // ===== CRASH REPORTING =====
@@ -56,7 +56,7 @@ class CrashReportingService {
     }
 
     await _saveCrashReports();
-    debugPrint('[CrashReporting] Crash reported: $exception');
+    if (kDebugMode) debugPrint('[CrashReporting] Crash reported: $exception');
 
     // Send to backend (simulated)
     await _sendToBackend(report);
@@ -83,7 +83,7 @@ class CrashReportingService {
       crash.isIgnored = true;
       await _saveCrashReports();
     } catch (e) {
-      debugPrint('[CrashReporting] Error ignoring crash: $e');
+      if (kDebugMode) debugPrint('[CrashReporting] Error ignoring crash: $e');
     }
   }
 
@@ -121,7 +121,7 @@ class CrashReportingService {
     }
 
     await _saveErrorLogs();
-    debugPrint('[CrashReporting] Error logged: $message');
+    if (kDebugMode) debugPrint('[CrashReporting] Error logged: $message');
   }
 
   /// Log warning
@@ -138,7 +138,7 @@ class CrashReportingService {
     );
 
     _errorLogs.add(error);
-    debugPrint('[CrashReporting] Warning: $message');
+    if (kDebugMode) debugPrint('[CrashReporting] Warning: $message');
   }
 
   /// Get error logs by category
@@ -170,7 +170,7 @@ class CrashReportingService {
       _sessionEvents.removeAt(0);
     }
 
-    debugPrint('[CrashReporting] Session event: $event');
+    if (kDebugMode) debugPrint('[CrashReporting] Session event: $event');
   }
 
   /// Start session
@@ -316,7 +316,7 @@ ${_sessionEvents.reversed.take(10).map((e) => '- $e').join('\n')}
     _sessionEvents.clear();
     await _prefs.remove('crash_reports');
     await _prefs.remove('error_logs');
-    debugPrint('[CrashReporting] All data cleared');
+    if (kDebugMode) debugPrint('[CrashReporting] All data cleared');
   }
 
   // ===== INTERNAL HELPERS =====
@@ -376,7 +376,7 @@ ${_sessionEvents.reversed.take(10).map((e) => '- $e').join('\n')}
   Future<void> _sendToBackend(CrashReport report) async {
     // Simulate sending to backend
     await Future.delayed(const Duration(milliseconds: 100));
-    debugPrint('[CrashReporting] Crash sent to backend: ${report.id}');
+    if (kDebugMode) debugPrint('[CrashReporting] Crash sent to backend: ${report.id}');
   }
 
   Future<void> _saveCrashReports() async {
@@ -390,7 +390,7 @@ ${_sessionEvents.reversed.take(10).map((e) => '- $e').join('\n')}
       try {
         _crashReports.add(CrashReport.fromJson(jsonDecode(item)));
       } catch (e) {
-        debugPrint('[CrashReporting] Error loading crash: $e');
+        if (kDebugMode) debugPrint('[CrashReporting] Error loading crash: $e');
       }
     }
   }

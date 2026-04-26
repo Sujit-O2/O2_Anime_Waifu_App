@@ -38,9 +38,10 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final d = prefs.getString('auto_life_log');
-    if (d != null)
+    if (d != null) {
+      if (!mounted) return;
       setState(() => _logs = (d.isNotEmpty
-          ? (d as String).split('||').map((e) {
+          ? d.split('||').map((e) {
               final parts = e.split('|');
               return {
                 'activity': parts[0],
@@ -52,6 +53,7 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
               };
             }).toList()
           : []));
+    }
     _autoTrack = prefs.getBool('auto_track') ?? true;
   }
 
@@ -85,6 +87,7 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
         GestureDetector(
           onTap: () {
             HapticFeedback.lightImpact();
+            if (!mounted) return;
             setState(() {
               _autoTrack = !_autoTrack;
               _save();
@@ -99,108 +102,99 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
                       : Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: _autoTrack
-                          ? Colors.greenAccent
-                          : Colors.white12)),
-              child: Icon(
-                  _autoTrack ? Icons.toggle_on : Icons.toggle_off,
-                  color: _autoTrack
-                      ? Colors.greenAccent
-                      : Colors.white30,
+                      color: _autoTrack ? Colors.greenAccent : Colors.white12)),
+              child: Icon(_autoTrack ? Icons.toggle_on : Icons.toggle_off,
+                  color: _autoTrack ? Colors.greenAccent : Colors.white30,
                   size: 24)),
         ),
       ],
       content: FadeTransition(
         opacity: _fadeCtrl,
         child: Column(children: [
-
-              // Today summary card
-              AnimatedEntry(
-                index: 0,
-                child: GlassCard(
-                  margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  padding: const EdgeInsets.all(14),
-                  child: Row(children: [
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('TODAY',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.deepPurpleAccent,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1)),
-                          Text('${todayLogs.length} activities logged',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.white54, fontSize: 12)),
-                        ]),
-                    const Spacer(),
-                    Column(children: [
-                      Text('${_logs.length}',
-                          style: GoogleFonts.outfit(
-                              color: Colors.tealAccent,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900)),
-                      Text('TOTAL',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white30, fontSize: 10)),
-                    ]),
-                  ]),
-                ),
-              ),
-
-              // Timeline header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-                child: Row(children: [
-                  const Icon(Icons.timeline_rounded,
-                      color: Colors.white38, size: 16),
-                  const SizedBox(width: 6),
-                  Text('ACTIVITY TIMELINE',
+          // Today summary card
+          AnimatedEntry(
+            index: 0,
+            child: GlassCard(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(14),
+              child: Row(children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('TODAY',
                       style: GoogleFonts.outfit(
-                          color: Colors.white38,
-                          fontSize: 11,
+                          color: Colors.deepPurpleAccent,
+                          fontSize: 12,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1)),
+                  Text('${todayLogs.length} activities logged',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white54, fontSize: 12)),
                 ]),
-              ),
+                const Spacer(),
+                Column(children: [
+                  Text('${_logs.length}',
+                      style: GoogleFonts.outfit(
+                          color: Colors.tealAccent,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900)),
+                  Text('TOTAL',
+                      style: GoogleFonts.outfit(
+                          color: Colors.white30, fontSize: 10)),
+                ]),
+              ]),
+            ),
+          ),
 
-              Expanded(
-                child: _logs.isEmpty
-                    ? Center(
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                        const Text('📱', style: TextStyle(fontSize: 48)),
-                        const SizedBox(height: 12),
-                        Text('No activities logged yet',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white30, fontSize: 14)),
-                        const SizedBox(height: 4),
-                        Text('I\'ll track your day automatically~',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white24, fontSize: 12)),
-                      ]))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _logs.length,
-                        itemBuilder: (_, i) => _buildLogCard(i, _logs[i]),
-                      ),
-              ),
-
-              // ── Waifu Card ──
-              AnimatedEntry(
-                index: 10,
-                child: WaifuCommentary(
-                  text: _logs.isEmpty
-                      ? '"I\'ll keep track of everything for you, Darling~"'
-                      : _logs.length > 10
-                          ? '"You\'ve been so active, Darling! I\'m proud of you~ 💕"'
-                          : '"Every moment with you is worth remembering~"',
-                  themeColor: Colors.pinkAccent,
-                ),
-              ),
+          // Timeline header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+            child: Row(children: [
+              const Icon(Icons.timeline_rounded,
+                  color: Colors.white38, size: 16),
+              const SizedBox(width: 6),
+              Text('ACTIVITY TIMELINE',
+                  style: GoogleFonts.outfit(
+                      color: Colors.white38,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1)),
             ]),
           ),
+
+          Expanded(
+            child: _logs.isEmpty
+                ? Center(
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    const Text('📱', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 12),
+                    Text('No activities logged yet',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white30, fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text('I\'ll track your day automatically~',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white24, fontSize: 12)),
+                  ]))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _logs.length,
+                    itemBuilder: (_, i) => _buildLogCard(i, _logs[i]),
+                  ),
+          ),
+
+          // ── Waifu Card ──
+          AnimatedEntry(
+            index: 10,
+            child: WaifuCommentary(
+              text: _logs.isEmpty
+                  ? '"I\'ll keep track of everything for you, Darling~"'
+                  : _logs.length > 10
+                      ? '"You\'ve been so active, Darling! I\'m proud of you~ 💕"'
+                      : '"Every moment with you is worth remembering~"',
+              themeColor: Colors.pinkAccent,
+            ),
+          ),
+        ]),
+      ),
     );
   }
 
@@ -275,6 +269,3 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
     );
   }
 }
-
-
-

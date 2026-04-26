@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
@@ -71,7 +71,7 @@ class EnhancedEmailService {
             .replaceAll('{{year}}', DateTime.now().year.toString());
       }
     } catch (e) {
-      debugPrint('⚠️ Failed to load email template: $e');
+      if (kDebugMode) debugPrint('⚠️ Failed to load email template: $e');
       htmlContent = '<html><body>$body</body></html>';
     }
 
@@ -95,14 +95,16 @@ class EnhancedEmailService {
         try {
           final result = await providers[i]();
           if (result.success) {
-            debugPrint('✅ Email sent via ${result.provider}');
+            if (kDebugMode) debugPrint('✅ Email sent via ${result.provider}');
             return result;
           }
-          debugPrint(
+          if (kDebugMode) {
+            debugPrint(
             '⚠️ ${result.provider} failed (attempt ${attempt + 1}/$_maxRetries): ${result.message}',
           );
+          }
         } catch (e) {
-          debugPrint('❌ $e');
+          if (kDebugMode) debugPrint('❌ $e');
           if (attempt == _maxRetries - 1 && i == providers.length - 1) {
             return EmailResult(
               success: false,

@@ -118,6 +118,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> with Single
       });
       AffectionService.instance.addPoints(2);
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         _history.add(
             {'role': 'assistant', 'content': 'Darling~ are you ready? 🌸'});
@@ -308,7 +309,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> with Single
               child: Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.78),
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.78),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
@@ -338,7 +339,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> with Single
             left: 16,
             right: 12,
             top: 10,
-            bottom: MediaQuery.of(context).padding.bottom + 10),
+            bottom: MediaQuery.paddingOf(context).bottom + 10),
         color: Colors.black26,
         child: Row(children: [
           Expanded(
@@ -371,9 +372,9 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> with Single
             child: Container(
               width: 44,
               height: 44,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                     colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)]),
               ),
               child:

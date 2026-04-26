@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Advanced Performance Monitoring
@@ -23,7 +23,7 @@ class AdvancedPerformanceMonitoring {
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     _sessionStart = DateTime.now();
-    debugPrint('[Performance Monitoring] Initialized');
+    if (kDebugMode) debugPrint('[Performance Monitoring] Initialized');
   }
 
   // ===== PERFORMANCE TRACKING =====

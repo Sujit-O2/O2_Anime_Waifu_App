@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Voice Mail Service - Send voice messages as email attachments
@@ -40,10 +41,12 @@ class VoiceMailService {
       voicemailsMap[id] = voicemail.toJson();
 
       await _prefs.setString(_voicemailsKey, jsonEncode(voicemailsMap));
-      debugPrint('✅ Voice message saved: $id (${voicemail.durationSeconds}s)');
+      if (kDebugMode)
+        debugPrint(
+            '✅ Voice message saved: $id (${voicemail.durationSeconds}s)');
       return id;
     } catch (e) {
-      debugPrint('❌ Error saving voice message: $e');
+      if (kDebugMode) debugPrint('❌ Error saving voice message: $e');
       return null;
     }
   }
@@ -58,7 +61,7 @@ class VoiceMailService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error getting voice message: $e');
+      if (kDebugMode) debugPrint('❌ Error getting voice message: $e');
       return null;
     }
   }
@@ -73,7 +76,7 @@ class VoiceMailService {
           .map((json) => VoiceMail.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error loading voice messages: $e');
+      if (kDebugMode) debugPrint('❌ Error loading voice messages: $e');
       return [];
     }
   }
@@ -87,7 +90,7 @@ class VoiceMailService {
       await _prefs.setString(_voicemailsKey, jsonEncode(voicemailsMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error deleting voice message: $e');
+      if (kDebugMode) debugPrint('❌ Error deleting voice message: $e');
       return false;
     }
   }
@@ -100,7 +103,7 @@ class VoiceMailService {
       if (vm == null) return null;
       return vm.audioBase64;
     } catch (e) {
-      debugPrint('❌ Error preparing voice attachment: $e');
+      if (kDebugMode) debugPrint('❌ Error preparing voice attachment: $e');
       return null;
     }
   }
@@ -162,11 +165,10 @@ class VoiceMailService {
       return VoiceMailStats(
         totalVoiceMessages: all.length,
         totalDurationSeconds: totalDuration,
-        averageDurationSeconds:
-            all.isEmpty ? 0 : totalDuration ~/ all.length,
+        averageDurationSeconds: all.isEmpty ? 0 : totalDuration ~/ all.length,
       );
     } catch (e) {
-      debugPrint('❌ Error getting voice mail stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting voice mail stats: $e');
       return VoiceMailStats(
         totalVoiceMessages: 0,
         totalDurationSeconds: 0,
@@ -230,7 +232,7 @@ class VoiceMail {
     try {
       return base64Decode(audioBase64);
     } catch (e) {
-      debugPrint('❌ Error decoding audio data: $e');
+      if (kDebugMode) debugPrint('❌ Error decoding audio data: $e');
       return null;
     }
   }
@@ -255,5 +257,3 @@ class VoiceMailStats {
 
 /// Global instance
 final voiceMailService = VoiceMailService();
-
-

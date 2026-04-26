@@ -10,28 +10,46 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Persistent HTTP client for connection pooling — reuses TCP connections
+/// across API calls, eliminating handshake overhead per request.
+final http.Client _persistentClient = http.Client();
+
+class _CachedResponse {
+  final String content;
+  final DateTime time;
+
+  const _CachedResponse(this.content, this.time);
+}
+
 /// Groq API
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
 
-  final _defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
+  final _defaultUrl = 'https://api.groq.com/openai/v1/chat/completions';
   static const Duration _chatTimeout = Duration(seconds: 30);
   static const Duration _mailTimeout = Duration(seconds: 20);
-  String _apiKeyOverride = "";
-  String _modelOverride = "";
-  String _urlOverride = "";
-  String _brevoApiKeyOverride = "";
+  DateTime? _lastMailSentAt;
+
+  /// Simple response cache — prevents duplicate API calls for identical
+  /// messages sent within 30 seconds (e.g., double-tap send)
+  final Map<String, _CachedResponse> _responseCache = {};
+  static const int _maxCacheSize = 10;
+  static const Duration _cacheTtl = Duration(seconds: 30);
+  String _apiKeyOverride = '';
+  String _modelOverride = '';
+  String _urlOverride = '';
+  String _brevoApiKeyOverride = '';
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['API_KEY'] ?? "";
+    return dotenv.env['API_KEY'] ?? '';
   }
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
-    return "meta-llama/llama-4-maverick-17b-128e-instruct";
+    return 'meta-llama/llama-4-maverick-17b-128e-instruct';
   }
 
   String get _effectiveUrl {
@@ -45,7 +63,7 @@ class ApiService {
     if (_brevoApiKeyOverride.trim().isNotEmpty) {
       return _brevoApiKeyOverride.trim();
     }
-    return dotenv.env['BREVO_API_KEY'] ?? "";
+    return dotenv.env['BREVO_API_KEY'] ?? '';
   }
 
   void configure({
@@ -72,9 +90,22 @@ class ApiService {
     List<Map<String, dynamic>> messages, {
     String? modelOverride,
   }) async {
+    // Check response cache for duplicate rapid-fire requests
+    final cacheKey = messages.isNotEmpty
+        ? messages.last['content']?.toString().hashCode.toString() ?? ''
+        : '';
+    if (cacheKey.isNotEmpty) {
+      final cached = _responseCache[cacheKey];
+      if (cached != null &&
+          DateTime.now().difference(cached.time) < _cacheTtl) {
+        if (kDebugMode) debugPrint('[API] Cache hit for duplicate message');
+        return cached.content;
+      }
+    }
+
     final apiKeySource = _apiKeyOverride.trim().isNotEmpty
         ? _apiKeyOverride.trim()
-        : (dotenv.env['API_KEY'] ?? "");
+        : (dotenv.env['API_KEY'] ?? '');
 
     final keys = apiKeySource
         .split(',')
@@ -83,7 +114,7 @@ class ApiService {
         .toList();
 
     if (messages.isEmpty) {
-      throw Exception("No messages provided for conversation");
+      throw Exception('No messages provided for conversation');
     }
 
     if (keys.isEmpty) {
@@ -96,7 +127,7 @@ class ApiService {
 
     final now = DateTime.now().toString();
     String timeContext =
-        " [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]";
+        ' [Current context: $now. Use this for temporal awareness only if relevant. Do not repeat the time unless asked.]';
 
     // Extract the valid user/assistant history
     var historyMessages = messages.where((m) => m['role'] != 'system').toList();
@@ -117,8 +148,8 @@ class ApiService {
       });
     } else {
       payloadMessages.insert(0, {
-        "role": "system",
-        "content": timeContext.trim(),
+        'role': 'system',
+        'content': timeContext.trim(),
       });
     }
 
@@ -137,19 +168,20 @@ class ApiService {
           final factStr = '\n[LONG-TERM MEMORY MATCH: ${facts.join(" | ")}]';
           payloadMessages.first['content'] =
               payloadMessages.first['content'].toString() + factStr;
-          debugPrint('[MemoryVault] Injected context: $factStr');
+          if (kDebugMode)
+            debugPrint('[MemoryVault] Injected context: $factStr');
         }
       } catch (e) {
-        debugPrint('[MemoryVault] Override error: $e');
+        if (kDebugMode) debugPrint('[MemoryVault] Override error: $e');
       }
     }
 
     final payload = {
-      "model": modelOverride ?? _effectiveModel,
-      "messages": payloadMessages,
-      "temperature": 0.9,
-      "max_completion_tokens": 2048,
-      "top_p": 1,
+      'model': modelOverride ?? _effectiveModel,
+      'messages': payloadMessages,
+      'temperature': 0.9,
+      'max_completion_tokens': 2048,
+      'top_p': 1,
     };
 
     List<Exception> errors = [];
@@ -165,26 +197,28 @@ class ApiService {
         await Future.delayed(Duration(milliseconds: backoffMs));
       }
       try {
-        final res = await http
+        final res = await _persistentClient
             .post(
               Uri.parse(_effectiveUrl),
               headers: {
-                "Authorization": "Bearer $apiKey",
-                "Content-Type": "application/json",
+                'Authorization': 'Bearer $apiKey',
+                'Content-Type': 'application/json',
               },
               body: jsonEncode(payload),
             )
             .timeout(_chatTimeout);
 
-        debugPrint(
-            "API Response Status: ${res.statusCode} (key ${idx + 1}/${keys.length})");
+        if (kDebugMode) {
+          debugPrint(
+              'API Response Status: ${res.statusCode} (key ${idx + 1}/${keys.length})');
+        }
 
         if (res.statusCode != 200) {
-          throw Exception("API error: ${res.statusCode}. Body: ${res.body}");
+          throw Exception('API error: ${res.statusCode}. Body: ${res.body}');
         }
 
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        final choices = data["choices"];
+        final choices = data['choices'];
         if (choices is! List || choices.isEmpty) {
           throw Exception("API response missing 'choices' field");
         }
@@ -194,28 +228,28 @@ class ApiService {
           throw Exception("API response 'choices[0]' format invalid");
         }
 
-        final msg = first["message"];
+        final msg = first['message'];
         if (msg is! Map<String, dynamic>) {
           throw Exception("API response missing 'message' in choice");
         }
 
-        final content = (msg["content"] ?? "").toString().trim();
+        final content = (msg['content'] ?? '').toString().trim();
         if (content.isEmpty) {
-          return "No response";
+          return 'No response';
         }
 
         // --- Mail Handling ---
-        if (content.contains("Mail:") && content.contains("Body:")) {
+        if (content.contains('Mail:') && content.contains('Body:')) {
           final emailRegex =
-              RegExp(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}");
+              RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}');
           final match = emailRegex.firstMatch(content);
           var mail = Defaults.defaultEmail;
           if (match != null && match.group(0) != null) {
             mail = match.group(0)!;
-            debugPrint("Extracted Email: ${match.group(0)}");
+            if (kDebugMode) debugPrint('Extracted Email: ${match.group(0)}');
           }
-          const extSub = "Zero Two";
-          final bodyStart = content.indexOf("Body:");
+          const extSub = 'Zero Two';
+          final bodyStart = content.indexOf('Body:');
           if (bodyStart == -1 || bodyStart + 5 >= content.length) {
             return content;
           }
@@ -227,12 +261,24 @@ class ApiService {
           unawaited(LongTermMemoryDb.extractAndSave(lastUserMsg, content));
         }
 
+        // Cache this response for dedup protection
+        if (cacheKey.isNotEmpty) {
+          _responseCache[cacheKey] = _CachedResponse(content, DateTime.now());
+          // Evict oldest entries if cache is full
+          if (_responseCache.length > _maxCacheSize) {
+            final oldest = _responseCache.entries
+                .reduce((a, b) => a.value.time.isBefore(b.value.time) ? a : b);
+            _responseCache.remove(oldest.key);
+          }
+        }
         return content; // Return success immediately
       } on TimeoutException catch (e) {
-        debugPrint("API Key ${idx + 1}/${keys.length} timeout: $e");
-        errors.add(Exception("Timeout with key ${idx + 1}"));
+        if (kDebugMode)
+          debugPrint('API Key ${idx + 1}/${keys.length} timeout: $e');
+        errors.add(Exception('Timeout with key ${idx + 1}'));
       } catch (e) {
-        debugPrint("API Key ${idx + 1}/${keys.length} failed: $e");
+        if (kDebugMode)
+          debugPrint('API Key ${idx + 1}/${keys.length} failed: $e');
         errors.add(e is Exception ? e : Exception(e.toString()));
       }
     }
@@ -247,7 +293,7 @@ class ApiService {
     ];
     for (final fallback in fallbackModels) {
       if (fallback == usedModel) continue; // skip the one that already failed
-      debugPrint("Trying fallback model: $fallback");
+      if (kDebugMode) debugPrint('Trying fallback model: $fallback');
       try {
         final fallbackPayload = Map<String, dynamic>.from(payload);
         fallbackPayload['model'] = fallback;
@@ -267,12 +313,12 @@ class ApiService {
 
         final apiKey =
             keys[(DateTime.now().millisecondsSinceEpoch) % keys.length];
-        final res = await http
+        final res = await _persistentClient
             .post(
               Uri.parse(_effectiveUrl),
               headers: {
-                "Authorization": "Bearer $apiKey",
-                "Content-Type": "application/json",
+                'Authorization': 'Bearer $apiKey',
+                'Content-Type': 'application/json',
               },
               body: jsonEncode(fallbackPayload),
             )
@@ -280,25 +326,27 @@ class ApiService {
 
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body) as Map<String, dynamic>;
-          final choices = data["choices"];
+          final choices = data['choices'];
           if (choices is List && choices.isNotEmpty) {
             final content =
-                (choices.first["message"]["content"] ?? "").toString().trim();
+                (choices.first['message']['content'] ?? '').toString().trim();
             if (content.isNotEmpty) {
-              debugPrint("Fallback model $fallback succeeded!");
+              if (kDebugMode) debugPrint('Fallback model $fallback succeeded!');
               return content;
             }
           }
         }
       } catch (e) {
-        debugPrint("Fallback model $fallback failed: $e");
+        if (kDebugMode) debugPrint('Fallback model $fallback failed: $e');
       }
     }
 
     // --- Offline AI Fallback ---
     // If all models and keys failed, use local fallback
-    debugPrint(
-        "All models and keys failed. Triggering Offline AI Mode fallback.");
+    if (kDebugMode) {
+      debugPrint(
+          'All models and keys failed. Triggering Offline AI Mode fallback.');
+    }
     try {
       final lastUserMsg =
           messages.isNotEmpty ? messages.last['content'].toString() : '';
@@ -306,38 +354,46 @@ class ApiService {
           .generateLocalResponse(lastUserMsg, 'Normal');
     } catch (fallbackErr) {
       throw Exception(
-          "All ${keys.length} API keys failed. Last error: ${errors.last}. Offline fallback also failed: $fallbackErr");
+          'All ${keys.length} API keys failed. Last error: ${errors.last}. Offline fallback also failed: $fallbackErr');
     }
   }
 
   /// Sends a styled email notification via Brevo API with enhanced error handling
   /// Automatically retries on failure and provides diagnostic information
   Future<String> sendMail(String mailId, String body, String head) async {
+    // Rate limit: max 1 email per 30 seconds
+    final now = DateTime.now();
+    if (_lastMailSentAt != null &&
+        now.difference(_lastMailSentAt!) < const Duration(seconds: 30)) {
+      return '⏳ Please wait before sending another email.';
+    }
     final url = Uri.parse('https://api.brevo.com/v3/smtp/email');
     final brevoKey = _effectiveBrevoApiKey;
 
     // Validate API Key
     if (brevoKey.isEmpty) {
-      debugPrint("❌ Brevo API key missing (BREVO_API_KEY)");
-      return "❌ Brevo API key not configured. Please add BREVO_API_KEY to .env or Dev Config.";
+      if (kDebugMode) debugPrint('❌ Brevo API key missing (BREVO_API_KEY)');
+      return '❌ Brevo API key not configured. Please add BREVO_API_KEY to .env or Dev Config.';
     }
 
     // Validate API key format (should start with xkeysib-)
     if (!brevoKey.startsWith('xkeysib-')) {
-      debugPrint(
-          "❌ Brevo API key format invalid. Expected to start with 'xkeysib-'");
+      if (kDebugMode) {
+        debugPrint(
+            "❌ Brevo API key format invalid. Expected to start with 'xkeysib-'");
+      }
       return "❌ Brevo API key format is invalid. Check that it starts with 'xkeysib-'.";
     }
 
     final normalizedMail = mailId.trim();
     if (normalizedMail.isEmpty) {
-      debugPrint("❌ Missing destination email for mail task");
-      return "❌ Missing destination email address.";
+      if (kDebugMode) debugPrint('❌ Missing destination email for mail task');
+      return '❌ Missing destination email address.';
     }
 
     if (body.trim().isEmpty || head.trim().isEmpty) {
-      debugPrint("❌ Mail body or subject is empty");
-      return "❌ Mail content cannot be empty.";
+      if (kDebugMode) debugPrint('❌ Mail body or subject is empty');
+      return '❌ Mail content cannot be empty.';
     }
 
     try {
@@ -347,14 +403,21 @@ class ApiService {
         final htmlTemplate = await rootBundle
             .loadString('assets/template/zero_two_email_template.html');
         htmlFinal = htmlTemplate
-            .replaceAll("{{body}}", body)
-            .replaceAll("{{year}}", DateTime.now().year.toString());
+            .replaceAll('{{body}}', body)
+            .replaceAll('{{year}}', DateTime.now().year.toString());
       } catch (e) {
-        debugPrint("⚠️ Template not found, using plain HTML: $e");
-        htmlFinal = '<html><body><p>$body</p></body></html>';
+        if (kDebugMode)
+          debugPrint('⚠️ Template not found, using plain HTML: $e');
+        // Basic HTML entity encoding to prevent XSS in email body
+        final safeBody = body
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+        htmlFinal = '<html><body><p>$safeBody</p></body></html>';
       }
 
-      final respon = await http
+      final respon = await _persistentClient
           .post(
             url,
             headers: {
@@ -363,45 +426,50 @@ class ApiService {
               'Accept': 'application/json',
             },
             body: jsonEncode({
-              "sender": {
-                "name": "Zero Two",
-                "email": Defaults.defaultSenderEmail
+              'sender': {
+                'name': 'Zero Two',
+                'email': Defaults.defaultSenderEmail
               },
-              "to": [
-                {"email": normalizedMail}
+              'to': [
+                {'email': normalizedMail}
               ],
-              "subject": head,
-              "htmlContent": htmlFinal,
+              'subject': head,
+              'htmlContent': htmlFinal,
             }),
           )
           .timeout(_mailTimeout);
 
       if (respon.statusCode == 201) {
-        debugPrint("✅ Mail sent successfully to $normalizedMail");
-        return "✅ Mail sent successfully.";
+        if (kDebugMode)
+          debugPrint('✅ Mail sent successfully to $normalizedMail');
+        return '✅ Mail sent successfully.';
       } else if (respon.statusCode == 401) {
-        debugPrint("❌ Brevo authentication failed (401): ${respon.body}");
-        return "❌ Brevo API key is invalid or expired (401). Check your API key in Dev Config.";
+        if (kDebugMode)
+          debugPrint('❌ Brevo authentication failed (401): ${respon.body}');
+        return '❌ Brevo API key is invalid or expired (401). Check your API key in Dev Config.';
       } else if (respon.statusCode == 429) {
-        debugPrint("⚠️  Brevo rate limit exceeded (429)");
-        return "⚠️ Too many requests sent. Please wait before trying again.";
+        if (kDebugMode) debugPrint('⚠️  Brevo rate limit exceeded (429)');
+        return '⚠️ Too many requests sent. Please wait before trying again.';
       } else if (respon.statusCode == 400) {
-        debugPrint("❌ Bad request (400): ${respon.body}");
-        return "❌ Invalid email format or recipient address.";
+        if (kDebugMode) debugPrint('❌ Bad request (400): ${respon.body}');
+        return '❌ Invalid email format or recipient address.';
       } else {
-        debugPrint("❌ Mail send failed: ${respon.statusCode} ${respon.body}");
-        return "❌ Failed to send mail (HTTP ${respon.statusCode}). ${respon.body}";
+        if (kDebugMode)
+          debugPrint('❌ Mail send failed: ${respon.statusCode} ${respon.body}');
+        return '❌ Failed to send mail (HTTP ${respon.statusCode}). ${respon.body}';
       }
     } on TimeoutException catch (_) {
-      debugPrint("❌ Mail request timeout after ${_mailTimeout.inSeconds}s");
-      return "❌ Mail request timeout. Please ensure you have internet connection.";
+      if (kDebugMode)
+        debugPrint('❌ Mail request timeout after ${_mailTimeout.inSeconds}s');
+      return '❌ Mail request timeout. Please ensure you have internet connection.';
     } catch (e) {
-      debugPrint("❌ Mail send error: $e");
-      return "❌ Error sending mail: $e";
+      if (kDebugMode) debugPrint('❌ Mail send error: $e');
+      return '❌ Error sending mail: $e';
     }
   }
 
-  /// Auto-feeds user interactions into the Memory Stack
+  /// Auto-feeds user interactions into the Memory Stack.
+  /// Uses defensive decoding to prevent corrupt JSON from breaking the app.
   Future<void> _updateBrainArchitecture(String userMessage) async {
     if (userMessage.trim().isEmpty) return;
     try {
@@ -410,38 +478,44 @@ class ApiService {
       // Update Memory Stack (Short-term)
       final memData = prefs.getString(PrefsKeys.memoryStackData);
       Map<String, dynamic> memories = {
-        'short': [],
-        'long': [],
-        'emotional': [],
-        'project': []
+        'short': <Map<String, dynamic>>[],
+        'long': <Map<String, dynamic>>[],
+        'emotional': <Map<String, dynamic>>[],
+        'project': <Map<String, dynamic>>[],
       };
-      if (memData != null) {
-        final decoded = jsonDecode(memData) as Map<String, dynamic>;
-        memories['short'] =
-            (decoded['short'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        memories['long'] =
-            (decoded['long'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        memories['emotional'] =
-            (decoded['emotional'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        memories['project'] =
-            (decoded['project'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      if (memData != null && memData.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(memData);
+          if (decoded is Map<String, dynamic>) {
+            for (final key in ['short', 'long', 'emotional', 'project']) {
+              final list = decoded[key];
+              if (list is List) {
+                memories[key] = list.whereType<Map<String, dynamic>>().toList();
+              }
+            }
+          }
+        } catch (_) {
+          // Corrupt stored JSON — reset gracefully
+          if (kDebugMode)
+            debugPrint('[BrainArch] Corrupt memory data, resetting.');
+        }
       }
 
-      List shortMem = memories['short'];
+      final shortMem = memories['short'] as List<Map<String, dynamic>>;
       shortMem.insert(0, {
         'text': userMessage.length > 50
             ? '${userMessage.substring(0, 50)}...'
             : userMessage,
         'time': DateTime.now().toIso8601String(),
-        'importance': 'low'
+        'importance': 'low',
       });
-      if (shortMem.length > 20) shortMem = shortMem.sublist(0, 20);
-      memories['short'] = shortMem;
+      // Cap at 20 entries
+      if (shortMem.length > 20) {
+        memories['short'] = shortMem.sublist(0, 20);
+      }
       await prefs.setString(PrefsKeys.memoryStackData, jsonEncode(memories));
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Brain Architecture Sync Error: $e');
-      }
+      if (kDebugMode) debugPrint('Brain Architecture Sync Error: $e');
     }
   }
 }

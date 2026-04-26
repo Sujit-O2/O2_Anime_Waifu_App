@@ -23,12 +23,18 @@ class _GestureControlOverlayState extends State<GestureControlOverlay> with Widg
   bool _showingFortune = false;
 
   final List<String> _fortunes = [
-    "✨ Great Blessing: Your waifu loves you today!",
-    "⭐ Blessing: A good anime episode awaits you.",
+    '✨ Great Blessing: Your waifu loves you today!',
+    '⭐ Blessing: A good anime episode awaits you.',
     "🌸 Small Blessing: You'll find a nice soundtrack.",
-    "💀 Curse: Your favorite character might die (in canon).",
-    "💌 Secret: Someone is thinking about you.",
-    "🍀 Luck: Gacha pulls will be incredibly lucky today!"
+    '💀 Curse: Your favorite character might die (in canon).',
+    '💌 Secret: Someone is thinking about you.',
+    '🍀 Luck: Gacha pulls will be incredibly lucky today!',
+    '🎯 Focus: Your concentration today is S-rank.',
+    '🌟 Radiance: Your aura is brighter than usual!',
+    '💎 Rare Find: Something special awaits in your feed.',
+    '🔥 Passion: Chase that dream idea you had last night.',
+    '🦋 Transformation: Today marks a turning point.',
+    '🎵 Harmony: The perfect song will find you today.',
   ];
 
   @override
@@ -55,6 +61,7 @@ class _GestureControlOverlayState extends State<GestureControlOverlay> with Widg
   }
 
   void _initShakeDetection() {
+    try {
     _accelSub = accelerometerEventStream().listen((event) {
       double gX = event.x / 9.80665;
       double gY = event.y / 9.80665;
@@ -71,7 +78,12 @@ class _GestureControlOverlayState extends State<GestureControlOverlay> with Widg
         _lastShakeTime = now;
         _onShake();
       }
+    }, onError: (_) {
+      // Sensor unavailable on this device — silently degrade
     });
+    } catch (_) {
+      // Sensor API not available
+    }
   }
 
   void _onShake() {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Monetization Core Service
@@ -24,7 +24,7 @@ class MonetizationService {
     await _loadPurchaseHistory();
     await _loadSubscriptions();
     await _loadInventory();
-    debugPrint('[Monetization] Service initialized');
+    if (kDebugMode) debugPrint('[Monetization] Service initialized');
   }
 
   // ===== CURRENCY MANAGEMENT =====
@@ -47,7 +47,8 @@ class MonetizationService {
     wallet.coins += amount;
     wallet.lastUpdated = DateTime.now();
     await _saveWallet(wallet);
-    debugPrint('[Monetization] Added $amount coins. Reason: $reason');
+    if (kDebugMode)
+      debugPrint('[Monetization] Added $amount coins. Reason: $reason');
   }
 
   Future<void> addPremiumCurrency(int amount, String transactionId) async {
@@ -68,15 +69,15 @@ class MonetizationService {
   }
 
   Future<bool> spendCoins(int amount, String purpose) async {
+    // ✅ UNLIMITED COINS FOR ALL USERS (Free Access Mode)
     final wallet = await getUserWallet();
-    if (wallet.coins < amount) {
-      debugPrint('[Monetization] Insufficient coins for $purpose');
-      return false;
-    }
-
+    // Allow unlimited spending - no coin requirement
     wallet.coins -= amount;
+    if (wallet.coins < 0) wallet.coins = 0; // Prevent negative
     await _saveWallet(wallet);
-    debugPrint('[Monetization] Spent $amount coins on $purpose');
+    if (kDebugMode)
+      debugPrint(
+          '[Monetization] Spent $amount coins on $purpose (unlimited mode)');
     return true;
   }
 
@@ -117,7 +118,9 @@ class MonetizationService {
     // Grant currency equivalence
     await addCoins((price * 100).toInt(), 'purchase_reward_$itemId');
 
-    debugPrint('[Monetization] Purchase recorded: $itemName for $price $currency');
+    if (kDebugMode)
+      debugPrint(
+          '[Monetization] Purchase recorded: $itemName for $price $currency');
   }
 
   Future<List<PurchaseItem>> getPurchaseHistory() async {
@@ -150,10 +153,14 @@ class MonetizationService {
     await _saveSubscriptions();
 
     // Grant monthly bonus
-    final bonusCoins = tier == 'premium' ? 1000 : tier == 'pro' ? 500 : 100;
+    final bonusCoins = tier == 'premium'
+        ? 1000
+        : tier == 'pro'
+            ? 500
+            : 100;
     await addCoins(bonusCoins, 'subscription_bonus_$tier');
 
-    debugPrint('[Monetization] Subscription activated: $tier');
+    if (kDebugMode) debugPrint('[Monetization] Subscription activated: $tier');
   }
 
   Future<Subscription?> getActiveSubscription(String tier) async {
@@ -165,23 +172,26 @@ class MonetizationService {
   }
 
   Future<List<String>> getUnlockedFeatures() async {
-    final features = <String>{'free_features'};
-
-    for (final tier in ['pro', 'premium']) {
-      final sub = await getActiveSubscription(tier);
-      if (sub != null) {
-        features.addAll(sub.features);
-      }
-    }
-
-    return features.toList();
+    // ✅ ALL FEATURES UNLOCKED FOR ALL USERS (Free Access Mode)
+    return [
+      'ad_free',
+      'advanced_chat',
+      'priority_support',
+      'exclusive_cosmetics',
+      'increased_rewards',
+      'vip_badge',
+      'basic_chat',
+      'standard_rewards',
+      'free_features',
+    ];
   }
 
   // ===== COSMETICS & INVENTORY =====
   Future<void> unlockCosmetic(CosmeticItem item) async {
     _inventory[item.id] = item;
     await _saveInventory();
-    debugPrint('[Monetization] Cosmetic unlocked: ${item.name}');
+    if (kDebugMode)
+      debugPrint('[Monetization] Cosmetic unlocked: ${item.name}');
   }
 
   Future<List<CosmeticItem>> getInventory({String? type}) async {
@@ -200,8 +210,10 @@ class MonetizationService {
   }
 
   Future<void> equipCosmetic(String slot, CosmeticItem item) async {
-    await _prefs.setString('equipped_cosmetic_$slot', jsonEncode(item.toJson()));
-    debugPrint('[Monetization] Equipped: ${item.name} to $slot');
+    await _prefs.setString(
+        'equipped_cosmetic_$slot', jsonEncode(item.toJson()));
+    if (kDebugMode)
+      debugPrint('[Monetization] Equipped: ${item.name} to $slot');
   }
 
   // ===== BATTLE PASS =====
@@ -234,19 +246,17 @@ class MonetizationService {
     }
 
     await _prefs.setString('battle_pass_data', jsonEncode(bpData.toJson()));
-    debugPrint('[Monetization] Battle Pass XP +$xp from $activity');
+    if (kDebugMode)
+      debugPrint('[Monetization] Battle Pass XP +$xp from $activity');
   }
 
   Future<List<BattlePassReward>> claimBattlePassReward(int rewardLevel) async {
     final bpData = await getBattlePassData();
 
-    if (bpData.level < rewardLevel) {
-      debugPrint('[Monetization] Cannot claim reward - insufficient level');
-      return [];
-    }
-
+    // ✅ ALL BATTLE PASS REWARDS UNLOCKED (Free Access Mode)
+    // Skip level check - allow claiming any reward without level requirement
     if (bpData.claimedRewards.contains(rewardLevel)) {
-      debugPrint('[Monetization] Reward already claimed');
+      if (kDebugMode) debugPrint('[Monetization] Reward already claimed');
       return [];
     }
 
@@ -337,7 +347,7 @@ class MonetizationService {
     );
 
     if (item.stock <= 0) {
-      debugPrint('[Monetization] Item out of stock');
+      if (kDebugMode) debugPrint('[Monetization] Item out of stock');
       return false;
     }
 
@@ -358,7 +368,8 @@ class MonetizationService {
       ));
     }
 
-    debugPrint('[Monetization] Purchased from shop: ${item.name}');
+    if (kDebugMode)
+      debugPrint('[Monetization] Purchased from shop: ${item.name}');
     return true;
   }
 
@@ -395,11 +406,14 @@ class MonetizationService {
   }
 
   String _categorizeCosmeticType(String name) {
-    if (name.toLowerCase().contains('avatar') || name.toLowerCase().contains('profile')) {
+    if (name.toLowerCase().contains('avatar') ||
+        name.toLowerCase().contains('profile')) {
       return 'avatar';
-    } else if (name.toLowerCase().contains('theme') || name.toLowerCase().contains('background')) {
+    } else if (name.toLowerCase().contains('theme') ||
+        name.toLowerCase().contains('background')) {
       return 'theme';
-    } else if (name.toLowerCase().contains('effect') || name.toLowerCase().contains('particle')) {
+    } else if (name.toLowerCase().contains('effect') ||
+        name.toLowerCase().contains('particle')) {
       return 'effect';
     }
     return 'other';
@@ -414,25 +428,17 @@ class MonetizationService {
   }
 
   List<String> _getTierFeatures(String tier) {
-    switch (tier) {
-      case 'premium':
-        return [
-          'ad_free',
-          'advanced_chat',
-          'priority_support',
-          'exclusive_cosmetics',
-          'increased_rewards',
-          'vip_badge',
-        ];
-      case 'pro':
-        return [
-          'advanced_chat',
-          'increased_rewards',
-          'exclusive_cosmetics',
-        ];
-      default:
-        return ['basic_chat', 'standard_rewards'];
-    }
+    // ✅ ALL FEATURES UNLOCKED FOR ALL USERS (Free Access Mode)
+    return [
+      'ad_free',
+      'advanced_chat',
+      'priority_support',
+      'exclusive_cosmetics',
+      'increased_rewards',
+      'vip_badge',
+      'basic_chat',
+      'standard_rewards',
+    ];
   }
 
   List<BattlePassReward> _generateBattlePassRewards(int season, String tier) {
@@ -441,7 +447,8 @@ class MonetizationService {
         BattlePassReward(
           level: i,
           description: 'Season $season Level $i Reward',
-          itemId: i % 5 == 0 ? 'cosmetic_bp_s${season}_l$i' : 'coins_${i * 100}',
+          itemId:
+              i % 5 == 0 ? 'cosmetic_bp_s${season}_l$i' : 'coins_${i * 100}',
         ),
     ];
   }
@@ -471,7 +478,7 @@ class MonetizationService {
         final purchase = PurchaseItem.fromJson(jsonDecode(item));
         _purchaseHistory[purchase.id] = purchase;
       } catch (e) {
-        debugPrint('[Monetization] Error loading purchase: $e');
+        if (kDebugMode) debugPrint('[Monetization] Error loading purchase: $e');
       }
     }
   }
@@ -491,15 +498,15 @@ class MonetizationService {
         final sub = Subscription.fromJson(jsonDecode(item));
         _activeSubscriptions[sub.tier] = sub;
       } catch (e) {
-        debugPrint('[Monetization] Error loading subscription: $e');
+        if (kDebugMode)
+          debugPrint('[Monetization] Error loading subscription: $e');
       }
     }
   }
 
   Future<void> _saveInventory() async {
-    final data = _inventory.entries
-        .map((e) => jsonEncode(e.value.toJson()))
-        .toList();
+    final data =
+        _inventory.entries.map((e) => jsonEncode(e.value.toJson())).toList();
     await _prefs.setStringList('cosmetic_inventory', data);
   }
 
@@ -511,7 +518,7 @@ class MonetizationService {
         final cosmetic = CosmeticItem.fromJson(jsonDecode(item));
         _inventory[cosmetic.id] = cosmetic;
       } catch (e) {
-        debugPrint('[Monetization] Error loading cosmetic: $e');
+        if (kDebugMode) debugPrint('[Monetization] Error loading cosmetic: $e');
       }
     }
   }
@@ -531,10 +538,10 @@ class UserWallet {
   });
 
   Map<String, dynamic> toJson() => {
-    'coins': coins,
-    'premium': premiumCurrency,
-    'updated': lastUpdated.toIso8601String(),
-  };
+        'coins': coins,
+        'premium': premiumCurrency,
+        'updated': lastUpdated.toIso8601String(),
+      };
 
   factory UserWallet.fromJson(Map<String, dynamic> json) {
     return UserWallet(
@@ -565,14 +572,14 @@ class PurchaseItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'price': price,
-    'currency': currency,
-    'category': category,
-    'purchaseDate': purchaseDate.toIso8601String(),
-    'expiresAt': expiresAt?.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'price': price,
+        'currency': currency,
+        'category': category,
+        'purchaseDate': purchaseDate.toIso8601String(),
+        'expiresAt': expiresAt?.toIso8601String(),
+      };
 
   factory PurchaseItem.fromJson(Map<String, dynamic> json) {
     return PurchaseItem(
@@ -582,7 +589,9 @@ class PurchaseItem {
       currency: json['currency'] as String,
       category: json['category'] as String,
       purchaseDate: DateTime.parse(json['purchaseDate'] as String),
-      expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt'] as String) : null,
+      expiresAt: json['expiresAt'] != null
+          ? DateTime.parse(json['expiresAt'] as String)
+          : null,
     );
   }
 }
@@ -605,13 +614,13 @@ class Subscription {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'tier': tier,
-    'startDate': startDate.toIso8601String(),
-    'endDate': endDate.toIso8601String(),
-    'autoRenew': autoRenew,
-    'features': features,
-  };
+        'id': id,
+        'tier': tier,
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate.toIso8601String(),
+        'autoRenew': autoRenew,
+        'features': features,
+      };
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
@@ -641,12 +650,12 @@ class CosmeticItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'type': type,
-    'rarity': rarity,
-    'acquiredDate': acquiredDate.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'type': type,
+        'rarity': rarity,
+        'acquiredDate': acquiredDate.toIso8601String(),
+      };
 
   factory CosmeticItem.fromJson(Map<String, dynamic> json) {
     return CosmeticItem(
@@ -681,15 +690,15 @@ class BattlePassData {
   });
 
   Map<String, dynamic> toJson() => {
-    'level': level,
-    'experience': experience,
-    'tier': tier,
-    'season': currentSeason,
-    'seasonStart': seasonStartDate.toIso8601String(),
-    'seasonEnd': seasonEndDate.toIso8601String(),
-    'rewards': rewards.map((r) => r.toJson()).toList(),
-    'claimed': claimedRewards,
-  };
+        'level': level,
+        'experience': experience,
+        'tier': tier,
+        'season': currentSeason,
+        'seasonStart': seasonStartDate.toIso8601String(),
+        'seasonEnd': seasonEndDate.toIso8601String(),
+        'rewards': rewards.map((r) => r.toJson()).toList(),
+        'claimed': claimedRewards,
+      };
 
   factory BattlePassData.fromJson(Map<String, dynamic> json) {
     return BattlePassData(
@@ -719,10 +728,10 @@ class BattlePassReward {
   });
 
   Map<String, dynamic> toJson() => {
-    'level': level,
-    'description': description,
-    'itemId': itemId,
-  };
+        'level': level,
+        'description': description,
+        'itemId': itemId,
+      };
 
   factory BattlePassReward.fromJson(Map<String, dynamic> json) {
     return BattlePassReward(
@@ -769,12 +778,12 @@ class MonetaryTransaction {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'amount': amount,
-    'timestamp': timestamp.toIso8601String(),
-    'distributor': distributor,
-  };
+        'id': id,
+        'type': type,
+        'amount': amount,
+        'timestamp': timestamp.toIso8601String(),
+        'distributor': distributor,
+      };
 }
 
 class MonetizationReport {
@@ -818,5 +827,3 @@ SUBSCRIPTIONS:
 ''';
   }
 }
-
-

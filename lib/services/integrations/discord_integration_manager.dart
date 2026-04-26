@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Discord Integration Manager with Webhook Support
@@ -26,7 +26,7 @@ class DiscordIntegrationManager {
     await _loadLinkedUsers();
     _webhookUrl = _prefs.getString('discord_webhook_url');
     _webhookEnabled = _webhookUrl != null && _webhookUrl!.isNotEmpty;
-    debugPrint('[Discord Integration] Initialized (Webhooks: $_webhookEnabled)');
+    if (kDebugMode) debugPrint('[Discord Integration] Initialized (Webhooks: $_webhookEnabled)');
   }
 
   // ===== WEBHOOK MANAGEMENT =====
@@ -36,10 +36,10 @@ class DiscordIntegrationManager {
       _webhookEnabled = true;
       await _prefs.setString('discord_webhook_url', webhookUrl);
       await _prefs.setString('discord_webhook_user', userId);
-      debugPrint('✅ Discord webhook configured');
+      if (kDebugMode) debugPrint('✅ Discord webhook configured');
       return true;
     } catch (e) {
-      debugPrint('[Discord] Webhook setup error: $e');
+      if (kDebugMode) debugPrint('[Discord] Webhook setup error: $e');
       return false;
     }
   }
@@ -221,16 +221,16 @@ class DiscordIntegrationManager {
       };
 
       // Simulate webhook send (in production, use http package)
-      debugPrint('📤 Discord webhook payload prepared: ${message.messageType}');
+      if (kDebugMode) debugPrint('📤 Discord webhook payload prepared: ${message.messageType}');
       await Future.delayed(const Duration(milliseconds: 100)); // Simulate send
       
       message.status = 'sent';
       message.sentAt = DateTime.now();
       _addEventLog('message_sent', message.messageType);
 
-      debugPrint('✅ Message sent via webhook: ${message.messageType}');
+      if (kDebugMode) debugPrint('✅ Message sent via webhook: ${message.messageType}');
     } catch (e) {
-      debugPrint('[Discord] Webhook send error: $e');
+      if (kDebugMode) debugPrint('[Discord] Webhook send error: $e');
       _addEventLog('webhook_error', e.toString());
     }
   }
@@ -244,9 +244,9 @@ class DiscordIntegrationManager {
         await Future.delayed(const Duration(milliseconds: 200)); // Rate limit
       }
 
-      debugPrint('✅ Batch sent: ${messages.length} events');
+      if (kDebugMode) debugPrint('✅ Batch sent: ${messages.length} events');
     } catch (e) {
-      debugPrint('[Discord] Batch send error: $e');
+      if (kDebugMode) debugPrint('[Discord] Batch send error: $e');
     }
   }
 
@@ -314,9 +314,9 @@ class DiscordIntegrationManager {
       await _sendViaWebhook(message);
       _addEventLog(eventType, userId);
 
-      debugPrint('📤 Event streamed: $eventType');
+      if (kDebugMode) debugPrint('📤 Event streamed: $eventType');
     } catch (e) {
-      debugPrint('[Discord] Event stream error: $e');
+      if (kDebugMode) debugPrint('[Discord] Event stream error: $e');
     }
   }
 

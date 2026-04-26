@@ -28,6 +28,7 @@ class _MemoryTimelinePageState extends State<MemoryTimelinePage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _memories = memories;
       _loading = false;

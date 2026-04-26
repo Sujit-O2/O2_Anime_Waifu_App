@@ -30,6 +30,7 @@ class _WatchHistoryPageState extends State<WatchHistoryPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _continueWatching = cw;
       _history = hist;
@@ -142,8 +143,8 @@ class _WatchHistoryPageState extends State<WatchHistoryPage> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
 
               ),
               const SizedBox(height: 12),

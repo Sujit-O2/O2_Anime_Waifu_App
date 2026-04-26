@@ -159,12 +159,12 @@ class ErrorHandler {
   /// Log error to console (development only)
   static void logError(AppException exception) {
     if (kDebugMode) {
-      debugPrint('❌ ERROR: ${exception.message}');
+      if (kDebugMode) debugPrint('❌ ERROR: ${exception.message}');
       if (exception.code != null) {
-        debugPrint('Code: ${exception.code}');
+        if (kDebugMode) debugPrint('Code: ${exception.code}');
       }
       if (exception.stackTrace != null) {
-        debugPrint('${exception.stackTrace}');
+        if (kDebugMode) debugPrint('${exception.stackTrace}');
       }
     }
   }
@@ -175,9 +175,9 @@ class ErrorHandler {
     String context,
   ) {
     if (kDebugMode) {
-      debugPrint('❌ ERROR in $context: ${exception.message}');
+      if (kDebugMode) debugPrint('❌ ERROR in $context: ${exception.message}');
       if (exception.stackTrace != null) {
-        debugPrint('${exception.stackTrace}');
+        if (kDebugMode) debugPrint('${exception.stackTrace}');
       }
     }
   }

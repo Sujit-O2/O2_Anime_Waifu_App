@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 import 'error_handler.dart';
 
@@ -27,7 +27,7 @@ abstract class BaseRepository<T> {
           .collection(collectionName)
           .add(toFirestore(item));
 
-      debugPrint('✅ Document created: ${docRef.id}');
+      if (kDebugMode) debugPrint('✅ Document created: ${docRef.id}');
       return Result.success(docRef.id);
     } catch (e, stackTrace) {
       return Result.failure(ErrorHandler.handleException(e, stackTrace));
@@ -59,7 +59,7 @@ abstract class BaseRepository<T> {
           .doc(documentId)
           .update(toFirestore(item));
 
-      debugPrint('✅ Document updated: $documentId');
+      if (kDebugMode) debugPrint('✅ Document updated: $documentId');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(ErrorHandler.handleException(e, stackTrace));
@@ -71,7 +71,7 @@ abstract class BaseRepository<T> {
     try {
       await firestore.collection(collectionName).doc(documentId).delete();
 
-      debugPrint('✅ Document deleted: $documentId');
+      if (kDebugMode) debugPrint('✅ Document deleted: $documentId');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(ErrorHandler.handleException(e, stackTrace));
@@ -155,7 +155,7 @@ abstract class BaseRepository<T> {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch created ${items.length} documents');
+      if (kDebugMode) debugPrint('✅ Batch created ${items.length} documents');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(ErrorHandler.handleException(e, stackTrace));
@@ -172,7 +172,7 @@ abstract class BaseRepository<T> {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch deleted ${documentIds.length} documents');
+      if (kDebugMode) debugPrint('✅ Batch deleted ${documentIds.length} documents');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(ErrorHandler.handleException(e, stackTrace));
@@ -345,7 +345,7 @@ class OfflineCapableRepository<T> extends BaseRepository<T> {
       // Create locally with temporary ID
       final tempId = 'offline_${DateTime.now().millisecondsSinceEpoch}';
       _offlineCache[tempId] = item;
-      debugPrint('📱 Document created offline: $tempId');
+      if (kDebugMode) debugPrint('📱 Document created offline: $tempId');
       return Result.success(tempId);
     }
 
@@ -355,7 +355,7 @@ class OfflineCapableRepository<T> extends BaseRepository<T> {
   /// Get from offline cache if available
   Future<Result<T?>> readOfflineFirst(String documentId) async {
     if (_offlineCache.containsKey(documentId)) {
-      debugPrint('📱 Document loaded from offline cache: $documentId');
+      if (kDebugMode) debugPrint('📱 Document loaded from offline cache: $documentId');
       return Result.success(_offlineCache[documentId]);
     }
 
@@ -378,7 +378,7 @@ class OfflineCapableRepository<T> extends BaseRepository<T> {
         await batch.commit();
         _offlineCache.clear();
 
-        debugPrint('✅ Offline changes synced to server');
+        if (kDebugMode) debugPrint('✅ Offline changes synced to server');
         return Result.success(null);
       } catch (e, stackTrace) {
         return Result.failure(ErrorHandler.handleException(e, stackTrace));

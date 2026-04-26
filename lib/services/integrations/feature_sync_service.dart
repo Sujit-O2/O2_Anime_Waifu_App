@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ class FeatureSyncService {
       );
       _initialized = true;
     } catch (e) {
-      debugPrint('FeatureSyncService.init: $e');
+      if (kDebugMode) debugPrint('FeatureSyncService.init: $e');
     }
   }
 
@@ -82,7 +82,7 @@ class FeatureSyncService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('FeatureSyncService.upload($key): $e');
+      if (kDebugMode) debugPrint('FeatureSyncService.upload($key): $e');
     }
   }
 
@@ -108,7 +108,7 @@ class FeatureSyncService {
       final prefs = await SharedPreferences.getInstance();
       _writePref(prefs, key, decoded, type);
     } catch (e) {
-      debugPrint('FeatureSyncService.download($key): $e');
+      if (kDebugMode) debugPrint('FeatureSyncService.download($key): $e');
     }
   }
 
@@ -132,9 +132,9 @@ class FeatureSyncService {
         }
       }
       await batch.commit();
-      debugPrint('FeatureSyncService: uploaded ${syncKeys.length} keys');
+      if (kDebugMode) debugPrint('FeatureSyncService: uploaded ${syncKeys.length} keys');
     } catch (e) {
-      debugPrint('FeatureSyncService.uploadAll: $e');
+      if (kDebugMode) debugPrint('FeatureSyncService.uploadAll: $e');
     }
   }
 
@@ -157,12 +157,12 @@ class FeatureSyncService {
           final decoded = jsonDecode(rawValue);
           _writePref(prefs, key, decoded, type);
         } catch (e) {
-          debugPrint('FeatureSyncService.downloadAll($key): $e');
+          if (kDebugMode) debugPrint('FeatureSyncService.downloadAll($key): $e');
         }
       }
-      debugPrint('FeatureSyncService: downloaded all keys');
+      if (kDebugMode) debugPrint('FeatureSyncService: downloaded all keys');
     } catch (e) {
-      debugPrint('FeatureSyncService.downloadAll: $e');
+      if (kDebugMode) debugPrint('FeatureSyncService.downloadAll: $e');
     }
   }
 

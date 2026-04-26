@@ -101,6 +101,7 @@ class VoiceProvider extends ChangeNotifier {
   // ── Pending reply dispatch (deferred reply after wake word) ────────────────
   bool pendingReplyDispatch = false;
   bool pendingReplyNeedsVoice = false;
+
 }
 
 

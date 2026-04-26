@@ -28,6 +28,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
     try {
       final picked = await ImagePicker().pickImage(source: source, maxWidth: 1200);
       if (picked != null) {
+        if (!mounted) return;
         setState(() { _image = File(picked.path); _translation = null; _error = null; });
       }
     } catch (e) {
@@ -48,6 +49,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
         apiKey = dotenv.env['API_KEY'] ?? '';
       }
       if (apiKey.isEmpty) {
+        if (!mounted) return;
         setState(() { _error = 'No API key configured. Go to Dev Config in Settings.'; _translating = false; });
         return;
       }
@@ -92,6 +94,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         final content = data['choices']?[0]?['message']?['content'] ?? '';
+        if (!mounted) return;
         setState(() => _translation = content);
         HapticFeedback.heavyImpact();
       } else {

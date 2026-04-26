@@ -103,6 +103,7 @@ class _WritingHelperPageState extends State<WritingHelperPage>
       });
       _saveHistory();
     } catch (_) {
+      if (!mounted) return;
       setState(() => _result = 'Quill slipped, Darling~ Try again!');
     } finally {
       setState(() => _loading = false);
@@ -293,7 +294,7 @@ class _WritingHelperPageState extends State<WritingHelperPage>
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
                       child: Row(children: [
-                        Text('📝', style: const TextStyle(fontSize: 14)),
+                        const Text('📝', style: TextStyle(fontSize: 14)),
                         const SizedBox(width: 8),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(h['topic']?.toString() ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,

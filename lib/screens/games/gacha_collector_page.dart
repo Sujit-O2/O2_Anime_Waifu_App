@@ -99,6 +99,7 @@ class _GachaCollectorPageState extends State<GachaCollectorPage>
 
     final card = _rollCard();
     HapticFeedback.heavyImpact();
+    if (!mounted) return;
     setState(() {
       _lastPull = card;
       _collection.insert(0, card);
@@ -159,7 +160,7 @@ class _GachaCollectorPageState extends State<GachaCollectorPage>
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('🎴', style: const TextStyle(fontSize: 64)),
+                            const Text('🎴', style: TextStyle(fontSize: 64)),
                             const SizedBox(height: 12),
                             Text('Tap to pull!',
                                 style: TextStyle(

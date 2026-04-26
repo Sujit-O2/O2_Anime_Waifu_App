@@ -92,6 +92,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
     if (saved != null && savedDate == today) {
+      if (!mounted) return;
       setState(() {
         _quote = saved;
         _author = savedAuthor ?? '';
@@ -135,6 +136,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
     } catch (_) {
       if (mounted) {
         final pick = _ztQuotes[DateTime.now().second % _ztQuotes.length];
+        if (!mounted) return;
         setState(() {
           _quote = pick.$1;
           _author = pick.$2;

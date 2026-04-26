@@ -128,13 +128,13 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
           AnimatedBuilder(
             animation: _particleCtrl,
             builder: (_, __) => CustomPaint(
-              size: MediaQuery.of(context).size,
+              size: MediaQuery.sizeOf(context),
               painter: _SplashParticlePainter(
                 particles: _particles,
                 progress: _particleCtrl.value,
                 center: Offset(
-                  MediaQuery.of(context).size.width / 2,
-                  MediaQuery.of(context).size.height / 2,
+                  MediaQuery.sizeOf(context).width / 2,
+                  MediaQuery.sizeOf(context).height / 2,
                 ),
               ),
             ),
@@ -192,16 +192,51 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                       Transform.translate(
                         offset: Offset(0, _textSlide.value),
                         child: Text(
-                          'Your companion in every arc',
+                          'Your companion in every arc ✨',
                           style: TextStyle(
                             color: Colors.grey.shade500,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+          ),
+          // Loading indicator at bottom
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: AnimatedBuilder(
+              animation: _logoCtrl,
+              builder: (_, __) => Opacity(
+                opacity: (_logoCtrl.value * 1.5).clamp(0.0, 0.7),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: V2Theme.primaryColor.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Loading your world...',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 11,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

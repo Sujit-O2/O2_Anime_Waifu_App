@@ -31,6 +31,7 @@ class _SecondBrainPageState extends State<SecondBrainPage> {
     final data = prefs.getString('second_brain_notes');
     if (data != null) {
       try {
+        if (!mounted) return;
         setState(() => _notes = (jsonDecode(data) as List).cast<Map<String, dynamic>>());
       } catch (_) {}
     }

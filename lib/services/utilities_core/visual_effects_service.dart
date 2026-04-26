@@ -45,7 +45,7 @@ class VisualEffectsService {
     double elevation = 8,
   }) {
     final shadowColor = Colors.black.withValues(alpha: 0.1);
-    final highlightColor = Colors.white;
+    const highlightColor = Colors.white;
 
     return BoxDecoration(
       color: backgroundColor,

@@ -114,6 +114,7 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _activeMode = prefs.getString(_modeKey) ?? 'waifu');
   }
 
@@ -127,6 +128,7 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _activeMode = id);
     showSuccessSnackbar(context, '${mode['name']} is now active.');
   }

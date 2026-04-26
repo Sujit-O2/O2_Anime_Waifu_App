@@ -143,6 +143,7 @@ class _BookRecommenderPageState extends State<BookRecommenderPage>
               final sel = g == _selectedGenre;
               return GestureDetector(
                 onTap: () {
+                  if (!mounted) return;
                   setState(() => _selectedGenre = g);
                   _searchBooks(g.toLowerCase());
                 },

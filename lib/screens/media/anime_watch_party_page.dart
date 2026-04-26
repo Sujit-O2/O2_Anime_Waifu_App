@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
@@ -58,7 +59,7 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
           _videoController.setLooping(true);
         }
       }).catchError((dynamic e) {
-        debugPrint('Watch Party video error: $e');
+        if (kDebugMode) debugPrint('Watch Party video error: $e');
       });
   }
 
@@ -101,7 +102,8 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
                 _initVideo(url);
               }
             },
-            child: const Text('Play', style: TextStyle(color: V2Theme.primaryColor)),
+            child: const Text('Play',
+                style: TextStyle(color: V2Theme.primaryColor)),
           ),
         ],
       ),
@@ -185,7 +187,8 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.video_library, color: Colors.white),
+                      icon:
+                          const Icon(Icons.video_library, color: Colors.white),
                       tooltip: 'Change Video',
                       onPressed: _changeVideo,
                     ),
@@ -225,9 +228,10 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
                                     IconButton(
                                       iconSize: 48,
                                       color: Colors.white,
-                                      icon: Icon(_videoController.value.isPlaying
-                                          ? Icons.pause
-                                          : Icons.play_arrow),
+                                      icon: Icon(
+                                          _videoController.value.isPlaying
+                                              ? Icons.pause
+                                              : Icons.play_arrow),
                                       onPressed: () {
                                         setState(() {
                                           _videoController.value.isPlaying
@@ -365,10 +369,12 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
               // Input Section
               GlassCard(
                 margin: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
                   children: <Widget>[
-                    const Icon(Icons.emoji_emotions_outlined, color: Colors.grey),
+                    const Icon(Icons.emoji_emotions_outlined,
+                        color: Colors.grey),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
@@ -401,7 +407,3 @@ class _AnimeWatchPartyPageState extends State<AnimeWatchPartyPage>
     );
   }
 }
-
-
-
-

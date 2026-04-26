@@ -166,6 +166,187 @@ class _ParticlePainter extends CustomPainter {
 }
 
 /// Glassmorphic overlay — frosted glass effect for headers and cards.
+/// Animated glowing border that cycles through colors — great for premium cards
+class GlowingBorderCard extends StatefulWidget {
+  final Widget child;
+  final List<Color> colors;
+  final double borderWidth;
+  final BorderRadius borderRadius;
+  final Duration duration;
+
+  const GlowingBorderCard({
+    super.key,
+    required this.child,
+    this.colors = const [Color(0xFFFF4FA8), Color(0xFFBB52FF), Color(0xFF5FE2FF)],
+    this.borderWidth = 1.5,
+    this.borderRadius = const BorderRadius.all(Radius.circular(16)),
+    this.duration = const Duration(seconds: 3),
+  });
+
+  @override
+  State<GlowingBorderCard> createState() => _GlowingBorderCardState();
+}
+
+class _GlowingBorderCardState extends State<GlowingBorderCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration)
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, child) {
+        final t = _ctrl.value;
+        // Shift gradient alignment smoothly
+        final begin = Alignment(
+          cos(t * 2 * pi) * 1.0,
+          sin(t * 2 * pi) * 1.0,
+        );
+        final end = Alignment(
+          cos((t + 0.5) * 2 * pi) * 1.0,
+          sin((t + 0.5) * 2 * pi) * 1.0,
+        );
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: widget.borderRadius,
+            gradient: LinearGradient(
+              begin: begin,
+              end: end,
+              colors: widget.colors,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.colors.first.withValues(alpha: 0.2 + t * 0.15),
+                blurRadius: 16,
+                spreadRadius: -4,
+              ),
+            ],
+          ),
+          child: Container(
+            margin: EdgeInsets.all(widget.borderWidth),
+            decoration: BoxDecoration(
+              borderRadius: widget.borderRadius,
+              color: const Color(0xFF0D0D1A),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Breathing dot — a simple pulsing circle used as status indicators
+class BreathingDot extends StatefulWidget {
+  final Color color;
+  final double size;
+  
+  const BreathingDot({
+    super.key,
+    this.color = Colors.greenAccent,
+    this.size = 8,
+  });
+  
+  @override
+  State<BreathingDot> createState() => _BreathingDotState();
+}
+
+class _BreathingDotState extends State<BreathingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+  }
+  
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = Curves.easeInOutSine.transform(_ctrl.value);
+        return Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.color.withValues(alpha: 0.6 + t * 0.4),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.3 + t * 0.4),
+                blurRadius: 4 + t * 6,
+                spreadRadius: t * 2,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Animated number counter — counts from 0 to target for stat displays
+class AnimatedCounter extends StatelessWidget {
+  final int value;
+  final TextStyle? style;
+  final String prefix;
+  final String suffix;
+  final Duration duration;
+
+  const AnimatedCounter({
+    super.key,
+    required this.value,
+    this.style,
+    this.prefix = '',
+    this.suffix = '',
+    this.duration = const Duration(milliseconds: 800),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: value.toDouble()),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      builder: (_, val, __) {
+        return Text(
+          '$prefix${val.toInt()}$suffix',
+          style: style ?? const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+          ),
+        );
+      },
+    );
+  }
+}
+
 class GlassContainer extends StatelessWidget {
   final Widget child;
   final double blur;
@@ -209,4 +390,230 @@ class GlassContainer extends StatelessWidget {
   }
 }
 
+/// Radial pulse ring — expanding circle that fades out.
+/// Great for "sending" / "loading" feedback animations.
+class RadialPulse extends StatefulWidget {
+  final Color color;
+  final double maxRadius;
+  final Duration duration;
+
+  const RadialPulse({
+    super.key,
+    this.color = Colors.pinkAccent,
+    this.maxRadius = 60,
+    this.duration = const Duration(milliseconds: 1500),
+  });
+
+  @override
+  State<RadialPulse> createState() => _RadialPulseState();
+}
+
+class _RadialPulseState extends State<RadialPulse>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration)
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = _ctrl.value;
+        return CustomPaint(
+          size: Size(widget.maxRadius * 2, widget.maxRadius * 2),
+          painter: _PulsePainter(
+            progress: t,
+            color: widget.color,
+            maxRadius: widget.maxRadius,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PulsePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final double maxRadius;
+
+  _PulsePainter({
+    required this.progress,
+    required this.color,
+    required this.maxRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // Draw 3 concentric rings at different phases
+    for (int i = 0; i < 3; i++) {
+      final phase = (progress + i * 0.33) % 1.0;
+      final radius = phase * maxRadius;
+      final opacity = (1.0 - phase).clamp(0.0, 0.6);
+
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = color.withValues(alpha: opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0 * (1.0 - phase),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PulsePainter old) => old.progress != progress;
+}
+
+/// Shimmer text — text that has a moving highlight shine effect.
+/// Perfect for premium labels and titles.
+class ShimmerText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final Duration duration;
+  final Color shimmerColor;
+
+  const ShimmerText({
+    super.key,
+    required this.text,
+    this.style,
+    this.duration = const Duration(milliseconds: 2000),
+    this.shimmerColor = Colors.white,
+  });
+
+  @override
+  State<ShimmerText> createState() => _ShimmerTextState();
+}
+
+class _ShimmerTextState extends State<ShimmerText>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration)
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseStyle = widget.style ??
+        const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        );
+
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        return ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (bounds) => LinearGradient(
+            colors: [
+              baseStyle.color ?? Colors.white,
+              widget.shimmerColor.withValues(alpha: 0.8),
+              baseStyle.color ?? Colors.white,
+            ],
+            stops: [
+              (_ctrl.value - 0.3).clamp(0.0, 1.0),
+              _ctrl.value,
+              (_ctrl.value + 0.3).clamp(0.0, 1.0),
+            ],
+          ).createShader(bounds),
+          child: Text(text, style: baseStyle),
+        );
+      },
+    );
+  }
+
+  String get text => widget.text;
+}
+
+/// Slide-and-fade entrance animation — wraps a child with staggered entrance.
+/// Automatically animates when first built.
+class SlideInWidget extends StatefulWidget {
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+  final Offset beginOffset;
+  final Curve curve;
+
+  const SlideInWidget({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.duration = const Duration(milliseconds: 500),
+    this.beginOffset = const Offset(0, 0.15),
+    this.curve = Curves.easeOutCubic,
+  });
+
+  @override
+  State<SlideInWidget> createState() => _SlideInWidgetState();
+}
+
+class _SlideInWidgetState extends State<SlideInWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+  late Animation<Offset> _position;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration);
+
+    final curved = CurvedAnimation(parent: _ctrl, curve: widget.curve);
+    _opacity = Tween<double>(begin: 0, end: 1).animate(curved);
+    _position = Tween<Offset>(begin: widget.beginOffset, end: Offset.zero)
+        .animate(curved);
+
+    if (widget.delay == Duration.zero) {
+      _ctrl.forward();
+    } else {
+      Future.delayed(widget.delay, () {
+        if (mounted) _ctrl.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(
+        position: _position,
+        child: widget.child,
+      ),
+    );
+  }
+}
 

@@ -136,6 +136,7 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
           .doc('best')
           .get();
       if (doc.exists) {
+        if (!mounted) return;
         setState(() => _highScore = (doc['score'] as int? ?? 0));
       }
     } catch (_) {}
@@ -233,7 +234,7 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
   }
 
   Widget _buildResult() {
-    final pct = _score / _questions.length;
+    final pct = (_questions.isEmpty ? 0 : _score / _questions.length);
     String msg;
     String emoji;
     if (pct == 1.0) {
@@ -301,7 +302,7 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Progress
         LinearProgressIndicator(
-          value: (_qIdx + 1) / _questions.length,
+          value: (_questions.isEmpty ? 0 : (_qIdx + 1) / _questions.length),
           backgroundColor: Colors.white12,
           valueColor: const AlwaysStoppedAnimation(Colors.pinkAccent),
           borderRadius: BorderRadius.circular(4),

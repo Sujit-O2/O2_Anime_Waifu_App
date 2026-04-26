@@ -210,6 +210,15 @@ class ChatProvider extends ChangeNotifier {
     _selectedImage = null;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    messages.clear();
+    pastMessages.clear();
+    pinnedMessages.clear();
+    _selectedImage = null;
+    super.dispose();
+  }
 }
 
 

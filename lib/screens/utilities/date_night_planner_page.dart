@@ -98,6 +98,7 @@ class _DateNightPlannerPageState extends State<DateNightPlannerPage>
       });
       _saveHistory();
     } catch (_) {
+      if (!mounted) return;
       setState(() => _plan = 'Something went wrong~ Let me think of something else!');
     } finally {
       setState(() => _loading = false);

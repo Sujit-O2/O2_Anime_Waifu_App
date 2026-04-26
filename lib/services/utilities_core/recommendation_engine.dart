@@ -1,6 +1,6 @@
 import 'package:anime_waifu/services/analytics_monitoring/advanced_analytics_service.dart';
 import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Smart Recommendation Engine - Suggest themes based on usage patterns
 class RecommendationEngine {
@@ -60,10 +60,10 @@ class RecommendationEngine {
 
       // Sort by score and return top N
       recommendations.sort((a, b) => b.score.compareTo(a.score));
-      debugPrint('✅ Generated ${recommendations.length} recommendations');
+      if (kDebugMode) debugPrint('✅ Generated ${recommendations.length} recommendations');
       return recommendations.take(limit).toList();
     } catch (e) {
-      debugPrint('❌ Error generating recommendations: $e');
+      if (kDebugMode) debugPrint('❌ Error generating recommendations: $e');
       return [];
     }
   }
@@ -103,7 +103,7 @@ class RecommendationEngine {
         reason: 'Perfect for ${_getTimeOfDay(hour)}',
       );
     } catch (e) {
-      debugPrint('❌ Error getting time-based recommendation: $e');
+      if (kDebugMode) debugPrint('❌ Error getting time-based recommendation: $e');
       return null;
     }
   }
@@ -130,7 +130,7 @@ class RecommendationEngine {
 
       return recommendations.take(limit).toList();
     } catch (e) {
-      debugPrint('❌ Error getting trending themes: $e');
+      if (kDebugMode) debugPrint('❌ Error getting trending themes: $e');
       return [];
     }
   }
@@ -180,7 +180,7 @@ class RecommendationEngine {
       similar.sort((a, b) => b.score.compareTo(a.score));
       return similar.take(limit).toList();
     } catch (e) {
-      debugPrint('❌ Error getting similar themes: $e');
+      if (kDebugMode) debugPrint('❌ Error getting similar themes: $e');
       return [];
     }
   }

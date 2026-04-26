@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
@@ -26,7 +26,7 @@ class BattleAndRaidSystem {
     _prefs = await SharedPreferences.getInstance();
     _initializeEnemyAI();
     _loadRaidCampaigns();
-    debugPrint('[Battle System] Initialized');
+    if (kDebugMode) debugPrint('[Battle System] Initialized');
   }
 
   // ===== PLAYER STATS =====

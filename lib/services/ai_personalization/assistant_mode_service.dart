@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart';
 
 class AssistantModeService {
@@ -9,7 +9,8 @@ class AssistantModeService {
     try {
       return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
-      debugPrint("AssistantModeService.$method failed: ${e.message}");
+      if (kDebugMode)
+        debugPrint('AssistantModeService.$method failed: ${e.message}');
       return null;
     }
   }
@@ -53,6 +54,11 @@ class AssistantModeService {
 
   Future<void> bringToFront() async {
     await _invoke('bringToFront');
+  }
+
+  Future<bool> showAssistantOverlay() async {
+    final result = await _invoke<bool>('showAssistantOverlay');
+    return result ?? false;
   }
 
   Future<bool> canDrawOverlays() async {
@@ -146,5 +152,3 @@ class AssistantModeService {
     return result ?? 'old';
   }
 }
-
-

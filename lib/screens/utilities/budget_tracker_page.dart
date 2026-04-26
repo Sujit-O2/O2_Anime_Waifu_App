@@ -66,6 +66,7 @@ class _BudgetTrackerPageState extends State<BudgetTrackerPage>
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
     } catch (_) {}
+    if (!mounted) return;
     setState(() => _budget = b);
     _fadeCtrl.forward();
   }

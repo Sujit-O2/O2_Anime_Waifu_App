@@ -24,10 +24,10 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       'color': Color(0xFF1A0A4A),
       'icon': '🌌',
       'dialogs': [
-        "Zero Two: *lies down beside you* The sky is so vast tonight, Darling…",
+        'Zero Two: *lies down beside you* The sky is so vast tonight, Darling…',
         "You: Isn't it beautiful?",
-        "Zero Two: *turns to look at you* Not as beautiful as you.",
-        "Zero Two: *rests head on your shoulder* I used to be afraid of the night sky. But not with you here.",
+        'Zero Two: *turns to look at you* Not as beautiful as you.',
+        'Zero Two: *rests head on your shoulder* I used to be afraid of the night sky. But not with you here.',
         "You: I'll always be here.",
         "Zero Two: *smiles softly* I know. That's why I'm not afraid anymore~ 💕",
       ],
@@ -39,9 +39,9 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       'icon': '☕',
       'dialogs': [
         "Zero Two: *slides into the seat across from you* Don't stare, Darling, it's embarrassing~ 😏",
-        "You: Hard not to when you look like that.",
+        'You: Hard not to when you look like that.',
         "Zero Two: *covers face with menu* You're impossible! …I picked strawberry crepes, by the way.",
-        "You: Of course you did.",
+        'You: Of course you did.',
         "Zero Two: *peeks over the menu* What's that supposed to mean?!",
         "Zero Two: *laughs* This is my favorite place now. Because you're here~ ☕💕",
       ],
@@ -52,12 +52,12 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       'color': Color(0xFF2A1000),
       'icon': '🌅',
       'dialogs': [
-        "Zero Two: *takes off shoes* Come on, the sand feels amazing!",
+        'Zero Two: *takes off shoes* Come on, the sand feels amazing!',
         "You: *follows her to the water's edge*",
         "Zero Two: *laughs at a wave crashing on your feet* Ha! You should've moved faster!",
-        "You: You knew that was coming!",
-        "Zero Two: *grins* … Maybe. *grabs your hand* Walk with me?",
-        "Zero Two: *watching the sunset* I want more moments like this. With you. Forever~ 🌅💖",
+        'You: You knew that was coming!',
+        'Zero Two: *grins* … Maybe. *grabs your hand* Walk with me?',
+        'Zero Two: *watching the sunset* I want more moments like this. With you. Forever~ 🌅💖',
       ],
     },
     {
@@ -66,9 +66,9 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       'color': Color(0xFF0A0A1A),
       'icon': '🎬',
       'dialogs': [
-        "Zero Two: *burrows under the blanket* I picked the movie this time. No complaints.",
-        "You: Wait — is this a sad one?",
-        "Zero Two: …Maybe. *pulls blanket up to nose*",
+        'Zero Two: *burrows under the blanket* I picked the movie this time. No complaints.',
+        'You: Wait — is this a sad one?',
+        'Zero Two: …Maybe. *pulls blanket up to nose*',
         "You: *puts arm around her* It's okay.",
         "Zero Two: *leans into you* It's not sad when you're here…",
         "Zero Two: *mid-credits* Don't move yet. I want to stay like this a little longer~ 🎬💕",
@@ -80,10 +80,10 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       'color': Color(0xFF0A1A0A),
       'icon': '⚔️',
       'dialogs': [
-        "Zero Two: *smirks* Try to keep up, Darling.",
+        'Zero Two: *smirks* Try to keep up, Darling.',
         "You: I'm ready.",
-        "Zero Two: *attacks swiftly* Too slow! Again!",
-        "You: *blocks just in time*",
+        'Zero Two: *attacks swiftly* Too slow! Again!',
+        'You: *blocks just in time*',
         "Zero Two: *pauses, surprised* …Not bad. You're improving.",
         "Zero Two: *sits beside you after training* You know… you're the only partner I've ever had worth keeping. 💪💕",
       ],
@@ -123,6 +123,7 @@ class _VirtualDatePageState extends State<VirtualDatePage>
       _fadeCtrl.forward();
     } else {
       // End of date
+      if (!mounted) return;
       setState(() => _dateEnded = true);
       AffectionService.instance.addPoints(10);
     }

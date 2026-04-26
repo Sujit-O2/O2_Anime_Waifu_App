@@ -1,11 +1,11 @@
 import 'package:anime_waifu/core/error_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Batch Operations Helper
 /// Optimizes Firestore writes using batch operations (up to 500 writes per batch)
 class BatchOperationsHelper {
-  static final int maxBatchSize = 500;
+  static const int maxBatchSize = 500;
   final FirebaseFirestore _firestore;
   late WriteBatch _currentBatch;
   int _operationCount = 0;
@@ -136,12 +136,12 @@ class BatchOperationsHelper {
       final batchFuture = _currentBatch.commit();
       _pendingBatches.add(batchFuture);
 
-      debugPrint('📤 Batch operations flushed ($_operationCount operations)');
+      if (kDebugMode) debugPrint('📤 Batch operations flushed ($_operationCount operations)');
 
       _currentBatch = _firestore.batch();
       _operationCount = 0;
     } catch (e) {
-      debugPrint('❌ Error flushing batch: $e');
+      if (kDebugMode) debugPrint('❌ Error flushing batch: $e');
       rethrow;
     }
   }
@@ -158,9 +158,9 @@ class BatchOperationsHelper {
       await Future.wait(_pendingBatches);
       _pendingBatches.clear();
 
-      debugPrint('✅ All batch operations committed successfully');
+      if (kDebugMode) debugPrint('✅ All batch operations committed successfully');
     } catch (e) {
-      debugPrint('❌ Error committing batches: $e');
+      if (kDebugMode) debugPrint('❌ Error committing batches: $e');
       rethrow;
     }
   }
@@ -199,7 +199,7 @@ class BatchOperationsHelper {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch updated ${updates.length} documents');
+      if (kDebugMode) debugPrint('✅ Batch updated ${updates.length} documents');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(
@@ -222,7 +222,7 @@ class BatchOperationsHelper {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch deleted ${documentIds.length} documents');
+      if (kDebugMode) debugPrint('✅ Batch deleted ${documentIds.length} documents');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(
@@ -248,7 +248,7 @@ class BatchOperationsHelper {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch created ${documents.length} documents');
+      if (kDebugMode) debugPrint('✅ Batch created ${documents.length} documents');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(
@@ -288,7 +288,7 @@ class BatchOperationsHelper {
       }
 
       await batch.commit();
-      debugPrint('✅ Batch executed ${operations.length} mixed operations');
+      if (kDebugMode) debugPrint('✅ Batch executed ${operations.length} mixed operations');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(

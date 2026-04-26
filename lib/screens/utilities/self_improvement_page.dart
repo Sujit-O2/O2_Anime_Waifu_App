@@ -34,6 +34,7 @@ class _SelfImprovementPageState extends State<SelfImprovementPage>
   Future<void> _loadData() async {
     await V2Storage.init();
     final saved = V2Storage.getMap('self_improvement_data');
+    if (!mounted) return;
     setState(() {
       if (saved != null && saved['items'] != null) {
         _items = (saved['items'] as List)
@@ -155,7 +156,7 @@ class _SelfImprovementPageState extends State<SelfImprovementPage>
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                       hintText: 'Title',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: V2Theme.darkGlass,
                       border: OutlineInputBorder(
@@ -168,7 +169,7 @@ class _SelfImprovementPageState extends State<SelfImprovementPage>
                   maxLines: 2,
                   decoration: InputDecoration(
                       hintText: 'Description',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: V2Theme.darkGlass,
                       border: OutlineInputBorder(
@@ -460,7 +461,7 @@ class _SelfImprovementPageState extends State<SelfImprovementPage>
                           if (item.type == 'habit') ...[
                             const SizedBox(height: 8),
                             Row(children: [
-                              Icon(Icons.local_fire_department,
+                              const Icon(Icons.local_fire_department,
                                   size: 14, color: Colors.orange),
                               const SizedBox(width: 4),
                               Text('${item.streak} day streak',

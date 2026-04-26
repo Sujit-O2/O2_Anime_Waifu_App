@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
@@ -24,7 +24,7 @@ class TournamentManagementSystem {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('[Tournament System] Initialized');
+    if (kDebugMode) debugPrint('[Tournament System] Initialized');
   }
 
   // ===== TOURNAMENT CREATION =====
@@ -300,7 +300,7 @@ class TournamentManagementSystem {
   Future<void> _distributePrizes(Tournament tournament) async {
     // Prizes distributed to participants based on placement
     final prizes = await getPrizeDistribution(tournament.tournamentId);
-    debugPrint('[Tournament] Prizes distributed: $prizes');
+    if (kDebugMode) debugPrint('[Tournament] Prizes distributed: $prizes');
   }
 
   Future<void> _saveTournaments() async {

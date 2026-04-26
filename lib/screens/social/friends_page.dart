@@ -38,15 +38,16 @@ class _FriendsPageState extends State<FriendsPage>
   }
 
   Future<void> _publishSelf() async {
-    if (_user == null) {
+    final user = _user;
+    if (user == null) {
       return;
     }
     final aff = AffectionService.instance;
     await FirebaseFirestore.instance.collection('users').doc(_myUid).set({
       'uid': _myUid,
-      'name': _user!.displayName ?? _user!.email?.split('@').first ?? 'Darling',
-      'photoUrl': _user!.photoURL ?? '',
-      'email': _user!.email ?? '',
+      'name': user.displayName ?? user.email?.split('@').first ?? 'Darling',
+      'photoUrl': user.photoURL ?? '',
+      'email': user.email ?? '',
       'xp': aff.points,
       'level': aff.levelName,
       'updatedAt': FieldValue.serverTimestamp(),
@@ -107,6 +108,7 @@ class _FriendsPageState extends State<FriendsPage>
     if (email.trim().isEmpty) {
       return;
     }
+    HapticFeedback.lightImpact();
     try {
       final snap = await FirebaseFirestore.instance
           .collection('users')
@@ -117,7 +119,8 @@ class _FriendsPageState extends State<FriendsPage>
         _snack('User not found.');
         return;
       }
-      final targetUid = snap.docs.first.id;
+      if (snap.docs.isEmpty) return;
+        final targetUid = snap.docs.first.id;
       if (targetUid == _myUid) {
         _snack('That is your own account.');
         return;
@@ -138,6 +141,7 @@ class _FriendsPageState extends State<FriendsPage>
   }
 
   Future<void> _acceptRequest(String uid) async {
+    HapticFeedback.mediumImpact();
     try {
       await FirebaseFirestore.instance.collection('friends').doc(_myUid).set({
         'friends': FieldValue.arrayUnion([uid]),
@@ -154,6 +158,7 @@ class _FriendsPageState extends State<FriendsPage>
           orElse: () => <String, dynamic>{},
         );
         if (req.isNotEmpty) {
+          if (!mounted) return;
           setState(() {
             _friends.add(req);
             _requests.removeWhere((request) => request['uid'] == uid);

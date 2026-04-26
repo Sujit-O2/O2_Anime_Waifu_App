@@ -60,6 +60,7 @@ class _DreamModePageState extends State<DreamModePage>
     final raw = prefs.getString('dream_journal_v2');
     if (raw != null && mounted) {
       try {
+        if (!mounted) return;
         setState(() =>
             _dreams = (jsonDecode(raw) as List).cast<Map<String, dynamic>>());
       } catch (_) {}
@@ -93,6 +94,7 @@ class _DreamModePageState extends State<DreamModePage>
       if (!mounted) return;
       final emoji = _dreamEmojis[DateTime.now().second % _dreamEmojis.length];
       final mood = _dreamMoods[DateTime.now().minute % _dreamMoods.length];
+      if (!mounted) return;
       setState(() {
         _dreams.insert(0, {
           'dream': response,

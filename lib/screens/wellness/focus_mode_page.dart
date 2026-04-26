@@ -85,6 +85,7 @@ class _FocusModePageState extends State<FocusModePage>
       _totalMinutes = saved['totalMinutes'] ?? 0;
       _streak = saved['streak'] ?? 0;
     }
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -98,6 +99,7 @@ class _FocusModePageState extends State<FocusModePage>
 
   void _startTimer() {
     HapticFeedback.mediumImpact();
+    if (!mounted) return;
     setState(() {
       _isRunning = true;
       if (_remainingSeconds <= 0 || _remainingSeconds > _selectedMinutes * 60) {
@@ -111,6 +113,7 @@ class _FocusModePageState extends State<FocusModePage>
   void _pauseTimer() {
     HapticFeedback.lightImpact();
     _timerController.stop();
+    if (!mounted) return;
     setState(() {
       _isRunning = false;
       _remainingSeconds =
@@ -123,6 +126,7 @@ class _FocusModePageState extends State<FocusModePage>
   void _resetTimer() {
     HapticFeedback.mediumImpact();
     _timerController.reset();
+    if (!mounted) return;
     setState(() {
       _isRunning = false;
       _remainingSeconds = _selectedMinutes * 60;
@@ -131,6 +135,7 @@ class _FocusModePageState extends State<FocusModePage>
 
   void _completeSession() {
     HapticFeedback.heavyImpact();
+    if (!mounted) return;
     setState(() {
       _isRunning = false;
       _totalMinutes += _selectedMinutes;
@@ -300,6 +305,7 @@ class _FocusModePageState extends State<FocusModePage>
                       onTap: () {
                         if (_isRunning) return;
                         HapticFeedback.lightImpact();
+                        if (!mounted) return;
                         setState(() {
                           _selectedMode = mode;
                           _selectedMinutes = _modeDurations[mode]!;
@@ -356,6 +362,7 @@ class _FocusModePageState extends State<FocusModePage>
                   return GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
+                      if (!mounted) return;
                       setState(() {
                         _selectedMinutes = mins;
                         _remainingSeconds = mins * 60;
@@ -421,11 +428,11 @@ class _FocusModePageState extends State<FocusModePage>
 
   Widget _buildRecentSessions() {
     if (_sessions.isEmpty) {
-      return SliverToBoxAdapter(
+      return const SliverToBoxAdapter(
         child: AnimatedEntry(
           index: 5,
           child: Padding(
-            padding: const EdgeInsets.all(32),
+            padding: EdgeInsets.all(32),
             child: EmptyState(
               icon: Icons.history,
               title: 'No Sessions Yet',

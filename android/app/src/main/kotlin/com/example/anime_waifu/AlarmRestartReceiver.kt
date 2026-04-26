@@ -35,9 +35,11 @@ class AlarmRestartReceiver : BroadcastReceiver() {
         )
         val assistantEnabled = flutterPrefs.getBoolean("flutter.assistant_mode_enabled", true)
         val wakeWordEnabled  = flutterPrefs.getBoolean("flutter.wake_word_enabled", true)
+        val trueBgProactiveEnabled =
+            flutterPrefs.getBoolean("flutter.true_background_proactive_enabled", false)
 
-        if (!assistantEnabled && !wakeWordEnabled) {
-            Log.d(TAG, "AlarmRestart: assistant and wake both disabled — skipping restart")
+        if (!assistantEnabled && !wakeWordEnabled && !trueBgProactiveEnabled) {
+            Log.d(TAG, "AlarmRestart: assistant/wake/trueBg all disabled — skipping restart")
             return
         }
 

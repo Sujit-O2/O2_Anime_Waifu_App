@@ -64,6 +64,7 @@ class _EmergencySosPageState extends State<EmergencySosPage>
     } catch (_) {}
     _shakeEnabled = p.getBool('sos_shake_enabled') ?? false;
     if (_shakeEnabled) _startShakeDetection();
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -175,6 +176,7 @@ class _EmergencySosPageState extends State<EmergencySosPage>
         } catch (_) {}
       }
 
+      if (!mounted) return;
       setState(() {
         _sendingSos = false;
         _countdown = 0;

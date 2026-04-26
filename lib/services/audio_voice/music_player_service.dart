@@ -4,6 +4,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/utilities_core/home_widget_service.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// System-level music player using just_audio + audio_service.
 /// Shows a persistent notification with album art, play/pause/skip controls
@@ -211,7 +212,7 @@ class MusicPlayerService extends BaseAudioHandler with SeekHandler {
         );
       }
     } catch (e) {
-      debugPrint('MusicPlayer play error: $e');
+      if (kDebugMode) debugPrint('MusicPlayer play error: $e');
     }
   }
 

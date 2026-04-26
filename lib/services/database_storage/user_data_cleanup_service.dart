@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Service for handling user account deletion and data cleanup (GDPR Compliance).
 /// Cascades delete all user data when an account is removed.
@@ -51,7 +51,7 @@ class UserDataCleanupService {
   /// This ensures GDPR compliance and prevents orphaned data.
   Future<void> deleteAllUserData(String uid) async {
     try {
-      debugPrint('[UserDataCleanup] Starting deletion for uid: $uid');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Starting deletion for uid: $uid');
       
       // Delete top-level collections
       int deletedCount = 0;
@@ -59,9 +59,9 @@ class UserDataCleanupService {
         try {
           await _db.collection(collection).doc(uid).delete();
           deletedCount++;
-          debugPrint('[UserDataCleanup] Deleted $collection/$uid');
+          if (kDebugMode) debugPrint('[UserDataCleanup] Deleted $collection/$uid');
         } catch (e) {
-          debugPrint('[UserDataCleanup] Error deleting $collection: $e');
+          if (kDebugMode) debugPrint('[UserDataCleanup] Error deleting $collection: $e');
         }
       }
 
@@ -73,10 +73,10 @@ class UserDataCleanupService {
             final docs = await userRef.collection(nestedCol).get();
             for (final doc in docs.docs) {
               await doc.reference.delete();
-              debugPrint('[UserDataCleanup] Deleted users/$uid/$nestedCol/${doc.id}');
+              if (kDebugMode) debugPrint('[UserDataCleanup] Deleted users/$uid/$nestedCol/${doc.id}');
             }
           } catch (e) {
-            debugPrint('[UserDataCleanup] Error deleting nested $nestedCol: $e');
+            if (kDebugMode) debugPrint('[UserDataCleanup] Error deleting nested $nestedCol: $e');
           }
         }
 
@@ -91,19 +91,19 @@ class UserDataCleanupService {
             'displayName': '[DELETED]',
             'photoUrl': FieldValue.delete(),
           });
-          debugPrint('[UserDataCleanup] Anonymized users/$uid');
+          if (kDebugMode) debugPrint('[UserDataCleanup] Anonymized users/$uid');
         } catch (e) {
-          debugPrint('[UserDataCleanup] Error anonymizing user profile: $e');
+          if (kDebugMode) debugPrint('[UserDataCleanup] Error anonymizing user profile: $e');
         }
       } catch (e) {
-        debugPrint('[UserDataCleanup] Error handling users collection: $e');
+        if (kDebugMode) debugPrint('[UserDataCleanup] Error handling users collection: $e');
       }
 
       // Log the deletion (in case we want audit trail)
       await _logDeletion(uid, deletedCount);
-      debugPrint('[UserDataCleanup] Completed deletion for uid: $uid (deleted $deletedCount collections)');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Completed deletion for uid: $uid (deleted $deletedCount collections)');
     } catch (e) {
-      debugPrint('[UserDataCleanup] Fatal error: $e');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Fatal error: $e');
       rethrow;
     }
   }
@@ -112,9 +112,9 @@ class UserDataCleanupService {
   Future<void> deleteUserCollection(String uid, String collectionName) async {
     try {
       await _db.collection(collectionName).doc(uid).delete();
-      debugPrint('[UserDataCleanup] Deleted $collectionName/$uid');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Deleted $collectionName/$uid');
     } catch (e) {
-      debugPrint('[UserDataCleanup] Error deleting $collectionName: $e');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Error deleting $collectionName: $e');
     }
   }
 
@@ -152,7 +152,7 @@ class UserDataCleanupService {
         'ip': 'mobile_app',
       });
     } catch (e) {
-      debugPrint('[UserDataCleanup] Error logging deletion: $e');
+      if (kDebugMode) debugPrint('[UserDataCleanup] Error logging deletion: $e');
     }
   }
 

@@ -31,10 +31,15 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
   String get _greeting {
     if (widget.greeting != null) return widget.greeting!;
     final hour = DateTime.now().hour;
+    final weekday = DateTime.now().weekday;
     if (hour < 5) return 'Still awake, Darling? 🌙';
-    if (hour < 12) return 'Good morning, Darling~ ☀️';
+    if (hour < 8) return 'Rise and shine, Darling~ ☀️';
+    if (hour < 12) return weekday >= 6 ? 'Lazy weekend, Darling? 💤' : 'Good morning, Darling~ ☀️';
+    if (hour < 14) return 'Lunch time, Darling~ 🍱';
     if (hour < 17) return 'Hello there, Darling! 💕';
+    if (hour < 19) return 'Golden hour, Darling~ 🌅';
     if (hour < 21) return 'Good evening, Darling~ 🌸';
+    if (hour < 23) return 'Night vibes, Darling~ 🌙';
     return 'Good night... Darling 💤';
   }
 
@@ -282,18 +287,22 @@ class _ZeroTwoWelcomeCardState extends State<ZeroTwoWelcomeCard>
                   ],
                 ),
               ),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.greenAccent,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.greenAccent.withValues(alpha: 0.5),
-                      blurRadius: 6,
-                    ),
-                  ],
+              AnimatedBuilder(
+                animation: _glowCtrl,
+                builder: (_, __) => Container(
+                  width: 6 + _glowCtrl.value * 2,
+                  height: 6 + _glowCtrl.value * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.greenAccent,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.greenAccent.withValues(alpha: 0.3 + _glowCtrl.value * 0.4),
+                        blurRadius: 4 + _glowCtrl.value * 4,
+                        spreadRadius: _glowCtrl.value * 1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -335,7 +344,7 @@ class _HeartParticle {
         offset = rng.nextDouble(),
         size = 8 + rng.nextDouble() * 10,
         alpha = 0.4 + rng.nextDouble() * 0.5,
-        emoji = ['❤️', '💕', '💗', '🌸', '✨', '💖'][rng.nextInt(6)];
+        emoji = ['❤️', '💕', '💗', '🌸', '✨', '💖', '🦋', '🎀'][rng.nextInt(8)];
 }
 
 

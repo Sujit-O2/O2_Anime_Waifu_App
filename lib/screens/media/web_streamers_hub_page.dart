@@ -31,6 +31,7 @@ class _WebStreamersHubPageState extends State<WebStreamersHubPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _query = prefs.getString(_queryKey) ?? '';
       _filter = prefs.getString(_filterKey) ?? 'All';
@@ -218,6 +219,7 @@ class _WebStreamersHubPageState extends State<WebStreamersHubPage> {
                         V2SearchBar(
                           hintText: 'Search streamer name or description...',
                           onChanged: (value) {
+                            if (!mounted) return;
                             setState(() => _query = value);
                             _persistState();
                           },

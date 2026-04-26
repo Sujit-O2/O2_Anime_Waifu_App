@@ -1,4 +1,5 @@
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/services/anime_media/free_apis_service.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
@@ -64,7 +65,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
     final total = _animeList
         .map((anime) => (anime['score'] as double? ?? 0.0))
         .fold<double>(0, (sum, score) => sum + score);
-    return total / _animeList.length;
+    return _animeList.isEmpty ? 0 : total / _animeList.length;
   }
 
   Future<void> _load(String mode) async {
@@ -162,8 +163,8 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                         color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  ],
+              ),
+            ],
                 ),
               ),
             ],
@@ -175,128 +176,212 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
     return Scaffold(
-      backgroundColor: V2Theme.surfaceDark,
-      body: WaifuBackground(
-        opacity: 0.11,
-        tint: const Color(0xFF07071A),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: tokens.textSoft, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.recommend_rounded,
+                  color: Colors.deepPurpleAccent, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Anime Discovery',
+                      style: GoogleFonts.outfit(
+                          color: theme.colorScheme.onSurface,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800)),
+                  Text('Find your next favorite',
+                      style: GoogleFonts.outfit(
+                          color: tokens.textSoft,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.deepPurpleAccent.withValues(alpha: 0.15),
+                  Colors.deepPurpleAccent.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.deepPurpleAccent.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.api_rounded,
+                    color: Colors.deepPurpleAccent, size: 14),
+                const SizedBox(width: 6),
+                Text('Jikan',
+                    style: GoogleFonts.outfit(
+                        color: Colors.deepPurpleAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.scaffoldBackgroundColor,
+              theme.scaffoldBackgroundColor.withValues(alpha: 0.95),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: SafeArea(
           child: Column(children: [
-            // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Row(children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: const Icon(Icons.arrow_back_ios_new,
-                        color: Colors.white60, size: 16),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('ANIME PICKS',
-                      style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5)),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurpleAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
-                  ),
-                  child: Text('Jikan API',
-                      style: GoogleFonts.outfit(
-                          color: Colors.deepPurpleAccent,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700)),
-                ),
-              ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Column(
                 children: [
-                  GlassCard(
-                    margin: EdgeInsets.zero,
-                    padding: const EdgeInsets.all(18),
-                    glow: true,
+                  // Premium mode display card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.deepPurpleAccent.withValues(alpha: 0.08),
+                          Colors.deepPurpleAccent.withValues(alpha: 0.04),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.deepPurpleAccent.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.deepPurpleAccent.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                     child: Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Discovery mode',
-                                style: GoogleFonts.outfit(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.explore_rounded,
+                                      color: Colors.deepPurpleAccent, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'DISCOVERY MODE',
+                                    style: GoogleFonts.outfit(
+                                      color: tokens.textSoft,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                               Text(
                                 _mode,
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white,
+                                  color: theme.colorScheme.onSurface,
                                   fontSize: 20,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               Text(
                                 _mode == 'Search'
                                     ? 'Search by title or genre and refine your next binge.'
                                     : 'Switch lanes to browse top lists or themed recommendation drops.',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white60,
-                                  fontSize: 12,
-                                  height: 1.35,
+                                  color: tokens.textSoft,
+                                  fontSize: 14,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        ProgressRing(
-                          progress: (_animeList.length.clamp(0, 12)) / 12,
-                          foreground: Colors.deepPurpleAccent,
+                        const SizedBox(width: 20),
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.deepPurpleAccent.withValues(alpha: 0.2),
+                                Colors.deepPurpleAccent.withValues(alpha: 0.1),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.deepPurpleAccent.withValues(alpha: 0.4),
+                              width: 2,
+                            ),
+                          ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(
                                 Icons.movie_filter_rounded,
                                 color: Colors.deepPurpleAccent,
-                                size: 28,
+                                size: 24,
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 2),
                               Text(
                                 '${_animeList.length}',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
+                                  color: theme.colorScheme.onSurface,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                               Text(
-                                'Visible',
+                                'Anime',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white54,
-                                  fontSize: 11,
+                                  color: tokens.textMuted,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -305,48 +390,43 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 12),
+                  // Premium stats grid
                   Row(
                     children: [
-                      Expanded(
-                        child: StatCard(
-                          title: 'Results',
-                          value: '${_animeList.length}',
-                          icon: Icons.grid_view_rounded,
-                          color: Colors.deepPurpleAccent,
-                        ),
+                      _buildPremiumStatCard(
+                        'Results',
+                        '${_animeList.length}',
+                        Icons.grid_view_rounded,
+                        Colors.deepPurpleAccent,
                       ),
-                      Expanded(
-                        child: StatCard(
-                          title: 'Mode',
-                          value: _mode == 'Top Anime' ? 'Top' : _mode,
-                          icon: Icons.tune_rounded,
-                          color: Colors.cyanAccent,
-                        ),
+                      const SizedBox(width: 12),
+                      _buildPremiumStatCard(
+                        'Mode',
+                        _mode == 'Top Anime' ? 'Top' : _mode,
+                        Icons.tune_rounded,
+                        Colors.cyanAccent,
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: StatCard(
-                          title: 'Avg Score',
-                          value: _animeList.isEmpty
-                              ? '--'
-                              : _averageScore.toStringAsFixed(1),
-                          icon: Icons.star_rounded,
-                          color: Colors.amberAccent,
-                        ),
+                      _buildPremiumStatCard(
+                        'Avg Score',
+                        _animeList.isEmpty
+                            ? '--'
+                            : _averageScore.toStringAsFixed(1),
+                        Icons.star_rounded,
+                        Colors.amberAccent,
                       ),
-                      Expanded(
-                        child: StatCard(
-                          title: 'Genres',
-                          value: _mode == 'Search' ? 'Free' : 'Curated',
-                          icon: Icons.category_rounded,
-                          color: Colors.lightGreenAccent,
-                        ),
+                      const SizedBox(width: 12),
+                      _buildPremiumStatCard(
+                        'Genres',
+                        _mode == 'Search' ? 'Free' : 'Curated',
+                        Icons.category_rounded,
+                        Colors.lightGreenAccent,
                       ),
                     ],
                   ),
@@ -354,101 +434,86 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
               ),
             ),
 
-            // Mode chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Row(
+            // Premium mode selector
+            const SizedBox(height: 16),
+            Text('DISCOVERY MODES',
+                style: GoogleFonts.outfit(
+                  color: tokens.textSoft,
+                  fontSize: 12,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w800,
+                )),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: _modes.map((m) {
                   final sel = m == _mode;
-                  return GestureDetector(
-                    onTap: () =>
-                        m == 'Search' ? _activateSearchMode() : _load(m),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: sel
-                            ? Colors.deepPurpleAccent.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.04),
-                        border: Border.all(
-                            color:
-                                sel ? Colors.deepPurpleAccent : Colors.white12),
-                      ),
-                      child: Text(m,
-                          style: GoogleFonts.outfit(
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () =>
+                            m == 'Search' ? _activateSearchMode() : _load(m),
+                        splashColor: Colors.deepPurpleAccent.withValues(alpha: 0.1),
+                        highlightColor: Colors.deepPurpleAccent.withValues(alpha: 0.05),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOutCubic,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: sel
+                                ? LinearGradient(
+                                    colors: [
+                                      Colors.deepPurpleAccent.withValues(alpha: 0.25),
+                                      Colors.deepPurpleAccent.withValues(alpha: 0.15),
+                                    ],
+                                  )
+                                : LinearGradient(
+                                    colors: [
+                                      tokens.panel.withValues(alpha: 0.8),
+                                      tokens.panelElevated.withValues(alpha: 0.6),
+                                    ],
+                                  ),
+                            border: Border.all(
                               color: sel
-                                  ? Colors.deepPurpleAccent
-                                  : Colors.white54,
-                              fontSize: 12,
-                              fontWeight:
-                                  sel ? FontWeight.w700 : FontWeight.w500)),
+                                  ? Colors.deepPurpleAccent.withValues(alpha: 0.4)
+                                  : tokens.outline,
+                              width: sel ? 2 : 1,
+                            ),
+                            boxShadow: sel
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.deepPurpleAccent.withValues(alpha: 0.2),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(m.toUpperCase(),
+                              style: GoogleFonts.outfit(
+                                  color: sel
+                                      ? Colors.white
+                                      : theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                  fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                                  letterSpacing: 0.5)),
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),
-              ),
             ),
+          ),
 
-            // Search bar (when Search mode)
-            if (_mode == 'Search') ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(children: [
-                    const SizedBox(width: 12),
-                    const Icon(Icons.search_rounded,
-                        color: Colors.deepPurpleAccent, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchCtrl,
-                        style: GoogleFonts.outfit(
-                            color: Colors.white, fontSize: 14),
-                        cursorColor: Colors.deepPurpleAccent,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Search anime title or genre...',
-                          hintStyle: GoogleFonts.outfit(
-                              color: Colors.white30, fontSize: 13),
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onSubmitted: (_) => _load('Search'),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => _load('Search'),
-                      child: Container(
-                        margin: const EdgeInsets.all(6),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurpleAccent.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text('GO',
-                            style: GoogleFonts.outfit(
-                                color: Colors.deepPurpleAccent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800)),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
             // Anime grid
             Expanded(
@@ -690,6 +755,72 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
       ),
     );
   }
+
+  Widget _buildPremiumStatCard(String title, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                color: tokens.textSoft,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
 }
 
 

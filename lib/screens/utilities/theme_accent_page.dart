@@ -49,6 +49,7 @@ class _ThemeAccentPageState extends State<ThemeAccentPage> {
       await prefs.setInt('flutter.theme_accent_color', color.value);
     }
 
+    if (!mounted) return;
     setState(() {
       _selectedAccent = color;
       AppThemes.customAccentColor = color;

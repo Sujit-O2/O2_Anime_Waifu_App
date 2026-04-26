@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Episode Alert Service — checks for new episodes of followed anime.
 /// Uses Jikan API to poll for newly aired episodes.
@@ -78,7 +78,7 @@ class EpisodeAlertService {
         // Rate limiting
         await Future.delayed(const Duration(milliseconds: 400));
       } catch (e) {
-        debugPrint('Alert check failed for ${anime.title}: $e');
+        if (kDebugMode) debugPrint('Alert check failed for ${anime.title}: $e');
       }
     }
 

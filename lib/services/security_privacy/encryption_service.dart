@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Encryption Service - Encrypt sensitive data (API keys, user info, etc.)
 class EncryptionService {
@@ -33,10 +33,10 @@ class EncryptionService {
       
       // Convert to base64
       final encoded = base64Encode(combined);
-      debugPrint('✅ Data encrypted');
+      if (kDebugMode) debugPrint('✅ Data encrypted');
       return encoded;
     } catch (e) {
-      debugPrint('❌ Error encrypting data: $e');
+      if (kDebugMode) debugPrint('❌ Error encrypting data: $e');
       return plainText;
     }
   }
@@ -60,10 +60,10 @@ class EncryptionService {
       }
 
       final plainText = utf8.decode(decrypted);
-      debugPrint('✅ Data decrypted');
+      if (kDebugMode) debugPrint('✅ Data decrypted');
       return plainText;
     } catch (e) {
-      debugPrint('❌ Error decrypting data: $e');
+      if (kDebugMode) debugPrint('❌ Error decrypting data: $e');
       return '';
     }
   }
@@ -72,10 +72,10 @@ class EncryptionService {
   String hashData(String data) {
     try {
       final hash = sha256.convert(utf8.encode(data + _magicKey));
-      debugPrint('✅ Data hashed');
+      if (kDebugMode) debugPrint('✅ Data hashed');
       return hash.toString();
     } catch (e) {
-      debugPrint('❌ Error hashing data: $e');
+      if (kDebugMode) debugPrint('❌ Error hashing data: $e');
       return '';
     }
   }
@@ -86,7 +86,7 @@ class EncryptionService {
       final computedHash = hashData(plainText);
       return computedHash == hash;
     } catch (e) {
-      debugPrint('❌ Error verifying hash: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying hash: $e');
       return false;
     }
   }
@@ -135,7 +135,7 @@ class EncryptionService {
       final hash = sha256.convert(utf8.encode(combined));
       return hash.toString().substring(0, length);
     } catch (e) {
-      debugPrint('❌ Error generating token: $e');
+      if (kDebugMode) debugPrint('❌ Error generating token: $e');
       return '';
     }
   }

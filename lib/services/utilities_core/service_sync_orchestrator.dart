@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// ════════════════════════════════════════════════════════════════════════════
 /// SERVICE SYNC ORCHESTRATOR
@@ -79,14 +79,14 @@ class ServiceSyncOrchestrator {
   }) async {
     try {
       _syncInterval = syncInterval;
-      debugPrint('🔄 Service Sync Orchestrator initializing...');
+      if (kDebugMode) debugPrint('🔄 Service Sync Orchestrator initializing...');
       
       // Start periodic sync
       _startPeriodicSync();
       
-      debugPrint('✅ Service Sync Orchestrator initialized');
+      if (kDebugMode) debugPrint('✅ Service Sync Orchestrator initialized');
     } catch (e) {
-      debugPrint('❌ Error initializing Service Sync: $e');
+      if (kDebugMode) debugPrint('❌ Error initializing Service Sync: $e');
       rethrow;
     }
   }
@@ -98,9 +98,9 @@ class ServiceSyncOrchestrator {
   ) async {
     try {
       _serviceStatus[serviceName] = SyncStatus.idle;
-      debugPrint('📌 Registered service: $serviceName');
+      if (kDebugMode) debugPrint('📌 Registered service: $serviceName');
     } catch (e) {
-      debugPrint('❌ Error registering service $serviceName: $e');
+      if (kDebugMode) debugPrint('❌ Error registering service $serviceName: $e');
     }
   }
 
@@ -118,14 +118,14 @@ class ServiceSyncOrchestrator {
       _updateStatus(serviceName, SyncStatus.success,
           message: 'Sync completed successfully');
 
-      debugPrint('✅ $serviceName synced successfully');
+      if (kDebugMode) debugPrint('✅ $serviceName synced successfully');
     } on TimeoutException {
       _updateStatus(serviceName, SyncStatus.offline,
           message: 'Sync timeout - offline');
-      debugPrint('⚠️ $serviceName sync timeout');
+      if (kDebugMode) debugPrint('⚠️ $serviceName sync timeout');
     } catch (e) {
       _updateStatus(serviceName, SyncStatus.error, message: 'Error: $e');
-      debugPrint('❌ $serviceName sync error: $e');
+      if (kDebugMode) debugPrint('❌ $serviceName sync error: $e');
     }
   }
 
@@ -134,18 +134,18 @@ class ServiceSyncOrchestrator {
     Map<String, Future<void> Function()> syncFunctions,
   ) async {
     try {
-      debugPrint('🔄 Starting full system sync...');
+      if (kDebugMode) debugPrint('🔄 Starting full system sync...');
       
       final futures = syncFunctions.entries.map((entry) {
         return syncService(entry.key, entry.value).catchError((e) {
-          debugPrint('Error syncing ${entry.key}: $e');
+          if (kDebugMode) debugPrint('Error syncing ${entry.key}: $e');
         });
       }).toList();
 
       await Future.wait(futures);
-      debugPrint('✅ Full system sync completed');
+      if (kDebugMode) debugPrint('✅ Full system sync completed');
     } catch (e) {
-      debugPrint('❌ Error in full sync: $e');
+      if (kDebugMode) debugPrint('❌ Error in full sync: $e');
     }
   }
 
@@ -153,10 +153,10 @@ class ServiceSyncOrchestrator {
   void setConnectivity(bool isOnline) {
     _isOnline = isOnline;
     if (isOnline) {
-      debugPrint('📱 Online - resuming sync');
+      if (kDebugMode) debugPrint('📱 Online - resuming sync');
       _startPeriodicSync();
     } else {
-      debugPrint('📵 Offline - pausing sync');
+      if (kDebugMode) debugPrint('📵 Offline - pausing sync');
       _syncTimer?.cancel();
     }
   }
@@ -166,7 +166,7 @@ class ServiceSyncOrchestrator {
     _syncTimer?.cancel();
     _syncTimer = Timer.periodic(_syncInterval, (_) {
       if (_isOnline && _serviceStatus.isNotEmpty) {
-        debugPrint('🔄 Periodic sync triggered');
+        if (kDebugMode) debugPrint('🔄 Periodic sync triggered');
       }
     });
   }
@@ -215,9 +215,9 @@ class ServiceSyncOrchestrator {
       }
       _subscriptions.clear();
       
-      debugPrint('✅ Service Sync Orchestrator disposed');
+      if (kDebugMode) debugPrint('✅ Service Sync Orchestrator disposed');
     } catch (e) {
-      debugPrint('❌ Error disposing Service Sync: $e');
+      if (kDebugMode) debugPrint('❌ Error disposing Service Sync: $e');
     }
   }
 }

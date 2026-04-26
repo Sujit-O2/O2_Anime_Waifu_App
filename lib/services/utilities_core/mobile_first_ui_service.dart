@@ -70,22 +70,22 @@ class MobileFirstUiService {
 
   /// Get screen width
   static double screenWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
+    return MediaQuery.sizeOf(context).width;
   }
 
   /// Get screen height
   static double screenHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
+    return MediaQuery.sizeOf(context).height;
   }
 
   /// Check if device is tablet (width > 600)
   static bool isTablet(BuildContext context) {
-    return MediaQuery.of(context).size.width > 600;
+    return MediaQuery.sizeOf(context).width > 600;
   }
 
   /// Get optimal column count for grid
   static int getGridColumns(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     if (width < 400) return 2;
     if (width < 600) return 3;
     if (width < 900) return 4;
@@ -94,7 +94,7 @@ class MobileFirstUiService {
 
   /// Get responsive padding
   static EdgeInsets getResponsivePadding(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     if (width < 400) return const EdgeInsets.all(12);
     if (width < 600) return const EdgeInsets.all(16);
     return const EdgeInsets.all(24);
@@ -107,7 +107,7 @@ class MobileFirstUiService {
     double tabletSize = 16,
     double desktopSize = 18,
   }) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     if (width < 600) return mobileSize;
     if (width < 900) return tabletSize;
     return desktopSize;
@@ -180,7 +180,7 @@ class ResponsiveLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final isTabletDevice = MediaQuery.of(context).size.width > 600;
+    final isTabletDevice = MediaQuery.sizeOf(context).width > 600;
 
     if (isTabletDevice && !isLandscape && tablet != null) {
       return tablet!;

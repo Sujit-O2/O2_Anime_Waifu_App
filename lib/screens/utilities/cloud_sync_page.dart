@@ -133,6 +133,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
     }
 
     HapticFeedback.mediumImpact();
+    if (!mounted) return;
     setState(() => _restoring = true);
     try {
       final snap = await FirebaseFirestore.instance

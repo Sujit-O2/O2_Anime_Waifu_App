@@ -109,6 +109,19 @@ class EmotionBubbleTheme {
       return _shy;
     }
     if (_any(t, [
+      'thank',
+      'grateful',
+      'appreciate',
+      'blessed',
+      'thankful',
+      '🙏',
+      '💝',
+      'kind',
+      'sweet of you',
+    ])) {
+      return _grateful;
+    }
+    if (_any(t, [
       'night',
       'sleep',
       'tired',
@@ -120,6 +133,31 @@ class EmotionBubbleTheme {
       'good night'
     ])) {
       return _sleepy;
+    }
+    if (_any(t, [
+      'flirt',
+      'darling',
+      'kiss',
+      'wink',
+      '😘',
+      '😏',
+      'naughty',
+      'tease',
+      'seduc'
+    ])) {
+      return _flirty;
+    }
+    if (_any(t, [
+      'curious',
+      'wonder',
+      'hmm',
+      'interesting',
+      'what if',
+      '🤔',
+      'think',
+      'ponder'
+    ])) {
+      return _curious;
     }
     return _neutral;
   }
@@ -168,12 +206,33 @@ class EmotionBubbleTheme {
     entranceCurve: Curves.easeOutQuart,
     emoji: '🥺',
   );
+  static const _grateful = EmotionBubbleTheme(
+    glowColor: Color(0xFFFFD166),
+    borderColor: Color(0xFFFFE08A),
+    bgTint: Color(0x14FFD166),
+    entranceCurve: Curves.easeOutQuart,
+    emoji: '💝',
+  );
   static const _sleepy = EmotionBubbleTheme(
     glowColor: Color(0xFF607D8B),
     borderColor: Color(0xFF78909C),
     bgTint: Color(0x10607D8B),
     entranceCurve: Curves.easeInOutQuad,
     emoji: '🌙',
+  );
+  static const _flirty = EmotionBubbleTheme(
+    glowColor: Color(0xFFFF4FA8),
+    borderColor: Color(0xFFFF69B4),
+    bgTint: Color(0x18FF4FA8),
+    entranceCurve: Curves.easeOutBack,
+    emoji: '😘',
+  );
+  static const _curious = EmotionBubbleTheme(
+    glowColor: Color(0xFF7B68EE),
+    borderColor: Color(0xFF9370DB),
+    bgTint: Color(0x147B68EE),
+    entranceCurve: Curves.easeOutQuart,
+    emoji: '🤔',
   );
   static const _neutral = EmotionBubbleTheme(
     glowColor: Color(0x00000000),
@@ -355,6 +414,20 @@ class _MoodGradientBackgroundState extends State<MoodGradientBackground>
         const Color(0xFF040609)
       ];
     }
+    if (l.contains('flirty') || l.contains('romantic')) {
+      return [
+        const Color(0xFF1A0515),
+        const Color(0xFF2D0820),
+        const Color(0xFF1A0515)
+      ];
+    }
+    if (l.contains('excited') || l.contains('energetic')) {
+      return [
+        const Color(0xFF1A0A2E),
+        const Color(0xFF2D0F3E),
+        const Color(0xFF120820)
+      ];
+    }
     return [
       const Color(0xFF0D0D19),
       const Color(0xFF16161E),
@@ -432,6 +505,8 @@ class _Particle {
   double vy;
   double size;
   double opacity;
+  double rotation;
+  double rotationSpeed;
   String emoji;
   _Particle(
       {required this.x,
@@ -440,6 +515,8 @@ class _Particle {
       required this.vy,
       required this.size,
       required this.opacity,
+      required this.rotation,
+      required this.rotationSpeed,
       required this.emoji});
 }
 
@@ -454,32 +531,39 @@ class ParticleOverlayState extends State<ParticleOverlay>
   late AnimationController _ctrl;
   final List<_Particle> _particles = [];
   final _rand = math.Random();
+  bool _isAnimating = false;
 
   @override
   void initState() {
     super.initState();
     _ctrl =
         AnimationController(vsync: this, duration: const Duration(seconds: 60))
-          ..addListener(_tick)
-          ..repeat();
+          ..addListener(_tick);
   }
 
   void trigger(String emotion) {
     final emojis = _emojisFor(emotion);
-    final numParticles = 12 + _rand.nextInt(8);
+    final numParticles = 10 + _rand.nextInt(6); // Slightly fewer for perf
     setState(() {
       for (int i = 0; i < numParticles; i++) {
         _particles.add(_Particle(
           x: 0.1 + _rand.nextDouble() * 0.8,
           y: 1.1,
-          vx: (_rand.nextDouble() - 0.5) * 0.008,
-          vy: -(0.004 + _rand.nextDouble() * 0.006),
-          size: 16 + _rand.nextDouble() * 22,
-          opacity: 0.7 + _rand.nextDouble() * 0.3,
+          vx: (_rand.nextDouble() - 0.5) * 0.006,
+          vy: -(0.004 + _rand.nextDouble() * 0.005),
+          size: 16 + _rand.nextDouble() * 20,
+          opacity: 0.75 + _rand.nextDouble() * 0.25,
+          rotation: _rand.nextDouble() * 6.28,
+          rotationSpeed: (_rand.nextDouble() - 0.5) * 0.08,
           emoji: emojis[_rand.nextInt(emojis.length)],
         ));
       }
     });
+    // Start animation loop only when we have particles
+    if (!_isAnimating) {
+      _isAnimating = true;
+      _ctrl.repeat();
+    }
     HapticFeedback.lightImpact();
   }
 
@@ -495,20 +579,35 @@ class ParticleOverlayState extends State<ParticleOverlay>
         return ['🥹', '💙', '🌊', '💧', '🫶'];
       case 'love_sent':
         return ['💌', '💕', '❤️', '🌸', '💗'];
+      case 'flirty':
+        return ['😘', '💋', '💕', '💗', '✨'];
+      case 'curious':
+        return ['🔮', '✨', '💫', '🌟', '⭐'];
+      case 'shy':
+        return ['🌸', '💕', '🥺', '✨', '💗'];
       default:
         return ['✨', '💫', '⭐', '🌟', '💖'];
     }
   }
 
   void _tick() {
-    if (_particles.isEmpty) return;
+    if (_particles.isEmpty) {
+      // Stop animation when idle — zero CPU cost
+      if (_isAnimating) {
+        _ctrl.stop();
+        _isAnimating = false;
+      }
+      return;
+    }
     setState(() {
       for (final p in _particles) {
         p.x += p.vx;
         p.y += p.vy;
-        p.opacity -= 0.004;
-        p.vy -= 0.00008; // slight upward acceleration
-        p.vx += (_rand.nextDouble() - 0.5) * 0.0004; // gentle sway
+        p.opacity -= 0.003;
+        p.rotation += p.rotationSpeed;
+        p.vy -= 0.00006; // gentle upward acceleration
+        // Smooth sinusoidal sway instead of random noise
+        p.vx += math.sin(p.y * 12) * 0.00008;
       }
       _particles.removeWhere((p) => p.opacity <= 0 || p.y < -0.1);
     });
@@ -523,19 +622,24 @@ class ParticleOverlayState extends State<ParticleOverlay>
   @override
   Widget build(BuildContext context) {
     if (_particles.isEmpty) return const SizedBox.shrink();
-    final size = MediaQuery.of(context).size;
-    return IgnorePointer(
-      child: Stack(
-        children: _particles.map((p) {
-          return Positioned(
-            left: p.x * size.width - p.size / 2,
-            top: p.y * size.height - p.size / 2,
-            child: Opacity(
-              opacity: p.opacity.clamp(0.0, 1.0),
-              child: Text(p.emoji, style: TextStyle(fontSize: p.size)),
-            ),
-          );
-        }).toList(),
+    final size = MediaQuery.sizeOf(context);
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: Stack(
+          children: _particles.map((p) {
+            return Positioned(
+              left: p.x * size.width - p.size / 2,
+              top: p.y * size.height - p.size / 2,
+              child: Opacity(
+                opacity: p.opacity.clamp(0.0, 1.0),
+                child: Transform.rotate(
+                  angle: p.rotation,
+                  child: Text(p.emoji, style: TextStyle(fontSize: p.size)),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -797,43 +901,79 @@ class _StreakBadgeState extends State<StreakBadge>
 ///
 /// Shows emoji reaction options on long-press of an AI message.
 /// ─────────────────────────────────────────────────────────────────────────────
-class MessageReactionBar extends StatelessWidget {
+class MessageReactionBar extends StatefulWidget {
   final Function(String emoji) onReact;
   const MessageReactionBar({super.key, required this.onReact});
 
   static const _reactions = ['❤️', '😂', '😢', '✨', '🔥', '😤'];
 
   @override
+  State<MessageReactionBar> createState() => _MessageReactionBarState();
+}
+
+class _MessageReactionBarState extends State<MessageReactionBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E2E),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: _reactions.map((emoji) {
-          return GestureDetector(
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              onReact(emoji);
-              Navigator.pop(context);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              child: Text(emoji, style: const TextStyle(fontSize: 22)),
-            ),
-          );
-        }).toList(),
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E2E),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(MessageReactionBar._reactions.length, (i) {
+            final emoji = MessageReactionBar._reactions[i];
+            // Staggered entrance: each emoji pops in 60ms apart
+            final delay = i * 0.1;
+            final progress =
+                ((_ctrl.value - delay) / (1 - delay)).clamp(0.0, 1.0);
+            final scale = Curves.elasticOut.transform(progress);
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                widget.onReact(emoji);
+                Navigator.pop(context);
+              },
+              child: Transform.scale(
+                scale: scale,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                ),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -898,7 +1038,11 @@ class _SurpriseMeButtonState extends State<SurpriseMeButton>
             ],
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Text('🎲', style: TextStyle(fontSize: 15)),
+            AnimatedRotation(
+              turns: _glowAnim.value * 0.1,
+              duration: const Duration(milliseconds: 100),
+              child: const Text('🎲', style: TextStyle(fontSize: 15)),
+            ),
             const SizedBox(width: 6),
             Text('Surprise me!',
                 style: GoogleFonts.outfit(
@@ -917,7 +1061,7 @@ class _SurpriseMeButtonState extends State<SurpriseMeButton>
 ///
 /// Shows 3 contextual sticker-style emoji chips after detecting emotion.
 /// ─────────────────────────────────────────────────────────────────────────────
-class EmotionStickerBar extends StatelessWidget {
+class EmotionStickerBar extends StatefulWidget {
   final String emotion;
   final Function(String sticker) onSend;
 
@@ -936,42 +1080,115 @@ class EmotionStickerBar extends StatelessWidget {
         return ['🎉 Yay!!', '✨ Amazing!!', '🔥 Let\'s go!!'];
       case 'angry':
         return ['😌 Calm down~', '🫂 I get it', '🙏 Sorry~'];
+      case 'flirty':
+        return ['😘 Kiss back~', '😏 Oh really?', '💋 Darling~'];
+      case 'curious':
+        return ['🤔 Tell me more', '💡 Interesting!', '🔍 Go on~'];
+      case 'shy':
+        return ['🥺 So cute~', '💕 Adorable!', '🫣 Don\'t hide~'];
       default:
         return ['💬 Tell me more', '🤔 Interesting!', '💕 Aww~'];
     }
   }
 
   @override
+  State<EmotionStickerBar> createState() => _EmotionStickerBarState();
+}
+
+class _EmotionStickerBarState extends State<EmotionStickerBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final stickers = stickersFor(emotion);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: stickers
-            .map((s) => Padding(
+    final stickers = EmotionStickerBar.stickersFor(widget.emotion);
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(stickers.length, (i) {
+            final s = stickers[i];
+            // Staggered slide-in from right
+            final delay = i * 0.2;
+            final progress =
+                ((_ctrl.value - delay) / (1 - delay)).clamp(0.0, 1.0);
+            final slide = Curves.easeOutCubic.transform(progress);
+            final opacity = progress;
+            return Transform.translate(
+              offset: Offset(20 * (1 - slide), 0),
+              child: Opacity(
+                opacity: opacity,
+                child: Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
+                  child: _StickerChip(
+                    label: s,
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      onSend(s);
+                      widget.onSend(s);
                     },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.18)),
-                      ),
-                      child: Text(s,
-                          style: GoogleFonts.outfit(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 13)),
-                    ),
                   ),
-                ))
-            .toList(),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+/// Individual sticker chip with press-scale feedback
+class _StickerChip extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _StickerChip({required this.label, required this.onTap});
+  @override
+  State<_StickerChip> createState() => _StickerChipState();
+}
+
+class _StickerChipState extends State<_StickerChip> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+          ),
+          child: Text(widget.label,
+              style: GoogleFonts.outfit(
+                  color: Colors.white.withValues(alpha: 0.9), fontSize: 13)),
+        ),
       ),
     );
   }

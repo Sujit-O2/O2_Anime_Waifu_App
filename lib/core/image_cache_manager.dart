@@ -1,14 +1,14 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:anime_waifu/core/error_handler.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// Image Cache Manager
 /// Implements 3-layer caching: Memory → Disk → Network
 class ImageCacheManager {
-  static final ImageCacheManager _instance =
-      ImageCacheManager._internal();
+  static final ImageCacheManager _instance = ImageCacheManager._internal();
 
   factory ImageCacheManager() {
     return _instance;
@@ -21,54 +21,55 @@ class ImageCacheManager {
 
   // Cache manager (disk cache)
   late CacheManager _cacheManager;
+  bool _isInitialized = false;
 
   // Configuration
-  static const int maxMemoryCacheSize = 100;
-  static const Duration memoryCacheDuration = Duration(hours: 24);
-  static const Duration diskCacheDuration = Duration(days: 7);
+  static const int maxMemoryCacheSize = 60;
+  static const Duration memoryCacheDuration = Duration(hours: 12);
+  static const Duration diskCacheDuration = Duration(days: 3);
+  static const int maxDiskCacheObjects = 40;
 
   /// Initialize cache manager
   Future<void> initialize() async {
+    if (_isInitialized) return;
     try {
       _cacheManager = CacheManager(
         Config(
           'anime_waifu_cache',
           stalePeriod: diskCacheDuration,
-          maxNrOfCacheObjects: 100,
+          maxNrOfCacheObjects: maxDiskCacheObjects,
           repo: JsonCacheInfoRepository(databaseName: 'anime_waifu_cache'),
         ),
       );
+      _isInitialized = true;
+      startAutoCleanup(interval: const Duration(hours: 2));
 
-      debugPrint('✅ Image Cache Manager initialized');
+      if (kDebugMode) debugPrint('✅ Image Cache Manager initialized');
     } catch (e) {
-      debugPrint('❌ Error initializing Image Cache Manager: $e');
+      if (kDebugMode)
+        debugPrint('❌ Error initializing Image Cache Manager: $e');
     }
   }
 
   /// Get image from cache or network
   Future<Result<Uint8List>> getImage(String imageUrl) async {
     try {
+      if (!_isInitialized) {
+        await initialize();
+      }
       // 1. Check memory cache first (fastest)
       final memoryCached = _getFromMemoryCache(imageUrl);
       if (memoryCached != null) {
-        debugPrint('✅ Image loaded from memory cache');
+        if (kDebugMode) debugPrint('✅ Image loaded from memory cache');
         return Result.success(memoryCached);
       }
 
-      // 2. Check disk cache (fast)
-      final diskCached = await _getFromDiskCache(imageUrl);
+      // 2. Check disk cache (fast), fallback to network fetch
+      final diskCached = await _getFromDiskOrNetworkCache(imageUrl);
       if (diskCached != null) {
-        debugPrint('✅ Image loaded from disk cache');
+        if (kDebugMode) debugPrint('✅ Image loaded from disk cache');
         _addToMemoryCache(imageUrl, diskCached);
         return Result.success(diskCached);
-      }
-
-      // 3. Download from network (slow)
-      final networkImage = await _downloadImage(imageUrl);
-      if (networkImage != null) {
-        debugPrint('✅ Image downloaded from network');
-        _addToMemoryCache(imageUrl, networkImage);
-        return Result.success(networkImage);
       }
 
       return Result.failure(
@@ -99,6 +100,9 @@ class ImageCacheManager {
 
   /// Add to memory cache
   void _addToMemoryCache(String key, Uint8List data) {
+    // Refresh insertion order so this behaves like a simple LRU.
+    _memoryCache.remove(key);
+
     // Check cache size limit
     if (_memoryCache.length >= maxMemoryCacheSize) {
       // Remove oldest entry
@@ -113,24 +117,13 @@ class ImageCacheManager {
   }
 
   /// Get from disk cache
-  Future<Uint8List?> _getFromDiskCache(String url) async {
+  Future<Uint8List?> _getFromDiskOrNetworkCache(String url) async {
     try {
       final file = await _cacheManager.getSingleFile(url);
       final data = await file.readAsBytes();
       return data;
     } catch (e) {
-      return null;
-    }
-  }
-
-  /// Download image from network
-  Future<Uint8List?> _downloadImage(String url) async {
-    try {
-      final file = await _cacheManager.getSingleFile(url);
-      final data = await file.readAsBytes();
-      return data;
-    } catch (e) {
-      debugPrint('❌ Error downloading image: $e');
+      if (kDebugMode) debugPrint('❌ Error downloading image: $e');
       return null;
     }
   }
@@ -138,16 +131,17 @@ class ImageCacheManager {
   /// Clear memory cache
   void clearMemoryCache() {
     _memoryCache.clear();
-    debugPrint('✅ Memory cache cleared');
+    if (kDebugMode) debugPrint('✅ Memory cache cleared');
   }
 
   /// Clear disk cache
   Future<void> clearDiskCache() async {
+    if (!_isInitialized) return;
     try {
       await _cacheManager.emptyCache();
-      debugPrint('✅ Disk cache cleared');
+      if (kDebugMode) debugPrint('✅ Disk cache cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing disk cache: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing disk cache: $e');
     }
   }
 
@@ -155,21 +149,20 @@ class ImageCacheManager {
   Future<void> clearAllCaches() async {
     clearMemoryCache();
     await clearDiskCache();
-    debugPrint('✅ All caches cleared');
+    if (kDebugMode) debugPrint('✅ All caches cleared');
   }
 
   /// Get cache size statistics
   Future<CacheStatistics> getCacheStatistics() async {
     try {
+      if (!_isInitialized) {
+        await initialize();
+      }
       final memoryCacheSize = _memoryCache.length;
       int diskCacheSize = 0;
-      
-      try {
-        // Try to get disk cache file count
-        diskCacheSize = _memoryCache.length; // Placeholder
-      } catch (e) {
-        // Silently fail if cache manager doesn't support listing
-      }
+
+      // flutter_cache_manager does not expose a stable public API for listing
+      // disk entries across versions, so keep this to the known memory count.
 
       return CacheStatistics(
         memoryCacheSize: memoryCacheSize,
@@ -177,7 +170,7 @@ class ImageCacheManager {
         totalSize: memoryCacheSize + diskCacheSize,
       );
     } catch (e) {
-      debugPrint('❌ Error getting cache statistics: $e');
+      if (kDebugMode) debugPrint('❌ Error getting cache statistics: $e');
       return CacheStatistics(
         memoryCacheSize: 0,
         diskCacheSize: 0,
@@ -203,7 +196,7 @@ class ImageCacheManager {
     try {
       final futures = imageUrls.map((url) => getImage(url));
       await Future.wait(futures);
-      debugPrint('✅ Preloaded ${imageUrls.length} images');
+      if (kDebugMode) debugPrint('✅ Preloaded ${imageUrls.length} images');
       return Result.success(null);
     } catch (e, stackTrace) {
       return Result.failure(
@@ -215,11 +208,14 @@ class ImageCacheManager {
   /// Remove specific image from cache
   Future<void> removeImage(String imageUrl) async {
     try {
+      if (!_isInitialized) {
+        await initialize();
+      }
       _memoryCache.remove(imageUrl);
       await _cacheManager.removeFile(imageUrl);
-      debugPrint('✅ Image removed from cache: $imageUrl');
+      if (kDebugMode) debugPrint('✅ Image removed from cache: $imageUrl');
     } catch (e) {
-      debugPrint('❌ Error removing image: $e');
+      if (kDebugMode) debugPrint('❌ Error removing image: $e');
     }
   }
 
@@ -251,7 +247,8 @@ class ImageCacheManager {
     }
 
     if (expiredKeys.isNotEmpty) {
-      debugPrint('✅ Cleaned up ${expiredKeys.length} expired cache entries');
+      if (kDebugMode)
+        debugPrint('✅ Cleaned up ${expiredKeys.length} expired cache entries');
     }
   }
 
@@ -262,19 +259,21 @@ class ImageCacheManager {
     _cleanupTimer = Timer.periodic(interval, (_) {
       cleanupExpiredCache();
     });
-    debugPrint('✅ Auto cleanup started (interval: ${interval.inMinutes} minutes)');
+    if (kDebugMode)
+      debugPrint(
+          '✅ Auto cleanup started (interval: ${interval.inMinutes} minutes)');
   }
 
   void stopAutoCleanup() {
     _cleanupTimer?.cancel();
-    debugPrint('✅ Auto cleanup stopped');
+    if (kDebugMode) debugPrint('✅ Auto cleanup stopped');
   }
 
   /// Dispose resources
   Future<void> dispose() async {
     stopAutoCleanup();
     clearMemoryCache();
-    debugPrint('✅ Image Cache Manager disposed');
+    if (kDebugMode) debugPrint('✅ Image Cache Manager disposed');
   }
 }
 
@@ -306,6 +305,3 @@ class CacheStatistics {
     return 'CacheStatistics(memory: $memoryCacheSize, disk: $diskCacheSize, total: $totalSize)';
   }
 }
-
-
-

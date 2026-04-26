@@ -56,7 +56,7 @@ class SecureEncryption {
       return base64Encode(result);
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[SecureEncryption] Encrypt error: $e');
+        if (kDebugMode) debugPrint('[SecureEncryption] Encrypt error: $e');
       }
       rethrow; // Don't fallback to plaintext - fail securely
     }
@@ -71,7 +71,7 @@ class SecureEncryption {
       // Extract components
       if (decoded.length < _saltSize + _ivSize + 32) {
         if (kDebugMode) {
-          debugPrint('[SecureEncryption] Invalid ciphertext length');
+          if (kDebugMode) debugPrint('[SecureEncryption] Invalid ciphertext length');
         }
         return null;
       }
@@ -93,7 +93,7 @@ class SecureEncryption {
 
       if (!_constantTimeEquals(mac, expectedMac.bytes)) {
         if (kDebugMode) {
-          debugPrint('[SecureEncryption] HMAC verification failed');
+          if (kDebugMode) debugPrint('[SecureEncryption] HMAC verification failed');
         }
         return null;
       }
@@ -103,7 +103,7 @@ class SecureEncryption {
       return utf8.decode(plainBytes);
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[SecureEncryption] Decrypt error: $e');
+        if (kDebugMode) debugPrint('[SecureEncryption] Decrypt error: $e');
       }
       return null;
     }

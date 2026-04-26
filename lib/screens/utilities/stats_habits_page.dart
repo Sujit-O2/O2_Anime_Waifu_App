@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -111,12 +112,14 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
     if (hString != null) {
       try {
         final List<dynamic> decoded = jsonDecode(hString);
+        if (!mounted) return;
         setState(() {
-          _habits = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          _habits =
+              decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         });
         _checkHabitResets();
       } catch (e) {
-        debugPrint('Error loading habits: $e');
+        if (kDebugMode) debugPrint('Error loading habits: $e');
       }
     }
   }
@@ -128,7 +131,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
 
   void _checkHabitResets() {
     final now = DateTime.now();
-    final today = "${now.year}-${now.month}-${now.day}";
+    final today = '${now.year}-${now.month}-${now.day}';
     bool changed = false;
 
     for (var hab in _habits) {
@@ -162,7 +165,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
     setState(() {
       final hab = _habits[index];
       final now = DateTime.now();
-      final today = "${now.year}-${now.month}-${now.day}";
+      final today = '${now.year}-${now.month}-${now.day}';
 
       if (hab['isDoneToday'] == true) {
         // Undo
@@ -304,7 +307,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
         Expanded(
           child: _habits.isEmpty
               ? Center(
-                  child: Text("No habits yet.\nZero Two will cheer you on!",
+                  child: Text('No habits yet.\nZero Two will cheer you on!',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(color: Colors.white54)))
               : ListView.builder(
@@ -433,7 +436,3 @@ class _StatBox extends StatelessWidget {
     );
   }
 }
-
-
-
-

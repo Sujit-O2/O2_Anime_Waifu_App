@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Download Service — saves manga chapters and anime episodes for offline use.
 class DownloadService {
@@ -56,7 +56,7 @@ class DownloadService {
       await _saveDownloadItem(item);
       return item;
     } catch (e) {
-      debugPrint('Download failed: $e');
+      if (kDebugMode) debugPrint('Download failed: $e');
       return null;
     }
   }
@@ -134,7 +134,7 @@ class DownloadService {
       await _saveDownloadItem(item);
       return item;
     } catch (e) {
-      debugPrint('Anime download failed: $e');
+      if (kDebugMode) debugPrint('Anime download failed: $e');
       return null;
     }
   }

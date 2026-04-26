@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/providers/chat_provider.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/screens/admin/admin_hub_page.dart';
@@ -161,6 +162,7 @@ import 'package:anime_waifu/screens/wellness/sleep_mode_page.dart';
 import 'package:anime_waifu/screens/wellness/study_timer_page.dart';
 import 'package:anime_waifu/screens/wellness/wellness_reminders_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1059,6 +1061,298 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           ],
         ),
 
+        // ── 🖼️ MEDIA GALLERY ─────────────────────────────────────────────
+        _HubCategory(
+          title: 'Media Gallery',
+          emoji: '🖼️',
+          description: 'GIFs, images, wallpapers, and sticker collections',
+          color: Colors.deepPurpleAccent,
+          items: [
+            _HubItem(
+                label: 'GIF Viewer',
+                icon: Icons.gif_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Image Packs',
+                icon: Icons.photo_library_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Wallpapers',
+                icon: Icons.wallpaper_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Sticker Gallery',
+                icon: Icons.emoji_emotions_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 🌍 SOCIAL & TRAVEL ──────────────────────────────────────────
+        _HubCategory(
+          title: 'Social & Travel',
+          emoji: '🌍',
+          description: 'Relationship tools, event planning, and travel companions',
+          color: Colors.orangeAccent,
+          items: [
+            _HubItem(
+                label: 'Gift Intelligence',
+                icon: Icons.card_giftcard_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Conflict Resolution',
+                icon: Icons.handshake_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Long Distance Love',
+                icon: Icons.favorite_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Event Planner',
+                icon: Icons.event_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Travel Planner',
+                icon: Icons.flight_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 💼 PRODUCTIVITY ──────────────────────────────────────────────
+        _HubCategory(
+          title: 'Productivity',
+          emoji: '💼',
+          description: 'Academic research, meeting intelligence, and smart tracking',
+          color: Colors.cyan.shade700,
+          items: [
+            _HubItem(
+                label: 'Academic Research',
+                icon: Icons.school_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Meeting Intelligence',
+                icon: Icons.groups_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Smart Habit Tracker',
+                icon: Icons.track_changes_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Goal Tracker',
+                icon: Icons.flag_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 💰 FINANCIAL ─────────────────────────────────────────────────
+        _HubCategory(
+          title: 'Financial',
+          emoji: '💰',
+          description: 'Budget coaching and investment guidance',
+          color: Colors.green.shade700,
+          items: [
+            _HubItem(
+                label: 'Budget Coach',
+                icon: Icons.account_balance_wallet_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Investment Companion',
+                icon: Icons.trending_up_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 🎓 EDUCATIONAL ───────────────────────────────────────────────
+        _HubCategory(
+          title: 'Educational',
+          emoji: '🎓',
+          description: 'Language learning, personalized education, and skill development',
+          color: Colors.indigo.shade700,
+          items: [
+            _HubItem(
+                label: 'Language Learning',
+                icon: Icons.language_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Personalized Learning',
+                icon: Icons.psychology_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Skill Gap Analyzer',
+                icon: Icons.analytics_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Debate & Critical Thinking',
+                icon: Icons.forum_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 🎨 CREATIVE ──────────────────────────────────────────────────
+        _HubCategory(
+          title: 'Creative',
+          emoji: '🎨',
+          description: 'Art direction, storytelling, game mastering, and music composition',
+          color: Colors.pink.shade700,
+          items: [
+            _HubItem(
+                label: 'Art Direction',
+                icon: Icons.brush_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Collaborative Storytelling',
+                icon: Icons.auto_stories_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Game Master',
+                icon: Icons.casino_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Music Composition',
+                icon: Icons.music_note_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 💪 WELLNESS+ ─────────────────────────────────────────────────
+        _HubCategory(
+          title: 'Wellness+',
+          emoji: '💪',
+          description: 'Advanced wellness tools beyond basic meditation',
+          color: Colors.lightBlue.shade700,
+          items: [
+            _HubItem(
+                label: 'Hydration & Nutrition',
+                icon: Icons.local_drink_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Stress Detection',
+                icon: Icons.warning_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Guided Meditation',
+                icon: Icons.self_improvement_rounded,
+                builder: (_) => Container()),
+            _HubItem(
+                label: 'Sleep Tracking',
+                icon: Icons.bedtime_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 🧠 MEMORY & AI ───────────────────────────────────────────────
+        _HubCategory(
+          title: 'Memory & AI',
+          emoji: '🧠',
+          description: 'Enhanced memory features and AI-powered intelligence',
+          color: Colors.deepPurple.shade700,
+          items: [
+            _HubItem(
+                label: 'Voice Clone Training',
+                icon: Icons.record_voice_over_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Dream Journal',
+                icon: Icons.nightlight_round,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Relationship Heatmap',
+                icon: Icons.thermostat_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Smart Photo Memory',
+                icon: Icons.photo_camera_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Conversation Bookmarks',
+                icon: Icons.bookmark_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Emotion Timeline',
+                icon: Icons.timeline_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 🤖 AI ADVANCED ───────────────────────────────────────────────
+        _HubCategory(
+          title: 'AI Advanced',
+          emoji: '🤖',
+          description: 'Cutting-edge AI features for personality, memory, and intelligence',
+          color: Colors.purple.shade700,
+          items: [
+            _HubItem(
+                label: 'Personality Evolution',
+                icon: Icons.trending_up_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Semantic Memory',
+                icon: Icons.memory_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Conversation Modes',
+                icon: Icons.chat_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Emotional Memory',
+                icon: Icons.favorite_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Smart Reply',
+                icon: Icons.smart_button_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Enhanced Memory',
+                icon: Icons.enhance_photo_translate_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'AI Copilot',
+                icon: Icons.assistant_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Alter Ego Personas',
+                icon: Icons.person_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Voice Emotion',
+                icon: Icons.mic_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'AI Content Generator',
+                icon: Icons.create_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Emotional AI',
+                icon: Icons.psychology_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Emotional Recovery',
+                icon: Icons.healing_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Self Reflection',
+                icon: Icons.self_improvement_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
+        // ── 👥 SOCIAL ADVANCED ───────────────────────────────────────────
+        _HubCategory(
+          title: 'Social Advanced',
+          emoji: '👥',
+          description: 'Advanced social features and community tools',
+          color: Colors.green.shade700,
+          items: [
+            _HubItem(
+                label: 'Contacts Lookup',
+                icon: Icons.contacts_rounded,
+                builder: (_) => Container()), // Placeholder
+            _HubItem(
+                label: 'Social Features',
+                icon: Icons.groups_rounded,
+                builder: (_) => Container()), // Placeholder
+          ],
+        ),
+
         // ── ⚙️ ADMIN HUB (YOUR CONTROL CENTER) ────────────────────────────────
         _HubCategory(
           title: 'Admin Control',
@@ -1101,9 +1395,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
   Future<void> _restoreHubPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _query = prefs.getString(_hubQueryKey) ?? '');
   }
 
@@ -1197,64 +1489,142 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
           SafeArea(
             child: Column(children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: Row(children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new,
-                        color: Colors.white70),
-                    onPressed: () {
-                      if (widget.onBack != null) {
-                        widget.onBack!();
-                      } else if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      }
-                    },
+              // Premium Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  const SizedBox(width: 4),
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('ALL FEATURES',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 20,
-                                letterSpacing: 1.5)),
-                        Text('Tap a category to explore',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white38, fontSize: 12)),
-                      ]),
-                  const Spacer(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
-                          colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)]),
-                    ),
-                    child: Text('🌸 Hub',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ]),
-              ),
+                ),
+                child: Column(
+                  children: [
+                    Row(children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back_ios_new_rounded,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            size: 20),
+                        onPressed: () {
+                          if (widget.onBack != null) {
+                            widget.onBack!();
+                          } else if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('FEATURES HUB',
+                                style: GoogleFonts.outfit(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 24,
+                                    letterSpacing: 1.5)),
+                            const SizedBox(height: 4),
+                            Text('Explore all Zero Two features',
+                                style: GoogleFonts.outfit(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500)),
+                          ]),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.diamond_rounded,
+                                color: Colors.white, size: 16),
+                            const SizedBox(width: 6),
+                            Text('$visibleItems',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                      ),
+                    ]),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: V2SearchBar(
-                  hintText: 'Search features or categories...',
-                  onChanged: (value) {
-                    setState(() => _query = value);
-                    _saveHubPrefs();
-                  },
+                    const SizedBox(height: 16),
+
+                    // Search Bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search_rounded,
+                              color: Theme.of(context).colorScheme.onSurface, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              style: GoogleFonts.outfit(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 16,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Search features...',
+                                hintStyle: GoogleFonts.outfit(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 14,
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onChanged: (value) {
+                                setState(() => _query = value);
+                                _saveHubPrefs();
+                              },
+                              controller: TextEditingController(text: _query),
+                            ),
+                          ),
+                          if (_query.isNotEmpty)
+                            IconButton(
+                              icon: Icon(Icons.clear_rounded,
+                                  color: Theme.of(context).colorScheme.onSurface, size: 18),
+                              onPressed: () {
+                                setState(() => _query = '');
+                                _saveHubPrefs();
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
 
               // Scrollable overview + category list
               Expanded(
@@ -1350,153 +1720,224 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
   Widget _buildCategoryCard(_HubCategory cat, int idx) {
     final isOpen = _expandedIdx == idx;
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.only(bottom: 12),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: isOpen
-            ? cat.color.withValues(alpha: 0.08)
-            : Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: isOpen
+              ? [
+                  cat.color.withValues(alpha: 0.12),
+                  cat.color.withValues(alpha: 0.06),
+                ]
+              : [
+                  tokens.panel.withValues(alpha: 0.8),
+                  tokens.panel.withValues(alpha: 0.6),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: Border.all(
           color: isOpen
-              ? cat.color.withValues(alpha: 0.5)
-              : Colors.white.withValues(alpha: 0.08),
-          width: isOpen ? 1.5 : 1,
+              ? cat.color.withValues(alpha: 0.4)
+              : tokens.outline,
+          width: isOpen ? 2 : 1,
         ),
         boxShadow: isOpen
             ? [
                 BoxShadow(
-                    color: cat.color.withValues(alpha: 0.15), blurRadius: 20)
+                  color: cat.color.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: cat.color.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                  spreadRadius: -1,
+                ),
               ]
-            : [],
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header row
-          InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => _toggle(idx),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              child: Row(children: [
-                // Emoji glow box
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: cat.color.withValues(alpha: isOpen ? 0.2 : 0.1),
-                    border: Border.all(color: cat.color.withValues(alpha: 0.4)),
+          // Premium Header
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(24),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _toggle(idx);
+              },
+              splashColor: cat.color.withValues(alpha: 0.1),
+              highlightColor: cat.color.withValues(alpha: 0.05),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(children: [
+                  // Premium emoji container
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          cat.color.withValues(alpha: isOpen ? 0.25 : 0.15),
+                          cat.color.withValues(alpha: isOpen ? 0.15 : 0.08),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(
+                        color: cat.color.withValues(alpha: isOpen ? 0.5 : 0.3),
+                        width: 2,
+                      ),
+                      boxShadow: isOpen
+                          ? [
+                              BoxShadow(
+                                color: cat.color.withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(cat.emoji, style: const TextStyle(fontSize: 24)),
+                    ),
                   ),
-                  child: Center(
-                      child: Text(cat.emoji,
-                          style: const TextStyle(fontSize: 22))),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
+
+                  const SizedBox(width: 16),
+
+                  // Content section
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(cat.title,
                             style: GoogleFonts.outfit(
-                                color: isOpen ? cat.color : Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
+                                color: isOpen
+                                    ? cat.color
+                                    : theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                letterSpacing: 0.5)),
+                        const SizedBox(height: 4),
                         Text(cat.description,
                             style: GoogleFonts.outfit(
-                                color: Colors.white38, fontSize: 11)),
-                      ]),
-                ),
-                // Count badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: cat.color.withValues(alpha: 0.15),
+                                color: tokens.textSoft,
+                                fontSize: 13,
+                                height: 1.3)),
+                      ],
+                    ),
                   ),
-                  child: Text('${cat.items.length}',
-                      style: GoogleFonts.outfit(
-                          color: cat.color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12)),
-                ),
-                const SizedBox(width: 8),
-                AnimatedRotation(
-                  turns: isOpen ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(Icons.keyboard_arrow_down_rounded,
-                      color: isOpen ? cat.color : Colors.white38),
-                ),
-              ]),
+
+                  const SizedBox(width: 12),
+
+                  // Count badge with premium design
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      gradient: LinearGradient(
+                        colors: [
+                          cat.color.withValues(alpha: 0.2),
+                          cat.color.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: cat.color.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text('${cat.items.length}',
+                        style: GoogleFonts.outfit(
+                            color: cat.color,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13)),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Animated chevron
+                  AnimatedRotation(
+                    turns: isOpen ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOutCubic,
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isOpen
+                          ? cat.color
+                          : tokens.textMuted,
+                      size: 24,
+                    ),
+                  ),
+                ]),
+              ),
             ),
           ),
 
-          // Expandable items grid
+          // Premium expandable items grid
           ClipRect(
             child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
               child: isOpen
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                  ? Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: tokens.panelMuted.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: tokens.outline,
+                          width: 1,
+                        ),
+                      ),
                       child: Column(children: [
-                        Divider(
-                            color: cat.color.withValues(alpha: 0.2), height: 1),
-                        const SizedBox(height: 12),
+                        Container(
+                          height: 1,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                cat.color.withValues(alpha: 0.4),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
-                            mainAxisSpacing: 10,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: 1.0,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.9,
                           ),
                           itemCount: cat.items.length,
                           itemBuilder: (ctx, j) {
                             final item = cat.items[j];
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(14),
-                              onTap: () {
-                                if (item.onTap != null) {
-                                  item.onTap!();
-                                } else if (item.builder != null) {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: item.builder!));
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  color: cat.color.withValues(alpha: 0.07),
-                                  border: Border.all(
-                                      color: cat.color.withValues(alpha: 0.2)),
-                                ),
-                                child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(item.icon,
-                                          color: cat.color, size: 24),
-                                      const SizedBox(height: 6),
-                                      Text(item.label,
-                                          style: GoogleFonts.outfit(
-                                              color: Colors.white70,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2),
-                                    ]),
-                              ),
-                            );
+                            return _buildFeatureItem(item, cat.color);
                           },
                         ),
                       ]),
@@ -1508,8 +1949,82 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
       ),
     );
   }
+
+  Widget _buildFeatureItem(_HubItem item, Color categoryColor) {
+    return Semantics(
+      button: true,
+      label: item.label,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          if (item.onTap != null) {
+            item.onTap!();
+          } else if (item.builder != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: item.builder!),
+            );
+          }
+        },
+        splashColor: categoryColor.withValues(alpha: 0.1),
+        highlightColor: categoryColor.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                categoryColor.withValues(alpha: 0.08),
+                categoryColor.withValues(alpha: 0.04),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: categoryColor.withValues(alpha: 0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: categoryColor.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: categoryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  item.icon,
+                  color: categoryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.label,
+                style: GoogleFonts.outfit(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
-
-
-
-

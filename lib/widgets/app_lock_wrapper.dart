@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppLockWrapper extends StatefulWidget {
@@ -16,6 +20,10 @@ class AppLockWrapperState extends State<AppLockWrapper>
     with WidgetsBindingObserver {
   bool _isAuthenticated = false;
   bool _isLockEnabled = false;
+  bool _isAuthenticating = false;
+  bool _didPrecacheBackground = false;
+  int _authGeneration = 0;
+  String? _authError;
   final LocalAuthentication _auth = LocalAuthentication();
 
   @override
@@ -23,6 +31,14 @@ class AppLockWrapperState extends State<AppLockWrapper>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _checkLockStatus();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didPrecacheBackground) return;
+    _didPrecacheBackground = true;
+    unawaited(precacheImage(const AssetImage('assets/img/z12.jpg'), context));
   }
 
   @override
@@ -34,21 +50,21 @@ class AppLockWrapperState extends State<AppLockWrapper>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      if (_isLockEnabled) {
-        setState(() {
-          _isAuthenticated = false;
-        });
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      if (_isLockEnabled && _isAuthenticated && mounted) {
+        setState(() => _isAuthenticated = false);
       }
     } else if (state == AppLifecycleState.resumed) {
       if (_isLockEnabled && !_isAuthenticated) {
-        _authenticate();
+        unawaited(_authenticate());
       }
     }
   }
 
   Future<void> _checkLockStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _isLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
       if (!_isLockEnabled) {
@@ -57,49 +73,60 @@ class AppLockWrapperState extends State<AppLockWrapper>
     });
 
     if (_isLockEnabled && !_isAuthenticated) {
-      _authenticate();
+      unawaited(_authenticate());
     }
   }
 
   void updateLockStatus(bool enabled) {
+    if (_isLockEnabled == enabled) return;
+    _authGeneration++;
     setState(() {
       _isLockEnabled = enabled;
       if (!enabled) {
         _isAuthenticated = true;
+        _isAuthenticating = false;
+        _authError = null;
+      } else {
+        _isAuthenticated = false;
       }
     });
+    if (enabled) unawaited(_authenticate());
   }
 
   Future<void> _authenticate() async {
-    bool authenticated = false;
+    if (_isAuthenticating) return;
+    final generation = ++_authGeneration;
+
+    setState(() {
+      _isAuthenticating = true;
+      _authError = null;
+    });
+
+    var authenticated = false;
     try {
-      // If device has no lock screen configured at all, allow through
       final isSupported = await _auth.isDeviceSupported();
       if (!isSupported) {
         authenticated = true;
       } else {
-        // Default authenticate() allows PIN/pattern/password as fallback
         authenticated = await _auth.authenticate(
           localizedReason: 'Please authenticate to access Zero Two',
         );
       }
+    } on PlatformException catch (e) {
+      _authError = _friendlyAuthError(e);
+      if (kDebugMode) debugPrint('AppLock auth error: $e');
     } catch (e) {
-      // Do NOT set authenticated = true here — any error (cancel, failed,
-      // locked out) keeps the lock screen showing and will re-prompt.
-      debugPrint('AppLock auth error: $e');
+      _authError = 'Authentication was interrupted. Try again.';
+      if (kDebugMode) debugPrint('AppLock auth error: $e');
       authenticated = false;
     }
 
-    if (mounted) {
-      setState(() => _isAuthenticated = authenticated);
-      // Re-prompt if still not authenticated (prevents stuck state)
-      if (!authenticated && _isLockEnabled) {
-        await Future.delayed(const Duration(milliseconds: 400));
-        if (mounted && !_isAuthenticated) {
-          _authenticate();
-        }
-      }
-    }
+    if (!mounted || generation != _authGeneration || !_isLockEnabled) return;
+    setState(() {
+      _isAuthenticated = authenticated;
+      _isAuthenticating = false;
+      if (authenticated) _authError = null;
+    });
   }
 
   @override
@@ -108,54 +135,184 @@ class AppLockWrapperState extends State<AppLockWrapper>
       return widget.child;
     }
 
+    final theme = Theme.of(context);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final entranceDuration =
+        reduceMotion ? Duration.zero : const Duration(milliseconds: 720);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/img/z12.jpg',
-            fit: BoxFit.cover,
+          RepaintBoundary(
+            child: Image.asset(
+              'assets/img/z12.jpg',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.low,
+              errorBuilder: (_, __, ___) => DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF14040A),
+                      theme.colorScheme.surface,
+                      const Color(0xFF250014),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
           ),
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(color: Colors.black.withValues(alpha: 0.5)),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.lock_rounded,
-                  size: 80, color: Colors.pinkAccent),
-              const SizedBox(height: 20),
-              Text(
-                'App Locked',
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: entranceDuration,
+                        curve: Curves.easeOutBack,
+                        builder: (_, val, child) => Transform.scale(
+                          scale: 0.72 + val * 0.28,
+                          child: Opacity(opacity: val, child: child),
+                        ),
+                        child: Semantics(
+                          label: 'App locked',
+                          image: true,
+                          child: Container(
+                            width: 104,
+                            height: 104,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [Colors.pinkAccent, Color(0xFF9B59B6)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      Colors.pinkAccent.withValues(alpha: 0.38),
+                                  blurRadius: 34,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 48,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Text(
+                        'App Locked',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Authenticate to continue, Darling~',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _authError == null
+                            ? const SizedBox(height: 34)
+                            : Padding(
+                                key: ValueKey(_authError),
+                                padding: const EdgeInsets.only(top: 14),
+                                child: Text(
+                                  _authError!,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white.withValues(alpha: 0.78),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        onPressed: _isAuthenticating ? null : _authenticate,
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 180),
+                          child: _isAuthenticating
+                              ? const SizedBox.square(
+                                  key: ValueKey('loading'),
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.fingerprint,
+                                  key: ValueKey('fingerprint'),
+                                ),
+                        ),
+                        label: Text(
+                          _isAuthenticating ? 'Checking...' : 'Unlock',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor:
+                              Colors.pinkAccent.withValues(alpha: 0.55),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 40),
-              ElevatedButton.icon(
-                onPressed: _authenticate,
-                icon: const Icon(Icons.fingerprint, color: Colors.white),
-                label: Text('Unlock',
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
+
+  String _friendlyAuthError(PlatformException error) {
+    switch (error.code) {
+      case 'LockedOut':
+      case 'PermanentlyLockedOut':
+        return 'Too many attempts. Use your device passcode or try again later.';
+      case 'NotAvailable':
+      case 'NotEnrolled':
+      case 'PasscodeNotSet':
+        return 'Set up a device screen lock to protect the app.';
+      default:
+        return 'Authentication failed. Try again.';
+    }
+  }
 }
-
-

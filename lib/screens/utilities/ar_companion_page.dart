@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +21,7 @@ class _ArCompanionPageState extends State<ArCompanionPage>
 
   bool _autoRotate = true;
 
-  // Exclusively injected 4 high-performance models
+  // Keep the shipped AR catalog small so release builds stay lean.
   static const List<_ModelEntry> _models = [
     _ModelEntry(
       name: 'Anime Woman',
@@ -29,22 +30,6 @@ class _ArCompanionPageState extends State<ArCompanionPage>
       poster: '',
       color: Color(0xFFFF4081),
       icon: Icons.girl_rounded,
-    ),
-    _ModelEntry(
-      name: 'Aqua Chibi',
-      description: 'Aqua Chibi (Konosuba)',
-      url: 'assets/models/aqua__anime_chibi_model.glb',
-      poster: '',
-      color: Color(0xFF00B0FF),
-      icon: Icons.water_drop_rounded,
-    ),
-    _ModelEntry(
-      name: 'Cyber Samurai',
-      description: 'Sci-fi styled samurai',
-      url: 'assets/models/cyber_samurai.glb',
-      poster: '',
-      color: Color(0xFFD50000),
-      icon: Icons.shield_rounded,
     ),
   ];
 
@@ -59,7 +44,7 @@ class _ArCompanionPageState extends State<ArCompanionPage>
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage("en-US");
+    await _tts.setLanguage('en-US');
     await _tts.setSpeechRate(0.55);
     await _tts.setPitch(1.2); // Cute higher pitch for companion
   }
@@ -80,7 +65,7 @@ class _ArCompanionPageState extends State<ArCompanionPage>
         ),
       );
     } catch (e) {
-      debugPrint("Widget update failed: $e");
+      if (kDebugMode) debugPrint('Widget update failed: $e');
     }
   }
 
@@ -436,7 +421,7 @@ class _ArCompanionPageState extends State<ArCompanionPage>
           ),
 
           // Safe area bottom padding
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
+          SizedBox(height: MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );
@@ -489,6 +474,3 @@ class _ModelEntry {
     required this.icon,
   });
 }
-
-
-

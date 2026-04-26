@@ -29,6 +29,7 @@ class _DigitalClonePageState extends State<DigitalClonePage> {
     final prefs = await SharedPreferences.getInstance();
     final d = prefs.getString('digital_clone_samples');
     if (d != null) {
+      if (!mounted) return;
       setState(() {
         _samples = (jsonDecode(d) as List).cast<Map<String, dynamic>>().map((m) => m.map((k, v) => MapEntry(k, v.toString()))).toList();
         _accuracy = (_samples.length * 4.5).clamp(0, 95);
@@ -90,6 +91,7 @@ class _DigitalClonePageState extends State<DigitalClonePage> {
         _cloneChat.add({'role': 'clone', 'text': response});
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _cloneChat.removeLast();
         _cloneChat.add({'role': 'clone', 'text': '❌ Clone API glitch: $e'});
@@ -195,7 +197,7 @@ class _DigitalClonePageState extends State<DigitalClonePage> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.75),
                           decoration: BoxDecoration(
                             color: isClone ? Colors.cyanAccent.withValues(alpha: 0.08) : Colors.purpleAccent.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Custom Theme Service - Allows users to create and manage custom themes
 class CustomThemeService {
@@ -25,7 +26,7 @@ class CustomThemeService {
       await _prefs.setString(_customThemesKey, jsonEncode(json));
       return true;
     } catch (e) {
-      debugPrint('❌ Error creating custom theme: $e');
+      if (kDebugMode) debugPrint('❌ Error creating custom theme: $e');
       return false;
     }
   }
@@ -38,7 +39,7 @@ class CustomThemeService {
       final list = jsonDecode(json) as List;
       return list.map((e) => CustomTheme.fromJson(e)).toList();
     } catch (e) {
-      debugPrint('❌ Error loading custom themes: $e');
+      if (kDebugMode) debugPrint('❌ Error loading custom themes: $e');
       return [];
     }
   }
@@ -64,7 +65,7 @@ class CustomThemeService {
       await _prefs.setString(_customThemesKey, jsonEncode(json));
       return true;
     } catch (e) {
-      debugPrint('❌ Error updating custom theme: $e');
+      if (kDebugMode) debugPrint('❌ Error updating custom theme: $e');
       return false;
     }
   }
@@ -78,7 +79,7 @@ class CustomThemeService {
       await _prefs.setString(_customThemesKey, jsonEncode(json));
       return true;
     } catch (e) {
-      debugPrint('❌ Error deleting custom theme: $e');
+      if (kDebugMode) debugPrint('❌ Error deleting custom theme: $e');
       return false;
     }
   }

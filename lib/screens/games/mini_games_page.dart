@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/main.dart';
+import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
+import 'package:anime_waifu/widgets/premium_page_route.dart';
 
 const List<String> _o2GameBackgroundAssets = [
   'assets/img/z12.jpg',
@@ -95,6 +98,56 @@ class _GameBackdrop extends StatelessWidget {
   }
 }
 
+class _GameCardShimmer extends StatelessWidget {
+  const _GameCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[800]!,
+      highlightColor: Colors.grey[700]!,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.grey[800]!, Colors.grey[700]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: double.infinity,
+                height: 17,
+                color: Colors.grey[600],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                width: double.infinity * 0.8,
+                height: 11,
+                color: Colors.grey[600],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _BackdropOrb extends StatelessWidget {
   final double size;
   final Color color;
@@ -142,11 +195,25 @@ class GamesHubPage extends StatefulWidget {
 
 class _GamesHubPageState extends State<GamesHubPage> {
   late final String _bannerAsset;
+  bool _isLoading = true;
+  String _selectedCategory = 'All';
+
+  static const List<String> _categories = [
+    'All',
+    'Puzzle',
+    'Action',
+    'Quiz',
+    'Arcade'
+  ];
 
   @override
   void initState() {
     super.initState();
     _bannerAsset = _randomO2GameBackground();
+    // Simulate loading for smooth UX
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
   @override
@@ -176,18 +243,19 @@ class _GamesHubPageState extends State<GamesHubPage> {
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverAppBar(
-                  expandedHeight: 214,
-                  collapsedHeight: 214,
-                  toolbarHeight: 214,
+                  expandedHeight: 240,
+                  collapsedHeight: 240,
+                  toolbarHeight: 240,
                   floating: false,
                   pinned: true,
                   backgroundColor: Theme.of(context)
                       .scaffoldBackgroundColor
-                      .withValues(alpha: 0.82),
+                      .withValues(alpha: 0.95),
                   elevation: 0,
                   leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 22),
+                    icon: Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                        size: 22),
                     onPressed: () => Navigator.canPop(context)
                         ? Navigator.pop(context)
                         : Navigator.pushAndRemoveUntil(
@@ -198,56 +266,58 @@ class _GamesHubPageState extends State<GamesHubPage> {
                   ),
                   flexibleSpace: FlexibleSpaceBar(
                     centerTitle: false,
-                    titlePadding: const EdgeInsets.fromLTRB(72, 0, 18, 18),
+                    titlePadding: const EdgeInsets.fromLTRB(72, 0, 20, 20),
                     title: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: 12,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(999),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.pinkAccent.withValues(alpha: 0.2),
+                                Colors.purpleAccent.withValues(alpha: 0.15),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.18),
+                              color: Colors.pinkAccent.withValues(alpha: 0.3),
+                              width: 1,
                             ),
                           ),
                           child: Text(
-                            'Zero Two Arcade',
+                            '🎮 ZERO TWO ARCADE',
                             style: GoogleFonts.outfit(
-                              color: Colors.white70,
+                              color: Colors.white,
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
                           'GAME ZONE',
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w900,
-                            fontSize: 24,
-                            color: Colors.white,
-                            letterSpacing: 3,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.pinkAccent,
-                                blurRadius: 16,
-                              ),
-                            ],
+                            fontSize: 28,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            letterSpacing: 2,
+                            height: 1.1,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
-                          'Fixed banner with O2 glow effects',
+                          'Play with Zero Two, Darling~',
                           style: GoogleFonts.outfit(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            height: 1.2,
+                            color:                                 Theme.of(context).colorScheme.onSurface,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            height: 1.3,
                           ),
                         ),
                       ],
@@ -266,28 +336,40 @@ class _GamesHubPageState extends State<GamesHubPage> {
                           ),
                         ),
                         Container(
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Color(0x22000000), Color(0xCC0A0A1A)],
+                              colors: [
+                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
+                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                              ],
                             ),
                           ),
                         ),
                         Positioned(
-                          top: -30,
-                          right: -18,
+                          top: -20,
+                          right: -15,
                           child: _BackdropOrb(
-                            size: 150,
-                            color: Colors.pinkAccent.withValues(alpha: 0.24),
+                            size: 160,
+                            color: Colors.pinkAccent.withValues(alpha: 0.18),
                           ),
                         ),
                         Positioned(
-                          bottom: -24,
-                          left: -18,
+                          bottom: -20,
+                          left: -15,
                           child: _BackdropOrb(
-                            size: 110,
-                            color: Colors.cyanAccent.withValues(alpha: 0.10),
+                            size: 120,
+                            color: Colors.cyanAccent.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        Positioned(
+                          top: 80,
+                          right: 40,
+                          child: _BackdropOrb(
+                            size: 80,
+                            color: Colors.purpleAccent.withValues(alpha: 0.15),
                           ),
                         ),
                       ],
@@ -300,71 +382,115 @@ class _GamesHubPageState extends State<GamesHubPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        GlassCard(
-                          margin: EdgeInsets.zero,
-                          padding: const EdgeInsets.all(18),
-                          glow: true,
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                                Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.pinkAccent.withValues(alpha: 0.15),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
                           child: Row(
                             children: <Widget>[
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
+                                    Row(
+                                      children: [
+                                        Icon(Icons.auto_awesome_rounded,
+                                            color: Colors.pinkAccent, size: 16),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'ARCADE MOOD',
+                                          style: GoogleFonts.outfit(
+                                            color:                                 Theme.of(context).colorScheme.onSurface,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
                                     Text(
-                                      'Arcade mood',
+                                      'Premium Game Hub',
                                       style: GoogleFonts.outfit(
-                                        color: Colors.white70,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'A tighter, brighter game hub.',
-                                      style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 10),
                                     Text(
                                       'Jump between reflex, puzzle, and quiz modes without losing the Zero Two arcade vibe.',
                                       style: GoogleFonts.outfit(
-                                        color: Colors.white60,
-                                        fontSize: 12,
-                                        height: 1.35,
+                                        color:                                 Theme.of(context).colorScheme.onSurface,
+                                        fontSize: 14,
+                                        height: 1.5,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              const ProgressRing(
-                                progress: 1,
-                                foreground: Colors.pinkAccent,
+                              const SizedBox(width: 24),
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.pinkAccent.withValues(alpha: 0.2),
+                                      Colors.pinkAccent.withValues(alpha: 0.1),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.pinkAccent.withValues(alpha: 0.4),
+                                    width: 2,
+                                  ),
+                                ),
                                 child: Column(
-                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
                                     Icon(
                                       Icons.videogame_asset_rounded,
                                       color: Colors.pinkAccent,
-                                      size: 28,
+                                      size: 24,
                                     ),
-                                    SizedBox(height: 6),
+                                    const SizedBox(height: 4),
                                     Text(
                                       '8',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
+                                      style: GoogleFonts.outfit(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
                                       ),
                                     ),
                                     Text(
                                       'Games',
-                                      style: TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 11,
+                                      style: GoogleFonts.outfit(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
@@ -373,45 +499,54 @@ class _GamesHubPageState extends State<GamesHubPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        const WaifuCommentary(mood: 'motivated'),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
+                        WaifuCommentary(mood: 'motivated'),
+                        const SizedBox(height: 20),
+
+                        // Premium stats grid
                         Row(
-                          children: const <Widget>[
+                          children: <Widget>[
                             Expanded(
-                              child: StatCard(
+                              child: _buildPremiumStatCard(
                                 title: 'Arcade',
                                 value: '4',
                                 icon: Icons.flash_on_rounded,
                                 color: Colors.orangeAccent,
+                                subtitle: 'Action Games',
                               ),
                             ),
+                            const SizedBox(width: 12),
                             Expanded(
-                              child: StatCard(
+                              child: _buildPremiumStatCard(
                                 title: 'Brain',
                                 value: '2',
                                 icon: Icons.psychology_rounded,
                                 color: Colors.cyanAccent,
+                                subtitle: 'Puzzle Games',
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 12),
                         Row(
-                          children: const <Widget>[
+                          children: <Widget>[
                             Expanded(
-                              child: StatCard(
+                              child: _buildPremiumStatCard(
                                 title: 'Quiz',
                                 value: '1',
                                 icon: Icons.quiz_rounded,
                                 color: Colors.pinkAccent,
+                                subtitle: 'Trivia Games',
                               ),
                             ),
+                            const SizedBox(width: 12),
                             Expanded(
-                              child: StatCard(
+                              child: _buildPremiumStatCard(
                                 title: 'Classic',
                                 value: '1',
                                 icon: Icons.stars_rounded,
                                 color: Colors.lightGreenAccent,
+                                subtitle: 'Retro Games',
                               ),
                             ),
                           ],
@@ -420,102 +555,321 @@ class _GamesHubPageState extends State<GamesHubPage> {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'GAME CATEGORIES',
+                          style: GoogleFonts.outfit(
+                            color:                                 Theme.of(context).colorScheme.onSurface,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 44,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: _categories.map((category) {
+                              final isSelected = _selectedCategory == category;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(22),
+                                    onTap: () => setState(
+                                        () => _selectedCategory = category),
+                                    splashColor: Colors.purpleAccent.withValues(alpha: 0.1),
+                                    highlightColor: Colors.purpleAccent.withValues(alpha: 0.05),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeOutCubic,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        gradient: isSelected
+                                            ? LinearGradient(
+                                                colors: [
+                                                  Colors.purpleAccent.withValues(alpha: 0.25),
+                                                  Colors.purpleAccent.withValues(alpha: 0.15),
+                                                ],
+                                              )
+                                            : LinearGradient(
+                                                colors: [
+                                                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                                                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+                                                ],
+                                              ),
+                                        borderRadius: BorderRadius.circular(22),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Colors.purpleAccent.withValues(alpha: 0.4)
+                                              : Theme.of(context).colorScheme.outline,
+                                          width: isSelected ? 1.5 : 1,
+                                        ),
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: Colors.purpleAccent.withValues(alpha: 0.2),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Text(
+                                        category.toUpperCase(),
+                                        style: GoogleFonts.outfit(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                          fontSize: 13,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 SliverPadding(
                   padding: const EdgeInsets.all(20),
-                  sliver: SliverGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 18,
-                    crossAxisSpacing: 18,
-                    childAspectRatio: 0.82,
-                    children: [
-                      _GameCard(
-                        title: 'Snake',
-                        subtitle: 'Classic snake — eat, grow, survive',
-                        icon: Icons.shuffle_rounded,
-                        gradient: const [Color(0xFF00E676), Color(0xFF00897B)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const SnakeGamePage())),
-                      ),
-                      _GameCard(
-                        title: 'Memory Match',
-                        subtitle: 'Flip & match the anime pairs',
-                        icon: Icons.grid_view_rounded,
-                        gradient: const [Color(0xFFFF4081), Color(0xFFAD1457)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const MemoryMatchPage())),
-                      ),
-                      _GameCard(
-                        title: 'Tap Reaction',
-                        subtitle: 'Test your reflexes!',
-                        icon: Icons.touch_app_rounded,
-                        gradient: const [Color(0xFFFF9100), Color(0xFFE65100)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const TapReactionPage())),
-                      ),
-                      _GameCard(
-                        title: 'Number Guess',
-                        subtitle: 'Guess Zero Two\'s secret number',
-                        icon: Icons.casino_rounded,
-                        gradient: const [Color(0xFF7C4DFF), Color(0xFF4527A0)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const NumberGuesserPage())),
-                      ),
-                      _GameCard(
-                        title: 'Wordle',
-                        subtitle:
-                            'Guess a hidden 5-letter anime word. Green = right spot, Yellow = wrong spot',
-                        icon: Icons.abc_rounded,
-                        gradient: const [Color(0xFF26C6DA), Color(0xFF00838F)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WordleGamePage())),
-                      ),
-                      _GameCard(
-                        title: 'Anime Quiz',
-                        subtitle: 'Test your anime knowledge!',
-                        icon: Icons.quiz_rounded,
-                        gradient: const [Color(0xFFEC407A), Color(0xFF880E4F)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AnimeQuizPage())),
-                      ),
-                      _GameCard(
-                        title: 'Block Blast',
-                        subtitle: 'Fill rows to clear the board!',
-                        icon: Icons.view_quilt_rounded,
-                        gradient: const [Color(0xFFFF6F00), Color(0xFFE65100)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const BlockBlastPage())),
-                      ),
-                      _GameCard(
-                        title: 'Block Breaker',
-                        subtitle: 'Break all bricks with the ball!',
-                        icon: Icons.sports_tennis_rounded,
-                        gradient: const [Color(0xFF00B0FF), Color(0xFF0D47A1)],
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const BlockBreakerPage())),
-                      ),
-                    ],
-                  ),
+                  sliver: _isLoading
+                      ? SliverGrid.count(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 18,
+                          crossAxisSpacing: 18,
+                          childAspectRatio: 0.82,
+                          children: List.generate(
+                            8,
+                            (index) => const _GameCardShimmer(),
+                          ),
+                        )
+                      : SliverGrid.count(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 18,
+                          crossAxisSpacing: 18,
+                          childAspectRatio: 0.82,
+                          children: [
+                            _GameCard(
+                              title: 'Snake',
+                              subtitle: 'Classic snake — eat, grow, survive',
+                              icon: Icons.shuffle_rounded,
+                              gradient: const [
+                                Color(0xFF00E676),
+                                Color(0xFF00897B)
+                              ],
+                              winStreak: 3,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const SnakeGamePage(),
+                                      style: RouteTransitionStyle.fadeScale)),
+                            ),
+                            _GameCard(
+                              title: 'Memory Match',
+                              subtitle: 'Flip & match the anime pairs',
+                              icon: Icons.grid_view_rounded,
+                              gradient: const [
+                                Color(0xFFFF4081),
+                                Color(0xFFAD1457)
+                              ],
+                              winStreak: 5,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const MemoryMatchPage(),
+                                      style: RouteTransitionStyle.fadeSlide)),
+                            ),
+                            _GameCard(
+                              title: 'Tap Reaction',
+                              subtitle: 'Test your reflexes!',
+                              icon: Icons.touch_app_rounded,
+                              gradient: const [
+                                Color(0xFFFF9100),
+                                Color(0xFFE65100)
+                              ],
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const TapReactionPage(),
+                                      style: RouteTransitionStyle.fadeScale)),
+                            ),
+                            _GameCard(
+                              title: 'Number Guess',
+                              subtitle: 'Guess Zero Two\'s secret number',
+                              icon: Icons.casino_rounded,
+                              gradient: const [
+                                Color(0xFF7C4DFF),
+                                Color(0xFF4527A0)
+                              ],
+                              winStreak: 1,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const NumberGuesserPage(),
+                                      style: RouteTransitionStyle.fadeSlide)),
+                            ),
+                            _GameCard(
+                              title: 'Wordle',
+                              subtitle:
+                                  'Guess a hidden 5-letter anime word. Green = right spot, Yellow = wrong spot',
+                              icon: Icons.abc_rounded,
+                              gradient: const [
+                                Color(0xFF26C6DA),
+                                Color(0xFF00838F)
+                              ],
+                              winStreak: 2,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const WordleGamePage(),
+                                      style: RouteTransitionStyle.fadeScale)),
+                            ),
+                            _GameCard(
+                              title: 'Anime Quiz',
+                              subtitle: 'Test your anime knowledge!',
+                              icon: Icons.quiz_rounded,
+                              gradient: const [
+                                Color(0xFFEC407A),
+                                Color(0xFF880E4F)
+                              ],
+                              winStreak: 4,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const AnimeQuizPage(),
+                                      style: RouteTransitionStyle.fadeSlide)),
+                            ),
+                            _GameCard(
+                              title: 'Block Blast',
+                              subtitle: 'Fill rows to clear the board!',
+                              icon: Icons.view_quilt_rounded,
+                              gradient: const [
+                                Color(0xFFFF6F00),
+                                Color(0xFFE65100)
+                              ],
+                              winStreak: 1,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  PremiumPageRoute(
+                                      child: const BlockBlastPage(),
+                                      style: RouteTransitionStyle.fadeScale)),
+                            ),
+                            _GameCard(
+                              title: 'Block Breaker',
+                              subtitle: 'Break all bricks with the ball!',
+                              icon: Icons.sports_tennis_rounded,
+                              gradient: const [
+                                Color(0xFF00B0FF),
+                                Color(0xFF0D47A1)
+                              ],
+                              winStreak: 0,
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const BlockBreakerPage())),
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required String subtitle,
+  }) {
+    final theme = Theme.of(context);
+    final tokens = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.1),
+            color.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              color: theme.colorScheme.onSurface,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              color: tokens.onSurface,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: GoogleFonts.outfit(
+              color: tokens.onSurface,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -530,12 +884,16 @@ class _GameCard extends StatefulWidget {
   final IconData icon;
   final List<Color> gradient;
   final VoidCallback onTap;
-  const _GameCard(
-      {required this.title,
-      required this.subtitle,
-      required this.icon,
-      required this.gradient,
-      required this.onTap});
+  final int winStreak;
+
+  const _GameCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.gradient,
+    required this.onTap,
+    this.winStreak = 0,
+  });
 
   @override
   State<_GameCard> createState() => _GameCardState();
@@ -550,9 +908,9 @@ class _GameCardState extends State<_GameCard>
   void initState() {
     super.initState();
     _ac = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 120));
-    _scale = Tween(begin: 1.0, end: 0.94)
-        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeOut));
+        vsync: this, duration: const Duration(milliseconds: 150));
+    _scale = Tween(begin: 1.0, end: 0.95)
+        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutQuad));
   }
 
   @override
@@ -563,54 +921,140 @@ class _GameCardState extends State<_GameCard>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ac.forward(),
-      onTapUp: (_) {
-        _ac.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _ac.reverse(),
-      child: ScaleTransition(
-        scale: _scale,
-        child: Container(
+    final theme = Theme.of(context);
+    final tokens = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          widget.onTap();
+        },
+        splashColor: widget.gradient.first.withValues(alpha: 0.1),
+        highlightColor: widget.gradient.first.withValues(alpha: 0.05),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-                colors: widget.gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(24),
+              colors: widget.gradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: widget.gradient.last.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                  color: widget.gradient.last.withValues(alpha: 0.4),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6))
+                color: widget.gradient.last.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: -2,
+              ),
+              BoxShadow(
+                color: widget.gradient.last.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+                spreadRadius: -1,
+              ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(widget.icon, color: Colors.white, size: 30),
+                // Icon container with premium design
+                Stack(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.2),
+                            Colors.white.withValues(alpha: 0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Icon(widget.icon, color: Colors.white, size: 26),
+                    ),
+
+                    // Win streak badge
+                    if (widget.winStreak > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.amber, Colors.orangeAccent],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.amber.withValues(alpha: 0.4),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${widget.winStreak}',
+                            style: GoogleFonts.outfit(
+                              color: Colors.black,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+
                 const Spacer(),
+
+                // Title with premium typography
                 Text(widget.title,
                     style: GoogleFonts.outfit(
                         color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5)),
+
+                const SizedBox(height: 6),
+
+                // Subtitle with better line height
                 Text(widget.subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
-                        color: Colors.white70, fontSize: 11, height: 1.3)),
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12,
+                        height: 1.4,
+                        fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -639,6 +1083,7 @@ class _SnakeGameState extends State<SnakeGamePage> {
   Timer? _timer;
   int _score = 0;
   bool _running = false, _dead = false;
+  bool _bgMusicEnabled = true;
   final Random _rng = Random();
   late final String _bgAsset;
 
@@ -647,6 +1092,9 @@ class _SnakeGameState extends State<SnakeGamePage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _resetGame();
+    // Start background music for snake game
+    GameSoundsService.instance
+        .playBackgroundMusic('sounds/game_arcade_bgm.mp3');
   }
 
   void _resetGame() {
@@ -671,6 +1119,7 @@ class _SnakeGameState extends State<SnakeGamePage> {
       _dir = _pendingDir!;
       _pendingDir = null;
     }
+    if (_snake.isEmpty) return;
     final head = Point(_snake.first.x + _dir.x, _snake.first.y + _dir.y);
     if (head.x < 0 ||
         head.x >= cols ||
@@ -710,6 +1159,7 @@ class _SnakeGameState extends State<SnakeGamePage> {
   @override
   void dispose() {
     _timer?.cancel();
+    GameSoundsService.instance.stopBackgroundMusic();
     super.dispose();
   }
 
@@ -720,14 +1170,34 @@ class _SnakeGameState extends State<SnakeGamePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Snake — $_score pts',
+        title: TweenAnimationBuilder<int>(
+          tween: IntTween(begin: 0, end: _score),
+          duration: const Duration(milliseconds: 300),
+          builder: (context, value, child) => Text(
+            'Snake — $value pts',
             style: GoogleFonts.outfit(
-                color: Colors.greenAccent, fontWeight: FontWeight.w800)),
+                color: Colors.greenAccent, fontWeight: FontWeight.w800),
+          ),
+        ),
         leading: IconButton(
           icon:
               const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon:
+                const Icon(Icons.music_note_rounded, color: Colors.greenAccent),
+            onPressed: () {
+              if (_bgMusicEnabled) {
+                GameSoundsService.instance.pauseBackgroundMusic();
+              } else {
+                GameSoundsService.instance.resumeBackgroundMusic();
+              }
+              setState(() => _bgMusicEnabled = !_bgMusicEnabled);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -782,28 +1252,46 @@ class _SnakeGameState extends State<SnakeGamePage> {
                                                     fontWeight:
                                                         FontWeight.w900)),
                                           const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.greenAccent,
-                                                foregroundColor: Colors.black,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20)),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 36,
-                                                        vertical: 14)),
-                                            onPressed: () {
-                                              setState(() => _resetGame());
-                                              _startGame();
-                                            },
-                                            child: Text(
-                                                _dead ? 'Play Again' : 'Start',
-                                                style: GoogleFonts.outfit(
-                                                    fontWeight: FontWeight.w800,
-                                                    fontSize: 16)),
+                                          AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            curve: Curves.easeOut,
+                                            transform: _running
+                                                ? Matrix4.identity()
+                                                : Matrix4.identity()
+                                              ..scale(0.95),
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.greenAccent,
+                                                  foregroundColor: Colors.black,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20)),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 36,
+                                                      vertical: 14),
+                                                  elevation: _running ? 8 : 4),
+                                              onPressed: () {
+                                                setState(() => _resetGame());
+                                                _startGame();
+                                              },
+                                              child: AnimatedSwitcher(
+                                                duration: const Duration(
+                                                    milliseconds: 200),
+                                                child: Text(
+                                                    _dead
+                                                        ? 'Play Again'
+                                                        : 'Start',
+                                                    key: ValueKey<bool>(_dead),
+                                                    style: GoogleFonts.outfit(
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        fontSize: 16)),
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -908,6 +1396,9 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _init();
+    // Start background music for memory match game
+    GameSoundsService.instance
+        .playBackgroundMusic('sounds/game_puzzle_bgm.mp3');
   }
 
   void _init() {
@@ -939,8 +1430,15 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
       }
       _first = _second = null;
       _busy = false;
+      if (!mounted) return;
       setState(() {});
     }
+  }
+
+  @override
+  void dispose() {
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
   }
 
   @override
@@ -951,9 +1449,15 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Memory Match — $_moves moves',
+        title: TweenAnimationBuilder<int>(
+          tween: IntTween(begin: 0, end: _moves),
+          duration: const Duration(milliseconds: 300),
+          builder: (context, value, child) => Text(
+            'Memory Match — $value moves',
             style: GoogleFonts.outfit(
-                color: Colors.pinkAccent, fontWeight: FontWeight.w800)),
+                color: Colors.pinkAccent, fontWeight: FontWeight.w800),
+          ),
+        ),
         leading: IconButton(
           icon:
               const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
@@ -961,9 +1465,17 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.pinkAccent),
-            onPressed: () => setState(() => _init()),
-          )
+            icon: Icon(
+              GameSoundsService.instance.soundEnabled
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded,
+              color: Colors.cyanAccent,
+            ),
+            onPressed: () => setState(() {
+              GameSoundsService.instance
+                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
+            }),
+          ),
         ],
       ),
       body: Stack(
@@ -1044,9 +1556,9 @@ class _CardTileState extends State<_CardTile>
   void initState() {
     super.initState();
     _ac = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+        vsync: this, duration: const Duration(milliseconds: 400));
     _flip = Tween(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeInOut));
+        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeInOutCubic));
   }
 
   @override
@@ -1134,12 +1646,16 @@ class _TapReactionState extends State<TapReactionPage>
     _pulseAnim = Tween(begin: 0.95, end: 1.05)
         .animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut));
     _pulse.repeat(reverse: true);
+    // Start background music for tap reaction game
+    GameSoundsService.instance
+        .playBackgroundMusic('sounds/game_reaction_bgm.mp3');
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _pulse.dispose();
+    GameSoundsService.instance.stopBackgroundMusic();
     super.dispose();
   }
 
@@ -1312,12 +1828,15 @@ class _NumberGuesserState extends State<NumberGuesserPage>
         vsync: this, duration: const Duration(milliseconds: 400));
     _shakeAnim = Tween(begin: -8.0, end: 8.0)
         .animate(CurvedAnimation(parent: _shake, curve: Curves.elasticIn));
+    // Start background music for number guesser game
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_brain_bgm.mp3');
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
     _shake.dispose();
+    GameSoundsService.instance.stopBackgroundMusic();
     super.dispose();
   }
 
@@ -1370,6 +1889,18 @@ class _NumberGuesserState extends State<NumberGuesserPage>
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              GameSoundsService.instance.soundEnabled
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded,
+              color: Colors.orangeAccent,
+            ),
+            onPressed: () => setState(() {
+              GameSoundsService.instance
+                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
+            }),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded,
                 color: Colors.deepPurpleAccent),
@@ -1741,7 +2272,7 @@ class _WordleGamePageState extends State<WordleGamePage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.abc_rounded, size: 64, color: Colors.cyanAccent),
+          const Icon(Icons.abc_rounded, size: 64, color: Colors.cyanAccent),
           const SizedBox(height: 24),
           _difficultyBtn(
               'Easy (5 Letters, 8 Guesses)', 'Easy', Colors.greenAccent),
@@ -2084,7 +2615,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 2
   },
   {
-    'q': "Who is the Symbol of Peace?",
+    'q': 'Who is the Symbol of Peace?',
     'opts': ['Endeavor', 'All For One', 'Best Jeanist', 'All Might'],
     'ans': 3
   },
@@ -2099,7 +2630,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 3
   },
   {
-    'q': "What class is Deku in?",
+    'q': 'What class is Deku in?',
     'opts': ['Class 1-B', 'Class 2-A', 'Class 1-A', 'Class 3-C'],
     'ans': 2
   },
@@ -2162,12 +2693,12 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 0
   },
   {
-    'q': "What are the mechs in Darling in the FranXX called?",
+    'q': 'What are the mechs in Darling in the FranXX called?',
     'opts': ['Knightmares', 'Gundams', 'Titans', 'FranXX'],
     'ans': 3
   },
   {
-    'q': "What is the enemy organism in DitF?",
+    'q': 'What is the enemy organism in DitF?',
     'opts': ['Klaxosaurs', 'Titans', 'Apostles', 'Shadows'],
     'ans': 0
   },
@@ -2178,7 +2709,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 0
   },
   {
-    'q': "What are the hollows hunted by Soul Reapers?",
+    'q': 'What are the hollows hunted by Soul Reapers?',
     'opts': ['Quincies', 'Arrancars', 'Hollows', 'Fullbringers'],
     'ans': 2
   },
@@ -2205,7 +2736,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
   },
   // ── Black Clover ──────────────────────────────────────────────
   {
-    'q': "What magic does Asta use?",
+    'q': 'What magic does Asta use?',
     'opts': ['Fire Magic', 'Anti-Magic', 'Darkness Magic', 'Light Magic'],
     'ans': 1
   },
@@ -2221,7 +2752,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
   },
   // ── Jujutsu Kaisen ────────────────────────────────────────────
   {
-    'q': "Who is Ryomen Sukuna?",
+    'q': 'Who is Ryomen Sukuna?',
     'opts': ['A hero', 'The King of Curses', 'A teacher', 'A student'],
     'ans': 1
   },
@@ -2236,7 +2767,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 1
   },
   {
-    'q': "What curse does Yuji Itadori eat at the start?",
+    'q': 'What curse does Yuji Itadori eat at the start?',
     'opts': [
       "Sukuna's finger",
       "Uraume's crystal",
@@ -2277,7 +2808,7 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 0
   },
   {
-    'q': "Which anime features the Celestial Spirits?",
+    'q': 'Which anime features the Celestial Spirits?',
     'opts': ['SAO', 'Fairy Tail', 'Black Clover', 'Magi'],
     'ans': 1
   },
@@ -2317,12 +2848,12 @@ const List<Map<String, dynamic>> _kAnimeQuestions = [
     'ans': 1
   },
   {
-    'q': "What powers the FranXX mechs in DitF?",
+    'q': 'What powers the FranXX mechs in DitF?',
     'opts': ['Klaxosaur blood', 'FRANXX Core', 'Magma energy', 'APE tech'],
     'ans': 0
   },
   {
-    'q': "What studio produced Attack on Titan Season 1?",
+    'q': 'What studio produced Attack on Titan Season 1?',
     'opts': ['MAPPA', 'Ufotable', 'Wit Studio', 'Bones'],
     'ans': 2
   },
@@ -2569,7 +3100,8 @@ class _AnimeQuizPageState extends State<AnimeQuizPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.psychology_rounded, size: 64, color: Colors.pinkAccent),
+          const Icon(Icons.psychology_rounded,
+              size: 64, color: Colors.pinkAccent),
           const SizedBox(height: 24),
           _difficultyBtn('Easy', 'easy', Colors.greenAccent),
           const SizedBox(height: 16),
@@ -2973,12 +3505,18 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
 
   int _score = 0;
   bool _gameOver = false;
+  int _combo = 0;
+  bool _perfectClear = false;
+  Timer? _perfectClearTimer;
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _newTray();
+    // Start background music for block blast game
+    GameSoundsService.instance
+        .playBackgroundMusic('sounds/game_puzzle_bgm.mp3');
   }
 
   void _newTray() {
@@ -3012,6 +3550,7 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
         _grid[row + cell[0]][col + cell[1]] = _trayColors[pieceIdx];
       }
       _trayUsed[pieceIdx] = true;
+      _perfectClear = false; // Reset perfect clear flag
       _clearLines();
       if (_trayUsed.every((u) => u)) _newTray();
     });
@@ -3030,17 +3569,59 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
         colsToClear.add(c);
       }
     }
-    for (final r in rowsToClear) {
-      for (int c = 0; c < _kSize; c++) {
-        _grid[r][c] = null;
+
+    // Calculate total lines cleared
+    final totalClears = rowsToClear.length + colsToClear.length;
+    if (totalClears > 0) {
+      _combo++;
+      int baseScore = totalClears * 10;
+
+      // Combo multiplier (1x, 1.5x, 2x, 2.5x, etc.)
+      double comboMultiplier = 1.0 + (_combo - 1) * 0.5;
+      if (comboMultiplier > 3.0) comboMultiplier = 3.0; // Cap at 3x
+
+      // Check for perfect clear (all blocks cleared)
+      bool isPerfectClear =
+          _grid.every((row) => row.every((cell) => cell == null));
+      if (isPerfectClear && totalClears > 0) {
+        _perfectClear = true;
+        comboMultiplier *= 2.0; // Double multiplier for perfect clear
+        GameSoundsService.instance
+            .playAchievementUnlocked(); // Special sound for perfect clear
+        // Hide perfect clear overlay after 2 seconds
+        _perfectClearTimer?.cancel();
+        _perfectClearTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() => _perfectClear = false);
+          }
+        });
       }
-    }
-    for (final c in colsToClear) {
-      for (int r = 0; r < _kSize; r++) {
-        _grid[r][c] = null;
+
+      int finalScore = (baseScore * comboMultiplier).round();
+      _score += finalScore;
+
+      // Clear the lines
+      for (final r in rowsToClear) {
+        for (int c = 0; c < _kSize; c++) {
+          _grid[r][c] = null;
+        }
       }
+      for (final c in colsToClear) {
+        for (int r = 0; r < _kSize; r++) {
+          _grid[r][c] = null;
+        }
+      }
+
+      // Play sound effects
+      if (_perfectClear) {
+        GameSoundsService.instance.playAchievementUnlocked();
+      } else {
+        GameSoundsService.instance.playRewardCollect();
+      }
+    } else {
+      // No clears, reset combo
+      _combo = 0;
     }
-    _score += (rowsToClear.length + colsToClear.length) * 10;
   }
 
   void _checkGameOver() {
@@ -3061,8 +3642,16 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
       _grid = List.generate(_kSize, (_) => List.filled(_kSize, null));
       _score = 0;
       _gameOver = false;
+      _combo = 0;
+      _perfectClear = false;
     });
     _newTray();
+  }
+
+  @override
+  void dispose() {
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
   }
 
   @override
@@ -3072,7 +3661,8 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Block Blast — $_score pts',
+        title: Text(
+            'Block Blast — $_score pts${_combo > 1 ? ' (${_combo}x)' : ''}',
             style: GoogleFonts.outfit(
                 color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -3080,6 +3670,20 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
               const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              GameSoundsService.instance.soundEnabled
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded,
+              color: Colors.orangeAccent,
+            ),
+            onPressed: () => setState(() {
+              GameSoundsService.instance
+                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
+            }),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -3113,6 +3717,7 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
             ),
           ),
           if (_gameOver) _buildGameOverOverlay(),
+          if (_perfectClear) _buildPerfectClearOverlay(),
         ],
       ),
     );
@@ -3120,7 +3725,7 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
 
   Widget _buildGrid() {
     return LayoutBuilder(builder: (ctx, constraints) {
-      final cellSize = constraints.maxWidth / _kSize;
+      final cellSize = constraints.maxWidth / (_kSize == 0 ? 1 : _kSize);
       return DragTarget<int>(
         onAcceptWithDetails: (details) {
           // Compute cell from position
@@ -3143,12 +3748,12 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: _kSize,
               ),
               itemCount: _kSize * _kSize,
               itemBuilder: (ctx, idx) {
-                final r = idx ~/ _kSize, c = idx % _kSize;
+                final r = idx ~/ (_kSize == 0 ? 1 : _kSize), c = idx % _kSize;
                 final color = _grid[r][c];
                 return Container(
                   margin: const EdgeInsets.all(1),
@@ -3269,6 +3874,50 @@ class _BlockBlastPageState extends State<BlockBlastPage> {
       ),
     );
   }
+
+  Widget _buildPerfectClearOverlay() {
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withValues(alpha: 0.5),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                      colors: [Colors.yellowAccent, Colors.orangeAccent]),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.yellowAccent.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5)
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text('PERFECT CLEAR!',
+                        style: GoogleFonts.outfit(
+                            color: Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    Text('Double Score Bonus!',
+                        style: GoogleFonts.outfit(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3296,7 +3945,9 @@ class _BreakerBrick {
 
 class _BlockBreakerPageState extends State<BlockBreakerPage>
     with SingleTickerProviderStateMixin {
-  static const double _paddleW = 80, _paddleH = 14, _ballR = 9;
+  double get _paddleW =>
+      80 + (_level - 1) * 10.0; // Wider paddle on higher levels
+  static const double _paddleH = 14, _ballR = 9;
   static const double _brickW = 40, _brickH = 18, _brickGap = 4;
   static const int _cols = 7, _rows = 5;
 
@@ -3313,6 +3964,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
 
   List<_BreakerBrick> _bricks = [];
   int _score = 0;
+  int _level = 1;
   bool _started = false, _gameOver = false, _won = false;
 
   @override
@@ -3322,13 +3974,16 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
     _ticker = AnimationController(
         vsync: this, duration: const Duration(seconds: 9999))
       ..addListener(_tick);
+    // Start background music for block breaker game
+    GameSoundsService.instance
+        .playBackgroundMusic('sounds/game_arcade_bgm.mp3');
   }
 
   void _initBricks() {
     _bricks = [];
-    final totalBrickWidth = _cols * (_brickW + _brickGap) - _brickGap;
+    const totalBrickWidth = _cols * (_brickW + _brickGap) - _brickGap;
     final startX = (_w - totalBrickWidth) / 2;
-    final startY = 60.0;
+    const startY = 60.0;
     final colors = [
       Colors.pinkAccent,
       Colors.cyanAccent,
@@ -3336,15 +3991,51 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
       Colors.orangeAccent,
       Colors.greenAccent,
     ];
+
+    // Different layouts based on level
+    final layoutType = _level % 4; // 4 different layouts
+
     for (int r = 0; r < _rows; r++) {
       for (int c = 0; c < _cols; c++) {
-        _bricks.add(_BreakerBrick(
-          x: startX + c * (_brickW + _brickGap),
-          y: startY + r * (_brickH + _brickGap),
-          w: _brickW,
-          h: _brickH,
-          color: colors[r % colors.length],
-        ));
+        bool createBrick = true;
+
+        // Level-based layouts
+        switch (layoutType) {
+          case 0: // Standard grid
+            break;
+          case 1: // Checkerboard
+            if ((r + c) % 2 == 0) createBrick = false;
+            break;
+          case 2: // Pyramid
+            if (c < r || c >= _cols - r) createBrick = false;
+            break;
+          case 3: // Random gaps
+            if (_rng.nextDouble() < 0.2) createBrick = false;
+            break;
+        }
+
+        // Add unbreakable bricks on higher levels
+        if (_level > 3 && _rng.nextDouble() < 0.1) {
+          // Unbreakable brick (different color)
+          _bricks.add(_BreakerBrick(
+            x: startX + c * (_brickW + _brickGap),
+            y: startY + r * (_brickH + _brickGap),
+            w: _brickW,
+            h: _brickH,
+            color: Colors.grey[800]!, // Dark grey for unbreakable
+          )..alive = true); // Custom property for unbreakable
+          continue;
+        }
+
+        if (createBrick) {
+          _bricks.add(_BreakerBrick(
+            x: startX + c * (_brickW + _brickGap),
+            y: startY + r * (_brickH + _brickGap),
+            w: _brickW,
+            h: _brickH,
+            color: colors[r % colors.length],
+          ));
+        }
       }
     }
   }
@@ -3354,9 +4045,14 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
     _ballX = _w / 2;
     _ballY = _h - 120;
     final angle = (_rng.nextDouble() * 60 - 30) * (3.14159 / 180);
-    _vx = 4 * sin(angle);
-    _vy = -5;
+
+    // Level-based upgrades
+    double baseSpeed = 4.0 + (_level - 1) * 0.5; // Faster ball on higher levels
+    _vx = baseSpeed * sin(angle);
+    _vy = -5 - (_level - 1) * 0.5; // Faster vertical speed
+
     _score = 0;
+    _level = 1; // Reset level on new game
     _gameOver = false;
     _won = false;
     _initBricks();
@@ -3428,8 +4124,28 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
 
       // Win condition
       if (_bricks.every((b) => !b.alive)) {
-        _won = true;
-        _ticker.stop();
+        _level++;
+        _score += _level * 100; // Bonus for level completion
+        GameSoundsService.instance.playAchievementUnlocked();
+        // Start next level after a delay
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              _won = false;
+              _started = false;
+            });
+            _initBricks();
+            // Reset ball position
+            _ballX = _w / 2;
+            _ballY = _h - 120;
+            final angle = (_rng.nextDouble() * 60 - 30) * (3.14159 / 180);
+            double baseSpeed = 4.0 + (_level - 1) * 0.5;
+            _vx = baseSpeed * sin(angle);
+            _vy = -5 - (_level - 1) * 0.5;
+            _started = true;
+            _ticker.repeat();
+          }
+        });
       }
 
       // Ball fell below
@@ -3443,6 +4159,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
   @override
   void dispose() {
     _ticker.dispose();
+    GameSoundsService.instance.stopBackgroundMusic();
     super.dispose();
   }
 
@@ -3453,7 +4170,7 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Block Breaker — $_score pts',
+        title: Text('Block Breaker — Level $_level • $_score pts',
             style: GoogleFonts.outfit(
                 color: Colors.cyanAccent, fontWeight: FontWeight.w800)),
         leading: IconButton(
@@ -3461,6 +4178,20 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
               const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              GameSoundsService.instance.soundEnabled
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded,
+              color: Colors.cyanAccent,
+            ),
+            onPressed: () => setState(() {
+              GameSoundsService.instance
+                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
+            }),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -3503,44 +4234,43 @@ class _BlockBreakerPageState extends State<BlockBreakerPage>
                     child: (!_started || _gameOver || _won)
                         ? Center(
                             child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (_won)
-                                    Text('You Win! 🎉',
-                                        style: GoogleFonts.outfit(
-                                            color: Colors.greenAccent,
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900)),
-                                  if (_gameOver)
-                                    Text('Game Over!',
-                                        style: GoogleFonts.outfit(
-                                            color: Colors.redAccent,
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900)),
-                                  const SizedBox(height: 8),
-                                  if (_score > 0)
-                                    Text('Score: $_score',
-                                        style: GoogleFonts.outfit(
-                                            color: Colors.white70,
-                                            fontSize: 18)),
-                                  const SizedBox(height: 20),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.cyanAccent,
-                                        foregroundColor: Colors.black,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 36, vertical: 14),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20))),
-                                    onPressed: _startGame,
-                                    child: Text(
-                                        _started ? 'Play Again' : 'Start',
-                                        style: GoogleFonts.outfit(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 16)),
-                                  ),
-                                ]),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_won)
+                                  Text('You Win! 🎉',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.greenAccent,
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900)),
+                                if (_gameOver)
+                                  Text('Game Over!',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.redAccent,
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900)),
+                                const SizedBox(height: 8),
+                                if (_score > 0)
+                                  Text('Score: $_score',
+                                      style: GoogleFonts.outfit(
+                                          color: Colors.white70, fontSize: 18)),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.cyanAccent,
+                                      foregroundColor: Colors.black,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 36, vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20))),
+                                  onPressed: _startGame,
+                                  child: Text(_started ? 'Play Again' : 'Start',
+                                      style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 16)),
+                                ),
+                              ],
+                            ),
                           )
                         : const SizedBox.expand(),
                   ),
@@ -3603,7 +4333,8 @@ class _BreakerPainter extends CustomPainter {
     // Paddle
     final paddleTop = screenH - paddleH - 28;
     final paddlePaint = Paint()
-      ..shader = LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent])
+      ..shader = const LinearGradient(
+              colors: [Colors.cyanAccent, Colors.blueAccent])
           .createShader(Rect.fromLTWH(paddleX, paddleTop, paddleW, paddleH));
     canvas.drawRRect(
         RRect.fromRectAndRadius(
@@ -3615,6 +4346,3 @@ class _BreakerPainter extends CustomPainter {
   @override
   bool shouldRepaint(_BreakerPainter old) => true;
 }
-
-
-

@@ -49,6 +49,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _hydration = prefs.getBool('reminders_hydration') ?? false;
       _eyeCare = prefs.getBool('reminders_eyecare') ?? false;
@@ -93,6 +94,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
       },
     );
     if (selected != null) {
+      if (!mounted) return;
       setState(() => _morningTime = selected);
       await _save();
       if (mounted) {
@@ -156,6 +158,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
                 value: value,
                 onChanged: (bool next) async {
                   HapticFeedback.selectionClick();
+                  if (!mounted) return;
                   setState(() => onChanged(next));
                   await _save();
                 },
@@ -384,6 +387,7 @@ class _WellnessRemindersPageState extends State<WellnessRemindersPage> {
                       inactiveColor: Colors.white12,
                       label: '${_hydrationIntervalMins}m',
                       onChanged: (double value) async {
+                        if (!mounted) return;
                         setState(() => _hydrationIntervalMins = value.round());
                         await _save();
                       },

@@ -1,4 +1,3 @@
-
 import 'package:anime_waifu/models/manga_models.dart';
 import 'package:anime_waifu/services/utilities_core/robust_http_client.dart';
 import 'package:anime_waifu/services/manga_providers/manga_provider.dart';
@@ -17,10 +16,11 @@ class MadaraGenericProvider implements MangaProvider {
   });
 
   Map<String, String> get _headers => {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
-    'Referer': providerBaseUrl,
-    'Accept': 'text/html',
-  };
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+        'Referer': providerBaseUrl,
+        'Accept': 'text/html',
+      };
 
   @override
   String get name => providerName;
@@ -68,14 +68,19 @@ class MadaraGenericProvider implements MangaProvider {
       {String lang = 'en', int limit = 100, int offset = 0}) async {
     try {
       // POST logic to get chapters on Madara themes
-      final mangaSlug = mangaId.replaceAll(providerBaseUrl, '').replaceAll('/manga/', '').replaceAll('/', '');
+      final mangaSlug = mangaId
+          .replaceAll(providerBaseUrl, '')
+          .replaceAll('/manga/', '')
+          .replaceAll('/', '');
       final uri = Uri.parse('$providerBaseUrl/manga/$mangaSlug/ajax/chapters/');
       final resp = await RobustHttpClient.post(uri, headers: _headers);
       if (resp.statusCode != 200) return [];
-      
-      final exp = RegExp(r'<a href="([^"]+)".*?>\s*(?:Chapter\s*)?([^<]+)\s*</a>', caseSensitive: false);
+
+      final exp = RegExp(
+          r'<a href="([^"]+)".*?>\s*(?:Chapter\s*)?([^<]+)\s*</a>',
+          caseSensitive: false);
       final matches = exp.allMatches(resp.body);
-      
+
       return matches.map((m) {
         return ChapterItem(
           id: m.group(1) ?? '',
@@ -96,21 +101,29 @@ class MadaraGenericProvider implements MangaProvider {
       final uri = Uri.parse(chapterId);
       final resp = await RobustHttpClient.get(uri, headers: _headers);
       if (resp.statusCode != 200) return null;
-      
-      final exp = RegExp(r'data-src="([^"]+)"|src="([^"]+)"', caseSensitive: false);
+
+      final exp =
+          RegExp(r'data-src="([^"]+)"|src="([^"]+)"', caseSensitive: false);
       final lines = resp.body.split('\n');
       List<String> urls = [];
-      
+
       bool readingBlock = false;
       for (final line in lines) {
         if (line.contains('reading-content')) readingBlock = true;
-        if (readingBlock && line.contains('</div>') && !line.contains('page-break')) break;
+        if (readingBlock &&
+            line.contains('</div>') &&
+            !line.contains('page-break')) break;
         if (readingBlock) {
           final m = exp.firstMatch(line);
           if (m != null) {
             String url = m.group(1) ?? m.group(2) ?? '';
             if (url.startsWith('//')) url = 'https:$url';
-            if (url.isNotEmpty && !urls.contains(url)) urls.add(url.trim());
+            // Validate that this looks like a reasonable image URL
+            if (url.isNotEmpty &&
+                !urls.contains(url) &&
+                _isValidImageUrl(url)) {
+              urls.add(url.trim());
+            }
           }
         }
       }
@@ -123,18 +136,20 @@ class MadaraGenericProvider implements MangaProvider {
   @override
   Future<List<TagItem>> getTags() async {
     return [
-      TagItem(id: 'action', name: 'Action', group: 'genre'),
-      TagItem(id: 'adult', name: 'Adult', group: 'genre'),
-      TagItem(id: 'smut', name: 'Smut', group: 'genre'),
-      TagItem(id: 'mature', name: 'Mature', group: 'genre'),
-      TagItem(id: 'harem', name: 'Harem', group: 'genre'),
-      TagItem(id: 'romance', name: 'Romance', group: 'genre'),
+      const TagItem(id: 'action', name: 'Action', group: 'genre'),
+      const TagItem(id: 'adult', name: 'Adult', group: 'genre'),
+      const TagItem(id: 'smut', name: 'Smut', group: 'genre'),
+      const TagItem(id: 'mature', name: 'Mature', group: 'genre'),
+      const TagItem(id: 'harem', name: 'Harem', group: 'genre'),
+      const TagItem(id: 'romance', name: 'Romance', group: 'genre'),
     ];
   }
 
   List<MangaItem> _regexScrapeMangaList(String html) {
     List<MangaItem> items = [];
-    final itemExp = RegExp(r'<div class="page-item-detail[^>]*>([\s\S]*?)</div><!--', caseSensitive: false);
+    final itemExp = RegExp(
+        r'<div class="page-item-detail[^>]*>([\s\S]*?)</div><!--',
+        caseSensitive: false);
     final linkExp = RegExp(r'<a href="([^"]+)" title="([^"]+)">');
     final imgExp = RegExp(r'src="([^"]+)"');
 
@@ -142,13 +157,13 @@ class MadaraGenericProvider implements MangaProvider {
       final content = block.group(1) ?? '';
       final lMatch = linkExp.firstMatch(content);
       final iMatch = imgExp.firstMatch(content);
-      
+
       if (lMatch != null) {
         String url = lMatch.group(1) ?? '';
         String title = lMatch.group(2) ?? 'Unknown';
         String img = iMatch?.group(1) ?? '';
         if (img.startsWith('//')) img = 'https:$img';
-        
+
         items.add(MangaItem(
           id: url,
           title: title,
@@ -163,6 +178,25 @@ class MadaraGenericProvider implements MangaProvider {
     }
     return items;
   }
+
+  bool _isValidImageUrl(String url) {
+    // Simple validation to filter out obviously invalid URLs
+    if (url.isEmpty) return false;
+    // Filter out URLs that look like they might be ad tracking or invalid
+    if (url.contains('pixel') ||
+        url.contains('track') ||
+        url.contains('analytics')) return false;
+    // Must contain a recognizable image extension or be from a known CDN/image host
+    final lowerUrl = url.toLowerCase();
+    return lowerUrl.endsWith('.jpg') ||
+        lowerUrl.endsWith('.jpeg') ||
+        lowerUrl.endsWith('.png') ||
+        lowerUrl.endsWith('.webp') ||
+        lowerUrl.endsWith('.gif') ||
+        lowerUrl.contains('cdn') ||
+        lowerUrl.contains('wp-content') ||
+        lowerUrl.contains('uploads') ||
+        lowerUrl.contains('manga') ||
+        lowerUrl.contains('chapter');
+  }
 }
-
-

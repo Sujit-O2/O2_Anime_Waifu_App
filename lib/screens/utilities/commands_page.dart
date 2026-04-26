@@ -31,6 +31,7 @@ class _CommandsPageState extends State<CommandsPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _query = prefs.getString(_queryKey) ?? '';
       _expanded = (prefs.getStringList(_expandedKey) ?? <String>[]).toSet();

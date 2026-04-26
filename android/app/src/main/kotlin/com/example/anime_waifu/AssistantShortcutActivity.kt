@@ -12,7 +12,8 @@ class AssistantShortcutActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         if (AssistantOverlayController.canDrawOverlays(this)) {
-            AssistantOverlayController.show(
+            ensureAssistantServiceRunning()
+            AssistantOverlayController.showNow(
                 applicationContext,
                 status = "Zero Two",
                 transcript = "How can I help?",
@@ -30,5 +31,17 @@ class AssistantShortcutActivity : Activity() {
 
         finish()
         overridePendingTransition(0, 0)
+    }
+
+    private fun ensureAssistantServiceRunning() {
+        val intent = Intent(this, AssistantForegroundService::class.java)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch (_: Exception) {
+        }
     }
 }

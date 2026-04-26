@@ -1,5 +1,5 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
@@ -58,7 +58,7 @@ class WaifuAlarmService {
           '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
       return "⏰ Alarm set for **$hhmm**! I'll wake you up then, darling~ 💕";
     } catch (e) {
-      debugPrint('Alarm error: $e');
+      if (kDebugMode) debugPrint('Alarm error: $e');
       return "❌ Couldn't set the alarm. Make sure you allowed the app to schedule alarms in settings.";
     }
   }
@@ -66,13 +66,13 @@ class WaifuAlarmService {
   @pragma('vm:entry-point')
   static void _alarmCallback() async {
     // This runs in background — flag it and launch the app
-    debugPrint('WaifuAlarm: callback triggered!');
+    if (kDebugMode) debugPrint('WaifuAlarm: callback triggered!');
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('alarm_triggered', true);
 
       // We have SYSTEM_ALERT_WINDOW permission, so we can launch activities from background!
-      final intent = AndroidIntent(
+      const intent = AndroidIntent(
         action: 'android.intent.action.MAIN',
         package: 'com.example.anime_waifu',
         componentName: 'com.example.anime_waifu.MainActivity',
@@ -80,7 +80,7 @@ class WaifuAlarmService {
       );
       await intent.launch();
     } catch (e) {
-      debugPrint("Error launching app from alarm: \$e");
+      if (kDebugMode) debugPrint('Error launching app from alarm: \$e');
     }
   }
 }

@@ -271,7 +271,7 @@ extension _AboutPageExtension on _ChatHomePageState {
       height: 1,
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 28),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.transparent, Colors.white10, Colors.transparent],
         ),
@@ -336,7 +336,7 @@ extension _AboutPageExtension on _ChatHomePageState {
                 onTap: () {
                   showDialog(
                     context: context,
-                    builder: (ctx) => _FeatureGuideDialog(),
+                    builder: (ctx) => const _FeatureGuideDialog(),
                   );
                 },
               ),
@@ -532,7 +532,7 @@ extension _AboutPageExtension on _ChatHomePageState {
               _buildModernDevChip(
                 Icons.new_releases,
                 'Version',
-                'v7.0.2 (Beast)',
+                'v8.0.2 (Beast)',
                 Colors.cyanAccent,
               ),
             ],
@@ -998,7 +998,7 @@ class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
 
   void _updateParticles() {
     if (_fireflies.isEmpty) return;
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
 
     for (final f in _fireflies) {
       // Normal drift
@@ -1143,7 +1143,7 @@ class _FeatureGuideDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         width: 400,
-        height: MediaQuery.of(context).size.height * 0.75,
+        height: MediaQuery.sizeOf(context).height * 0.75,
         decoration: BoxDecoration(
           color: const Color(0xFF161618),
           borderRadius: BorderRadius.circular(20),

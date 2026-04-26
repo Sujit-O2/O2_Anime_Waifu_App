@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Performance monitoring service: Analytics, crash reporting, performance tracking
 class PerformanceMonitoringService {
@@ -23,7 +23,7 @@ class PerformanceMonitoringService {
         'userId': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
       });
     } catch (e) {
-      debugPrint('Error logging app launch: $e');
+      if (kDebugMode) debugPrint('Error logging app launch: $e');
     }
   }
 
@@ -41,7 +41,7 @@ class PerformanceMonitoringService {
         'userId': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
       });
     } catch (e) {
-      debugPrint('Error logging chat sent: $e');
+      if (kDebugMode) debugPrint('Error logging chat sent: $e');
     }
   }
 
@@ -59,7 +59,7 @@ class PerformanceMonitoringService {
         'userId': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
       });
     } catch (e) {
-      debugPrint('Error logging feature accessed: $e');
+      if (kDebugMode) debugPrint('Error logging feature accessed: $e');
     }
   }
 
@@ -80,7 +80,7 @@ class PerformanceMonitoringService {
         'platform': Platform.operatingSystem,
       });
     } catch (e) {
-      debugPrint('Error logging error event: $e');
+      if (kDebugMode) debugPrint('Error logging error event: $e');
     }
   }
 
@@ -97,7 +97,7 @@ class PerformanceMonitoringService {
         'userId': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
       });
     } catch (e) {
-      debugPrint('Error logging custom event: $e');
+      if (kDebugMode) debugPrint('Error logging custom event: $e');
     }
   }
 
@@ -129,7 +129,7 @@ class PerformanceMonitoringService {
         stackTrace: stackTrace,
       );
     } catch (e) {
-      debugPrint('Error logging exception: $e');
+      if (kDebugMode) debugPrint('Error logging exception: $e');
     }
   }
 
@@ -146,7 +146,7 @@ class PerformanceMonitoringService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching crash reports: $e');
+      if (kDebugMode) debugPrint('Error fetching crash reports: $e');
       return [];
     }
   }
@@ -181,7 +181,7 @@ class PerformanceMonitoringService {
         'errorDistribution': errorCounts,
       };
     } catch (e) {
-      debugPrint('Error getting crash statistics: $e');
+      if (kDebugMode) debugPrint('Error getting crash statistics: $e');
       return {'totalCrashes': 0, 'topError': 'none'};
     }
   }
@@ -216,7 +216,7 @@ class PerformanceMonitoringService {
         );
       }
     } catch (e) {
-      debugPrint('Error logging API performance: $e');
+      if (kDebugMode) debugPrint('Error logging API performance: $e');
     }
   }
 
@@ -239,7 +239,7 @@ class PerformanceMonitoringService {
         });
       }
     } catch (e) {
-      debugPrint('Error logging frame rate: $e');
+      if (kDebugMode) debugPrint('Error logging frame rate: $e');
     }
   }
 
@@ -249,6 +249,7 @@ class PerformanceMonitoringService {
     required int totalMemoryMb,
   }) async {
     try {
+      if (totalMemoryMb <= 0) return;
       final percentage = (usedMemoryMb / totalMemoryMb * 100).toInt();
 
       // Only log if memory usage is high (> 60%)
@@ -272,7 +273,7 @@ class PerformanceMonitoringService {
         }
       }
     } catch (e) {
-      debugPrint('Error logging memory usage: $e');
+      if (kDebugMode) debugPrint('Error logging memory usage: $e');
     }
   }
 
@@ -295,7 +296,7 @@ class PerformanceMonitoringService {
         });
       }
     } catch (e) {
-      debugPrint('Error logging battery usage: $e');
+      if (kDebugMode) debugPrint('Error logging battery usage: $e');
     }
   }
 
@@ -338,7 +339,7 @@ class PerformanceMonitoringService {
         'totalMeasurements': metricsSnapshot.docs.length,
       };
     } catch (e) {
-      debugPrint('Error getting performance summary: $e');
+      if (kDebugMode) debugPrint('Error getting performance summary: $e');
       return {};
     }
   }
@@ -363,7 +364,7 @@ class PerformanceMonitoringService {
         'severity': 'MEDIUM',
       });
     } catch (e) {
-      debugPrint('Error logging performance alert: $e');
+      if (kDebugMode) debugPrint('Error logging performance alert: $e');
     }
   }
 
@@ -379,7 +380,7 @@ class PerformanceMonitoringService {
         'platform': Platform.operatingSystem,
       });
     } catch (e) {
-      debugPrint('Error logging session start: $e');
+      if (kDebugMode) debugPrint('Error logging session start: $e');
     }
   }
 
@@ -393,7 +394,7 @@ class PerformanceMonitoringService {
         'sessionDurationSeconds': sessionDurationSeconds,
       });
     } catch (e) {
-      debugPrint('Error logging session end: $e');
+      if (kDebugMode) debugPrint('Error logging session end: $e');
     }
   }
 
@@ -428,7 +429,7 @@ class PerformanceMonitoringService {
         'totalSessionTime': totalDuration,
       };
     } catch (e) {
-      debugPrint('Error getting session statistics: $e');
+      if (kDebugMode) debugPrint('Error getting session statistics: $e');
       return {};
     }
   }

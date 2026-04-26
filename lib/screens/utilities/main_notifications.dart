@@ -1215,8 +1215,8 @@ class _ZeroTwoEpisodesPlayerState extends State<_ZeroTwoEpisodesPlayer>
                         ),
                         child: Text(
                           _controller?.value.playbackSpeed == 1.0
-                              ? "1×"
-                              : "${_controller?.value.playbackSpeed.toStringAsFixed(2)}×",
+                              ? '1×'
+                              : '${_controller?.value.playbackSpeed.toStringAsFixed(2)}×',
                           style: GoogleFonts.outfit(
                             color: Theme.of(context).primaryColor,
                             fontSize: 10,
@@ -1850,16 +1850,16 @@ class _LandscapeEpisodePlayerPageState
                     ? null
                     : (d) => _handlePanUpdate(
                         d,
-                        MediaQuery.of(context).size.width,
-                        MediaQuery.of(context).size.height),
+                        MediaQuery.sizeOf(context).width,
+                        MediaQuery.sizeOf(context).height),
                 onHorizontalDragEnd: _isLocked ? null : _handlePanEnd,
                 onVerticalDragStart: _isLocked ? null : _handlePanStart,
                 onVerticalDragUpdate: _isLocked
                     ? null
                     : (d) => _handlePanUpdate(
                         d,
-                        MediaQuery.of(context).size.width,
-                        MediaQuery.of(context).size.height),
+                        MediaQuery.sizeOf(context).width,
+                        MediaQuery.sizeOf(context).height),
                 onVerticalDragEnd: _isLocked ? null : _handlePanEnd,
                 child: const SizedBox.expand(),
               ),

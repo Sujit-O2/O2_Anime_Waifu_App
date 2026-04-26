@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Friend & Social System Service
@@ -25,7 +25,7 @@ class FriendSocialSystemService {
     _prefs = await SharedPreferences.getInstance();
     await _loadFriendsData();
     await _loadLeaderboards();
-    debugPrint('[Social] Service initialized');
+    if (kDebugMode) debugPrint('[Social] Service initialized');
   }
 
   // ===== FRIEND MANAGEMENT =====
@@ -56,7 +56,7 @@ class FriendSocialSystemService {
       'friend',
     );
 
-    debugPrint('[Social] Friend added: $username');
+    if (kDebugMode) debugPrint('[Social] Friend added: $username');
   }
 
   /// Remove friend
@@ -121,7 +121,7 @@ class FriendSocialSystemService {
     }
 
     await _saveSocialFeed();
-    debugPrint('[Social] Activity posted: $activityType');
+    if (kDebugMode) debugPrint('[Social] Activity posted: $activityType');
   }
 
   /// Like activity
@@ -224,7 +224,7 @@ class FriendSocialSystemService {
 
     _activeChallenges.add(challenge);
     await _saveChallenges();
-    debugPrint('[Social] Challenge created: $title');
+    if (kDebugMode) debugPrint('[Social] Challenge created: $title');
   }
 
   /// Join challenge
@@ -256,7 +256,7 @@ class FriendSocialSystemService {
 
   /// Complete challenge
   Future<void> completeChallengeTask(String challengeId, String userId) async {
-    debugPrint('[Social] Challenge task completed: $challengeId by $userId');
+    if (kDebugMode) debugPrint('[Social] Challenge task completed: $challengeId by $userId');
   }
 
   // ===== NOTIFICATIONS =====
@@ -272,7 +272,7 @@ class FriendSocialSystemService {
     );
 
     _notifications[notification.id] = notification;
-    debugPrint('[Social] Notification: $title');
+    if (kDebugMode) debugPrint('[Social] Notification: $title');
   }
 
   /// Get notifications
@@ -338,7 +338,7 @@ class FriendSocialSystemService {
         final friend = Friend.fromJson(jsonDecode(item));
         _friends[friend.userId] = friend;
       } catch (e) {
-        debugPrint('[Social] Error loading friend: $e');
+        if (kDebugMode) debugPrint('[Social] Error loading friend: $e');
       }
     }
   }
@@ -360,7 +360,7 @@ class FriendSocialSystemService {
         final entry = LeaderboardEntry.fromJson(jsonDecode(item));
         _leaderboards[entry.userId] = entry;
       } catch (e) {
-        debugPrint('[Social] Error loading leaderboard: $e');
+        if (kDebugMode) debugPrint('[Social] Error loading leaderboard: $e');
       }
     }
   }

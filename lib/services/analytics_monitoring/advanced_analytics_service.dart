@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Advanced Analytics Service - Track theme popularity and usage
@@ -35,9 +35,9 @@ class AdvancedAnalyticsService {
         };
       }
       await _prefs.setString(_analyticsKey, jsonEncode(analytics));
-      debugPrint('✅ Theme usage tracked: $themeId');
+      if (kDebugMode) debugPrint('✅ Theme usage tracked: $themeId');
     } catch (e) {
-      debugPrint('❌ Error tracking theme usage: $e');
+      if (kDebugMode) debugPrint('❌ Error tracking theme usage: $e');
     }
   }
 
@@ -51,7 +51,7 @@ class AdvancedAnalyticsService {
       }
       await _prefs.setString(_analyticsKey, jsonEncode(analytics));
     } catch (e) {
-      debugPrint('❌ Error tracking session time: $e');
+      if (kDebugMode) debugPrint('❌ Error tracking session time: $e');
     }
   }
 
@@ -77,7 +77,7 @@ class AdvancedAnalyticsService {
       list.sort((a, b) => b.usageCount.compareTo(a.usageCount));
       return list.take(limit).toList();
     } catch (e) {
-      debugPrint('❌ Error getting popular themes: $e');
+      if (kDebugMode) debugPrint('❌ Error getting popular themes: $e');
       return [];
     }
   }
@@ -98,7 +98,7 @@ class AdvancedAnalyticsService {
       list.sort((a, b) => b.usageCount.compareTo(a.usageCount));
       return list;
     } catch (e) {
-      debugPrint('❌ Error getting recent themes: $e');
+      if (kDebugMode) debugPrint('❌ Error getting recent themes: $e');
       return [];
     }
   }
@@ -116,7 +116,7 @@ class AdvancedAnalyticsService {
 
       return score.clamp(0, 100);
     } catch (e) {
-      debugPrint('❌ Error calculating engagement score: $e');
+      if (kDebugMode) debugPrint('❌ Error calculating engagement score: $e');
       return 0;
     }
   }
@@ -139,7 +139,7 @@ class AdvancedAnalyticsService {
             analytics.isEmpty ? 0 : totalUsage ~/ analytics.length,
       );
     } catch (e) {
-      debugPrint('❌ Error getting usage stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting usage stats: $e');
       return UsageStats(
         totalThemesUsed: 0,
         totalUsageCount: 0,
@@ -153,9 +153,9 @@ class AdvancedAnalyticsService {
   Future<void> clearAnalytics() async {
     try {
       await _prefs.remove(_analyticsKey);
-      debugPrint('✅ Analytics cleared');
+      if (kDebugMode) debugPrint('✅ Analytics cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing analytics: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing analytics: $e');
     }
   }
 
@@ -164,7 +164,7 @@ class AdvancedAnalyticsService {
       final json = _prefs.getString(_analyticsKey) ?? '{}';
       return jsonDecode(json) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ Error loading analytics: $e');
+      if (kDebugMode) debugPrint('❌ Error loading analytics: $e');
       return {};
     }
   }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Theme Usage Analytics Service - Track theme usage patterns and metrics
@@ -16,7 +16,7 @@ class ThemeUsageAnalyticsService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Theme Usage Analytics Service initialized');
+    if (kDebugMode) debugPrint('✅ Theme Usage Analytics Service initialized');
   }
 
   /// Record theme session start
@@ -32,9 +32,9 @@ class ThemeUsageAnalyticsService {
 
       final json = jsonEncode(session.toJson());
       await _prefs.setString('current_theme_session', json);
-      debugPrint('📊 Theme session started: $themeName');
+      if (kDebugMode) debugPrint('📊 Theme session started: $themeName');
     } catch (e) {
-      debugPrint('❌ Error recording theme session start: $e');
+      if (kDebugMode) debugPrint('❌ Error recording theme session start: $e');
     }
   }
 
@@ -63,10 +63,10 @@ class ThemeUsageAnalyticsService {
         final duration = endedSession.endedAt!
             .difference(endedSession.startedAt)
             .inSeconds;
-        debugPrint('📊 Theme session ended: ${duration}s');
+        if (kDebugMode) debugPrint('📊 Theme session ended: ${duration}s');
       }
     } catch (e) {
-      debugPrint('❌ Error recording theme session end: $e');
+      if (kDebugMode) debugPrint('❌ Error recording theme session end: $e');
     }
   }
 
@@ -110,7 +110,7 @@ class ThemeUsageAnalyticsService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting theme usage stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting theme usage stats: $e');
       return ThemeUsageStats(
         totalSessions: 0,
         totalMinutesUsed: 0,
@@ -142,7 +142,7 @@ class ThemeUsageAnalyticsService {
       rankings.sort((a, b) => b.score.compareTo(a.score));
       return rankings;
     } catch (e) {
-      debugPrint('❌ Error getting theme popularity: $e');
+      if (kDebugMode) debugPrint('❌ Error getting theme popularity: $e');
       return [];
     }
   }
@@ -181,7 +181,7 @@ class ThemeUsageAnalyticsService {
 
       return result;
     } catch (e) {
-      debugPrint('❌ Error getting theme time series: $e');
+      if (kDebugMode) debugPrint('❌ Error getting theme time series: $e');
       return [];
     }
   }
@@ -207,7 +207,7 @@ class ThemeUsageAnalyticsService {
       int score = (theme.usageCount * 5 + theme.totalMinutes ~/ 10).clamp(0, 100);
       return score;
     } catch (e) {
-      debugPrint('❌ Error getting theme engagement score: $e');
+      if (kDebugMode) debugPrint('❌ Error getting theme engagement score: $e');
       return 0;
     }
   }
@@ -237,7 +237,7 @@ class ThemeUsageAnalyticsService {
 
       return trend;
     } catch (e) {
-      debugPrint('❌ Error getting daily theme usage: $e');
+      if (kDebugMode) debugPrint('❌ Error getting daily theme usage: $e');
       return {};
     }
   }
@@ -283,9 +283,9 @@ class ThemeUsageAnalyticsService {
     try {
       await _prefs.remove(_themeSessionsKey);
       await _prefs.remove('current_theme_session');
-      debugPrint('✅ Theme usage analytics cleared');
+      if (kDebugMode) debugPrint('✅ Theme usage analytics cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing analytics data: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing analytics data: $e');
     }
   }
 }

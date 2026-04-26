@@ -248,7 +248,7 @@ class _WatchlistPageState extends State<WatchlistPage>
     if (items.isEmpty) {
       return Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.favorite_border, color: Colors.white12, size: 64),
+        const Icon(Icons.favorite_border, color: Colors.white12, size: 64),
         const SizedBox(height: 12),
         Text(_searchQuery.isNotEmpty ? 'No matching $type' : 'No favorites yet',
             style: GoogleFonts.outfit(color: Colors.white30, fontSize: 14)),

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/database_storage/firestore_service.dart';
 import 'package:anime_waifu/services/utilities_core/home_widget_service.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Manages the affection/relationship system.
 /// Data is cached locally and merged with Firestore on sign-in.
@@ -303,7 +304,7 @@ class AffectionService extends ChangeNotifier {
   Future<void> _enqueue(Future<void> Function() operation) {
     final future = _operationQueue.then((_) => operation());
     _operationQueue = future.catchError((Object error, StackTrace stackTrace) {
-      debugPrint('AffectionService error: $error');
+      if (kDebugMode) debugPrint('AffectionService error: $error');
     });
     return future;
   }

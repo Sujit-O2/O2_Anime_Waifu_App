@@ -74,6 +74,8 @@ class _WordAssociationPageState extends State<WordAssociationPage> with SingleTi
     if (word.isEmpty || _waitingAI || _gameOver) return;
     HapticFeedback.lightImpact();
     final lastWord = _chain.last['word']!;
+    // Defensive: lastWord must be non-empty for last-letter check
+    if (lastWord.isEmpty) return;
     // Simple same-last-letter check
     if (word.toLowerCase()[0] != lastWord.toLowerCase()[lastWord.length - 1]) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +236,9 @@ class _WordAssociationPageState extends State<WordAssociationPage> with SingleTi
                 style: GoogleFonts.outfit(color: Colors.white),
                 onSubmitted: (_) => _playerWord(),
                 decoration: InputDecoration(
-                  hintText: _chain.isEmpty ? '' : 'Must start with "${_chain.last['word']![_chain.last['word']!.length - 1].toUpperCase()}"...',
+                  hintText: _chain.isEmpty || (_chain.last['word'] ?? '').isEmpty
+                      ? 'Type a word...'
+                      : 'Must start with "${_chain.last['word']![_chain.last['word']!.length - 1].toUpperCase()}"...',
                   hintStyle: GoogleFonts.outfit(color: Colors.white30, fontSize: 13),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.07),

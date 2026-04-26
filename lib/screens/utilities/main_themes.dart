@@ -4,6 +4,7 @@ import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/providers/theme_provider.dart';
 import 'package:anime_waifu/main.dart' show themeNotifier;
 import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +71,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     final tp = context.watch<ThemeProvider>();
     final currentMode = tp.mode;
     final themes = ThemeProvider.activeThemeModes.toList();
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
 
     return SafeArea(
       child: CustomScrollView(
@@ -84,7 +87,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 children: [
                   Text('ATMOSPHERE',
                       style: GoogleFonts.outfit(
-                        color: Colors.white,
+                        color: theme.colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2.5,
@@ -92,11 +95,18 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   const SizedBox(height: 6),
                   Text('10 premium themes with unique fonts, effects & vibes',
                       style: GoogleFonts.outfit(
-                        color: Colors.white38,
+                        color: tokens.textMuted,
                         fontSize: 11,
                       )),
                 ],
               ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: _buildVisualModeSwitcher(tp),
             ),
           ),
 
@@ -171,7 +181,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.add_circle_outline_rounded,
                             color: Colors.white54,
                             size: 24,
@@ -236,6 +246,91 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildVisualModeSwitcher(ThemeProvider tp) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: tokens.panel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: tokens.outline),
+        boxShadow: [
+          BoxShadow(
+            color: tokens.shadowColor,
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
+      ),
+      child: Row(
+        children: ThemeVisualMode.values.map((mode) {
+          final selected = tp.visualMode == mode;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => tp.setVisualMode(mode),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: selected
+                      ? LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary.withValues(alpha: 0.18),
+                            theme.colorScheme.tertiary.withValues(alpha: 0.10),
+                          ],
+                        )
+                      : null,
+                  border: Border.all(
+                    color: selected
+                        ? theme.colorScheme.primary.withValues(alpha: 0.24)
+                        : Colors.transparent,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      switch (mode) {
+                        ThemeVisualMode.system => Icons.brightness_auto_rounded,
+                        ThemeVisualMode.light => Icons.light_mode_rounded,
+                        ThemeVisualMode.dark => Icons.dark_mode_rounded,
+                      },
+                      size: 18,
+                      color: selected
+                          ? theme.colorScheme.primary
+                          : tokens.textMuted,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      switch (mode) {
+                        ThemeVisualMode.system => 'System',
+                        ThemeVisualMode.light => 'Light',
+                        ThemeVisualMode.dark => 'Dark',
+                      },
+                      style: GoogleFonts.outfit(
+                        color: selected
+                            ? theme.colorScheme.onSurface
+                            : tokens.textMuted,
+                        fontSize: 12,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   void _showCreateThemeDialog() {
     final nameCtrl = TextEditingController();
     final primaryColorNotifier = ValueNotifier<Color>(Colors.red);
@@ -260,7 +355,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   decoration: InputDecoration(
                     hintText: 'Theme name',
                     hintStyle: GoogleFonts.outfit(color: Colors.white30),
-                    enabledBorder: UnderlineInputBorder(
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.white24),
                     ),
                   ),
@@ -434,7 +529,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
               GestureDetector(
                 onTap: () async {
                   // Apply custom theme
-                  debugPrint('Applying custom theme: ${theme.name}');
+                  if (kDebugMode)
+                    debugPrint('Applying custom theme: ${theme.name}');
                 },
                 child: const Icon(Icons.check_circle_outline,
                     color: Colors.greenAccent, size: 16),
@@ -443,6 +539,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
               GestureDetector(
                 onTap: () async {
                   await _customThemeService.deleteCustomTheme(theme.id);
+                  if (!mounted) return;
                   setState(() {});
                 },
                 child: const Icon(Icons.delete_outline,
@@ -461,6 +558,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     final gradient = AppThemes.getGradient(mode);
     final name = AppThemes.getThemeName(mode);
     final emoji = _themeEmojis[mode] ?? '🎨';
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
 
     return AnimatedBuilder(
       animation: _pulseCtrl,
@@ -503,14 +602,14 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                     const SizedBox(height: 2),
                     Text(name,
                         style: GoogleFonts.outfit(
-                          color: Colors.white,
+                          color: theme.colorScheme.onSurface,
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
                         )),
                     const SizedBox(height: 4),
                     Text(_themeDescriptions[mode] ?? '',
                         style: GoogleFonts.outfit(
-                          color: Colors.white54,
+                          color: tokens.textMuted,
                           fontSize: 11,
                           height: 1.3,
                         )),
@@ -536,6 +635,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     final emoji = _themeEmojis[mode] ?? '🎨';
     final particle = AppThemes.getParticleType(mode);
     final style = AppThemes.getStyle(mode);
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
 
     return GestureDetector(
       onTap: () async {
@@ -558,9 +659,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
             end: Alignment.bottomRight,
           ),
           border: Border.all(
-            color: isActive
-                ? primary.withValues(alpha: 0.8)
-                : Colors.white.withValues(alpha: 0.08),
+            color: isActive ? primary.withValues(alpha: 0.8) : tokens.outline,
             width: isActive ? 2.5 : 1,
           ),
           boxShadow: isActive
@@ -577,9 +676,10 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                    color: tokens.shadowColor,
+                    blurRadius: 16,
+                    offset: const Offset(0, 10),
+                    spreadRadius: -10,
                   ),
                 ],
         ),
@@ -644,7 +744,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                   // Theme name
                   Text(name,
                       style: GoogleFonts.outfit(
-                        color: Colors.white,
+                        color: theme.colorScheme.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                       )),
@@ -655,7 +755,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
-                        color: Colors.white38,
+                        color: tokens.textMuted,
                         fontSize: 9.5,
                         height: 1.3,
                       )),
@@ -675,13 +775,13 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
+                          color: tokens.panelMuted,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           _particleName(particle),
                           style: GoogleFonts.outfit(
-                            color: Colors.white30,
+                            color: tokens.textSoft,
                             fontSize: 8,
                             fontWeight: FontWeight.w600,
                           ),
@@ -698,12 +798,12 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
-                      color: Colors.white.withValues(alpha: 0.04),
+                      color: tokens.panelMuted,
                       child: Text(
                         style.hintText,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: style.font(9, Colors.white30),
+                        style: style.font(9, tokens.textSoft),
                       ),
                     ),
                   ),

@@ -47,6 +47,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _followed = followed;
       _alerts = alerts;
@@ -65,6 +66,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _checking = false);
     showSuccessSnackbar(
       context,
