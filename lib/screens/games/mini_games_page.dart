@@ -254,7 +254,10 @@ class _GamesHubPageState extends State<GamesHubPage> {
                   elevation: 0,
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.8),
                         size: 22),
                     onPressed: () => Navigator.canPop(context)
                         ? Navigator.pop(context)
@@ -314,7 +317,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                         Text(
                           'Play with Zero Two, Darling~',
                           style: GoogleFonts.outfit(
-                            color:                                 Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             height: 1.3,
@@ -341,9 +344,15 @@ class _GamesHubPageState extends State<GamesHubPage> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.1),
-                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
-                                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                                Theme.of(context)
+                                    .scaffoldBackgroundColor
+                                    .withValues(alpha: 0.1),
+                                Theme.of(context)
+                                    .scaffoldBackgroundColor
+                                    .withValues(alpha: 0.8),
+                                Theme.of(context)
+                                    .scaffoldBackgroundColor
+                                    .withValues(alpha: 0.95),
                               ],
                             ),
                           ),
@@ -387,8 +396,14 @@ class _GamesHubPageState extends State<GamesHubPage> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-                                Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                                Theme.of(context)
+                                    .colorScheme
+                                    .surface
+                                    .withValues(alpha: 0.9),
+                                Theme.of(context)
+                                    .colorScheme
+                                    .surface
+                                    .withValues(alpha: 0.8),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -400,7 +415,8 @@ class _GamesHubPageState extends State<GamesHubPage> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.pinkAccent.withValues(alpha: 0.15),
+                                color:
+                                    Colors.pinkAccent.withValues(alpha: 0.15),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -420,7 +436,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                         Text(
                                           'ARCADE MOOD',
                                           style: GoogleFonts.outfit(
-                                            color:                                 Theme.of(context).colorScheme.onSurface,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                             fontSize: 11,
                                             fontWeight: FontWeight.w800,
                                             letterSpacing: 2,
@@ -432,7 +450,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     Text(
                                       'Premium Game Hub',
                                       style: GoogleFonts.outfit(
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontSize: 22,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 0.5,
@@ -442,7 +462,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     Text(
                                       'Jump between reflex, puzzle, and quiz modes without losing the Zero Two arcade vibe.',
                                       style: GoogleFonts.outfit(
-                                        color:                                 Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontSize: 14,
                                         height: 1.5,
                                         fontWeight: FontWeight.w500,
@@ -464,7 +486,8 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     ],
                                   ),
                                   border: Border.all(
-                                    color: Colors.pinkAccent.withValues(alpha: 0.4),
+                                    color: Colors.pinkAccent
+                                        .withValues(alpha: 0.4),
                                     width: 2,
                                   ),
                                 ),
@@ -480,7 +503,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     Text(
                                       '8',
                                       style: GoogleFonts.outfit(
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontSize: 18,
                                         fontWeight: FontWeight.w900,
                                       ),
@@ -488,7 +513,9 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     Text(
                                       'Games',
                                       style: GoogleFonts.outfit(
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontSize: 10,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -564,7 +591,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                         Text(
                           'GAME CATEGORIES',
                           style: GoogleFonts.outfit(
-                            color:                                 Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 2,
@@ -585,10 +612,13 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                     borderRadius: BorderRadius.circular(22),
                                     onTap: () => setState(
                                         () => _selectedCategory = category),
-                                    splashColor: Colors.purpleAccent.withValues(alpha: 0.1),
-                                    highlightColor: Colors.purpleAccent.withValues(alpha: 0.05),
+                                    splashColor: Colors.purpleAccent
+                                        .withValues(alpha: 0.1),
+                                    highlightColor: Colors.purpleAccent
+                                        .withValues(alpha: 0.05),
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
+                                      duration:
+                                          const Duration(milliseconds: 300),
                                       curve: Curves.easeOutCubic,
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 20, vertical: 10),
@@ -596,27 +626,39 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                         gradient: isSelected
                                             ? LinearGradient(
                                                 colors: [
-                                                  Colors.purpleAccent.withValues(alpha: 0.25),
-                                                  Colors.purpleAccent.withValues(alpha: 0.15),
+                                                  Colors.purpleAccent
+                                                      .withValues(alpha: 0.25),
+                                                  Colors.purpleAccent
+                                                      .withValues(alpha: 0.15),
                                                 ],
                                               )
                                             : LinearGradient(
                                                 colors: [
-                                                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                                                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .surface
+                                                      .withValues(alpha: 0.8),
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .surface
+                                                      .withValues(alpha: 0.6),
                                                 ],
                                               ),
                                         borderRadius: BorderRadius.circular(22),
                                         border: Border.all(
                                           color: isSelected
-                                              ? Colors.purpleAccent.withValues(alpha: 0.4)
-                                              : Theme.of(context).colorScheme.outline,
+                                              ? Colors.purpleAccent
+                                                  .withValues(alpha: 0.4)
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .outline,
                                           width: isSelected ? 1.5 : 1,
                                         ),
                                         boxShadow: isSelected
                                             ? [
                                                 BoxShadow(
-                                                  color: Colors.purpleAccent.withValues(alpha: 0.2),
+                                                  color: Colors.purpleAccent
+                                                      .withValues(alpha: 0.2),
                                                   blurRadius: 12,
                                                   offset: const Offset(0, 4),
                                                 ),
@@ -628,7 +670,10 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                         style: GoogleFonts.outfit(
                                           color: isSelected
                                               ? Colors.white
-                                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.8),
                                           fontSize: 13,
                                           fontWeight: isSelected
                                               ? FontWeight.w700
@@ -921,9 +966,6 @@ class _GameCardState extends State<_GameCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tokens = Theme.of(context).colorScheme;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1003,7 +1045,8 @@ class _GameCardState extends State<_GameCard>
                         top: -4,
                         right: -4,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [Colors.amber, Colors.orangeAccent],
