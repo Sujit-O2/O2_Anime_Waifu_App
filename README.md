@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 v8.0.2 — Feature Expansion & Optimization Update
+## 🚀 v8.0.2 (LEO) — Feature Expansion & Optimization Update
 
 ### What's New
 - **📱 44 New Feature Screens**: Complete UI coverage for all user-facing services across 9 categories
