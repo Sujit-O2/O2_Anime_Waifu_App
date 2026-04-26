@@ -1,7 +1,7 @@
 name: anime_waifu
 description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
 publish_to: "none"
-version: 8.0.3
+version: 9.0.2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"

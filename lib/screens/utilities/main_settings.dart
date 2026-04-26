@@ -1588,7 +1588,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     _buildAboutRow(
                         icon: Icons.tag_rounded,
                         label: 'Version',
-                        value: '5.0.0',
+                         value: '9.0.2 (LEO)',
                         color: Colors.cyanAccent),
                     _buildAboutRow(
                         icon: Icons.code_rounded,
