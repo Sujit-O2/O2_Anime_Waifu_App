@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 
@@ -43,6 +44,7 @@ class WakeWordService {
   bool _initialized = false;
   bool _initializing = false;
   bool _inferenceInFlight = false;
+  Timer? _restartTimer;
   WakeWordCallback? _onDetected;
 
   // ── Sliding audio window ──────────────────────────────────────────────────
@@ -53,6 +55,7 @@ class WakeWordService {
   final Float32List _audioWindow = Float32List(_windowSamples);
   int _chunksReceived = 0;
   int _chunksSinceLastInference = 0;
+  static const int _inferenceStrideChunks = 2;
 
   // Mel-spectrogram params — defined locally in static _buildMelTensor().
   // Kept here for use in _log messages only:
@@ -68,7 +71,9 @@ class WakeWordService {
   static const int _confirmWindow = 6;
   static const int _confirmQuorum = 6;
   static const double _varianceCap = 0.002;
-  final List<double> _confirmBuf = [];
+  final Float64List _confirmBuf = Float64List(_confirmWindow);
+  int _confirmCount = 0;
+  int _confirmWriteIndex = 0;
 
   // ── Energy gate ────────────────────────────────────────────────────────────
   static const double _energyFloor = 0.005; // RMS threshold for silence skip
@@ -79,15 +84,28 @@ class WakeWordService {
 
   // ── Recent audio buffer (2-sec window for STT hand-off) ──────────────────
   static const int _recentAudioCapacity = _sampleRate * 2;
-  final List<double> _recentAudioBuf = [];
+  final Float32List _recentAudioRing = Float32List(_recentAudioCapacity);
+  int _recentAudioWriteIndex = 0;
+  int _recentAudioCount = 0;
 
   // ── Compat API ────────────────────────────────────────────────────────────
   static const List<String> _labels = ['zerotwo'];
-  List<String> get loadedKeywords => List.unmodifiable(_labels);
+  List<String> get loadedKeywords => _labels;
   bool get isRunning => _running;
   void configure({String? accessKeyOverride}) {}
   void testTriggerByIndex(int i) => _onDetected?.call(i);
-  Float32List getRecentAudio() => Float32List.fromList(_recentAudioBuf);
+  Float32List getRecentAudio() {
+    final result = Float32List(_recentAudioCount);
+    if (_recentAudioCount == 0) return result;
+
+    final start =
+        (_recentAudioWriteIndex - _recentAudioCount) % _recentAudioCapacity;
+    for (int i = 0; i < _recentAudioCount; i++) {
+      result[i] = _recentAudioRing[(start + i) % _recentAudioCapacity];
+    }
+    return result;
+  }
+
   static bool enableDebugLogging = true;
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -122,10 +140,13 @@ class WakeWordService {
     _audioWindow.fillRange(0, _audioWindow.length, 0.0);
     _chunksReceived = 0;
     _chunksSinceLastInference = 0;
-    _confirmBuf.clear();
+    _clearConfirmation();
     _inferenceInFlight = false;
+    _recentAudioWriteIndex = 0;
+    _recentAudioCount = 0;
+    _restartTimer?.cancel();
 
-    _audioSub?.cancel();
+    await _audioSub?.cancel();
     _audioSub = _audioChannel.receiveBroadcastStream().listen(
       _onAudioChunk,
       onError: (dynamic e) {
@@ -146,10 +167,11 @@ class WakeWordService {
   Future<void> stop() async {
     if (!_running && _audioSub == null) return;
     _running = false;
+    _restartTimer?.cancel();
     final sub = _audioSub;
     _audioSub = null;
     await sub?.cancel();
-    _confirmBuf.clear();
+    _clearConfirmation();
     _inferenceInFlight = false;
     _log('STOPPED');
   }
@@ -167,10 +189,11 @@ class WakeWordService {
   // ── Private: audio pipeline ───────────────────────────────────────────────
 
   void _scheduleRestart() {
-    Future.delayed(const Duration(seconds: 2), () {
+    _restartTimer?.cancel();
+    _restartTimer = Timer(const Duration(seconds: 2), () {
       if (!_running && _initialized && _onDetected != null) {
         _log('Auto-restarting...');
-        start();
+        unawaited(start());
       }
     });
   }
@@ -178,69 +201,69 @@ class WakeWordService {
   void _onAudioChunk(dynamic data) {
     if (!_running || _session == null) return;
     try {
-      final List<double> samples;
+      final Float32List samples;
       if (data is Uint8List) {
-        final byteData = data.buffer.asByteData(data.offsetInBytes, data.lengthInBytes);
+        final byteData =
+            data.buffer.asByteData(data.offsetInBytes, data.lengthInBytes);
         final int numSamples = data.lengthInBytes ~/ 2;
-        samples = List<double>.generate(numSamples, (i) {
-          return byteData.getInt16(i * 2, Endian.little).toDouble() / 32768.0;
-        }, growable: false);
+        samples = Float32List(numSamples);
+        for (int i = 0; i < numSamples; i++) {
+          samples[i] = byteData.getInt16(i * 2, Endian.little) / 32768.0;
+        }
       } else if (data is List) {
         // Fallback for older buffered data if any
-        samples = List<double>.from(data);
+        samples = Float32List(data.length);
+        for (int i = 0; i < data.length; i++) {
+          samples[i] = ((data[i] as num?)?.toDouble() ?? 0.0)
+              .clamp(-1.0, 1.0)
+              .toDouble();
+        }
       } else {
         return;
       }
       if (samples.isEmpty) return;
 
-      // Maintain recent audio ring buffer for STT hand-off
-      _recentAudioBuf.addAll(samples);
-      if (_recentAudioBuf.length > _recentAudioCapacity) {
-        _recentAudioBuf.removeRange(
-            0, _recentAudioBuf.length - _recentAudioCapacity);
-      }
+      _appendRecentAudio(samples);
 
       // Slide window
       final incoming = samples.length;
       if (incoming < _windowSamples) {
-        // shift left, append new
         final shift = _windowSamples - incoming;
-        for (int i = 0; i < shift; i++) {
-          _audioWindow[i] = _audioWindow[i + incoming];
-        }
-        for (int i = 0; i < incoming; i++) {
-          _audioWindow[shift + i] = samples[i].toDouble().clamp(-1.0, 1.0);
-        }
+        _audioWindow.setRange(0, shift, _audioWindow, incoming);
+        _audioWindow.setRange(shift, _windowSamples, samples);
       } else {
-        for (int i = 0; i < _windowSamples; i++) {
-          _audioWindow[i] = samples[incoming - _windowSamples + i]
-              .toDouble()
-              .clamp(-1.0, 1.0);
-        }
+        _audioWindow.setRange(
+          0,
+          _windowSamples,
+          samples,
+          incoming - _windowSamples,
+        );
       }
 
       _chunksReceived++;
       // Wait until buffer is ~full (10 chunks ≈ first second)
       if (_chunksReceived < 10) return;
 
-      // Energy gate — skip silence
-      final rms = _computeRms(_audioWindow);
-      if (_chunksReceived % 20 == 0) {
-        _logV('RMS=${rms.toStringAsFixed(5)} (floor=$_energyFloor)');
-      }
-      if (rms < _energyFloor) {
-        _confirmBuf.clear();
-        return;
-      }
-
-      // Rate-limit inference to ~5 Hz
+      // Rate-limit inference to keep continuous listening light on the CPU.
       _chunksSinceLastInference++;
-      if (_chunksSinceLastInference < 1) {
-        return; // run every chunk for responsiveness
+      if (_chunksSinceLastInference < _inferenceStrideChunks) {
+        return;
       }
       _chunksSinceLastInference = 0;
 
       if (_inferenceInFlight) return;
+
+      // Energy gate — skip silence. Run it only for inference candidates so
+      // quiet rooms do not spend every audio chunk scanning the full window.
+      final rms = _computeRms(_audioWindow);
+      if (enableDebugLogging && kDebugMode && _chunksReceived % 20 == 0) {
+        _logV('RMS=${rms.toStringAsFixed(5)} (floor=$_energyFloor)');
+      }
+      if (rms < _energyFloor) {
+        _clearConfirmation();
+        return;
+      }
+
       _inferenceInFlight = true;
 
       final copy = Float32List.fromList(_audioWindow);
@@ -248,6 +271,39 @@ class WakeWordService {
     } catch (e) {
       _log('onAudioChunk error: $e');
     }
+  }
+
+  void _appendRecentAudio(Float32List samples) {
+    final incoming = samples.length;
+    if (incoming >= _recentAudioCapacity) {
+      _recentAudioRing.setRange(
+        0,
+        _recentAudioCapacity,
+        samples,
+        incoming - _recentAudioCapacity,
+      );
+      _recentAudioWriteIndex = 0;
+      _recentAudioCount = _recentAudioCapacity;
+      return;
+    }
+
+    final firstPart =
+        math.min(incoming, _recentAudioCapacity - _recentAudioWriteIndex);
+    _recentAudioRing.setRange(
+      _recentAudioWriteIndex,
+      _recentAudioWriteIndex + firstPart,
+      samples,
+    );
+
+    final remaining = incoming - firstPart;
+    if (remaining > 0) {
+      _recentAudioRing.setRange(0, remaining, samples, firstPart);
+    }
+
+    _recentAudioWriteIndex =
+        (_recentAudioWriteIndex + incoming) % _recentAudioCapacity;
+    _recentAudioCount =
+        math.min(_recentAudioCapacity, _recentAudioCount + incoming);
   }
 
   double _computeRms(Float32List audio) {
@@ -305,12 +361,15 @@ class WakeWordService {
       }
 
       // Softmax
-      final exp0 = math.exp(l0);
-      final exp1 = math.exp(l1);
+      final maxLogit = math.max(l0, l1);
+      final exp0 = math.exp(l0 - maxLogit);
+      final exp1 = math.exp(l1 - maxLogit);
       final wakeProb = exp1 / (exp0 + exp1);
 
-      _logV(
-          'Prob=${wakeProb.toStringAsFixed(4)}  RMS=${rms.toStringAsFixed(4)}');
+      if (enableDebugLogging && kDebugMode) {
+        _logV(
+            'Prob=${wakeProb.toStringAsFixed(4)}  RMS=${rms.toStringAsFixed(4)}');
+      }
 
       _processConfirmation(wakeProb);
     } catch (e) {
@@ -334,39 +393,54 @@ class WakeWordService {
     if (wakeProb >= _fastPassThreshold) {
       _log(
           '🚀 FAST-PASS (prob=${wakeProb.toStringAsFixed(4)} ≥ $_fastPassThreshold)');
-      _confirmBuf.clear();
+      _clearConfirmation();
       _fire();
       return;
     }
 
     // Tier 2: Accumulate for temporal confirmation
     if (wakeProb >= _detectFloor) {
-      _confirmBuf.add(wakeProb);
-      if (_confirmBuf.length > _confirmWindow) _confirmBuf.removeAt(0);
+      _confirmBuf[_confirmWriteIndex] = wakeProb;
+      _confirmWriteIndex = (_confirmWriteIndex + 1) % _confirmWindow;
+      if (_confirmCount < _confirmWindow) _confirmCount++;
 
-      if (_confirmBuf.length >= _confirmQuorum) {
-        final aboveFloor = _confirmBuf.where((p) => p >= _detectFloor).length;
-        final mean = _confirmBuf.reduce((a, b) => a + b) / _confirmBuf.length;
+      if (_confirmCount >= _confirmQuorum) {
+        var aboveFloor = 0;
+        var sum = 0.0;
+        for (int i = 0; i < _confirmCount; i++) {
+          final p = _confirmBuf[i];
+          if (p >= _detectFloor) aboveFloor++;
+          sum += p;
+        }
+        final mean = sum / _confirmCount;
         double varSum = 0;
-        for (final p in _confirmBuf) {
+        for (int i = 0; i < _confirmCount; i++) {
+          final p = _confirmBuf[i];
           varSum += (p - mean) * (p - mean);
         }
-        final stdDev = math.sqrt(varSum / _confirmBuf.length);
+        final stdDev = math.sqrt(varSum / _confirmCount);
 
-        _logV('Confirming: $aboveFloor/$_confirmWindow above floor '
-            'stdDev=${stdDev.toStringAsFixed(4)} cap=$_varianceCap');
+        if (enableDebugLogging && kDebugMode) {
+          _logV('Confirming: $aboveFloor/$_confirmWindow above floor '
+              'stdDev=${stdDev.toStringAsFixed(4)} cap=$_varianceCap');
+        }
 
         if (aboveFloor >= _confirmQuorum && stdDev <= _varianceCap) {
           _log('✅ CONFIRMED ($aboveFloor/$_confirmWindow, '
               'stdDev=${stdDev.toStringAsFixed(4)})');
-          _confirmBuf.clear();
+          _clearConfirmation();
           _fire();
         }
       }
     } else {
       // Tier 3: Below floor — decay buffer
-      _confirmBuf.clear();
+      _clearConfirmation();
     }
+  }
+
+  void _clearConfirmation() {
+    _confirmCount = 0;
+    _confirmWriteIndex = 0;
   }
 
   void _fire() {
@@ -401,13 +475,13 @@ class WakeWordService {
     // 1. Hann window of length winLength, zero-padded to nFft
     //    librosa uses win_length=400 centered inside n_fft=512
     final hann = Float64List(nFft); // zero-initialized
-    final padLeft = (nFft - winLength) ~/ 2; // 56
+    const padLeft = (nFft - winLength) ~/ 2; // 56
     for (int i = 0; i < winLength; i++) {
       hann[padLeft + i] = 0.5 * (1.0 - math.cos(2.0 * math.pi * i / winLength));
     }
 
     // 2. Centre-pad (librosa center=True, mode='reflect')
-    final padLen = nFft ~/ 2; // 256
+    const padLen = nFft ~/ 2; // 256
     final paddedLen = audio.length + 2 * padLen;
     final padded = Float64List(paddedLen);
     // Reflect left
@@ -425,13 +499,17 @@ class WakeWordService {
       padded[padLen + audio.length + i] = srcIdx >= 0 ? audio[srcIdx] : 0.0;
     }
 
-    // 3. STFT → power spectrum
+    // 3. Mel filters + STFT. Apply filters frame-by-frame so we do not keep
+    // the full [257 x frames] power spectrogram in memory.
     final nFrames = 1 + audio.length ~/ hopLength;
-    // powerSpec[freq_bin][frame]
-    final powerSpec =
-        List<Float64List>.generate(halfFft, (_) => Float64List(nFrames));
+    final melFilters = _computeMelFiltersSlaney(
+        nMels, nFft, sampleRate, 0.0, sampleRate / 2.0);
+    final melSpec =
+        List<Float64List>.generate(nMels, (_) => Float64List(nFrames));
     final frameR = Float64List(nFft);
     final frameI = Float64List(nFft);
+    final powerFrame = Float64List(halfFft);
+    double globalMax = 1e-10;
 
     // Twiddle factors for FFT
     final twR = Float64List(nFft ~/ 2);
@@ -454,26 +532,17 @@ class WakeWordService {
       _fft(frameR, frameI, nFft, twR, twI);
 
       for (int k = 0; k < halfFft; k++) {
-        powerSpec[k][frame] = frameR[k] * frameR[k] + frameI[k] * frameI[k];
+        powerFrame[k] = frameR[k] * frameR[k] + frameI[k] * frameI[k];
       }
-    }
 
-    // 4. Mel filter bank — librosa default = SLANEY (NOT HTK)
-    final melFilters = _computeMelFiltersSlaney(
-        nMels, nFft, sampleRate, 0.0, sampleRate / 2.0);
-
-    // 5. Apply mel filters → power_to_db(mel + 1e-9, ref=np.max)
-    final melSpec =
-        List<Float64List>.generate(nMels, (_) => Float64List(nFrames));
-    double globalMax = 1e-10;
-    for (int m = 0; m < nMels; m++) {
-      for (int f = 0; f < nFrames; f++) {
+      for (int m = 0; m < nMels; m++) {
+        final filter = melFilters[m];
         double sum = 0;
         for (int k = 0; k < halfFft; k++) {
-          sum += melFilters[m][k] * powerSpec[k][f];
+          sum += filter[k] * powerFrame[k];
         }
         sum += 1e-9; // Match: power_to_db(mel + 1e-9, ...)
-        melSpec[m][f] = sum;
+        melSpec[m][frame] = sum;
         if (sum > globalMax) globalMax = sum;
       }
     }
@@ -571,7 +640,7 @@ class WakeWordService {
 
   /// Slaney-scale mel filter bank — matches librosa.filters.mel default
   /// (NOT HTK scale — librosa uses Slaney by default unless htk=True)
-  static List<List<double>> _computeMelFiltersSlaney(
+  static List<Float64List> _computeMelFiltersSlaney(
       int nMels, int nFft, int sr, double fMin, double fMax) {
     // Slaney mel scale: linear below 1kHz, log above
     double hzToMel(double hz) {
@@ -606,8 +675,8 @@ class WakeWordService {
         .toList();
 
     // Build triangular filters with Slaney normalization (area = 1)
-    final filters = List<List<double>>.generate(
-        nMels, (_) => List<double>.filled(halfFft, 0.0));
+    final filters =
+        List<Float64List>.generate(nMels, (_) => Float64List(halfFft));
 
     for (int m = 0; m < nMels; m++) {
       final fL = bins[m];
@@ -636,13 +705,13 @@ class WakeWordService {
   // ── Logging ───────────────────────────────────────────────────────────────
   void _log(String msg) {
     // ignore: avoid_print
-    debugPrint('[WakeWord] $msg');
+    if (kDebugMode) debugPrint('[WakeWord] $msg');
   }
 
   void _logV(String msg) {
     if (enableDebugLogging) {
       // ignore: avoid_print
-      debugPrint('[WakeWord] $msg');
+      if (kDebugMode) debugPrint('[WakeWord] $msg');
     }
   }
 }

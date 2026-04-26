@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -19,7 +19,7 @@ class WeatherService {
     try {
       position = await _getCurrentPosition();
     } catch (e) {
-      debugPrint('WeatherService GPS error: $e');
+      if (kDebugMode) debugPrint('WeatherService GPS error: $e');
     }
 
     if (_apiKey.isNotEmpty) {
@@ -95,7 +95,7 @@ class WeatherService {
         return _parseOpenWeather(jsonDecode(res.body) as Map<String, dynamic>);
       }
     } catch (e) {
-      debugPrint('WeatherService coord fetch error: $e');
+      if (kDebugMode) debugPrint('WeatherService coord fetch error: $e');
     }
     return null;
   }
@@ -110,7 +110,7 @@ class WeatherService {
         return _parseOpenWeather(jsonDecode(res.body) as Map<String, dynamic>);
       }
     } catch (e) {
-      debugPrint('WeatherService city fetch error: $e');
+      if (kDebugMode) debugPrint('WeatherService city fetch error: $e');
     }
     return null;
   }
@@ -125,7 +125,7 @@ class WeatherService {
         return _parseWttr(jsonDecode(res.body) as Map<String, dynamic>);
       }
     } catch (e) {
-      debugPrint('WeatherService wttr fetch error: $e');
+      if (kDebugMode) debugPrint('WeatherService wttr fetch error: $e');
     }
     return null;
   }

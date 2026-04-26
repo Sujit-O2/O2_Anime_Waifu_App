@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show debugPrint, defaultTargetPlatform, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Firebase Analytics Service - Track themes, email metrics, user actions
@@ -19,7 +20,7 @@ class FirebaseAnalyticsService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Firebase Analytics Service initialized');
+    if (kDebugMode) debugPrint('✅ Firebase Analytics Service initialized');
   }
 
   /// Log theme selection event
@@ -33,9 +34,9 @@ class FirebaseAnalyticsService {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint('📊 Logged: theme_selected - $themeName');
+      if (kDebugMode) debugPrint('📊 Logged: theme_selected - $themeName');
     } catch (e) {
-      debugPrint('❌ Error logging theme selected: $e');
+      if (kDebugMode) debugPrint('❌ Error logging theme selected: $e');
     }
   }
 
@@ -51,14 +52,17 @@ class FirebaseAnalyticsService {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint('📊 Logged: theme_usage_time - ${durationSeconds.toStringAsFixed(0)}s');
+      if (kDebugMode)
+        debugPrint(
+            '📊 Logged: theme_usage_time - ${durationSeconds.toStringAsFixed(0)}s');
     } catch (e) {
-      debugPrint('❌ Error tracking theme usage time: $e');
+      if (kDebugMode) debugPrint('❌ Error tracking theme usage time: $e');
     }
   }
 
   /// Log email send event
-  Future<void> logEmailSent(String recipient, String provider, bool success) async {
+  Future<void> logEmailSent(
+      String recipient, String provider, bool success) async {
     try {
       await _logEvent(
         'email_sent',
@@ -69,9 +73,11 @@ class FirebaseAnalyticsService {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint('📧 Logged: email_sent - $provider (${success ? "✅" : "❌"})');
+      if (kDebugMode)
+        debugPrint(
+            '📧 Logged: email_sent - $provider (${success ? "✅" : "❌"})');
     } catch (e) {
-      debugPrint('❌ Error logging email sent: $e');
+      if (kDebugMode) debugPrint('❌ Error logging email sent: $e');
     }
   }
 
@@ -79,12 +85,12 @@ class FirebaseAnalyticsService {
   Future<EmailMetrics> trackEmailMetrics() async {
     try {
       final events = await _getEvents();
-      final emailEvents = events
-          .where((e) => e['event_name'] == 'email_sent')
-          .toList();
+      final emailEvents =
+          events.where((e) => e['event_name'] == 'email_sent').toList();
 
       int totalSent = emailEvents.length;
-      int successful = emailEvents.where((e) => e['data']['success'] == true).length;
+      int successful =
+          emailEvents.where((e) => e['data']['success'] == true).length;
       int failed = totalSent - successful;
       double successRate = totalSent > 0 ? (successful / totalSent) * 100 : 0;
 
@@ -97,10 +103,11 @@ class FirebaseAnalyticsService {
       );
 
       await _prefs.setString(_emailMetricsKey, jsonEncode(metrics.toJson()));
-      debugPrint('📊 Email metrics: $successRate% success rate');
+      if (kDebugMode)
+        debugPrint('📊 Email metrics: $successRate% success rate');
       return metrics;
     } catch (e) {
-      debugPrint('❌ Error tracking email metrics: $e');
+      if (kDebugMode) debugPrint('❌ Error tracking email metrics: $e');
       return EmailMetrics(
         totalEmailsSent: 0,
         successfulEmails: 0,
@@ -122,9 +129,9 @@ class FirebaseAnalyticsService {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint('📊 Logged: user_action - $action');
+      if (kDebugMode) debugPrint('📊 Logged: user_action - $action');
     } catch (e) {
-      debugPrint('❌ Error logging user action: $e');
+      if (kDebugMode) debugPrint('❌ Error logging user action: $e');
     }
   }
 
@@ -138,9 +145,9 @@ class FirebaseAnalyticsService {
           'platform': defaultTargetPlatform.toString(),
         },
       );
-      debugPrint('📊 Logged: app_open');
+      if (kDebugMode) debugPrint('📊 Logged: app_open');
     } catch (e) {
-      debugPrint('❌ Error logging app open: $e');
+      if (kDebugMode) debugPrint('❌ Error logging app open: $e');
     }
   }
 
@@ -155,19 +162,20 @@ class FirebaseAnalyticsService {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint('📊 Logged: screen_view - $screenName');
+      if (kDebugMode) debugPrint('📊 Logged: screen_view - $screenName');
     } catch (e) {
-      debugPrint('❌ Error logging screen view: $e');
+      if (kDebugMode) debugPrint('❌ Error logging screen view: $e');
     }
   }
 
   /// Log custom event
-  Future<void> logCustomEvent(String eventName, Map<String, dynamic> data) async {
+  Future<void> logCustomEvent(
+      String eventName, Map<String, dynamic> data) async {
     try {
       await _logEvent(eventName, data);
-      debugPrint('📊 Logged custom event: $eventName');
+      if (kDebugMode) debugPrint('📊 Logged custom event: $eventName');
     } catch (e) {
-      debugPrint('❌ Error logging custom event: $e');
+      if (kDebugMode) debugPrint('❌ Error logging custom event: $e');
     }
   }
 
@@ -176,7 +184,7 @@ class FirebaseAnalyticsService {
     try {
       return _getEvents();
     } catch (e) {
-      debugPrint('❌ Error getting all events: $e');
+      if (kDebugMode) debugPrint('❌ Error getting all events: $e');
       return [];
     }
   }
@@ -193,7 +201,7 @@ class FirebaseAnalyticsService {
         return eventDate.isAfter(startDate) && eventDate.isBefore(endDate);
       }).toList();
     } catch (e) {
-      debugPrint('❌ Error getting events by date range: $e');
+      if (kDebugMode) debugPrint('❌ Error getting events by date range: $e');
       return [];
     }
   }
@@ -203,16 +211,14 @@ class FirebaseAnalyticsService {
     try {
       final allEvents = await _getEvents();
       final emailMetricsJson = _prefs.getString(_emailMetricsKey);
-      
+
       // Count theme selections
-      final themeSelections = allEvents
-          .where((e) => e['event_name'] == 'theme_selected')
-          .length;
+      final themeSelections =
+          allEvents.where((e) => e['event_name'] == 'theme_selected').length;
 
       // Count user actions
-      final userActions = allEvents
-          .where((e) => e['event_name'] == 'user_action')
-          .length;
+      final userActions =
+          allEvents.where((e) => e['event_name'] == 'user_action').length;
 
       // Get email metrics
       EmailMetrics emailMetrics = EmailMetrics(
@@ -235,7 +241,7 @@ class FirebaseAnalyticsService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting dashboard data: $e');
+      if (kDebugMode) debugPrint('❌ Error getting dashboard data: $e');
       return AnalyticsDashboard(
         totalEvents: 0,
         themeSelections: 0,
@@ -271,7 +277,7 @@ class FirebaseAnalyticsService {
 
       await _prefs.setString(_eventsKey, jsonEncode(eventsList));
     } catch (e) {
-      debugPrint('❌ Error logging event: $e');
+      if (kDebugMode) debugPrint('❌ Error logging event: $e');
     }
   }
 
@@ -281,7 +287,7 @@ class FirebaseAnalyticsService {
       final eventsList = jsonDecode(eventsJson) as List;
       return eventsList.cast<Map<String, dynamic>>().toList();
     } catch (e) {
-      debugPrint('❌ Error getting events: $e');
+      if (kDebugMode) debugPrint('❌ Error getting events: $e');
       return [];
     }
   }
@@ -293,9 +299,9 @@ class FirebaseAnalyticsService {
       await _prefs.remove(_themeUsageKey);
       await _prefs.remove(_emailMetricsKey);
       await _prefs.remove(_userActionsKey);
-      debugPrint('✅ All analytics data cleared');
+      if (kDebugMode) debugPrint('✅ All analytics data cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing analytics data: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing analytics data: $e');
     }
   }
 }
@@ -363,5 +369,3 @@ class AnalyticsDashboard {
 
 /// Global instance
 final firebaseAnalyticsService = FirebaseAnalyticsService();
-
-

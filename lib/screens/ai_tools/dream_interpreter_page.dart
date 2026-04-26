@@ -93,14 +93,14 @@ class _DreamInterpreterPageState extends State<DreamInterpreterPage> {
     return Scaffold(
       backgroundColor: V2Theme.surfaceDark,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: <Color>[
-              const Color(0xFF0E1023),
+              Color(0xFF0E1023),
               V2Theme.surfaceDark,
-              const Color(0xFF1A0F2E),
+              Color(0xFF1A0F2E),
             ],
           ),
         ),

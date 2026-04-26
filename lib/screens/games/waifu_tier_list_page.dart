@@ -69,6 +69,7 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> with SingleTicker
           _TierItem(e['id'], e['name'], e['series'])).toList() ?? [];
         _pool.clear();
         _pool.addAll(poolData);
+        if (!mounted) return;
         setState(() {});
       }
     } catch (_) {}

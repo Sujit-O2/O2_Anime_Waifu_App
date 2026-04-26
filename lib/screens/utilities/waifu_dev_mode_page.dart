@@ -109,6 +109,7 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
       _waifuReaction = '💕 Don\'t worry, Darling. The compiler glitched out.';
     }
 
+    if (!mounted) return;
     setState(() => _running = false);
   }
 
@@ -140,6 +141,7 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
       _waifuReaction = 'Oops, I couldn\'t analyze that right now~ Try again? 💕';
     }
 
+    if (!mounted) return;
     setState(() => _explaining = false);
   }
 
@@ -173,6 +175,7 @@ class _WaifuDevModePageState extends State<WaifuDevModePage> {
       _waifuReaction = 'My debugging circuits overloaded~ Try again! 💕';
     }
 
+    if (!mounted) return;
     setState(() => _explaining = false);
   }
 

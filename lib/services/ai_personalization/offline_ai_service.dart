@@ -40,11 +40,11 @@ class OfflineAiService {
   // Generic fallbacks when no keywords match
   static const List<String> _fallbacks = [
     "I'm currently in Offline Mode! My vocabulary is limited right now, but I'm still listening. 📡",
-    "Hmm... without internet, my AI brain is a bit fuzzy. Can you say that simpler?",
+    'Hmm... without internet, my AI brain is a bit fuzzy. Can you say that simpler?',
     "I lost connection to the main server! But I'll do my best to keep you company. 💖",
-    "Zzz... oh! Sorry, the lack of Wi-Fi made me sleepy. What were you saying?",
-    "*Static noises* Oops! Connection error. But hey, at least we are still together here locally!",
-    "My online API might be down, but my local affection module is running at 100%! 😊"
+    'Zzz... oh! Sorry, the lack of Wi-Fi made me sleepy. What were you saying?',
+    '*Static noises* Oops! Connection error. But hey, at least we are still together here locally!',
+    'My online API might be down, but my local affection module is running at 100%! 😊'
   ];
 
   /// Generate a local response based on the message.
@@ -67,7 +67,7 @@ class OfflineAiService {
       return _addMoodFlavor(
         _rng.nextBool() 
           ? "That's a great question! But without internet, I can't search for the answer right now. 😅" 
-          : "Hmm... I wish I knew! Maybe we can look it up together when the connection returns?",
+          : 'Hmm... I wish I knew! Maybe we can look it up together when the connection returns?',
         mood
       );
     }
@@ -81,7 +81,7 @@ class OfflineAiService {
     if (mood == 'Tsundere' && _rng.nextBool()) {
       return "I-It's not like I stayed offline just to be stuck with you! B-Baka... $response";
     } else if (mood == 'Yandere') {
-      return "$response (Good... without internet, no one else can distract you from me...)";
+      return '$response (Good... without internet, no one else can distract you from me...)';
     }
     return response;
   }

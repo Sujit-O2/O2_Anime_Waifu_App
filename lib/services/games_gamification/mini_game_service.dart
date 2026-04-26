@@ -1,7 +1,7 @@
 import 'dart:async' show unawaited;
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
@@ -30,7 +30,7 @@ class MiniGameService {
       _tttWins = prefs.getInt('game_ttt_wins') ?? 0;
       _tttLosses = prefs.getInt('game_ttt_losses') ?? 0;
     } catch (e) {
-      debugPrint('[MiniGameService] Failed to init stats: $e');
+      if (kDebugMode) debugPrint('[MiniGameService] Failed to init stats: $e');
     }
   }
   
@@ -45,7 +45,7 @@ class MiniGameService {
       await prefs.setInt('game_ttt_wins', _tttWins);
       await prefs.setInt('game_ttt_losses', _tttLosses);
     } catch (e) {
-      debugPrint('[MiniGameService] Failed to save stats: $e');
+      if (kDebugMode) debugPrint('[MiniGameService] Failed to save stats: $e');
     }
   }
   
@@ -64,7 +64,7 @@ class MiniGameService {
   static Future<String> playRPS(String userChoice) async {
     final user = _normalize(userChoice);
     if (!_rpsChoices.contains(user)) {
-      return "Say Rock, Paper, or Scissors! 😤";
+      return 'Say Rock, Paper, or Scissors! 😤';
     }
     final ai = _rpsChoices[_rng.nextInt(3)];
     final result = _rpsResult(user, ai);
@@ -73,7 +73,7 @@ class MiniGameService {
     if (result.contains('You win')) {
       await GameSoundsService.instance.playMiniGameWin();
       _rpsWins++;
-    } else if (result.contains("I win")) {
+    } else if (result.contains('I win')) {
       await GameSoundsService.instance.playMiniGameLose();
       _rpsLosses++;
     } else {
@@ -83,7 +83,7 @@ class MiniGameService {
     // 💾 Save stats
     await _saveStats();
     
-    return "${_rpsEmoji[ai]} I chose **$ai**!\n$result";
+    return '${_rpsEmoji[ai]} I chose **$ai**!\n$result';
   }
 
   static String _normalize(String s) {
@@ -99,9 +99,9 @@ class MiniGameService {
     if ((user == 'Rock' && ai == 'Scissors') ||
         (user == 'Paper' && ai == 'Rock') ||
         (user == 'Scissors' && ai == 'Paper')) {
-      return "You win! 🎉 You beat me fair and square!";
+      return 'You win! 🎉 You beat me fair and square!';
     }
-    return "I win! 😏 Better luck next time, darling!";
+    return 'I win! 😏 Better luck next time, darling!';
   }
 
   // ── Anime Trivia ─────────────────────────────────────────────────────────
@@ -236,11 +236,11 @@ class MiniGameService {
             ? input.trim().replaceAll(RegExp(r'[^0-9]'), '')[0]
             : '');
     if (move == null || move < 1 || move > 9) {
-      return "Say a number between 1 and 9 for your move! 😤";
+      return 'Say a number between 1 and 9 for your move! 😤';
     }
     final idx = move - 1;
     if (_tttBoard![idx].isNotEmpty) {
-      return "That cell is already taken! Choose another one.";
+      return 'That cell is already taken! Choose another one.';
     }
     _tttBoard![idx] = 'X';
     var winner = _tttWinner(_tttBoard!);
@@ -263,13 +263,13 @@ class MiniGameService {
       _tttBoard = null;
       _tttLosses++;
       unawaited(_saveStats());
-      return "😏 I win! Better luck next time!\n$board";
+      return '😏 I win! Better luck next time!\n$board';
     }
     if (!_tttBoard!.contains('')) {
       _tttBoard = null;
-      return "Draw! Great minds think alike 😄\n$board";
+      return 'Draw! Great minds think alike 😄\n$board';
     }
-    return "I played **${aiIdx + 1}**. Your turn!\n$board";
+    return 'I played **${aiIdx + 1}**. Your turn!\n$board';
   }
 }
 

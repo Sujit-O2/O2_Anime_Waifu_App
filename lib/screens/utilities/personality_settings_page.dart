@@ -28,6 +28,7 @@ class _PersonalitySettingsPageState extends State<PersonalitySettingsPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _selectedMode = AlterEgoService.instance.currentMode;
       _autoMode = AlterEgoService.instance.isAutoMode;
@@ -39,6 +40,7 @@ class _PersonalitySettingsPageState extends State<PersonalitySettingsPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _autoMode = value);
   }
 
@@ -47,6 +49,7 @@ class _PersonalitySettingsPageState extends State<PersonalitySettingsPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() => _selectedMode = mode);
     showSuccessSnackbar(context, '${mode.label} mode selected.');
   }

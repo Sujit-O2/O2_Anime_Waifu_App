@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Email Scheduler Service - Schedule emails to send at specific times
@@ -28,10 +28,10 @@ class EmailSchedulerService {
       scheduledMap[id] = emailWithId.toJson();
 
       await _prefs.setString(_scheduledEmailsKey, jsonEncode(scheduledMap));
-      debugPrint('✅ Email scheduled with ID: $id at ${email.scheduledTime}');
+      if (kDebugMode) debugPrint('✅ Email scheduled with ID: $id at ${email.scheduledTime}');
       return id;
     } catch (e) {
-      debugPrint('❌ Error scheduling email: $e');
+      if (kDebugMode) debugPrint('❌ Error scheduling email: $e');
       return null;
     }
   }
@@ -46,7 +46,7 @@ class EmailSchedulerService {
           .map((json) => ScheduledEmail.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error loading scheduled emails: $e');
+      if (kDebugMode) debugPrint('❌ Error loading scheduled emails: $e');
       return [];
     }
   }
@@ -61,7 +61,7 @@ class EmailSchedulerService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error getting scheduled email: $e');
+      if (kDebugMode) debugPrint('❌ Error getting scheduled email: $e');
       return null;
     }
   }
@@ -73,10 +73,10 @@ class EmailSchedulerService {
       final scheduledMap = jsonDecode(scheduled) as Map<String, dynamic>;
       scheduledMap.remove(id);
       await _prefs.setString(_scheduledEmailsKey, jsonEncode(scheduledMap));
-      debugPrint('✅ Scheduled email cancelled: $id');
+      if (kDebugMode) debugPrint('✅ Scheduled email cancelled: $id');
       return true;
     } catch (e) {
-      debugPrint('❌ Error cancelling scheduled email: $e');
+      if (kDebugMode) debugPrint('❌ Error cancelling scheduled email: $e');
       return false;
     }
   }
@@ -87,7 +87,7 @@ class EmailSchedulerService {
       final all = await getAllScheduledEmails();
       return all.where((e) => !e.isSent).toList();
     } catch (e) {
-      debugPrint('❌ Error getting pending emails: $e');
+      if (kDebugMode) debugPrint('❌ Error getting pending emails: $e');
       return [];
     }
   }
@@ -99,7 +99,7 @@ class EmailSchedulerService {
       final now = DateTime.now();
       return pending.where((e) => e.scheduledTime.isBefore(now)).toList();
     } catch (e) {
-      debugPrint('❌ Error getting ready-to-send emails: $e');
+      if (kDebugMode) debugPrint('❌ Error getting ready-to-send emails: $e');
       return [];
     }
   }
@@ -116,7 +116,7 @@ class EmailSchedulerService {
       );
       return await _updateScheduledEmail(updatedEmail);
     } catch (e) {
-      debugPrint('❌ Error marking email as sent: $e');
+      if (kDebugMode) debugPrint('❌ Error marking email as sent: $e');
       return false;
     }
   }
@@ -134,7 +134,7 @@ class EmailSchedulerService {
       );
       return await _updateScheduledEmail(updatedEmail);
     } catch (e) {
-      debugPrint('❌ Error marking email as failed: $e');
+      if (kDebugMode) debugPrint('❌ Error marking email as failed: $e');
       return false;
     }
   }
@@ -154,7 +154,7 @@ class EmailSchedulerService {
         totalFailed: failed,
       );
     } catch (e) {
-      debugPrint('❌ Error getting email stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting email stats: $e');
       return EmailScheduleStats(
         totalScheduled: 0,
         totalSent: 0,
@@ -172,7 +172,7 @@ class EmailSchedulerService {
       await _prefs.setString(_scheduledEmailsKey, jsonEncode(scheduledMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error updating scheduled email: $e');
+      if (kDebugMode) debugPrint('❌ Error updating scheduled email: $e');
       return false;
     }
   }

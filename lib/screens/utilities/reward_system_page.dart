@@ -38,6 +38,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
 
   Future<void> _loadData() async {
     await V2Storage.init();
+    if (!mounted) return;
     setState(() {
       _rewards = _generateRewards();
       _userPoints = V2Storage.prefs.getInt('user_points') ?? 500;
@@ -126,7 +127,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
         title:
             const Text('Redeem Reward?', style: TextStyle(color: Colors.white)),
         content: Text('Use ${reward.points} points for "${reward.title}"?',
-            style: TextStyle(color: Colors.white70)),
+            style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -143,6 +144,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
 
     if (confirmed == true) {
       HapticFeedback.heavyImpact();
+      if (!mounted) return;
       setState(() {
         _userPoints -= reward.points;
         _redeemedRewards.add(reward.id);
@@ -214,7 +216,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: V2Theme.primaryGradient,
                   shape: BoxShape.circle,
                 ),
@@ -364,7 +366,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
               decoration: BoxDecoration(
                 gradient: isRedeemed
                     ? null
-                    : LinearGradient(
+                    : const LinearGradient(
                         colors: [V2Theme.primaryColor, V2Theme.secondaryColor]),
                 color: isRedeemed ? Colors.grey.withValues(alpha: 0.3) : null,
                 borderRadius: BorderRadius.circular(20),

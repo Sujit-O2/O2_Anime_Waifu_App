@@ -29,6 +29,7 @@ class _FileIntelligencePageState extends State<FileIntelligencePage> {
     final prefs = await SharedPreferences.getInstance();
     final d = prefs.getString('file_intel_history');
     if (d != null) {
+      if (!mounted) return;
       setState(() =>
           _history = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
     }
@@ -51,6 +52,7 @@ class _FileIntelligencePageState extends State<FileIntelligencePage> {
 
       // Limit to 2MB to prevent API crash
       if (sizeMb > 2) {
+        if (!mounted) return;
         setState(() {
           _analysis = {
             'type': 'error',
@@ -94,6 +96,7 @@ class _FileIntelligencePageState extends State<FileIntelligencePage> {
         'techStack': ['📄 .$ext file'],
       };
 
+      if (!mounted) return;
       setState(() {
         _analyzing = false;
         _analysis = res;

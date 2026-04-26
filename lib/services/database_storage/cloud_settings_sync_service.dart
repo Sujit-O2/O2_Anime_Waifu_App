@@ -1,13 +1,15 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show debugPrint, defaultTargetPlatform, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Cloud Settings Synchronization Service
 /// Backup, restore, and sync settings across devices
 class CloudSettingsSyncService {
-  static final CloudSettingsSyncService _instance = CloudSettingsSyncService._internal();
+  static final CloudSettingsSyncService _instance =
+      CloudSettingsSyncService._internal();
 
   factory CloudSettingsSyncService() => _instance;
   CloudSettingsSyncService._internal();
@@ -24,9 +26,10 @@ class CloudSettingsSyncService {
       _db = FirebaseFirestore.instance;
       _syncEnabled = _prefs.getBool('cloud_sync_enabled') ?? false;
       _lastSyncTime = _getLastSyncTime();
-      debugPrint('[Cloud Settings Sync] Initialized (Sync: $_syncEnabled)');
+      if (kDebugMode)
+        debugPrint('[Cloud Settings Sync] Initialized (Sync: $_syncEnabled)');
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Error: $e');
     }
   }
 
@@ -40,10 +43,10 @@ class CloudSettingsSyncService {
       // Perform initial full backup
       await backupSettingsToCloud(userId);
 
-      debugPrint('✅ Cloud sync enabled for user: $userId');
+      if (kDebugMode) debugPrint('✅ Cloud sync enabled for user: $userId');
       return true;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Enable error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Enable error: $e');
       return false;
     }
   }
@@ -52,10 +55,10 @@ class CloudSettingsSyncService {
     try {
       _syncEnabled = false;
       await _prefs.setBool('cloud_sync_enabled', false);
-      debugPrint('✅ Cloud sync disabled');
+      if (kDebugMode) debugPrint('✅ Cloud sync disabled');
       return true;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Disable error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Disable error: $e');
       return false;
     }
   }
@@ -84,20 +87,22 @@ class CloudSettingsSyncService {
       }, SetOptions(merge: true));
 
       _lastSyncTime = DateTime.now();
-      await _prefs.setString('cloud_settings_last_backup', _lastSyncTime!.toIso8601String());
+      await _prefs.setString(
+          'cloud_settings_last_backup', _lastSyncTime!.toIso8601String());
 
-      debugPrint('✅ Settings backed up to cloud');
+      if (kDebugMode) debugPrint('✅ Settings backed up to cloud');
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Backup error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Backup error: $e');
     }
   }
 
   Future<Map<String, dynamic>?> restoreSettingsFromCloud(String userId) async {
     try {
-      final doc = await _db.collection('user_settings_backup').doc(userId).get();
+      final doc =
+          await _db.collection('user_settings_backup').doc(userId).get();
 
       if (!doc.exists) {
-        debugPrint('⚠️ No backup found for user: $userId');
+        if (kDebugMode) debugPrint('⚠️ No backup found for user: $userId');
         return null;
       }
 
@@ -107,7 +112,8 @@ class CloudSettingsSyncService {
 
       // Verify integrity
       if (!_verifyChecksum(settings, checksum)) {
-        debugPrint('⚠️ Checksum mismatch - backup may be corrupted');
+        if (kDebugMode)
+          debugPrint('⚠️ Checksum mismatch - backup may be corrupted');
         return null;
       }
 
@@ -115,18 +121,20 @@ class CloudSettingsSyncService {
       await _applySettings(settings);
 
       _lastSyncTime = DateTime.now();
-      await _prefs.setString('cloud_settings_last_restore', _lastSyncTime!.toIso8601String());
+      await _prefs.setString(
+          'cloud_settings_last_restore', _lastSyncTime!.toIso8601String());
 
-      debugPrint('✅ Settings restored from cloud');
+      if (kDebugMode) debugPrint('✅ Settings restored from cloud');
       return settings;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Restore error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Restore error: $e');
       return null;
     }
   }
 
   // ===== SELECTIVE SYNC =====
-  Future<void> syncSpecificSetting(String userId, String settingKey, dynamic value) async {
+  Future<void> syncSpecificSetting(
+      String userId, String settingKey, dynamic value) async {
     if (!_syncEnabled) return;
 
     try {
@@ -142,9 +150,9 @@ class CloudSettingsSyncService {
         });
       });
 
-      debugPrint('✅ Setting synced: $settingKey');
+      if (kDebugMode) debugPrint('✅ Setting synced: $settingKey');
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Sync error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Sync error: $e');
     }
   }
 
@@ -156,7 +164,7 @@ class CloudSettingsSyncService {
       final settings = doc['settings'] as Map<String, dynamic>;
       return settings[settingKey];
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Fetch error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Fetch error: $e');
       return null;
     }
   }
@@ -172,7 +180,8 @@ class CloudSettingsSyncService {
       final conflicts = <SyncConflict>[];
 
       for (final key in localSettings.keys) {
-        if (cloudSettings.containsKey(key) && localSettings[key] != cloudSettings[key]) {
+        if (cloudSettings.containsKey(key) &&
+            localSettings[key] != cloudSettings[key]) {
           conflicts.add(SyncConflict(
             key: key,
             localValue: localSettings[key],
@@ -184,12 +193,14 @@ class CloudSettingsSyncService {
 
       return conflicts;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Conflict detection error: $e');
+      if (kDebugMode)
+        debugPrint('[Cloud Settings Sync] Conflict detection error: $e');
       return [];
     }
   }
 
-  Future<void> resolveSyncConflict(String userId, SyncConflict conflict, {required bool useLocal}) async {
+  Future<void> resolveSyncConflict(String userId, SyncConflict conflict,
+      {required bool useLocal}) async {
     try {
       final value = useLocal ? conflict.localValue : conflict.cloudValue;
 
@@ -210,9 +221,11 @@ class CloudSettingsSyncService {
         await _prefs.setDouble(key, value);
       }
 
-      debugPrint('✅ Conflict resolved: ${conflict.key} (using ${useLocal ? 'local' : 'cloud'})');
+      if (kDebugMode)
+        debugPrint(
+            '✅ Conflict resolved: ${conflict.key} (using ${useLocal ? 'local' : 'cloud'})');
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Resolution error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Resolution error: $e');
     }
   }
 
@@ -228,7 +241,8 @@ class CloudSettingsSyncService {
 
       return devices;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Device fetch error: $e');
+      if (kDebugMode)
+        debugPrint('[Cloud Settings Sync] Device fetch error: $e');
       return [];
     }
   }
@@ -252,9 +266,10 @@ class CloudSettingsSyncService {
         });
       });
 
-      debugPrint('✅ Device registered: $deviceName');
+      if (kDebugMode) debugPrint('✅ Device registered: $deviceName');
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Device registration error: $e');
+      if (kDebugMode)
+        debugPrint('[Cloud Settings Sync] Device registration error: $e');
     }
   }
 
@@ -266,7 +281,7 @@ class CloudSettingsSyncService {
       settings['format'] = 'json';
       return jsonEncode(settings);
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Export error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Export error: $e');
       return '{}';
     }
   }
@@ -278,10 +293,10 @@ class CloudSettingsSyncService {
       settings.remove('format');
 
       await _applySettings(settings);
-      debugPrint('✅ Settings imported from JSON');
+      if (kDebugMode) debugPrint('✅ Settings imported from JSON');
       return true;
     } catch (e) {
-      debugPrint('[Cloud Settings Sync] Import error: $e');
+      if (kDebugMode) debugPrint('[Cloud Settings Sync] Import error: $e');
       return false;
     }
   }
@@ -368,20 +383,18 @@ class BackupDevice {
   });
 
   Map<String, dynamic> toJson() => {
-    'deviceId': deviceId,
-    'deviceName': deviceName,
-    'os': os,
-    'lastSyncTime': lastSyncTime.toIso8601String(),
-    'isActive': isActive,
-  };
+        'deviceId': deviceId,
+        'deviceName': deviceName,
+        'os': os,
+        'lastSyncTime': lastSyncTime.toIso8601String(),
+        'isActive': isActive,
+      };
 
   factory BackupDevice.fromJson(Map<String, dynamic> json) => BackupDevice(
-    deviceId: json['deviceId'],
-    deviceName: json['deviceName'],
-    os: json['os'],
-    lastSyncTime: DateTime.parse(json['lastSyncTime']),
-    isActive: json['isActive'],
-  );
+        deviceId: json['deviceId'],
+        deviceName: json['deviceName'],
+        os: json['os'],
+        lastSyncTime: DateTime.parse(json['lastSyncTime']),
+        isActive: json['isActive'],
+      );
 }
-
-

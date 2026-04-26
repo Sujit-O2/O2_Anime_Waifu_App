@@ -58,6 +58,7 @@ class _CodeReviewerPageState extends State<CodeReviewerPage> {
       'Add unit tests for critical functions',
     ];
 
+    if (!mounted) return;
     setState(() {
       _reviewing = false;
       _review = {

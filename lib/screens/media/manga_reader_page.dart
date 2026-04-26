@@ -100,7 +100,10 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
       return;
     }
     setState(() {
-      _pages = result?.pageUrls ?? <String>[];
+      final validPages = (result?.pageUrls ?? <String>[])
+          .where((url) => url.isNotEmpty)
+          .toList();
+      _pages = validPages;
       _loading = false;
       if (_pages.isNotEmpty && _currentPage >= _pages.length) {
         _currentPage = _pages.length - 1;
@@ -239,6 +242,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
       reverse: _rtlMode,
       itemCount: _pages.length,
       onPageChanged: (index) {
+        if (!mounted) return;
         setState(() => _currentPage = index);
         _saveSettings();
         _resetBarsTimer();
@@ -585,6 +589,3 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
     );
   }
 }
-
-
-

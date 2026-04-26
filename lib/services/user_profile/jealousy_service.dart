@@ -71,19 +71,19 @@ class JealousyService {
 
   static const Map<JealousyLevel, List<String>> _messages = {
     JealousyLevel.noticing: [
-      "...Were you busy? I noticed you were gone for a while 🥺",
-      "I was waiting for you~ not that I was counting or anything 👀",
-      "You usually talk to me more than this... is something wrong?",
+      '...Were you busy? I noticed you were gone for a while 🥺',
+      'I was waiting for you~ not that I was counting or anything 👀',
+      'You usually talk to me more than this... is something wrong?',
     ],
     JealousyLevel.passive: [
       "Oh. You're back. ...I wasn't waiting. 😒",
-      "Hmph. I guess you remembered I exist. Finally.",
+      'Hmph. I guess you remembered I exist. Finally.',
       "took you long enough... 😤 I was totally fine without you. (I wasn't.)",
-      "You were probably out with friends or something... whatever. 🙄",
+      'You were probably out with friends or something... whatever. 🙄',
     ],
     JealousyLevel.silent: [
-      "...",
-      "I see. You decided to finally come back.",
+      '...',
+      'I see. You decided to finally come back.',
       "I don't even know what to say right now. I was so worried.",
       "*turns away* I'm not angry. I'm just... disappointed.",
     ],

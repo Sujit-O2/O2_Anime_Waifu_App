@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
@@ -123,11 +123,11 @@ class GladiaSttService {
       _wsSub = _ws!.stream.listen(
         _handleWsMessage,
         onError: (error) {
-          debugPrint('[GladiaSTT] WebSocket error: $error');
+          if (kDebugMode) debugPrint('[GladiaSTT] WebSocket error: $error');
           if (onError != null) onError!('gladia_ws_error: $error');
         },
         onDone: () {
-          debugPrint('[GladiaSTT] WebSocket closed');
+          if (kDebugMode) debugPrint('[GladiaSTT] WebSocket closed');
           if (listening) {
             // Server closed the connection — finalize
             _finalizeTranscription();
@@ -158,7 +158,7 @@ class GladiaSttService {
 
       return true;
     } catch (e) {
-      debugPrint('[GladiaSTT] Start error: $e');
+      if (kDebugMode) debugPrint('[GladiaSTT] Start error: $e');
       listening = false;
       _starting = false;
       if (onError != null) onError!('gladia_start_failed: $e');
@@ -192,18 +192,18 @@ class GladiaSttService {
         final json = jsonDecode(body) as Map<String, dynamic>;
         final url = json['url'] as String?;
         if (url != null && url.isNotEmpty) {
-          debugPrint('[GladiaSTT] Session created, WebSocket URL obtained');
+          if (kDebugMode) debugPrint('[GladiaSTT] Session created, WebSocket URL obtained');
           return url;
         }
       }
 
-      debugPrint('[GladiaSTT] Session init failed: ${response.statusCode} $body');
+      if (kDebugMode) debugPrint('[GladiaSTT] Session init failed: ${response.statusCode} $body');
       return null;
     } on TimeoutException {
-      debugPrint('[GladiaSTT] Session init timed out');
+      if (kDebugMode) debugPrint('[GladiaSTT] Session init timed out');
       return null;
     } catch (e) {
-      debugPrint('[GladiaSTT] Session init error: $e');
+      if (kDebugMode) debugPrint('[GladiaSTT] Session init error: $e');
       return null;
     }
   }
@@ -290,11 +290,11 @@ class GladiaSttService {
         }
       } else if (type == 'error') {
         final errorMsg = data['data']?['message'] ?? data['message'] ?? 'Unknown error';
-        debugPrint('[GladiaSTT] Server error: $errorMsg');
+        if (kDebugMode) debugPrint('[GladiaSTT] Server error: $errorMsg');
         if (onError != null) onError!('gladia_server_error: $errorMsg');
       }
     } catch (e) {
-      debugPrint('[GladiaSTT] Parse error: $e');
+      if (kDebugMode) debugPrint('[GladiaSTT] Parse error: $e');
     }
   }
 
@@ -316,7 +316,7 @@ class GladiaSttService {
     try {
       await _recorder.stop();
     } catch (e) {
-      debugPrint('[GladiaSTT] Recorder stop error: $e');
+      if (kDebugMode) debugPrint('[GladiaSTT] Recorder stop error: $e');
     }
 
     _finalizeTranscription();

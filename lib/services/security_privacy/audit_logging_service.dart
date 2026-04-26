@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Service for comprehensive audit logging (Security & Compliance)
 /// Tracks sensitive operations for security monitoring and GDPR compliance
@@ -58,9 +58,9 @@ class AuditLoggingService {
       };
 
       await _db.collection('audit_logs').add(log);
-      debugPrint('[AuditLog] $event (severity: $severity)');
+      if (kDebugMode) debugPrint('[AuditLog] $event (severity: $severity)');
     } catch (e) {
-      debugPrint('[AuditLog] Error logging event: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error logging event: $e');
     }
   }
 
@@ -124,7 +124,7 @@ class AuditLoggingService {
       final snapshot = await query.orderBy('timestamp', descending: true).limit(limit).get();
       return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
     } catch (e) {
-      debugPrint('[AuditLog] Error querying logs: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error querying logs: $e');
       return [];
     }
   }
@@ -163,7 +163,7 @@ class AuditLoggingService {
 
       return summary;
     } catch (e) {
-      debugPrint('[AuditLog] Error generating summary: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error generating summary: $e');
       return {};
     }
   }
@@ -188,10 +188,10 @@ class AuditLoggingService {
         deleted++;
       }
 
-      debugPrint('[AuditLog] Purged $deleted old logs');
+      if (kDebugMode) debugPrint('[AuditLog] Purged $deleted old logs');
       return deleted;
     } catch (e) {
-      debugPrint('[AuditLog] Error purging logs: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error purging logs: $e');
       return 0;
     }
   }
@@ -210,7 +210,7 @@ class AuditLoggingService {
 
       return export.toString(); // In production, use jsonEncode
     } catch (e) {
-      debugPrint('[AuditLog] Error exporting logs: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error exporting logs: $e');
       return '{}';
     }
   }
@@ -230,9 +230,9 @@ class AuditLoggingService {
         'status': 'pending_review',
       });
 
-      debugPrint('[Security] Flagged suspicious activity: $reason');
+      if (kDebugMode) debugPrint('[Security] Flagged suspicious activity: $reason');
     } catch (e) {
-      debugPrint('[AuditLog] Error flagging activity: $e');
+      if (kDebugMode) debugPrint('[AuditLog] Error flagging activity: $e');
     }
   }
 }

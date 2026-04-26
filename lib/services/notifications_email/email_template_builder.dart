@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Email Template Builder - Create custom email designs
@@ -28,10 +28,10 @@ class EmailTemplateBuilder {
       templatesMap[id] = templateWithId.toJson();
 
       await _prefs.setString(_templatesKey, jsonEncode(templatesMap));
-      debugPrint('✅ Template created: $id');
+      if (kDebugMode) debugPrint('✅ Template created: $id');
       return id;
     } catch (e) {
-      debugPrint('❌ Error creating template: $e');
+      if (kDebugMode) debugPrint('❌ Error creating template: $e');
       return null;
     }
   }
@@ -46,7 +46,7 @@ class EmailTemplateBuilder {
           .map((json) => EmailTemplate.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error loading templates: $e');
+      if (kDebugMode) debugPrint('❌ Error loading templates: $e');
       return [];
     }
   }
@@ -61,7 +61,7 @@ class EmailTemplateBuilder {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error getting template: $e');
+      if (kDebugMode) debugPrint('❌ Error getting template: $e');
       return null;
     }
   }
@@ -75,7 +75,7 @@ class EmailTemplateBuilder {
       await _prefs.setString(_templatesKey, jsonEncode(templatesMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error updating template: $e');
+      if (kDebugMode) debugPrint('❌ Error updating template: $e');
       return false;
     }
   }
@@ -89,7 +89,7 @@ class EmailTemplateBuilder {
       await _prefs.setString(_templatesKey, jsonEncode(templatesMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error deleting template: $e');
+      if (kDebugMode) debugPrint('❌ Error deleting template: $e');
       return false;
     }
   }

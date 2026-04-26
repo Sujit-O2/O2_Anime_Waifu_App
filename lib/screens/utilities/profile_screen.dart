@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
@@ -84,40 +85,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   // Avatar + Name
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Colors.pinkAccent, Colors.deepPurple],
+                  SizedBox(
+                    width: 140,
+                    height: 140,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Animated outer glow ring
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 1200),
+                          curve: Curves.easeOutCubic,
+                          builder: (_, val, child) => Transform.scale(
+                            scale: 0.85 + val * 0.15,
+                            child: Opacity(opacity: val * 0.6, child: child),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.pinkAccent.withValues(alpha: 0.5),
-                              blurRadius: 24,
-                              spreadRadius: 4,
+                          child: Container(
+                            width: 136,
+                            height: 136,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.pinkAccent.withValues(alpha: 0.2),
+                                width: 2,
+                              ),
                             ),
-                            BoxShadow(
-                              color: Colors.pinkAccent.withValues(alpha: 0.2),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                              spreadRadius: -2,
+                          ),
+                        ),
+                        Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Colors.pinkAccent, Colors.deepPurple],
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.pinkAccent.withValues(alpha: 0.5),
+                                blurRadius: 24,
+                                spreadRadius: 4,
+                              ),
+                              BoxShadow(
+                                color: Colors.pinkAccent.withValues(alpha: 0.2),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                                spreadRadius: -2,
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 52,
+                            backgroundImage: (user?.photoURL != null)
+                                ? NetworkImage(user!.photoURL!)
+                                : const AssetImage('assets/img/logi.jpg')
+                                    as ImageProvider,
+                          ),
                         ),
-                        child: CircleAvatar(
-                          radius: 52,
-                          backgroundImage: (user?.photoURL != null)
-                              ? NetworkImage(user!.photoURL!)
-                              : const AssetImage('assets/img/logi.jpg')
-                                  as ImageProvider,
+                        // Online status dot
+                        Positioned(
+                          bottom: 12,
+                          right: 12,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.greenAccent,
+                              border: Border.all(
+                                color: Theme.of(context).scaffoldBackgroundColor,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.greenAccent.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -140,13 +189,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _row('💖 Level', affection.levelName),
                       const SizedBox(height: 10),
-                      LinearProgressIndicator(
-                        value: affection.levelProgress,
-                        minHeight: 8,
-                        backgroundColor: Colors.white12,
-                        valueColor:
-                            AlwaysStoppedAnimation(affection.levelColor),
-                        borderRadius: BorderRadius.circular(4),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: affection.levelProgress),
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        builder: (_, val, __) => ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: val,
+                            minHeight: 8,
+                            backgroundColor: Colors.white12,
+                            valueColor:
+                                AlwaysStoppedAnimation(affection.levelColor),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 6),
                       _row('✨ Points', '${affection.points}'),
@@ -161,11 +217,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _row('📅 Together Since', anniversary),
                       _row('🏅 Achievements',
                           '${achievements.unlocked.length} / ${AchievementsService.all.length}'),
-                      _row(
-                          '👤 UID',
-                          (user?.uid ?? '').length > 12
-                              ? '${user!.uid.substring(0, 12)}...'
-                              : user?.uid ?? '—'),
+                      GestureDetector(
+                        onLongPress: () {
+                          final uid = user?.uid ?? '';
+                          if (uid.isNotEmpty) {
+                            Clipboard.setData(ClipboardData(text: uid));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('UID copied to clipboard'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                        child: _row(
+                            '👤 UID (long press to copy)',
+                            (user?.uid ?? '').length > 12
+                                ? '${user!.uid.substring(0, 12)}...'
+                                : user?.uid ?? '—'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -191,6 +261,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Sign Out button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            backgroundColor: Theme.of(context)
+                                .scaffoldBackgroundColor
+                                .withValues(alpha: 0.95),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            title: Text('Sign Out?',
+                                style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                            content: Text(
+                              'Are you sure you want to sign out, Darling?',
+                              style: GoogleFonts.outfit(color: Colors.white70),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text('Cancel',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white54)),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text('Sign Out',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await FirebaseAuth.instance.signOut();
+                          if (mounted) {
+                            Navigator.of(context).popUntil((r) => r.isFirst);
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.logout_rounded,
+                          color: Colors.redAccent),
+                      label: Text('Sign Out',
+                          style: GoogleFonts.outfit(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.redAccent),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
                   ),
                 ],
               ),

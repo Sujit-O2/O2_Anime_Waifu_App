@@ -76,6 +76,7 @@ class _DailyCoupleChallengePageState extends State<DailyCoupleChallengePage>
       if (snap.exists && mounted) {
         final lastDate = snap['lastCompleted'] as String?;
         final today = DateTime.now().toIso8601String().substring(0, 10);
+        if (!mounted) return;
         setState(() {
           _completed = lastDate == today;
           _streak = (snap['streak'] as int?) ?? 0;
@@ -127,14 +128,14 @@ class _DailyCoupleChallengePageState extends State<DailyCoupleChallengePage>
     return Scaffold(
       backgroundColor: V2Theme.surfaceDark,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: <Color>[
-              const Color(0xFF120C1D),
+              Color(0xFF120C1D),
               V2Theme.surfaceDark,
-              const Color(0xFF1B1430),
+              Color(0xFF1B1430),
             ],
           ),
         ),
@@ -289,7 +290,7 @@ class _DailyCoupleChallengePageState extends State<DailyCoupleChallengePage>
                             blurRadius: 20)
                       ],
                     ),
-                    child: Text("I did it",
+                    child: Text('I did it',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                             color: Colors.white,

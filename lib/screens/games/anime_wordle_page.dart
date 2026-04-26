@@ -51,6 +51,7 @@ class _AnimeWordlePageState extends State<AnimeWordlePage>
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _wins = prefs.getInt('anime_wordle_wins_v2') ?? 0;
       _losses = prefs.getInt('anime_wordle_losses_v2') ?? 0;
@@ -114,6 +115,7 @@ class _AnimeWordlePageState extends State<AnimeWordlePage>
       if (resp.statusCode == 200) {
         final List<dynamic> list =
             (jsonDecode(resp.body)['data'] as List<dynamic>?) ?? <dynamic>[];
+        if (!mounted) return;
         setState(() => _suggestions = list
             .map((dynamic a) => _AnimeTarget.fromJson(a as Map<String, dynamic>))
             .toList());

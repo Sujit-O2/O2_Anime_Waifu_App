@@ -35,6 +35,7 @@ class _ClipboardManagerPageState extends State<ClipboardManagerPage> {
           (jsonDecode(p.getString('clipboard_history_data') ?? '[]') as List)
               .cast<Map<String, dynamic>>();
     } catch (_) {}
+    if (!mounted) return;
     setState(() {});
   }
 

@@ -3,155 +3,133 @@ part of 'package:anime_waifu/main.dart';
 
 extension _MainDrawerExtension on _ChatHomePageState {
   Widget _buildNavDrawer(AppThemeMode mode) {
-    final theme = AppThemes.getTheme(mode);
-    final primary = theme.primaryColor;
+    final materialTheme = Theme.of(context);
+    final colors = materialTheme.colorScheme;
+    final tokens = context.appTokens;
+    final primary = colors.primary;
 
-    Widget navItem(String label, IconData icon, int navIdx, {int? badgeCount}) {
-      final selected = _navIndex == navIdx;
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: selected
-              ? LinearGradient(
-                  colors: [
-                    primary.withValues(alpha: 0.32),
-                    primary.withValues(alpha: 0.10)
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                )
-              : LinearGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.03),
-                    Colors.white.withValues(alpha: 0.01),
-                  ],
-                ),
-          border: Border.all(
-            color: selected
-                ? primary.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.04),
-            width: selected ? 1.5 : 1,
-          ),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                      color: primary.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      spreadRadius: -2),
-                  BoxShadow(
-                      color: primary.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                      spreadRadius: -1),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          splashColor: primary.withValues(alpha: 0.12),
-          highlightColor: primary.withValues(alpha: 0.06),
-          onTap: () {
-            updateState(() => _navIndex = navIdx);
-            Navigator.pop(context);
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            child: Row(children: [
-              // Left active bar
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                width: 3,
-                height: selected ? 20 : 0,
-                margin: const EdgeInsets.only(right: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
-                  color: primary,
-                  boxShadow: [
-                    BoxShadow(
-                        color: primary.withValues(alpha: 0.8), blurRadius: 8)
-                  ],
-                ),
-              ),
-              // Icon box
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: selected
-                      ? LinearGradient(
-                          colors: [primary, primary.withValues(alpha: 0.7)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.09),
-                            Colors.white.withValues(alpha: 0.04),
-                          ],
-                        ),
-                  boxShadow: selected
-                      ? [
-                          BoxShadow(
-                              color: primary.withValues(alpha: 0.5),
-                              blurRadius: 12),
-                        ]
-                      : null,
-                ),
-                child: Icon(icon,
-                    color: selected ? Colors.white : Colors.white54, size: 14),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(label,
-                    style: GoogleFonts.outfit(
-                      color: selected ? Colors.white : Colors.white60,
-                      fontSize: 13,
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-                      letterSpacing: 0.2,
-                    )),
-              ),
-              if (badgeCount != null && badgeCount > 0)
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                        colors: [primary, primary.withValues(alpha: 0.7)]),
-                    boxShadow: [
-                      BoxShadow(
-                          color: primary.withValues(alpha: 0.6), blurRadius: 8),
-                    ],
-                  ),
-                  child: Center(
-                      child: Text('$badgeCount',
-                          style: const TextStyle(
-                              fontSize: 9,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800))),
-                ),
-              if (selected)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Icon(Icons.arrow_forward_ios_rounded,
-                      color: primary, size: 11),
-                ),
-            ]),
-          ),
-        ),
-      );
-    }
+Widget navItem(String label, IconData icon, int navIdx, {int? badgeCount}) {
+       final selected = _navIndex == navIdx;
+       final hover = selected; // We'll use selected state for hover effect in drawer
+       
+       return InkWell(
+         borderRadius: BorderRadius.circular(14),
+         onTap: () {
+           HapticFeedback.lightImpact();
+           updateState(() => _navIndex = navIdx);
+           Navigator.pop(context);
+         },
+         child: AnimatedContainer(
+           duration: const Duration(milliseconds: 300),
+           curve: Curves.easeOutCubic,
+           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+           decoration: BoxDecoration(
+             borderRadius: BorderRadius.circular(14),
+             gradient: hover
+                 ? LinearGradient(
+                     colors: [
+                       primary.withValues(alpha: 0.15),
+                       Colors.transparent,
+                     ],
+                     begin: Alignment.centerLeft,
+                     end: Alignment.centerRight,
+                   )
+                 : null,
+             border: Border.all(
+               color: hover ? primary.withValues(alpha: 0.4) : Colors.transparent,
+               width: hover ? 1.5 : 0,
+             ),
+             boxShadow: hover
+                 ? [
+                     BoxShadow(
+                         color: primary.withValues(alpha: 0.2),
+                         blurRadius: 16,
+                         spreadRadius: -1),
+                     BoxShadow(
+                         color: primary.withValues(alpha: 0.1),
+                         blurRadius: 6,
+                         offset: const Offset(0, 2),
+                   )
+                 ]
+                 : null,
+           ),
+           child: Padding(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+             child: Row(children: [
+               // Left active indicator
+               Container(
+                 width: 4,
+                 height: 24,
+                 decoration: BoxDecoration(
+                   borderRadius: BorderRadius.circular(2),
+                   gradient: hover
+                       ? LinearGradient(
+                           colors: [
+                             primary.withValues(alpha: 0.8),
+                             primary.withValues(alpha: 0.4),
+                           ],
+                           begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                         )
+                       : null,
+                 ),
+               ),
+               const SizedBox(width: 12),
+               // Icon with background
+               AnimatedContainer(
+                 duration: const Duration(milliseconds: 250),
+                 curve: Curves.easeOut,
+                 width: 32,
+                 height: 32,
+                 decoration: BoxDecoration(
+                   borderRadius: BorderRadius.circular(8),
+                   color: hover
+                       ? primary.withValues(alpha: 0.1)
+                       : Colors.transparent,
+                   border: Border.all(
+                     color: hover
+                         ? primary.withValues(alpha: 0.3)
+                         : Colors.transparent,
+                     width: 1,
+                   ),
+                 ),
+                 child: Icon(icon,
+                     color: hover ? colors.onPrimary : tokens.textMuted,
+                     size: 18),
+               ),
+               const SizedBox(width: 16),
+               Expanded(
+                 child: Text(label,
+                     style: GoogleFonts.outfit(
+                       color: hover ? colors.onSurface : tokens.textSoft,
+                       fontSize: 14,
+                       fontWeight: hover ? FontWeight.w700 : FontWeight.w500,
+                       letterSpacing: 0.25,
+                     )),
+               ),
+               if (badgeCount != null && badgeCount > 0)
+                 Container(
+                   margin: const EdgeInsets.only(left: 8),
+                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                   decoration: BoxDecoration(
+                     borderRadius: BorderRadius.circular(12),
+                     color: primary.withValues(alpha: 0.2),
+                     border: Border.all(
+                       color: primary.withValues(alpha: 0.4),
+                       width: 1,
+                     ),
+                   ),
+                   child: Text('$badgeCount',
+                       style: GoogleFonts.outfit(
+                           fontSize: 10,
+                           color: colors.onPrimary,
+                           fontWeight: FontWeight.w700)),
+                 ),
+             ]),
+           ),
+         ),
+       );
+     }
 
     Widget drawerTile(
         String label, IconData icon, Color color, VoidCallback onTap,
@@ -173,9 +151,9 @@ extension _MainDrawerExtension on _ChatHomePageState {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withValues(alpha: 0.07)),
+                border: Border.all(color: tokens.outline),
                 gradient: LinearGradient(
-                  colors: [color.withValues(alpha: 0.04), Colors.transparent],
+                  colors: [tokens.panelElevated, tokens.panel],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -210,7 +188,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                 Expanded(
                   child: Text(label,
                       style: GoogleFonts.outfit(
-                        color: Colors.white.withValues(alpha: 0.88),
+                        color: colors.onSurface,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.2,
@@ -241,145 +219,163 @@ extension _MainDrawerExtension on _ChatHomePageState {
       );
     }
 
-    Widget hubAccordion(
+Widget hubAccordion(
         String title, IconData icon, Color color, List<Widget> children,
         {String? badge}) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
-          color: Colors.white.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: tokens.outline),
+          color: tokens.panel,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            )
+          ],
         ),
         child: Theme(
-          data: Theme.of(context).copyWith(
+          data: materialTheme.copyWith(
             dividerColor: Colors.transparent,
-            splashColor: color.withValues(alpha: 0.06),
-            highlightColor: Colors.transparent,
+            splashColor: color.withValues(alpha: 0.08),
+            highlightColor: color.withValues(alpha: 0.04),
           ),
           child: ExpansionTile(
-            collapsedIconColor: Colors.white30,
+            collapsedIconColor: tokens.textMuted,
             iconColor: color,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+            childrenPadding: EdgeInsets.zero,
+            tilePadding: EdgeInsets.zero,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             collapsedShape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            leading: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: LinearGradient(
-                  colors: [
-                    color.withValues(alpha: 0.3),
-                    color.withValues(alpha: 0.08)
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            leading: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  color: color.withValues(alpha: 0.1),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                      color: color.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      spreadRadius: -2)
+                child: Icon(icon, color: color, size: 14),
+              ),
+            ),
+            title: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(title,
+                        style: GoogleFonts.outfit(
+                          color: colors.onSurface,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700)),
+                  ),
+                  if (badge != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: LinearGradient(
+                          colors: [
+                            color.withValues(alpha: 0.3),
+                            color.withValues(alpha: 0.1)
+                          ],
+                        ),
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(badge,
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700)),
+                    ),
                 ],
               ),
-              child: Icon(icon, color: color, size: 14),
             ),
-            title: Row(
-              children: [
-                Text(title,
-                    style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700)),
-                if (badge != null) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      gradient: LinearGradient(
-                        colors: [
-                          color.withValues(alpha: 0.2),
-                          color.withValues(alpha: 0.05)
-                        ],
-                      ),
-                      border: Border.all(color: color.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(badge,
-                        style: GoogleFonts.outfit(
-                            color: color,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ],
-            ),
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(
-                  borderRadius:
-                      const BorderRadius.vertical(bottom: Radius.circular(14)),
-                  color: Colors.white.withValues(alpha: 0.015),
+            children: children.map((child) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: DefaultTextStyle(
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: tokens.textSoft,
                 ),
-                padding: const EdgeInsets.only(bottom: 6, top: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: children,
-                ),
-              )
-            ],
+                child: child,
+              ),
+            )).toList(),
           ),
         ),
       );
     }
 
-    Widget drawerPulseStat({
-      required String label,
-      required String value,
-      required IconData icon,
-      required Color color,
-    }) {
-      return Expanded(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: Colors.white.withValues(alpha: 0.04),
-            border: Border.all(color: color.withValues(alpha: 0.18)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 16),
-              const SizedBox(height: 10),
-              Text(
-                value,
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  color: Colors.white54,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+Widget drawerPulseStat({
+       required String label,
+       required String value,
+       required IconData icon,
+       required Color color,
+     }) {
+       return Container(
+         margin: const EdgeInsets.symmetric(horizontal: 4),
+         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+         decoration: BoxDecoration(
+           borderRadius: BorderRadius.circular(12),
+           gradient: LinearGradient(
+             colors: [
+               tokens.panelElevated,
+               tokens.panel,
+             ],
+           ),
+           border: Border.all(
+             color: tokens.outline,
+             width: 1,
+           ),
+           boxShadow: [
+             BoxShadow(
+               color: Colors.black.withValues(alpha: 0.05),
+               blurRadius: 4,
+               offset: Offset(0, 2),
+             )
+           ],
+         ),
+         child: Column(
+           mainAxisSize: MainAxisSize.min,
+           children: [
+             Container(
+               padding: const EdgeInsets.all(8),
+               decoration: BoxDecoration(
+                 color: color.withValues(alpha: 0.1),
+                 borderRadius: BorderRadius.circular(8),
+               ),
+               child: Icon(icon, color: color, size: 18),
+             ),
+             const SizedBox(height: 8),
+             Text(
+               value,
+               style: GoogleFonts.outfit(
+                 color: colors.onSurface,
+                 fontSize: 14,
+                 fontWeight: FontWeight.w700,
+               ),
+             ),
+             const SizedBox(height: 4),
+             Text(
+               label,
+               style: GoogleFonts.outfit(
+                 color: tokens.textSoft,
+                 fontSize: 11,
+                 fontWeight: FontWeight.w500,
+               ),
+             ),
+           ],
+         ),
+       );
+     }
 
     Widget seeAllFeaturesButton() {
       return Padding(
@@ -396,28 +392,26 @@ extension _MainDrawerExtension on _ChatHomePageState {
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
                 colors: [
-                  Colors.pinkAccent.withValues(alpha: 0.15),
-                  Colors.deepPurpleAccent.withValues(alpha: 0.15)
+                  primary.withValues(alpha: 0.18),
+                  colors.tertiary.withValues(alpha: 0.14),
                 ],
               ),
-              border:
-                  Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+              border: Border.all(color: tokens.outlineStrong),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.explore_rounded,
-                    color: Colors.pinkAccent.withValues(alpha: 0.8), size: 18),
+                Icon(Icons.explore_rounded, color: primary, size: 18),
                 const SizedBox(width: 8),
                 Text('See All Features',
                     style: GoogleFonts.outfit(
-                        color: Colors.pinkAccent,
+                        color: colors.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5)),
                 const SizedBox(width: 4),
                 Icon(Icons.arrow_forward_ios_rounded,
-                    color: Colors.pinkAccent.withValues(alpha: 0.6), size: 14),
+                    color: tokens.textMuted, size: 14),
               ],
             ),
           ),
@@ -425,19 +419,18 @@ extension _MainDrawerExtension on _ChatHomePageState {
       );
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final drawerWidth = (screenWidth * 0.82).clamp(0.0, 320.0);
     return Drawer(
       width: drawerWidth,
-      backgroundColor: Theme.of(context)
-          .scaffoldBackgroundColor, // Deep cinematic dark layout
+      backgroundColor: materialTheme.scaffoldBackgroundColor,
       child: Stack(
         children: [
-          // Subtle background GIF overlay
+          // Static background image for smoother drawer performance
           Positioned.fill(
             child: Opacity(
-              opacity: 0.15,
-              child: Image.asset('assets/gif/sidebar_bg.gif',
+              opacity: 0.12,
+              child: Image.asset('assets/img/bg2.jpg',
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.low,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink()),
@@ -452,7 +445,8 @@ extension _MainDrawerExtension on _ChatHomePageState {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    const Color(0xFF0F1014).withValues(alpha: 0.9)
+                    materialTheme.scaffoldBackgroundColor
+                        .withValues(alpha: 0.92)
                   ],
                 ),
               ),
@@ -472,12 +466,11 @@ extension _MainDrawerExtension on _ChatHomePageState {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Dynamic Animated Cover Image (sidebartop.gif)
+                    // Static cover image to keep drawer motion smooth
                     Image.asset(
-                      'assets/gif/sidebar_top.gif',
+                      'assets/img/z2s.jpg',
                       fit: BoxFit.cover,
                       alignment: const Alignment(0, -0.2), // Focus on face/eyes
-                      gaplessPlayback: true, // Prevents flickering
                     ),
 
                     // Deep Vignette + Fade to Black (seamless merge)
@@ -500,10 +493,21 @@ extension _MainDrawerExtension on _ChatHomePageState {
                     ),
 
                     // Top-right dynamic ambient quote
-                    const Positioned(
+                    Positioned(
                       top: 16,
                       right: 16,
-                      child: SafeArea(child: FadingQuoteOverlay()),
+                      child: SafeArea(
+                        child: Text(
+                          "\"I've found you, my Darling.\"",
+                          style: GoogleFonts.outfit(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 1.0,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ),
                     ),
 
                     // Avatar & Stats directly overlaid on the fade
@@ -574,9 +578,14 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                       const SizedBox(height: 2),
                                       Row(
                                         children: [
-                                          const BreathingPulse(
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
                                               color: Colors.greenAccent,
-                                              size: 6),
+                                            ),
+                                          ),
                                           const SizedBox(width: 6),
                                           Text('SYSTEM ONLINE',
                                               style: GoogleFonts.jetBrainsMono(
@@ -607,7 +616,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                 builder: (context, child) {
                   final srv = AffectionService.instance;
                   final Color color = srv.levelColor;
-                  final barColor = const Color(0xFFFF2D55);
+                  const barColor = Color(0xFFFF2D55);
 
                   int maxPts = 50;
                   if (srv.points >= 2500) {
@@ -726,10 +735,6 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                         blurRadius: 2,
                                         spreadRadius: -1),
                                   ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: const _XPShimmerOverlay(),
                                 ),
                               ),
                             ),
@@ -917,21 +922,21 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                 Colors.tealAccent,
                                 () => Navigator.pushNamed(
                                     context, '/music-player'),
-                                badge: '🎵'),
+                                badge: 'MUSIC'),
                             drawerTile(
                                 'My Watchlist',
                                 Icons.favorite_rounded,
                                 Colors.pinkAccent,
                                 () =>
                                     Navigator.pushNamed(context, '/watchlist'),
-                                badge: '❤️'),
+                                badge: 'LOVE'),
                             drawerTile(
                                 'Anime Quiz',
                                 Icons.quiz_rounded,
                                 Colors.amber,
                                 () =>
                                     Navigator.pushNamed(context, '/anime-quiz'),
-                                badge: '🎮'),
+                                badge: 'PLAY'),
                           ])),
 
                       // ── 💕 DAILY RITUALS ────────────────────────────────────
@@ -973,14 +978,14 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                     Colors.amberAccent,
                                     () => Navigator.pushNamed(
                                         context, '/fortune-cookie'),
-                                    badge: '🥠'),
+                                    badge: 'LUCK'),
                                 drawerTile(
                                     'Check-In',
                                     Icons.check_circle_outlined,
                                     Colors.greenAccent,
                                     () => Navigator.pushNamed(
                                         context, '/checkin-streak'),
-                                    badge: '🔥'),
+                                    badge: 'FIRE'),
                               ],
                               badge: 'Heart')),
 
@@ -1050,7 +1055,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
 
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
                       _DrawerStaggerItem(
-                          index: 5,
+                          index: 15,
                           child: hubAccordion(
                               'Settings',
                               Icons.settings_rounded,
@@ -1091,7 +1096,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                     Colors.deepPurpleAccent,
                                     () => Navigator.pushNamed(
                                         context, '/app-icon-picker'),
-                                    badge: '🎨'),
+                                    badge: 'ART'),
                                 drawerTile(
                                     'Dev Config',
                                     Icons.terminal_rounded,
@@ -1102,7 +1107,7 @@ extension _MainDrawerExtension on _ChatHomePageState {
                                     Icons.bug_report_rounded,
                                     Colors.orangeAccent,
                                     () => updateState(() => _navIndex = 6),
-                                    badge: '🛠'),
+                                    badge: 'DEV'),
                                 drawerTile(
                                     'About App',
                                     Icons.info_outline_rounded,
@@ -1142,37 +1147,61 @@ class _DrawerStaggerItem extends StatefulWidget {
 
 class _DrawerStaggerItemState extends State<_DrawerStaggerItem>
     with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _fade;
-  late Animation<Offset> _slide;
+  late final AnimationController _controller;
+  late final Animation<double> _slideAnimation;
+  late final Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
-      duration: const Duration(milliseconds: 380),
     );
-    final delay = widget.index * 0.06;
-    final curve = CurvedAnimation(
-        parent: _ctrl,
-        curve: Interval(delay.clamp(0, 0.6), 1.0, curve: Curves.easeOutCubic));
-    _fade = Tween<double>(begin: 0, end: 1).animate(curve);
-    _slide = Tween<Offset>(begin: const Offset(-0.12, 0), end: Offset.zero)
-        .animate(curve);
-    _ctrl.forward();
+    
+    // Stagger the animation based on widget.index
+    final delay = widget.index * 0.08; // 80ms between each item
+    _controller.value = math.min(1.0, delay);
+    
+    _slideAnimation = Tween<double>(begin: 0.1, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(delay, delay + 0.3, curve: Curves.easeOutCubic),
+      ),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(delay, delay + 0.4, curve: Curves.easeOut),
+      ),
+    );
+    
+    // Start the animation
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-        opacity: _fade,
-        child: SlideTransition(position: _slide, child: widget.child));
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, _slideAnimation.value * 20),
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
+    );
   }
 }
 
@@ -1336,7 +1365,7 @@ class _FadingQuoteOverlayState extends State<FadingQuoteOverlay> {
   final List<String> _quotes = [
     "\"I've found you, my Darling.\"",
     "\"A beautiful world, isn't it?\"",
-    "\"Will you be my wings?\"",
+    '"Will you be my wings?"',
     "\"Let's fly away together.\"",
     "\"Don't let go of me...\"",
   ];

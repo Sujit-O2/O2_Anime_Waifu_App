@@ -43,6 +43,7 @@ class _QrScannerPageState extends State<QrScannerPage> with SingleTickerProvider
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
     try { _history = (jsonDecode(p.getString('qr_history_data') ?? '[]') as List).cast<Map<String, dynamic>>(); } catch (_) {}
+    if (!mounted) return;
     setState(() {});
   }
 

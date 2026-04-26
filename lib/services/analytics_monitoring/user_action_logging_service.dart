@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// User Action Logging Service - Log all significant user interactions
@@ -17,7 +17,7 @@ class UserActionLoggingService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ User Action Logging Service initialized');
+    if (kDebugMode) debugPrint('✅ User Action Logging Service initialized');
   }
 
   /// Log user action
@@ -47,9 +47,9 @@ class UserActionLoggingService {
       }
 
       await _prefs.setString(_actionsLogKey, jsonEncode(actionsList));
-      debugPrint('📝 Action logged: $action');
+      if (kDebugMode) debugPrint('📝 Action logged: $action');
     } catch (e) {
-      debugPrint('❌ Error logging action: $e');
+      if (kDebugMode) debugPrint('❌ Error logging action: $e');
     }
   }
 
@@ -114,7 +114,7 @@ class UserActionLoggingService {
           .map((json) => UserAction.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting all actions: $e');
+      if (kDebugMode) debugPrint('❌ Error getting all actions: $e');
       return [];
     }
   }
@@ -125,7 +125,7 @@ class UserActionLoggingService {
       final actions = await getAllActions();
       return actions.where((a) => a.category == category).toList();
     } catch (e) {
-      debugPrint('❌ Error getting actions by category: $e');
+      if (kDebugMode) debugPrint('❌ Error getting actions by category: $e');
       return [];
     }
   }
@@ -136,7 +136,7 @@ class UserActionLoggingService {
       final actions = await getAllActions();
       return actions.where((a) => a.screenName == screenName).toList();
     } catch (e) {
-      debugPrint('❌ Error getting actions on screen: $e');
+      if (kDebugMode) debugPrint('❌ Error getting actions on screen: $e');
       return [];
     }
   }
@@ -176,7 +176,7 @@ class UserActionLoggingService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting user action stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting user action stats: $e');
       return UserActionStats(
         totalActions: 0,
         actionCounts: {},
@@ -200,7 +200,7 @@ class UserActionLoggingService {
       screenUsage.sort((a, b) => b.actionCount.compareTo(a.actionCount));
       return screenUsage;
     } catch (e) {
-      debugPrint('❌ Error getting most used screens: $e');
+      if (kDebugMode) debugPrint('❌ Error getting most used screens: $e');
       return [];
     }
   }
@@ -218,7 +218,7 @@ class UserActionLoggingService {
       actionFrequency.sort((a, b) => b.count.compareTo(a.count));
       return actionFrequency.take(10).toList();
     } catch (e) {
-      debugPrint('❌ Error getting most common actions: $e');
+      if (kDebugMode) debugPrint('❌ Error getting most common actions: $e');
       return [];
     }
   }
@@ -234,7 +234,7 @@ class UserActionLoggingService {
           .where((a) => a.timestamp.isAfter(startTime) && a.timestamp.isBefore(endTime))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting actions in time range: $e');
+      if (kDebugMode) debugPrint('❌ Error getting actions in time range: $e');
       return [];
     }
   }
@@ -256,7 +256,7 @@ class UserActionLoggingService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting session summary: $e');
+      if (kDebugMode) debugPrint('❌ Error getting session summary: $e');
       return UserSessionSummary(
         totalActions: 0,
         uniqueScreens: 0,
@@ -288,7 +288,7 @@ class UserActionLoggingService {
 
       return hourlyPattern;
     } catch (e) {
-      debugPrint('❌ Error getting hourly action pattern: $e');
+      if (kDebugMode) debugPrint('❌ Error getting hourly action pattern: $e');
       return {};
     }
   }
@@ -316,7 +316,7 @@ class UserActionLoggingService {
 
       return dailyTrend;
     } catch (e) {
-      debugPrint('❌ Error getting daily action trend: $e');
+      if (kDebugMode) debugPrint('❌ Error getting daily action trend: $e');
       return {};
     }
   }
@@ -330,9 +330,9 @@ class UserActionLoggingService {
     try {
       await _prefs.remove(_actionsLogKey);
       await _prefs.remove(_actionsStatsKey);
-      debugPrint('✅ User action logs cleared');
+      if (kDebugMode) debugPrint('✅ User action logs cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing action logs: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing action logs: $e');
     }
   }
 }

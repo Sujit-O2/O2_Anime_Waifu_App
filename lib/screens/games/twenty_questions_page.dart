@@ -110,6 +110,7 @@ class _TwentyQuestionsPageState extends State<TwentyQuestionsPage> with SingleTi
       await _askQuestion();
     } else {
       _wins++;
+      if (!mounted) return;
       setState(() { _gameOver = true; });
       _saveStats();
     }

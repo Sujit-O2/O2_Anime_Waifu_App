@@ -52,6 +52,7 @@ class _PomodoroPageState extends State<PomodoroPage>
     final p = await SharedPreferences.getInstance();
     try {
       final raw = p.getString('pomodoro_log') ?? '[]';
+      if (!mounted) return;
       setState(() => _log = (jsonDecode(raw) as List)
           .map((e) => Map<String, dynamic>.from(e))
           .toList());
@@ -71,6 +72,7 @@ class _PomodoroPageState extends State<PomodoroPage>
 
   void _start() {
     if (_remaining <= 0) _reset();
+    if (!mounted) return;
     setState(() => _running = true);
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -79,6 +81,7 @@ class _PomodoroPageState extends State<PomodoroPage>
         HapticFeedback.heavyImpact();
         _onComplete();
       } else {
+        if (!mounted) return;
         setState(() => _remaining--);
       }
     });
@@ -93,6 +96,7 @@ class _PomodoroPageState extends State<PomodoroPage>
         'type': 'work',
       });
       _saveLog();
+      if (!mounted) return;
       setState(() {
         _session = newCount;
         _isBreak = true;
@@ -100,6 +104,7 @@ class _PomodoroPageState extends State<PomodoroPage>
       });
       _remaining = _totalSeconds;
     } else {
+      if (!mounted) return;
       setState(() {
         _isBreak = false;
         _running = false;
@@ -111,11 +116,13 @@ class _PomodoroPageState extends State<PomodoroPage>
 
   void _pause() {
     _timer?.cancel();
+    if (!mounted) return;
     setState(() => _running = false);
   }
 
   void _reset() {
     _timer?.cancel();
+    if (!mounted) return;
     setState(() {
       _running = false;
       _isBreak = false;
@@ -192,16 +199,16 @@ class _PomodoroPageState extends State<PomodoroPage>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-              _modeChip('Work', !_isBreak),
-              const SizedBox(width: 8),
-              _modeChip('Short Break',
-                  _isBreak && (_session % 4 != 0 || _session == 0)),
-              const SizedBox(width: 8),
-              _modeChip(
-                  'Long Break', _isBreak && _session % 4 == 0 && _session > 0),
-            ]),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _modeChip('Work', !_isBreak),
+                  const SizedBox(width: 8),
+                  _modeChip('Short Break',
+                      _isBreak && (_session % 4 != 0 || _session == 0)),
+                  const SizedBox(width: 8),
+                  _modeChip('Long Break',
+                      _isBreak && _session % 4 == 0 && _session > 0),
+                ]),
           ),
 
           const SizedBox(height: 16),
@@ -302,17 +309,21 @@ class _PomodoroPageState extends State<PomodoroPage>
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _settingChip(
-                      'Work',
-                      _workMins,
-                      (v) => setState(() {
-                            _workMins = v;
-                            if (!_running && !_isBreak) _remaining = v * 60;
-                          })),
-                  _settingChip('Short', _shortBreakMins,
-                      (v) => setState(() => _shortBreakMins = v)),
-                  _settingChip('Long', _longBreakMins,
-                      (v) => setState(() => _longBreakMins = v)),
+                  _settingChip('Work', _workMins, (v) {
+                    if (!mounted) return;
+                    setState(() {
+                      _workMins = v;
+                      if (!_running && !_isBreak) _remaining = v * 60;
+                    });
+                  }),
+                  _settingChip('Short', _shortBreakMins, (v) {
+                    if (!mounted) return;
+                    setState(() => _shortBreakMins = v);
+                  }),
+                  _settingChip('Long', _longBreakMins, (v) {
+                    if (!mounted) return;
+                    setState(() => _longBreakMins = v);
+                  }),
                 ]),
           ),
 
@@ -424,6 +435,3 @@ class _PomodoroPageState extends State<PomodoroPage>
         ),
       );
 }
-
-
-

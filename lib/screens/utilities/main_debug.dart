@@ -389,11 +389,28 @@ extension _MainDebugExtension on _ChatHomePageState {
 
                   _debugStatusCard(
                     label: '💾 Local Storage',
-                    status: 'Ready',
-                    color: Colors.deepPurpleAccent,
+                    status: _sp.backgroundHealthScore >= 80
+                        ? 'Healthy'
+                        : _sp.backgroundHealthScore >= 50
+                            ? 'Warning'
+                            : 'Needs Check',
+                    color: _sp.backgroundHealthScore >= 80
+                        ? Colors.lightGreenAccent
+                        : _sp.backgroundHealthScore >= 50
+                            ? Colors.amberAccent
+                            : Colors.redAccent,
                     icon: Icons.storage_rounded,
                     extra:
-                        'All SharedPreferences data is synced correctly across app instances',
+                        'Background health: ${_sp.backgroundHealthScore}/100 · Use cleanup actions to keep cache + temp usage compact',
+                  ),
+
+                  _debugStatusCard(
+                    label: '🧹 Storage Maintenance',
+                    status: 'Daily',
+                    color: Colors.tealAccent,
+                    icon: Icons.cleaning_services_outlined,
+                    extra:
+                        'Auto cache maintenance runs once every 24 hours',
                   ),
 
                   _debugStatusCard(
@@ -448,7 +465,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                           'Test TTS',
                           Icons.volume_up,
                           () => _speakAssistantText(
-                              "Hello Darling, all systems online!")),
+                              'Hello Darling, all systems online!')),
                       _debugActionBtn('Stop TTS', Icons.volume_off,
                           () => _ttsService.stop()),
 
@@ -503,7 +520,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                           'Show In-App Notif',
                           Icons.announcement_outlined,
                           () => _showInAppNotificationPopup(
-                              "Test in-app notification!")),
+                              'Test in-app notification!')),
                       _debugActionBtn(
                           'Clear Notif History',
                           Icons.delete_sweep_outlined,
@@ -706,6 +723,32 @@ extension _MainDebugExtension on _ChatHomePageState {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(
                                   'Preferences: $keys total keys stored in memory')));
+                        }
+                      }),
+                      _debugActionBtn(
+                          '🧹 Quick Cleanup',
+                          Icons.cleaning_services_outlined, () async {
+                        await _runQuickStorageCleanup();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Quick cleanup complete'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      }),
+                      _debugActionBtn(
+                          '🗑️ Deep Cleanup', Icons.delete_sweep_outlined,
+                          () async {
+                        await _runDeepStorageCleanup();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Deep cleanup complete'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
                         }
                       }),
                       _debugActionBtn(
@@ -946,23 +989,34 @@ extension _MainDebugExtension on _ChatHomePageState {
   }
 
   Widget _debugActionBtn(String label, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white54, size: 16),
-            const SizedBox(width: 6),
-            Text(label,
-                style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
-          ],
+    return Semantics(
+      button: true,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: Colors.white54, size: 16),
+                  const SizedBox(width: 6),
+                  Text(label,
+                      style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12)),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -970,6 +1024,26 @@ extension _MainDebugExtension on _ChatHomePageState {
 
   void _testTriggerWakeWord() {
     _wakeWordService.testTriggerByIndex(0);
+  }
+
+  Future<void> _runQuickStorageCleanup() async {
+    final cacheManager = ImageCacheManager();
+    await cacheManager.initialize();
+    cacheManager.cleanupExpiredCache();
+    cacheManager.clearMemoryCache();
+  }
+
+  Future<void> _runDeepStorageCleanup() async {
+    final cacheManager = ImageCacheManager();
+    await cacheManager.initialize();
+    await cacheManager.clearAllCaches();
+    final tempDir = await getTemporaryDirectory();
+    final entities = tempDir.listSync(recursive: false, followLinks: false);
+    for (final entity in entities) {
+      try {
+        entity.deleteSync(recursive: true);
+      } catch (_) {}
+    }
   }
 }
 

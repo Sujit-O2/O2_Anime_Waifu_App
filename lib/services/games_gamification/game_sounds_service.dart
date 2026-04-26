@@ -1,5 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart';
 
 /// 🎮 COMPREHENSIVE GAME SOUNDS SERVICE
@@ -10,7 +10,10 @@ class GameSoundsService {
   static final GameSoundsService instance = GameSoundsService._();
 
   final AudioPlayer _player = AudioPlayer();
+  final AudioPlayer _bgmPlayer =
+      AudioPlayer(); // Separate player for background music
   bool _soundEnabled = true;
+  String? _currentBgm;
 
   /// ===== BASIC UI SOUNDS (Tap, Navigation) =====
   Future<void> playTap() async {
@@ -287,10 +290,59 @@ class GameSoundsService {
     await _tryPlay('affection_decrease');
   }
 
+  /// ===== BACKGROUND MUSIC =====
+  /// Play looping background music for games
+  Future<void> playBackgroundMusic(String bgmAsset) async {
+    if (!_soundEnabled || _currentBgm == bgmAsset) return;
+    try {
+      await _bgmPlayer.stop();
+      await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+      await _bgmPlayer.play(AssetSource(bgmAsset));
+      _currentBgm = bgmAsset;
+    } catch (e) {
+      if (kDebugMode)
+        debugPrint('[GameSounds] Failed to play BGM $bgmAsset: $e');
+    }
+  }
+
+  /// Stop background music
+  Future<void> stopBackgroundMusic() async {
+    try {
+      await _bgmPlayer.stop();
+      _currentBgm = null;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] Failed to stop BGM: $e');
+    }
+  }
+
+  /// Pause background music
+  Future<void> pauseBackgroundMusic() async {
+    try {
+      await _bgmPlayer.pause();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] Failed to pause BGM: $e');
+    }
+  }
+
+  /// Resume background music
+  Future<void> resumeBackgroundMusic() async {
+    try {
+      await _bgmPlayer.resume();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] Failed to resume BGM: $e');
+    }
+  }
+
   /// ===== CONTROLS =====
+  /// Get current sound state
+  bool get soundEnabled => _soundEnabled;
+
   /// Toggle sound on/off
   void setSoundEnabled(bool enabled) {
     _soundEnabled = enabled;
+    if (!enabled) {
+      stopBackgroundMusic();
+    }
   }
 
   /// Internal: Try to play audio asset with fallback
@@ -299,7 +351,7 @@ class GameSoundsService {
     try {
       await _player.play(AssetSource('sounds/$name.mp3'));
     } catch (e) {
-      debugPrint('[GameSounds] Failed to play $name: $e');
+      if (kDebugMode) debugPrint('[GameSounds] Failed to play $name: $e');
       // Silently fail — haptic feedback already provided
     }
   }
@@ -310,7 +362,8 @@ class GameSoundsService {
     try {
       await _player.play(AssetSource(assetPath));
     } catch (e) {
-      debugPrint('[GameSounds] Failed to play custom sound: $e');
+      if (kDebugMode)
+        debugPrint('[GameSounds] Failed to play custom sound: $e');
     }
   }
 
@@ -322,16 +375,51 @@ class GameSoundsService {
   /// Preload sounds for faster playback
   Future<void> preloadSounds() async {
     const sounds = [
-      'tap', 'correct', 'wrong', 'spin', 'reveal',
-      'battle_hit', 'enemy_attack', 'critical_hit', 'battle_victory', 'battle_defeat', 'block', 'special_ability', 'magic',
-      'achievement_unlocked', 'level_up', 'reward_collect', 'treasure_found',
-      'gacha_pull', 'gacha_legendary', 'event_start', 'event_complete', 'battle_pass_tier',
-      'tournament_start', 'tournament_win', 'tournament_champion', 'rank_up',
-      'guild_war_start', 'guild_war_victory', 'guild_member_joined', 'treasury_deposit', 'guild_perk_unlocked',
-      'raid_start', 'raid_boss_appear', 'raid_complete', 'raid_treasure',
-      'mini_game_win', 'mini_game_lose', 'mini_game_round',
-      'combo', 'combo_burst', 'streak_bonus',
-      'alert', 'notification', 'affection_increase', 'affection_decrease',
+      'tap',
+      'correct',
+      'wrong',
+      'spin',
+      'reveal',
+      'battle_hit',
+      'enemy_attack',
+      'critical_hit',
+      'battle_victory',
+      'battle_defeat',
+      'block',
+      'special_ability',
+      'magic',
+      'achievement_unlocked',
+      'level_up',
+      'reward_collect',
+      'treasure_found',
+      'gacha_pull',
+      'gacha_legendary',
+      'event_start',
+      'event_complete',
+      'battle_pass_tier',
+      'tournament_start',
+      'tournament_win',
+      'tournament_champion',
+      'rank_up',
+      'guild_war_start',
+      'guild_war_victory',
+      'guild_member_joined',
+      'treasury_deposit',
+      'guild_perk_unlocked',
+      'raid_start',
+      'raid_boss_appear',
+      'raid_complete',
+      'raid_treasure',
+      'mini_game_win',
+      'mini_game_lose',
+      'mini_game_round',
+      'combo',
+      'combo_burst',
+      'streak_bonus',
+      'alert',
+      'notification',
+      'affection_increase',
+      'affection_decrease',
     ];
     for (final sound in sounds) {
       try {
@@ -343,5 +431,3 @@ class GameSoundsService {
     }
   }
 }
-
-

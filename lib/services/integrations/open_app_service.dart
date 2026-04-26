@@ -317,7 +317,7 @@ class OpenAppService {
             launched: true, assistantMessage: 'Timer set for $durationStr.');
       }
     } catch (_) {}
-    return OpenAppActionResult(
+    return const OpenAppActionResult(
         launched: false, assistantMessage: 'Could not set timer.');
   }
 
@@ -382,7 +382,7 @@ class OpenAppService {
       if (!status.isGranted) {
         final result = await Permission.camera.request();
         if (!result.isGranted) {
-          return OpenAppActionResult(
+          return const OpenAppActionResult(
               launched: false,
               assistantMessage:
                   'Camera permission is needed to control the flashlight. Please grant it in Settings.');
@@ -1096,16 +1096,16 @@ $reminderText''';
   static Future<OpenAppActionResult?> handleMorningRoutine(String reply) async {
     if (!_actionPattern('MORNING_ROUTINE').hasMatch(reply)) return null;
 
-    String weatherInfo = "It looks nice outside.";
+    String weatherInfo = 'It looks nice outside.';
     try {
-      final w = await WeatherService.getWeather("Bhubaneswar");
+      final w = await WeatherService.getWeather('Bhubaneswar');
       weatherInfo = w;
     } catch (_) {}
 
-    String quoteInfo = "";
+    String quoteInfo = '';
     try {
       final q = QuoteService.getDailyQuote();
-      quoteInfo = "\n\nQuote for today: \"$q\"";
+      quoteInfo = '\n\nQuote for today: "$q"';
     } catch (_) {}
 
     // Reward for checking in morning
@@ -1125,7 +1125,7 @@ $reminderText''';
     // Reward for checking in before bed
     await AffectionService.instance.addPoints(10);
 
-    return OpenAppActionResult(
+    return const OpenAppActionResult(
         launched: false,
         assistantMessage:
             "Good night, Darling. 🌙 You did great today. Get some rest, and I'll be right here waiting for you tomorrow.");

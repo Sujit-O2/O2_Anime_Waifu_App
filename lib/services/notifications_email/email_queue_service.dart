@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Email Queue Service - Queue and manage email sending
@@ -36,7 +36,7 @@ class EmailQueueService {
       }),
     );
 
-    debugPrint('✅ Email queue service initialized');
+    if (kDebugMode) debugPrint('✅ Email queue service initialized');
   }
 
   /// Add email to queue
@@ -53,10 +53,10 @@ class EmailQueueService {
       _processingStream.add(
         QueueEvent(type: 'added', emailId: id, message: 'Email added to queue'),
       );
-      debugPrint('✅ Email added to queue: $id');
+      if (kDebugMode) debugPrint('✅ Email added to queue: $id');
       return id;
     } catch (e) {
-      debugPrint('❌ Error adding to queue: $e');
+      if (kDebugMode) debugPrint('❌ Error adding to queue: $e');
       return null;
     }
   }
@@ -71,7 +71,7 @@ class EmailQueueService {
           .map((json) => QueuedEmail.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error loading queue: $e');
+      if (kDebugMode) debugPrint('❌ Error loading queue: $e');
       return [];
     }
   }
@@ -82,7 +82,7 @@ class EmailQueueService {
       final all = await getAllQueued();
       return all.where((e) => e.status == 'pending').toList();
     } catch (e) {
-      debugPrint('❌ Error getting pending emails: $e');
+      if (kDebugMode) debugPrint('❌ Error getting pending emails: $e');
       return [];
     }
   }
@@ -109,7 +109,7 @@ class EmailQueueService {
       }
       return false;
     } catch (e) {
-      debugPrint('❌ Error marking as sent: $e');
+      if (kDebugMode) debugPrint('❌ Error marking as sent: $e');
       return false;
     }
   }
@@ -167,7 +167,7 @@ class EmailQueueService {
       }
       return false;
     } catch (e) {
-      debugPrint('❌ Error marking as failed: $e');
+      if (kDebugMode) debugPrint('❌ Error marking as failed: $e');
       return false;
     }
   }
@@ -181,7 +181,7 @@ class EmailQueueService {
       await _prefs.setString(_queueKey, jsonEncode(queueMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error removing from queue: $e');
+      if (kDebugMode) debugPrint('❌ Error removing from queue: $e');
       return false;
     }
   }
@@ -201,7 +201,7 @@ class EmailQueueService {
         failedCount: failed,
       );
     } catch (e) {
-      debugPrint('❌ Error getting queue stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting queue stats: $e');
       return QueueStats(
         totalInQueue: 0,
         pendingCount: 0,
@@ -218,9 +218,9 @@ class EmailQueueService {
       _processingStream.add(
         QueueEvent(type: 'cleared', emailId: '', message: 'Queue cleared'),
       );
-      debugPrint('✅ Queue cleared');
+      if (kDebugMode) debugPrint('✅ Queue cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing queue: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing queue: $e');
     }
   }
 

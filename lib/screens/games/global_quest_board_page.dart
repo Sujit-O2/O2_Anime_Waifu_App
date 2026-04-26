@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,6 +44,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
         return;
       }
 
+      if (!mounted) return;
       setState(() {
         _globalQuests = snap.docs.map((d) {
           final data = d.data();
@@ -52,7 +54,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
         _loading = false;
       });
     } catch (e) {
-      debugPrint('GlobalQuest load error: $e');
+      if (kDebugMode) debugPrint('GlobalQuest load error: $e');
       setState(() => _loading = false);
       if (mounted) {
         _snack(
@@ -65,58 +67,58 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
     final now = FieldValue.serverTimestamp();
     final quests = [
       {
-        'title': '💬 Send 10 messages to Zero Two',
+        'title': 'Send 10 messages to Zero Two',
         'xp': 50,
-        'icon': '💬',
+        'icon': 'CHAT',
         'type': 'social'
       },
       {
-        'title': '🌸 Reach "Darling" level',
+        'title': 'Reach Darling level',
         'xp': 100,
-        'icon': '🌸',
+        'icon': 'LOVE',
         'type': 'milestone'
       },
       {
-        'title': '🔥 Maintain a 7-day streak',
+        'title': 'Maintain a 7-day streak',
         'xp': 70,
-        'icon': '🔥',
+        'icon': 'FIRE',
         'type': 'streak'
       },
       {
-        'title': '🎯 Complete 5 daily quests',
+        'title': 'Complete 5 daily quests',
         'xp': 60,
-        'icon': '🎯',
+        'icon': 'GOAL',
         'type': 'achievement'
       },
-      {'title': '🎮 Play Truth or Dare', 'xp': 30, 'icon': '🎮', 'type': 'fun'},
+      {'title': 'Play Truth or Dare', 'xp': 30, 'icon': 'GAME', 'type': 'fun'},
       {
-        'title': '📖 Record 3 dreams',
+        'title': 'Record 3 dreams',
         'xp': 45,
-        'icon': '📖',
+        'icon': 'BOOK',
         'type': 'journal'
       },
       {
-        'title': '💕 Set your anniversary date',
+        'title': 'Set your anniversary date',
         'xp': 25,
-        'icon': '💕',
+        'icon': 'HEART',
         'type': 'relationship'
       },
       {
-        'title': '🏆 Unlock 5 achievements',
+        'title': 'Unlock 5 achievements',
         'xp': 80,
-        'icon': '🏆',
+        'icon': 'STAR',
         'type': 'achievement'
       },
       {
-        'title': '🌍 Use the Translator feature',
+        'title': 'Use the Translator feature',
         'xp': 20,
-        'icon': '🌍',
+        'icon': 'WORLD',
         'type': 'explore'
       },
       {
-        'title': '✍️ Write an AI poem',
+        'title': 'Write an AI poem',
         'xp': 35,
-        'icon': '✍️',
+        'icon': 'PEN',
         'type': 'creative'
       },
     ];
@@ -160,7 +162,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
       }
       AffectionService.instance.addPoints((quest['xp'] as int?) ?? 30);
     } catch (e) {
-      debugPrint('GlobalQuest complete error: $e');
+      if (kDebugMode) debugPrint('GlobalQuest complete error: $e');
     }
 
     if (mounted) {
@@ -238,8 +240,25 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
                       padding: const EdgeInsets.all(14),
                       glow: false,
                       child: Row(children: [
-                        Text(q['icon'] as String? ?? '🎯',
-                            style: const TextStyle(fontSize: 26)),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.pinkAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              q['icon'] as String? ?? 'QUEST',
+                              style: GoogleFonts.outfit(
+                                color: Colors.pinkAccent,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -302,7 +321,3 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
     );
   }
 }
-
-
-
-

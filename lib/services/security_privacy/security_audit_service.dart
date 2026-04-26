@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Security Audit Service - Audit API keys, CAPTCHA, request signing
@@ -15,7 +15,7 @@ class SecurityAuditService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Security Audit Service initialized');
+    if (kDebugMode) debugPrint('✅ Security Audit Service initialized');
   }
 
   /// Audit API keys - Check format and validity
@@ -72,12 +72,14 @@ class SecurityAuditService {
       );
 
       await _logAudit(audit);
-      debugPrint(isValid
+      if (kDebugMode) {
+        debugPrint(isValid
           ? '✅ API key audit passed: $provider'
           : '⚠️ API key audit failed: $provider - ${issues.join(", ")}');
+      }
       return audit;
     } catch (e) {
-      debugPrint('❌ Error auditing API key: $e');
+      if (kDebugMode) debugPrint('❌ Error auditing API key: $e');
       return SecurityAudit(
         id: _generateId(),
         provider: provider,
@@ -94,19 +96,19 @@ class SecurityAuditService {
     try {
       // Simple CAPTCHA validation (in real app: use reCAPTCHA)
       if (userResponse.isEmpty) {
-        debugPrint('⚠️ CAPTCHA validation failed: empty response');
+        if (kDebugMode) debugPrint('⚠️ CAPTCHA validation failed: empty response');
         return false;
       }
 
       if (userResponse == expectedChallenge) {
-        debugPrint('✅ CAPTCHA validation passed');
+        if (kDebugMode) debugPrint('✅ CAPTCHA validation passed');
         return true;
       }
 
-      debugPrint('⚠️ CAPTCHA validation failed: incorrect response');
+      if (kDebugMode) debugPrint('⚠️ CAPTCHA validation failed: incorrect response');
       return false;
     } catch (e) {
-      debugPrint('❌ Error validating CAPTCHA: $e');
+      if (kDebugMode) debugPrint('❌ Error validating CAPTCHA: $e');
       return false;
     }
   }
@@ -119,10 +121,10 @@ class SecurityAuditService {
       for (int i = 0; i < 6; i++) {
         challenge += chars[(DateTime.now().microsecond + i) % chars.length];
       }
-      debugPrint('✅ CAPTCHA generated: $challenge');
+      if (kDebugMode) debugPrint('✅ CAPTCHA generated: $challenge');
       return challenge;
     } catch (e) {
-      debugPrint('❌ Error generating CAPTCHA: $e');
+      if (kDebugMode) debugPrint('❌ Error generating CAPTCHA: $e');
       return '';
     }
   }
@@ -138,10 +140,10 @@ class SecurityAuditService {
         hash = hash & hash; // Convert to 32-bit integer
       }
       final signature = hash.toString();
-      debugPrint('✅ Request signed');
+      if (kDebugMode) debugPrint('✅ Request signed');
       return signature;
     } catch (e) {
-      debugPrint('❌ Error signing request: $e');
+      if (kDebugMode) debugPrint('❌ Error signing request: $e');
       return '';
     }
   }
@@ -152,7 +154,7 @@ class SecurityAuditService {
       final expectedSignature = signRequest(data, secret);
       return signature == expectedSignature;
     } catch (e) {
-      debugPrint('❌ Error verifying signature: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying signature: $e');
       return false;
     }
   }
@@ -169,9 +171,9 @@ class SecurityAuditService {
       );
 
       await _logAudit(log);
-      debugPrint('📋 Data access logged: $dataType - $action');
+      if (kDebugMode) debugPrint('📋 Data access logged: $dataType - $action');
     } catch (e) {
-      debugPrint('❌ Error logging data access: $e');
+      if (kDebugMode) debugPrint('❌ Error logging data access: $e');
     }
   }
 
@@ -182,7 +184,7 @@ class SecurityAuditService {
       final logList = jsonDecode(logJson) as List;
       return logList;
     } catch (e) {
-      debugPrint('❌ Error retrieving audit log: $e');
+      if (kDebugMode) debugPrint('❌ Error retrieving audit log: $e');
       return [];
     }
   }
@@ -204,7 +206,7 @@ class SecurityAuditService {
 
       return recommendations;
     } catch (e) {
-      debugPrint('❌ Error getting security recommendations: $e');
+      if (kDebugMode) debugPrint('❌ Error getting security recommendations: $e');
       return [];
     }
   }
@@ -233,7 +235,7 @@ class SecurityAuditService {
       logList.add(auditJson);
       await _prefs.setString(_auditLogKey, jsonEncode(logList));
     } catch (e) {
-      debugPrint('❌ Error logging audit: $e');
+      if (kDebugMode) debugPrint('❌ Error logging audit: $e');
     }
   }
 
@@ -251,9 +253,9 @@ class SecurityAuditService {
   Future<void> clearAuditLog() async {
     try {
       await _prefs.remove(_auditLogKey);
-      debugPrint('✅ Audit log cleared');
+      if (kDebugMode) debugPrint('✅ Audit log cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing audit log: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing audit log: $e');
     }
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
@@ -24,7 +24,7 @@ class GuildManagementSystem {
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _loadGuilds();
-    debugPrint('[Guild System] Initialized');
+    if (kDebugMode) debugPrint('[Guild System] Initialized');
   }
 
   // ===== GUILD CREATION & MANAGEMENT =====

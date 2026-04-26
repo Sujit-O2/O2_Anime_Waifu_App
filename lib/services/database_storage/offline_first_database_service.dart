@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Offline-First Database Service
@@ -23,7 +23,7 @@ class OfflineFirstDatabaseService {
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _loadLocalData();
-    debugPrint('[OfflineDB] Service initialized');
+    if (kDebugMode) debugPrint('[OfflineDB] Service initialized');
   }
 
   // ===== ONLINE/OFFLINE STATUS =====
@@ -32,7 +32,7 @@ class OfflineFirstDatabaseService {
     if (isOnline && _pendingSyncs.isNotEmpty) {
       await syncPendingData();
     }
-    debugPrint('[OfflineDB] Online status: $_isOnline');
+    if (kDebugMode) debugPrint('[OfflineDB] Online status: $_isOnline');
   }
 
   bool getOnlineStatus() => _isOnline;
@@ -60,7 +60,7 @@ class OfflineFirstDatabaseService {
     if (_isOnline) {
       await _addPendingSync(record);
     } else {
-      debugPrint('[OfflineDB] Queued offline: $collection/$docId');
+      if (kDebugMode) debugPrint('[OfflineDB] Queued offline: $collection/$docId');
     }
   }
 
@@ -136,7 +136,7 @@ class OfflineFirstDatabaseService {
           failed: result.failed,
           errors: result.errors,
         );
-        debugPrint('[OfflineDB] Synced: ${sync.collection}/${sync.docId}');
+        if (kDebugMode) debugPrint('[OfflineDB] Synced: ${sync.collection}/${sync.docId}');
       } catch (e) {
         sync.syncAttempts++;
         result = SyncResult(
@@ -145,7 +145,7 @@ class OfflineFirstDatabaseService {
           failed: result.failed + 1,
           errors: [...result.errors, '$e'],
         );
-        debugPrint('[OfflineDB] Sync failed for ${sync.docId}: $e');
+        if (kDebugMode) debugPrint('[OfflineDB] Sync failed for ${sync.docId}: $e');
 
         // Remove after 5 failed attempts
         if (sync.syncAttempts >= 5) {
@@ -209,9 +209,9 @@ class OfflineFirstDatabaseService {
       }
 
       await _saveLocalData();
-      debugPrint('[OfflineDB] Imported ${records.length} records');
+      if (kDebugMode) debugPrint('[OfflineDB] Imported ${records.length} records');
     } catch (e) {
-      debugPrint('[OfflineDB] Import failed: $e');
+      if (kDebugMode) debugPrint('[OfflineDB] Import failed: $e');
     }
   }
 
@@ -232,7 +232,7 @@ class OfflineFirstDatabaseService {
         );
       }
     }
-    debugPrint('[OfflineDB] Batch operation completed: ${operations.length} items');
+    if (kDebugMode) debugPrint('[OfflineDB] Batch operation completed: ${operations.length} items');
   }
 
   // ===== INTERNAL HELPERS =====
@@ -271,7 +271,7 @@ class OfflineFirstDatabaseService {
         final record = LocalRecord.fromJson(decoded['value'] as Map<String, dynamic>);
         _localStore[decoded['key'] as String] = record;
       } catch (e) {
-        debugPrint('[OfflineDB] Error loading record: $e');
+        if (kDebugMode) debugPrint('[OfflineDB] Error loading record: $e');
       }
     }
   }

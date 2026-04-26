@@ -877,7 +877,7 @@ class AssistantForegroundService : Service() {
                     }
                 )
 
-                val maxItems = 50
+                val maxItems = 30
                 val trimmed = if (list.length() > maxItems) {
                     JSONArray().apply {
                         val start = list.length() - maxItems

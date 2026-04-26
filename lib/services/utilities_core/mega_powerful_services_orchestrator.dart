@@ -70,18 +70,22 @@ class MegaPowerfulServicesOrchestrator {
   /// Initialize ALL 19 mega-powerful services
   Future<void> initializeAll() async {
     try {
-      debugPrint('''
+      if (kDebugMode) {
+        if (kDebugMode) {
+          debugPrint('''
 ╔══════════════════════════════════════════════════════════╗
 ║  🚀 MEGA POWERFUL SERVICES ORCHESTRATOR                  ║
 ║  19 Enterprise-Grade Services | Production Ready         ║
 ║  Status: ✅ INITIALIZING                                 ║
 ╚══════════════════════════════════════════════════════════╝
 ''');
+        }
+      }
 
       _initializationTime = DateTime.now();
 
       // TIER 1: AI & CORE SERVICES
-      debugPrint('\n📍 TIER 1: AI & Core Intelligence Services');
+      if (kDebugMode) debugPrint('\n📍 TIER 1: AI & Core Intelligence Services');
       _aiCopilot = AICopilotService();
       await _aiCopilot.initialize();
       _markServiceReady('AI Copilot', 'AI', 'Sentiment Analysis & Conversation Memory');
@@ -95,7 +99,7 @@ class MegaPowerfulServicesOrchestrator {
       _markServiceReady('Personalization', 'AI', 'Adaptive UI & Behavior Prediction');
 
       // TIER 2: DATA & PERSISTENCE
-      debugPrint('\n📍 TIER 2: Data & Persistence Layer');
+      if (kDebugMode) debugPrint('\n📍 TIER 2: Data & Persistence Layer');
       _offlineDb = OfflineFirstDatabaseService();
       await _offlineDb.initialize();
       _markServiceReady('Offline-First DB', 'Data', 'Progressive Sync Architecture');
@@ -109,13 +113,13 @@ class MegaPowerfulServicesOrchestrator {
       _markServiceReady('Monetization', 'Economy', 'IAP + Subscriptions + Battle Pass');
 
       // TIER 3: SOCIAL & COMMUNITY
-      debugPrint('\n📍 TIER 3: Social & Community Features');
+      if (kDebugMode) debugPrint('\n📍 TIER 3: Social & Community Features');
       _friendSystem = FriendSocialSystemService();
       await _friendSystem.initialize();
       _markServiceReady('Friend System', 'Social', 'Leaderboards + Challenges');
 
       // TIER 4: DEVOPS & MONITORING
-      debugPrint('\n📍 TIER 4: DevOps & Real-Time Monitoring');
+      if (kDebugMode) debugPrint('\n📍 TIER 4: DevOps & Real-Time Monitoring');
       _crashReporting = CrashReportingService();
       await _crashReporting.initialize();
       _markServiceReady('Crash Reporting', 'DevOps', 'Error Tracking & Analysis');
@@ -125,7 +129,7 @@ class MegaPowerfulServicesOrchestrator {
       _markServiceReady('Performance Monitor', 'DevOps', 'Bottleneck Detection');
 
       // TIER 5: GAMING & ENGAGEMENT
-      debugPrint('\n📍 TIER 5: Gaming & Engagement Systems');
+      if (kDebugMode) debugPrint('\n📍 TIER 5: Gaming & Engagement Systems');
       _battleSystem = BattleAndRaidSystem();
       await _battleSystem.initialize();
       _markServiceReady('Battle System', 'Gaming', 'PvE + Raids + Co-op');
@@ -139,19 +143,19 @@ class MegaPowerfulServicesOrchestrator {
       _markServiceReady('Tournament Manager', 'Gaming', 'Ranked Brackets + Prizes');
 
       // TIER 6: GUILDS & TEAM
-      debugPrint('\n📍 TIER 6: Guilds & Team Mechanics');
+      if (kDebugMode) debugPrint('\n📍 TIER 6: Guilds & Team Mechanics');
       _guildSystem = GuildManagementSystem();
       await _guildSystem.initialize();
       _markServiceReady('Guild System', 'Social', 'Team Wars + Treasury');
 
       // TIER 6B: ENTERPRISE OPERATIONS
-      debugPrint('\n📍 TIER 6B: Enterprise Operations & Achievements');
+      if (kDebugMode) debugPrint('\n📍 TIER 6B: Enterprise Operations & Achievements');
       _achievementSystem = AchievementSystemManager();
       await _achievementSystem.initialize();
       _markServiceReady('Achievement System', 'Gaming', 'Tiers, Quest Lines & Social');
 
       // TIER 7: INTEGRATIONS & EXTENSIONS
-      debugPrint('\n📍 TIER 7: Integrations & Advanced Features');
+      if (kDebugMode) debugPrint('\n📍 TIER 7: Integrations & Advanced Features');
       _discordIntegration = DiscordIntegrationManager();
       await _discordIntegration.initialize();
       _markServiceReady('Discord Integration', 'Integration', 'Webhooks & Event Streaming');
@@ -167,9 +171,9 @@ class MegaPowerfulServicesOrchestrator {
       _isFullyInitialized = true;
       _printInitializationSummary();
 
-      debugPrint('\n✅ ALL 19 SERVICES INITIALIZED SUCCESSFULLY!');
+      if (kDebugMode) debugPrint('\n✅ ALL 19 SERVICES INITIALIZED SUCCESSFULLY!');
     } catch (e) {
-      debugPrint('❌ Initialization error: $e');
+      if (kDebugMode) debugPrint('❌ Initialization error: $e');
       rethrow;
     }
   }
@@ -261,7 +265,7 @@ class MegaPowerfulServicesOrchestrator {
         data: {'userId': userId, 'content': content},
       );
 
-      debugPrint('[Orchestrator] Mega interaction processed: $interactionType');
+      if (kDebugMode) debugPrint('[Orchestrator] Mega interaction processed: $interactionType');
     } catch (e) {
       await _crashReporting.logError(
         message: 'Error in mega interaction: $e',
@@ -367,13 +371,13 @@ Status: ✅ PRODUCTION READY
       initTime: DateTime.now(),
       description: description,
     );
-    debugPrint('  ✅ $serviceName - $description');
+    if (kDebugMode) debugPrint('  ✅ $serviceName - $description');
   }
 
   void _printInitializationSummary() {
-    debugPrint('\n╔════════════════════════════════════════════════╗');
-    debugPrint('║         INITIALIZATION COMPLETE                ║');
-    debugPrint('╚════════════════════════════════════════════════╝');
+    if (kDebugMode) debugPrint('\n╔════════════════════════════════════════════════╗');
+    if (kDebugMode) debugPrint('║         INITIALIZATION COMPLETE                ║');
+    if (kDebugMode) debugPrint('╚════════════════════════════════════════════════╝');
 
     final byCategory = <String, List<String>>{};
     for (final status in _serviceStatus.values) {
@@ -381,15 +385,15 @@ Status: ✅ PRODUCTION READY
     }
 
     for (final entry in byCategory.entries) {
-      debugPrint('\n${entry.key.toUpperCase()}:');
+      if (kDebugMode) debugPrint('\n${entry.key.toUpperCase()}:');
       for (final service in entry.value) {
-        debugPrint('  ✅ $service');
+        if (kDebugMode) debugPrint('  ✅ $service');
       }
     }
 
-    debugPrint('\n═ TOTAL SERVICES: ${_serviceStatus.length} =');
-    debugPrint('═ INIT TIME: ${DateTime.now().difference(_initializationTime).inMilliseconds}ms =');
-    debugPrint('═ STATUS: READY ═');
+    if (kDebugMode) debugPrint('\n═ TOTAL SERVICES: ${_serviceStatus.length} =');
+    if (kDebugMode) debugPrint('═ INIT TIME: ${DateTime.now().difference(_initializationTime).inMilliseconds}ms =');
+    if (kDebugMode) debugPrint('═ STATUS: READY ═');
   }
 
   Map<String, dynamic> _getSystemHealth() {

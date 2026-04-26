@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart';
 
 /// Advanced notification service for anime_waifu app
@@ -23,7 +23,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing progress notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing progress notification: ${e.message}');
     }
   }
 
@@ -44,7 +44,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing interactive notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing interactive notification: ${e.message}');
     }
   }
 
@@ -65,7 +65,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing grouped notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing grouped notification: ${e.message}');
     }
   }
 
@@ -84,7 +84,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing inbox notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing inbox notification: ${e.message}');
     }
   }
 
@@ -103,7 +103,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing heads-up notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing heads-up notification: ${e.message}');
     }
   }
 
@@ -124,7 +124,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing message notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing message notification: ${e.message}');
     }
   }
 
@@ -143,7 +143,7 @@ class AdvancedNotificationService {
         'channelId': channelId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error showing big text notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error showing big text notification: ${e.message}');
     }
   }
 
@@ -158,7 +158,7 @@ class AdvancedNotificationService {
         'progress': progress,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error updating progress: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error updating progress: ${e.message}');
     }
   }
 
@@ -169,7 +169,7 @@ class AdvancedNotificationService {
         'notifId': notificationId,
       });
     } on PlatformException catch (e) {
-      debugPrint('❌ Error dismissing notification: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error dismissing notification: ${e.message}');
     }
   }
 
@@ -178,7 +178,7 @@ class AdvancedNotificationService {
     try {
       await platform.invokeMethod('clearAllNotifications');
     } on PlatformException catch (e) {
-      debugPrint('❌ Error clearing notifications: ${e.message}');
+      if (kDebugMode) debugPrint('❌ Error clearing notifications: ${e.message}');
     }
   }
 

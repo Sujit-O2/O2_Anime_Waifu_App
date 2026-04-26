@@ -101,6 +101,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
         final data = jsonDecode(raw) as Map<String, dynamic>;
         final scenId = data['scenarioId'] as String?;
         if (scenId != null) {
+          if (!mounted) return;
           setState(() {
             _selected = _scenarios.firstWhere((s) => s.id == scenId,
                 orElse: () => _scenarios[0]);
@@ -148,6 +149,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
       AffectionService.instance.addPoints(2);
       await _saveStory();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _storyMessages.add({
           'role': 'assistant',
@@ -184,6 +186,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
       AffectionService.instance.addPoints(1);
       await _saveStory();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _storyMessages.add({
           'role': 'assistant',
@@ -372,9 +375,9 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
               child: Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                       colors: [Color(0xFFFF4D8D), Color(0xFFB44FD6)]),
                 ),
                 child: const Icon(Icons.send_rounded,

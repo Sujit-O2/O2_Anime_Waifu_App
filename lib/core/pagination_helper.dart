@@ -1,7 +1,7 @@
 import 'package:anime_waifu/core/constants.dart';
 import 'package:anime_waifu/core/error_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Pagination Helper
 /// Efficient cursor-based pagination for Firestore queries
@@ -150,7 +150,7 @@ class PaginationHelper<T> {
           final item = converter(snapshot.docs[i]);
           _currentPage.add(item);
         } catch (e) {
-          debugPrint('⚠️ Error converting document: $e');
+          if (kDebugMode) debugPrint('⚠️ Error converting document: $e');
         }
       }
 
@@ -164,9 +164,11 @@ class PaginationHelper<T> {
             : true; // Simplified logic
       }
 
-      debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         '✅ Fetched page (${_currentPage.length} items, hasMore: $_hasNextPage)',
       );
+      }
 
       return Result.success(_currentPage);
     } catch (e, stackTrace) {

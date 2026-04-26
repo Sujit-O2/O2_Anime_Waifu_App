@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
@@ -30,7 +30,7 @@ class ThemeShareService {
       final theme = CustomTheme.fromJson(json);
       return await customThemeService.createCustomTheme(theme);
     } catch (e) {
-      debugPrint('❌ Error importing theme: $e');
+      if (kDebugMode) debugPrint('❌ Error importing theme: $e');
       return false;
     }
   }
@@ -57,10 +57,10 @@ class ThemeShareService {
       sharedMap[code] = sharedTheme.toJson();
       await _prefs.setString(_sharedThemesKey, jsonEncode(sharedMap));
 
-      debugPrint('✅ Theme shared with code: $code');
+      if (kDebugMode) debugPrint('✅ Theme shared with code: $code');
       return code;
     } catch (e) {
-      debugPrint('❌ Error sharing theme: $e');
+      if (kDebugMode) debugPrint('❌ Error sharing theme: $e');
       return null;
     }
   }
@@ -75,7 +75,7 @@ class ThemeShareService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error retrieving shared theme: $e');
+      if (kDebugMode) debugPrint('❌ Error retrieving shared theme: $e');
       return null;
     }
   }
@@ -90,7 +90,7 @@ class ThemeShareService {
           .map((json) => CustomTheme.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error loading shared themes: $e');
+      if (kDebugMode) debugPrint('❌ Error loading shared themes: $e');
       return [];
     }
   }
@@ -104,7 +104,7 @@ class ThemeShareService {
       await _prefs.setString(_sharedThemesKey, jsonEncode(sharedMap));
       return true;
     } catch (e) {
-      debugPrint('❌ Error unsharing theme: $e');
+      if (kDebugMode) debugPrint('❌ Error unsharing theme: $e');
       return false;
     }
   }

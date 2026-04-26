@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -78,12 +79,13 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
           .get();
       if (snap.exists) {
         final list = (snap.data()?['messages'] as List?) ?? [];
+        if (!mounted) return;
         setState(() => _messages = list
             .map((e) => _ScheduledMsg.fromMap(e as Map<String, dynamic>))
             .toList());
       }
     } catch (e) {
-      debugPrint('ScheduledMessages load error: $e');
+      if (kDebugMode) debugPrint('ScheduledMessages load error: $e');
     }
     setState(() => _loading = false);
   }
@@ -102,7 +104,7 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
 
   Future<void> _addPreset(String prompt, String label) async {
     if (_isCreating) return;
-    
+
     final time = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 8, minute: 0),
@@ -137,6 +139,7 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
         enabled: true,
         days: [1, 2, 3, 4, 5, 6, 7],
       );
+      if (!mounted) return;
       setState(() {
         _messages.insert(0, msg);
         _isCreating = false;
@@ -152,6 +155,7 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
         enabled: true,
         days: [1, 2, 3, 4, 5, 6, 7],
       );
+      if (!mounted) return;
       setState(() {
         _messages.insert(0, msg);
         _isCreating = false;
@@ -244,6 +248,7 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
                             key: Key(m.id),
                             direction: DismissDirection.endToStart,
                             onDismissed: (_) {
+                              if (!mounted) return;
                               setState(() => _messages.removeAt(index));
                               _save();
                             },
@@ -319,7 +324,3 @@ class _ScheduledMessagesPageState extends State<ScheduledMessagesPage> {
     );
   }
 }
-
-
-
-

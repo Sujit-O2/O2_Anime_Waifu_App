@@ -87,6 +87,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _playerWins = prefs.getInt('rps_player_wins') ?? 0;
       _zeroWins = prefs.getInt('rps_zerotwo_wins') ?? 0;
@@ -146,6 +147,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _result = outcome;
       _comment = comment;

@@ -53,7 +53,7 @@ class _AchievementsGalleryPageState extends State<AchievementsGalleryPage> {
   @override
   Widget build(BuildContext context) {
     final aff = AffectionService.instance;
-    final all = AchievementsService.all;
+    const all = AchievementsService.all;
     final unlocked = AchievementsService.instance.unlocked;
     final unlockedCount = unlocked.length;
     final totalCount = all.length;
@@ -249,8 +249,10 @@ class _AchievementsGalleryPageState extends State<AchievementsGalleryPage> {
                               child: ChoiceChip(
                                 label: Text(filter),
                                 selected: selected,
-                                onSelected: (_) =>
-                                    setState(() => _filter = filter),
+                                onSelected: (_) {
+                                  if (!mounted) return;
+                                  setState(() => _filter = filter);
+                                },
                                 labelStyle: GoogleFonts.outfit(
                                   color:
                                       selected ? Colors.white : Colors.white70,
@@ -409,6 +411,3 @@ class _AchievementCard extends StatelessWidget {
     );
   }
 }
-
-
-

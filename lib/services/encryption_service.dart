@@ -13,8 +13,10 @@ class EncryptionService {
 
   /// Encrypt data using simple XOR + SHA256 hashing
   String encryptData(String plainText, {String? customKey}) {
+    if (plainText.isEmpty) return '';
     try {
       final key = customKey ?? _magicKey;
+      if (key.isEmpty) return plainText;
       final keyBytes = utf8.encode(key);
       final textBytes = utf8.encode(plainText);
       
@@ -32,11 +34,9 @@ class EncryptionService {
       final combined = [...encrypted, ...timestampBytes];
       
       // Convert to base64
-      final encoded = base64Encode(combined);
-      debugPrint('✅ Data encrypted');
-      return encoded;
+      return base64Encode(combined);
     } catch (e) {
-      debugPrint('❌ Error encrypting data: $e');
+      if (kDebugMode) debugPrint('Encryption error: $e');
       return plainText;
     }
   }
@@ -51,7 +51,18 @@ class EncryptionService {
       final combined = base64Decode(encryptedText);
       
       // Extract encrypted data (remove timestamp)
-      final encryptedBytes = combined.sublist(0, combined.length - 13);
+      // Epoch ms is currently 13 digits, will become 14 in ~2286.
+      // Use a safe detection: timestamp is always at the end and is ASCII digits (0x30-0x39).
+      int timestampLen = 0;
+      for (int i = combined.length - 1; i >= 0 && i >= combined.length - 15; i--) {
+        if (combined[i] >= 0x30 && combined[i] <= 0x39) {
+          timestampLen++;
+        } else {
+          break;
+        }
+      }
+      if (timestampLen == 0 || combined.length <= timestampLen) return '';
+      final encryptedBytes = combined.sublist(0, combined.length - timestampLen);
       
       // XOR decryption
       final decrypted = <int>[];
@@ -59,11 +70,9 @@ class EncryptionService {
         decrypted.add(encryptedBytes[i] ^ keyBytes[i % keyBytes.length]);
       }
 
-      final plainText = utf8.decode(decrypted);
-      debugPrint('✅ Data decrypted');
-      return plainText;
+      return utf8.decode(decrypted);
     } catch (e) {
-      debugPrint('❌ Error decrypting data: $e');
+      if (kDebugMode) debugPrint('Decryption error: $e');
       return '';
     }
   }
@@ -72,10 +81,9 @@ class EncryptionService {
   String hashData(String data) {
     try {
       final hash = sha256.convert(utf8.encode(data + _magicKey));
-      debugPrint('✅ Data hashed');
       return hash.toString();
     } catch (e) {
-      debugPrint('❌ Error hashing data: $e');
+      if (kDebugMode) debugPrint('Hash error: $e');
       return '';
     }
   }
@@ -86,7 +94,7 @@ class EncryptionService {
       final computedHash = hashData(plainText);
       return computedHash == hash;
     } catch (e) {
-      debugPrint('❌ Error verifying hash: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying hash: $e');
       return false;
     }
   }
@@ -135,7 +143,7 @@ class EncryptionService {
       final hash = sha256.convert(utf8.encode(combined));
       return hash.toString().substring(0, length);
     } catch (e) {
-      debugPrint('❌ Error generating token: $e');
+      if (kDebugMode) debugPrint('❌ Error generating token: $e');
       return '';
     }
   }

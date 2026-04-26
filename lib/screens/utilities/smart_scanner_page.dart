@@ -29,6 +29,7 @@ class _SmartScannerPageState extends State<SmartScannerPage> {
     final p = await SharedPreferences.getInstance();
     final raw = p.getString('smart_scanner_history') ?? '[]';
     try {
+      if (!mounted) return;
       setState(() =>
           _history = (jsonDecode(raw) as List).cast<Map<String, dynamic>>());
     } catch (_) {}
@@ -46,6 +47,7 @@ class _SmartScannerPageState extends State<SmartScannerPage> {
       final img = await picker.pickImage(source: source, imageQuality: 85);
       if (img == null) return;
 
+      if (!mounted) return;
       setState(() {
         _scanning = true;
         _imagePath = img.path;
@@ -87,6 +89,7 @@ class _SmartScannerPageState extends State<SmartScannerPage> {
         'source': source == ImageSource.camera ? 'camera' : 'gallery',
       };
 
+      if (!mounted) return;
       setState(() {
         _scanning = false;
         _extractedText = result;

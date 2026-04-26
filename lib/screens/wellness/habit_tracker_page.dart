@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
-
 
 /// Habit Tracker — saves habits to Firestore (habits/{uid}) + local cache
 /// Uses a local-first approach with background Firestore sync
@@ -95,7 +95,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           }
         }
       } catch (e) {
-        debugPrint('HabitTracker load Firestore error: $e');
+        if (kDebugMode) debugPrint('HabitTracker load Firestore error: $e');
       }
     }
     final prefs = await SharedPreferences.getInstance();
@@ -105,7 +105,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
     } catch (e) {
-      debugPrint('HabitTracker load local error: $e');
+      if (kDebugMode) debugPrint('HabitTracker load local error: $e');
     }
     if (mounted) {
       setState(() => _loading = false);
@@ -124,7 +124,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           'updatedAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        debugPrint('HabitTracker save Firestore error: $e');
+        if (kDebugMode) debugPrint('HabitTracker save Firestore error: $e');
       }
     }
   }
@@ -195,365 +195,357 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         GestureDetector(
             onTap: _loadHabits,
             child: Container(
-              width: 36, height: 36,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.white12),
               ),
-              child: const Icon(Icons.refresh_rounded, color: Colors.white38, size: 20),
+              child: const Icon(Icons.refresh_rounded,
+                  color: Colors.white38, size: 20),
             )),
       ],
       content: Column(children: [
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              children: [
-                GlassCard(
-                  margin: EdgeInsets.zero,
-                  glow: true,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Daily momentum',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
+            children: [
+              GlassCard(
+                margin: EdgeInsets.zero,
+                glow: true,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Daily momentum',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _habits.isEmpty
-                                  ? 'Build your first routine'
-                                  : '$_completedToday habits checked off today',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _habits.isEmpty
+                                ? 'Build your first routine'
+                                : '$_completedToday habits checked off today',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _habits.isEmpty
-                                  ? 'Add a habit below and start turning repeated actions into streaks.'
-                                  : 'Your best stored streak is $_bestStreak days. Small daily wins keep the board moving.',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white60,
-                                fontSize: 12,
-                                height: 1.35,
-                              ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _habits.isEmpty
+                                ? 'Add a habit below and start turning repeated actions into streaks.'
+                                : 'Your best stored streak is $_bestStreak days. Small daily wins keep the board moving.',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white60,
+                              fontSize: 12,
+                              height: 1.35,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      ProgressRing(
-                        progress: _habits.isEmpty
-                            ? 0
-                            : _completedToday / _habits.length,
-                        foreground: Colors.lightGreenAccent,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.task_alt_rounded,
-                              color: Colors.lightGreenAccent,
-                              size: 28,
+                    ),
+                    const SizedBox(width: 16),
+                    ProgressRing(
+                      progress: _habits.isEmpty
+                          ? 0
+                          : _completedToday / _habits.length,
+                      foreground: Colors.lightGreenAccent,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.task_alt_rounded,
+                            color: Colors.lightGreenAccent,
+                            size: 28,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '$_completedToday',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '$_completedToday',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          ),
+                          Text(
+                            'Done',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white54,
+                              fontSize: 11,
                             ),
-                            Text(
-                              'Done',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white54,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              WaifuCommentary(mood: _commentaryMood),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatCard(
+                      title: 'Habits',
+                      value: '${_habits.length}',
+                      icon: Icons.list_alt_rounded,
+                      color: Colors.lightGreenAccent,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                WaifuCommentary(mood: _commentaryMood),
-                Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        title: 'Habits',
-                        value: '${_habits.length}',
-                        icon: Icons.list_alt_rounded,
-                        color: Colors.lightGreenAccent,
-                      ),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Today',
+                      value: '$_completedToday',
+                      icon: Icons.today_rounded,
+                      color: V2Theme.secondaryColor,
                     ),
-                    Expanded(
-                      child: StatCard(
-                        title: 'Today',
-                        value: '$_completedToday',
-                        icon: Icons.today_rounded,
-                        color: V2Theme.secondaryColor,
-                      ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatCard(
+                      title: 'Best',
+                      value: '${_bestStreak}d',
+                      icon: Icons.local_fire_department_rounded,
+                      color: Colors.orangeAccent,
                     ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        title: 'Best',
-                        value: '${_bestStreak}d',
-                        icon: Icons.local_fire_department_rounded,
-                        color: Colors.orangeAccent,
-                      ),
+                  ),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Storage',
+                      value: _uid == null ? 'Local' : 'Cloud',
+                      icon: Icons.cloud_done_outlined,
+                      color: V2Theme.primaryColor,
                     ),
-                    Expanded(
-                      child: StatCard(
-                        title: 'Storage',
-                        value: _uid == null ? 'Local' : 'Cloud',
-                        icon: Icons.cloud_done_outlined,
-                        color: V2Theme.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Today's progress bar
+        if (_habits.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: _habits.isEmpty ? 0 : _completedToday / _habits.length,
+                backgroundColor: Colors.white.withValues(alpha: 0.07),
+                valueColor:
+                    const AlwaysStoppedAnimation(Colors.lightGreenAccent),
+                minHeight: 5,
+              ),
             ),
           ),
 
-          // Today's progress bar
-          if (_habits.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: _habits.isEmpty ? 0 : _completedToday / _habits.length,
-                  backgroundColor: Colors.white.withValues(alpha: 0.07),
-                  valueColor:
-                      const AlwaysStoppedAnimation(Colors.lightGreenAccent),
-                  minHeight: 5,
-                ),
-              ),
-            ),
-
-          // Add habit
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(children: [
-              Expanded(
-                child: TextField(
-                  controller: _habitCtrl,
-                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
-                  cursorColor: V2Theme.primaryColor,
-                  onSubmitted: (_) => _addHabit(),
-                  decoration: InputDecoration(
-                    hintText: 'Add a new habit…',
-                    hintStyle:
-                        GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.04),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                          color: V2Theme.primaryColor.withValues(alpha: 0.2)),
-                    ),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _addHabit,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: V2Theme.primaryColor.withValues(alpha: 0.15),
+        // Add habit
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _habitCtrl,
+                style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
+                cursorColor: V2Theme.primaryColor,
+                onSubmitted: (_) => _addHabit(),
+                decoration: InputDecoration(
+                  hintText: 'Add a new habit…',
+                  hintStyle:
+                      GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.04),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: V2Theme.primaryColor.withValues(alpha: 0.4)),
+                    borderSide: BorderSide.none,
                   ),
-                  child: const Icon(Icons.add_rounded,
-                      color: V2Theme.primaryColor, size: 22),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                        color: V2Theme.primaryColor.withValues(alpha: 0.2)),
+                  ),
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
               ),
-            ]),
-          ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _addHabit,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: V2Theme.primaryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: V2Theme.primaryColor.withValues(alpha: 0.4)),
+                ),
+                child: const Icon(Icons.add_rounded,
+                    color: V2Theme.primaryColor, size: 22),
+              ),
+            ),
+          ]),
+        ),
 
-          const SizedBox(height: 8),
+        const SizedBox(height: 8),
 
-          // Habit list
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: V2Theme.primaryColor))
-                : _habits.isEmpty
-                    ? Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            const Text('💪', style: TextStyle(fontSize: 48)),
-                            const SizedBox(height: 12),
-                            Text('Add your first habit above!',
-                                style:
-                                    GoogleFonts.outfit(color: Colors.white38)),
-                          ]))
-                    : FadeTransition(
-                        opacity: _fadeCtrl,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                          itemCount: _habits.length,
-                          itemBuilder: (ctx, i) {
-                            final h = _habits[i];
-                            final done =
-                                (h['completedOn'] as List).contains(_todayKey);
-                            final streak = h['streak'] as int? ?? 0;
-                            return Dismissible(
-                              key: ValueKey(h['id']),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 16),
+        // Habit list
+        Expanded(
+          child: _loading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: V2Theme.primaryColor))
+              : _habits.isEmpty
+                  ? Center(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                          const Text('💪', style: TextStyle(fontSize: 48)),
+                          const SizedBox(height: 12),
+                          Text('Add your first habit above!',
+                              style: GoogleFonts.outfit(color: Colors.white38)),
+                        ]))
+                  : FadeTransition(
+                      opacity: _fadeCtrl,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                        itemCount: _habits.length,
+                        itemBuilder: (ctx, i) {
+                          final h = _habits[i];
+                          final done =
+                              (h['completedOn'] as List).contains(_todayKey);
+                          final streak = h['streak'] as int? ?? 0;
+                          return Dismissible(
+                            key: ValueKey(h['id']),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 16),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                color: Colors.redAccent.withValues(alpha: 0.15),
+                              ),
+                              child: const Icon(Icons.delete_outline_rounded,
+                                  color: Colors.redAccent),
+                            ),
+                            onDismissed: (_) => _deleteHabit(i),
+                            child: GestureDetector(
+                              onTap: () => _toggleHabit(i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
                                 margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color:
-                                      Colors.redAccent.withValues(alpha: 0.15),
-                                ),
-                                child: const Icon(Icons.delete_outline_rounded,
-                                    color: Colors.redAccent),
-                              ),
-                              onDismissed: (_) => _deleteHabit(i),
-                              child: GestureDetector(
-                                onTap: () => _toggleHabit(i),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(14),
+                                  color: done
+                                      ? Colors.lightGreenAccent
+                                          .withValues(alpha: 0.08)
+                                      : Colors.white.withValues(alpha: 0.04),
+                                  border: Border.all(
                                     color: done
                                         ? Colors.lightGreenAccent
-                                            .withValues(alpha: 0.08)
-                                        : Colors.white.withValues(alpha: 0.04),
-                                    border: Border.all(
+                                            .withValues(alpha: 0.35)
+                                        : Colors.white.withValues(alpha: 0.08),
+                                  ),
+                                ),
+                                child: Row(children: [
+                                  // Emoji + check
+                                  Stack(children: [
+                                    Text(h['emoji']?.toString() ?? '',
+                                        style: const TextStyle(fontSize: 28)),
+                                    if (done)
+                                      Positioned(
+                                        right: -2,
+                                        bottom: -2,
+                                        child: Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.lightGreenAccent,
+                                          ),
+                                          child: const Icon(Icons.check_rounded,
+                                              size: 10, color: Colors.black87),
+                                        ),
+                                      ),
+                                  ]),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(h['name']?.toString() ?? '',
+                                              style: GoogleFonts.outfit(
+                                                  color: done
+                                                      ? Colors.white
+                                                      : Colors.white70,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w700,
+                                                  decoration: done
+                                                      ? TextDecoration
+                                                          .lineThrough
+                                                      : null)),
+                                          if (streak > 0)
+                                            Text('🔥 $streak day streak',
+                                                style: GoogleFonts.outfit(
+                                                    color: Colors.orangeAccent,
+                                                    fontSize: 11)),
+                                        ]),
+                                  ),
+                                  // Tap to complete
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
                                       color: done
                                           ? Colors.lightGreenAccent
-                                              .withValues(alpha: 0.35)
+                                              .withValues(alpha: 0.15)
                                           : Colors.white
-                                              .withValues(alpha: 0.08),
+                                              .withValues(alpha: 0.05),
+                                      border: Border.all(
+                                        color: done
+                                            ? Colors.lightGreenAccent
+                                            : Colors.white24,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      done
+                                          ? Icons.check_rounded
+                                          : Icons
+                                              .radio_button_unchecked_rounded,
+                                      color: done
+                                          ? Colors.lightGreenAccent
+                                          : Colors.white38,
+                                      size: 18,
                                     ),
                                   ),
-                                  child: Row(children: [
-                                    // Emoji + check
-                                    Stack(children: [
-                                      Text(h['emoji']?.toString() ?? '',
-                                          style: const TextStyle(fontSize: 28)),
-                                      if (done)
-                                        Positioned(
-                                          right: -2,
-                                          bottom: -2,
-                                          child: Container(
-                                            width: 14,
-                                            height: 14,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.lightGreenAccent,
-                                            ),
-                                            child: const Icon(
-                                                Icons.check_rounded,
-                                                size: 10,
-                                                color: Colors.black87),
-                                          ),
-                                        ),
-                                    ]),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(h['name']?.toString() ?? '',
-                                                style: GoogleFonts.outfit(
-                                                    color: done
-                                                        ? Colors.white
-                                                        : Colors.white70,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    decoration: done
-                                                        ? TextDecoration
-                                                            .lineThrough
-                                                        : null)),
-                                            if (streak > 0)
-                                              Text('🔥 $streak day streak',
-                                                  style: GoogleFonts.outfit(
-                                                      color:
-                                                          Colors.orangeAccent,
-                                                      fontSize: 11)),
-                                          ]),
-                                    ),
-                                    // Tap to complete
-                                    Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: done
-                                            ? Colors.lightGreenAccent
-                                                .withValues(alpha: 0.15)
-                                            : Colors.white
-                                                .withValues(alpha: 0.05),
-                                        border: Border.all(
-                                          color: done
-                                              ? Colors.lightGreenAccent
-                                              : Colors.white24,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        done
-                                            ? Icons.check_rounded
-                                            : Icons
-                                                .radio_button_unchecked_rounded,
-                                        color: done
-                                            ? Colors.lightGreenAccent
-                                            : Colors.white38,
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ]),
-                                ),
+                                ]),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
-          ),
-        ]),
+                    ),
+        ),
+      ]),
     );
   }
 }
-
-
-

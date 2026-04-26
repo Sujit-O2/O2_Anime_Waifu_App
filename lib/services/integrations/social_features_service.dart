@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Social features service: Achievement sharing, challenges, social sync
 class SocialFeaturesService {
@@ -7,8 +7,6 @@ class SocialFeaturesService {
       SocialFeaturesService._internal();
   factory SocialFeaturesService() => _instance;
   SocialFeaturesService._internal();
-
-
 
   // ── Achievement Sharing ──────────────────────────────────────────────────
 
@@ -37,9 +35,7 @@ class SocialFeaturesService {
 
       for (var doc in friendsSnapshot.docs) {
         final friendId = doc.get('userId2');
-        await FirebaseFirestore.instance
-            .collection('notifications')
-            .add({
+        await FirebaseFirestore.instance.collection('notifications').add({
           'uid': friendId,
           'type': 'achievement_shared',
           'fromUid': uid,
@@ -51,15 +47,12 @@ class SocialFeaturesService {
       }
 
       // Increase affection for sharing
-      await FirebaseFirestore.instance
-          .collection('affection')
-          .doc(uid)
-          .update({
+      await FirebaseFirestore.instance.collection('affection').doc(uid).update({
         '$characterId.sharingCount': FieldValue.increment(1),
         '$characterId.affectionPoints': FieldValue.increment(5),
       });
     } catch (e) {
-      debugPrint('Error sharing achievement: $e');
+      if (kDebugMode) debugPrint('Error sharing achievement: $e');
     }
   }
 
@@ -74,9 +67,8 @@ class SocialFeaturesService {
           .where('userId1', isEqualTo: uid)
           .get();
 
-      final friendIds = friendsSnapshot.docs
-          .map((doc) => doc.get('userId2'))
-          .toList();
+      final friendIds =
+          friendsSnapshot.docs.map((doc) => doc.get('userId2')).toList();
 
       if (friendIds.isEmpty) {
         return [];
@@ -91,7 +83,7 @@ class SocialFeaturesService {
 
       return sharesSnapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching friends achievements: $e');
+      if (kDebugMode) debugPrint('Error fetching friends achievements: $e');
       return [];
     }
   }
@@ -112,7 +104,7 @@ class SocialFeaturesService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching leaderboard: $e');
+      if (kDebugMode) debugPrint('Error fetching leaderboard: $e');
       return [];
     }
   }
@@ -132,7 +124,7 @@ class SocialFeaturesService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching character leaderboard: $e');
+      if (kDebugMode) debugPrint('Error fetching character leaderboard: $e');
       return [];
     }
   }
@@ -153,7 +145,7 @@ class SocialFeaturesService {
       final doc = snapshot.docs.first.data();
       return doc;
     } catch (e) {
-      debugPrint('Error fetching user rank: $e');
+      if (kDebugMode) debugPrint('Error fetching user rank: $e');
       return {'rank': 'unranked'};
     }
   }
@@ -166,10 +158,7 @@ class SocialFeaturesService {
     required String characterId,
   }) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('leaderboard')
-          .doc(uid)
-          .set({
+      await FirebaseFirestore.instance.collection('leaderboard').doc(uid).set({
         'uid': uid,
         'totalAffection': totalAffection,
         'characterAffection': characterAffection,
@@ -177,7 +166,7 @@ class SocialFeaturesService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating leaderboard: $e');
+      if (kDebugMode) debugPrint('Error updating leaderboard: $e');
     }
   }
 
@@ -198,7 +187,7 @@ class SocialFeaturesService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching challenges: $e');
+      if (kDebugMode) debugPrint('Error fetching challenges: $e');
       return [];
     }
   }
@@ -232,7 +221,7 @@ class SocialFeaturesService {
         'participantCount': FieldValue.increment(1),
       });
     } catch (e) {
-      debugPrint('Error joining challenge: $e');
+      if (kDebugMode) debugPrint('Error joining challenge: $e');
     }
   }
 
@@ -253,7 +242,7 @@ class SocialFeaturesService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error updating challenge progress: $e');
+      if (kDebugMode) debugPrint('Error updating challenge progress: $e');
     }
   }
 
@@ -297,7 +286,7 @@ class SocialFeaturesService {
         });
       }
     } catch (e) {
-      debugPrint('Error completing challenge: $e');
+      if (kDebugMode) debugPrint('Error completing challenge: $e');
     }
   }
 
@@ -316,7 +305,7 @@ class SocialFeaturesService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching challenge leaderboard: $e');
+      if (kDebugMode) debugPrint('Error fetching challenge leaderboard: $e');
       return [];
     }
   }
@@ -350,7 +339,7 @@ class SocialFeaturesService {
         'challengesParticipated': challengesCount.count ?? 0,
       };
     } catch (e) {
-      debugPrint('Error getting social statistics: $e');
+      if (kDebugMode) debugPrint('Error getting social statistics: $e');
       return {};
     }
   }
@@ -367,9 +356,8 @@ class SocialFeaturesService {
           .where('userId1', isEqualTo: uid)
           .get();
 
-      final friendIds = friendsSnapshot.docs
-          .map((doc) => doc.get('userId2'))
-          .toList();
+      final friendIds =
+          friendsSnapshot.docs.map((doc) => doc.get('userId2')).toList();
 
       if (friendIds.isEmpty) {
         return [];
@@ -385,10 +373,8 @@ class SocialFeaturesService {
 
       return activitySnapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching activity feed: $e');
+      if (kDebugMode) debugPrint('Error fetching activity feed: $e');
       return [];
     }
   }
 }
-
-

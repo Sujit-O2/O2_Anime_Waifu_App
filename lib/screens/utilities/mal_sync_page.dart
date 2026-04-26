@@ -290,7 +290,7 @@ class _MalSyncPageState extends State<MalSyncPage> {
                             color: V2Theme.primaryColor,
                           ),
                         ),
-                        Expanded(
+                        const Expanded(
                           child: StatCard(
                             title: 'Source',
                             value: 'MAL',
@@ -468,9 +468,9 @@ class _MalSyncPageState extends State<MalSyncPage> {
                         ),
                       ),
                     ] else ...<Widget>[
-                      GlassCard(
+                      const GlassCard(
                         margin: EdgeInsets.zero,
-                        child: const EmptyState(
+                        child: EmptyState(
                           icon: Icons.collections_bookmark_rounded,
                           title: 'No synced MAL list yet',
                           subtitle:

@@ -101,6 +101,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
         final data = jsonDecode(res.body);
         final result = data['translatedText'] as String? ?? '';
         _fadeCtrl.reset();
+        if (!mounted) return;
         setState(() {
           _translated = result;
         });
@@ -119,6 +120,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
           final result =
               data['responseData']?['translatedText'] as String? ?? '';
           _fadeCtrl.reset();
+          if (!mounted) return;
           setState(() {
             _translated = result;
           });
@@ -143,6 +145,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
           final result =
               data['responseData']?['translatedText'] as String? ?? '';
           _fadeCtrl.reset();
+          if (!mounted) return;
           setState(() {
             _translated = result;
           });

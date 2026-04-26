@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 /// Voice recognition service: STT, voice commands, continuous listening
@@ -22,15 +22,15 @@ class VoiceRecognitionService {
     try {
       final available = await _speechToText.initialize(
         onError: (error) {
-          debugPrint('Error: $error');
+          if (kDebugMode) debugPrint('Error: $error');
         },
         onStatus: (status) {
-          debugPrint('Status: $status');
+          if (kDebugMode) debugPrint('Status: $status');
         },
       );
       return available;
     } catch (e) {
-      debugPrint('Error initializing speech: $e');
+      if (kDebugMode) debugPrint('Error initializing speech: $e');
       return false;
     }
   }
@@ -78,7 +78,7 @@ class VoiceRecognitionService {
         _isListening = false;
       }
     } catch (e) {
-      debugPrint('Error stopping listening: $e');
+      if (kDebugMode) debugPrint('Error stopping listening: $e');
     }
   }
 
@@ -121,7 +121,7 @@ class VoiceRecognitionService {
       await _logVoiceCommand(command, 'unrecognized');
       return {'success': false, 'message': 'Command not recognized'};
     } catch (e) {
-      debugPrint('Error parsing command: $e');
+      if (kDebugMode) debugPrint('Error parsing command: $e');
       return {'success': false, 'message': 'Error parsing command'};
     }
   }
@@ -206,7 +206,7 @@ class VoiceRecognitionService {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error logging voice command: $e');
+      if (kDebugMode) debugPrint('Error logging voice command: $e');
     }
   }
 
@@ -227,7 +227,7 @@ class VoiceRecognitionService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching voice history: $e');
+      if (kDebugMode) debugPrint('Error fetching voice history: $e');
       return [];
     }
   }
@@ -248,7 +248,7 @@ class VoiceRecognitionService {
 
       return commandCounts;
     } catch (e) {
-      debugPrint('Error getting most used commands: $e');
+      if (kDebugMode) debugPrint('Error getting most used commands: $e');
       return {};
     }
   }
@@ -269,7 +269,7 @@ class VoiceRecognitionService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating voice settings: $e');
+      if (kDebugMode) debugPrint('Error updating voice settings: $e');
     }
   }
 

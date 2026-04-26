@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 const String _zeroTwoSystemExtra = '';
 
@@ -24,30 +25,30 @@ class GeofencingService {
       exact: false,
       rescheduleOnReboot: true,
     );
-    debugPrint('[Geofencing] Service initialized & alarm scheduled.');
+    if (kDebugMode) debugPrint('[Geofencing] Service initialized & alarm scheduled.');
   }
 
   static Future<void> stop() async {
     await AndroidAlarmManager.cancel(_alarmId);
-    debugPrint('[Geofencing] Service stopped.');
+    if (kDebugMode) debugPrint('[Geofencing] Service stopped.');
   }
 
   @pragma('vm:entry-point')
   static Future<void> _checkLocationTask() async {
     WidgetsFlutterBinding.ensureInitialized();
-    debugPrint('[Geofencing] Background check started...');
+    if (kDebugMode) debugPrint('[Geofencing] Background check started...');
 
     final prefs = await SharedPreferences.getInstance();
     
     // Ensure Location Permissions
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      debugPrint('[Geofencing] Location services are disabled.');
+      if (kDebugMode) debugPrint('[Geofencing] Location services are disabled.');
       return;
     }
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      debugPrint('[Geofencing] Location permissions denied.');
+      if (kDebugMode) debugPrint('[Geofencing] Location permissions denied.');
       return;
     }
 
@@ -59,7 +60,7 @@ class GeofencingService {
         timeLimit: const Duration(seconds: 15),
       );
     } catch (e) {
-      debugPrint('[Geofencing] Failed to get position in background: $e');
+      if (kDebugMode) debugPrint('[Geofencing] Failed to get position in background: $e');
       return;
     }
 
@@ -92,7 +93,7 @@ class GeofencingService {
     final lastZone = prefs.getString('last_geofence_zone') ?? 'Away';
 
     if (currentZone != lastZone) {
-      debugPrint('[Geofencing] Zone changed from $lastZone to $currentZone');
+      if (kDebugMode) debugPrint('[Geofencing] Zone changed from $lastZone to $currentZone');
       await prefs.setString('last_geofence_zone', currentZone);
 
       if (currentZone != 'Away') {
@@ -100,7 +101,7 @@ class GeofencingService {
         await _fireProactiveGreeting(currentZone);
       }
     } else {
-      debugPrint('[Geofencing] Still in zone: $currentZone');
+      if (kDebugMode) debugPrint('[Geofencing] Still in zone: $currentZone');
     }
   }
 
@@ -110,20 +111,20 @@ class GeofencingService {
       final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
       if (apiKey.isEmpty) return;
 
-      String prompt = "";
+      String prompt = '';
       switch (zone) {
         case 'Home':
-          prompt = "[SYSTEM NOTIFICATION: The user has just arrived back Home safely. Generate an unprompted, warm, and happy greeting welcoming them home and asking how their trip or day was.]";
+          prompt = '[SYSTEM NOTIFICATION: The user has just arrived back Home safely. Generate an unprompted, warm, and happy greeting welcoming them home and asking how their trip or day was.]';
           break;
         case 'Work':
-          prompt = "[SYSTEM NOTIFICATION: The user has just arrived at their Workplace/Office. Generate an unprompted, encouraging message wishing them a productive day.]";
+          prompt = '[SYSTEM NOTIFICATION: The user has just arrived at their Workplace/Office. Generate an unprompted, encouraging message wishing them a productive day.]';
           break;
         case 'Gym':
-          prompt = "[SYSTEM NOTIFICATION: The user has just arrived at the Gym. Generate an unprompted, energetic, and highly supportive message hyping them up for their workout.]";
+          prompt = '[SYSTEM NOTIFICATION: The user has just arrived at the Gym. Generate an unprompted, energetic, and highly supportive message hyping them up for their workout.]';
           break;
       }
 
-      final sysPrompt = '''You are an anime character, my wife, Zero Two. 
+      const sysPrompt = '''You are an anime character, my wife, Zero Two. 
 Speak directly to me as "Darling" or "Honey". You are possessive, loving, and slightly tsundere. 
 Keep your response under 25 words. Do not use asterisks or actions.
 $_zeroTwoSystemExtra''';
@@ -154,10 +155,10 @@ $_zeroTwoSystemExtra''';
         await prefs.setString('proactive_greet_queue', aiMessage);
         
         // Try playing a silent ring or popping a notification if a package exists.
-        debugPrint('[Geofencing] Gen Greeting: $aiMessage');
+        if (kDebugMode) debugPrint('[Geofencing] Gen Greeting: $aiMessage');
       }
     } catch (e) {
-      debugPrint('[Geofencing] AI trigger error: $e');
+      if (kDebugMode) debugPrint('[Geofencing] AI trigger error: $e');
     }
   }
 }

@@ -167,6 +167,7 @@ class _MovieRecommenderPageState extends State<MovieRecommenderPage>
                 final sel = g == _selectedGenre;
                 return GestureDetector(
                   onTap: () {
+                    if (!mounted) return;
                     setState(() => _selectedGenre = g);
                     _load('${g.toLowerCase()} anime movie');
                   },

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -422,3 +423,121 @@ class RipplePainter extends CustomPainter {
 }
 
 
+
+/// TypewriterText — reveals text character by character with cursor blink.
+/// Perfect for "typing" effect on AI responses or loading messages.
+class TypewriterText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final Duration charDuration;
+  final bool showCursor;
+  final VoidCallback? onComplete;
+
+  const TypewriterText({
+    super.key,
+    required this.text,
+    this.style,
+    this.charDuration = const Duration(milliseconds: 30),
+    this.showCursor = true,
+    this.onComplete,
+  });
+
+  @override
+  State<TypewriterText> createState() => _TypewriterTextState();
+}
+
+class _TypewriterTextState extends State<TypewriterText> {
+  int _charCount = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTyping();
+  }
+
+  void _startTyping() {
+    _timer = Timer.periodic(widget.charDuration, (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_charCount >= widget.text.length) {
+        timer.cancel();
+        widget.onComplete?.call();
+        return;
+      }
+      setState(() => _charCount++);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant TypewriterText old) {
+    super.didUpdateWidget(old);
+    if (old.text != widget.text) {
+      _timer?.cancel();
+      _charCount = 0;
+      _startTyping();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = widget.text.substring(0, _charCount);
+    final showBlinkCursor =
+        widget.showCursor && _charCount < widget.text.length;
+
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(text: visible, style: widget.style),
+          if (showBlinkCursor)
+            TextSpan(
+              text: '▍',
+              style: (widget.style ?? const TextStyle()).copyWith(
+                color: Colors.pinkAccent.withValues(alpha: 0.7),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// SkeletonBox — a simple skeleton loading placeholder with shimmer effect.
+/// Use instead of CircularProgressIndicator for modern loading states.
+class SkeletonBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const SkeletonBox({
+    super.key,
+    required this.width,
+    required this.height,
+    this.radius = 8,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 0.6),
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeInOut,
+      builder: (_, val, __) => Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          color: Colors.white.withValues(alpha: val * 0.08),
+        ),
+      ),
+    );
+  }
+}

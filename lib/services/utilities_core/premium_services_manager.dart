@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Master Service Initializer - Initialize all premium services at once
 class PremiumServicesManager {
@@ -14,19 +14,19 @@ class PremiumServicesManager {
   /// Initialize all premium services
   Future<void> initializeAll() async {
     try {
-      debugPrint('🚀 Initializing Premium Services...');
+      if (kDebugMode) debugPrint('🚀 Initializing Premium Services...');
 
 
 
-      debugPrint('✅ Premium Services initialized');
+      if (kDebugMode) debugPrint('✅ Premium Services initialized');
 
       // 8. Recommendation Engine (always ready, no init needed)
-      debugPrint('✅ RecommendationEngine ready');
+      if (kDebugMode) debugPrint('✅ RecommendationEngine ready');
 
       _initialized = true;
-      debugPrint('🎉 All Premium Services Initialized Successfully!\n');
+      if (kDebugMode) debugPrint('🎉 All Premium Services Initialized Successfully!\n');
     } catch (e) {
-      debugPrint('❌ Error initializing premium services: $e');
+      if (kDebugMode) debugPrint('❌ Error initializing premium services: $e');
       _initialized = false;
     }
   }
@@ -48,11 +48,12 @@ class PremiumServicesManager {
   /// Print service overview
   Future<void> printServiceOverview() async {
     if (!_initialized) {
-      debugPrint('❌ Services not initialized. Call initializeAll() first.');
+      if (kDebugMode) debugPrint('❌ Services not initialized. Call initializeAll() first.');
       return;
     }
 
-    debugPrint('''
+    if (kDebugMode) {
+      debugPrint('''
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                    PREMIUM SERVICES OVERVIEW                              ║
 ╚════════════════════════════════════════════════════════════════════════════╝
@@ -118,12 +119,12 @@ await _customThemeService.createCustomTheme(newTheme);
 
 // 2. Share Theme
 final shareCode = await _themeShareService.shareTheme('custom_1');
-debugPrint('Share with code: \$shareCode');
+if (kDebugMode) debugPrint('Share with code: \$shareCode');
 
 // 3. Get Recommendations
 final recommendations = await recommendationEngine.getRecommendedThemes();
 recommendations.forEach((rec) {
-  debugPrint('\${rec.theme.name}: \${rec.reason} (Score: \${rec.score})');
+  if (kDebugMode) debugPrint('\${rec.theme.name}: \${rec.reason} (Score: \${rec.score})');
 });
 
 // 4. Schedule Email
@@ -165,7 +166,7 @@ final queueId = await _emailQueueService.addToQueue(queuedEmail);
 
 // 8. Get Analytics
 final stats = await _analyticsService.getUsageStats();
-debugPrint(stats.toString());
+if (kDebugMode) debugPrint(stats.toString());
 
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                         IMPLEMENTATION TIPS                               ║
@@ -180,6 +181,7 @@ debugPrint(stats.toString());
 ✅ Support voice messages for rich communication
 
     ''');
+    }
   }
 }
 

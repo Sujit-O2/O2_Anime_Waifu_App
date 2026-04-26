@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Achievement Tier System
@@ -31,9 +31,9 @@ class AchievementSystemManager {
       await _loadUnlockedAchievements();
       await _initializeAchievements();
       await _initializeQuestLines();
-      debugPrint('[Achievement System] Initialized with ${_achievements.length} achievements');
+      if (kDebugMode) debugPrint('[Achievement System] Initialized with ${_achievements.length} achievements');
     } catch (e) {
-      debugPrint('[Achievement System] Error: $e');
+      if (kDebugMode) debugPrint('[Achievement System] Error: $e');
     }
   }
 
@@ -271,9 +271,9 @@ class AchievementSystemManager {
         'metadata': metadata ?? {},
       }, SetOptions(merge: true));
 
-      debugPrint('✅ Achievement unlocked: ${achievement.title}');
+      if (kDebugMode) debugPrint('✅ Achievement unlocked: ${achievement.title}');
     } catch (e) {
-      debugPrint('[Achievement System] Unlock error: $e');
+      if (kDebugMode) debugPrint('[Achievement System] Unlock error: $e');
     }
   }
 

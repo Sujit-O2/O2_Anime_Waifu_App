@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
@@ -30,7 +31,8 @@ class ScreenshotCapture extends StatelessWidget {
   /// Capture the widget as an image and share it.
   static Future<void> captureAndShare(GlobalKey key, String filename) async {
     try {
-      final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 3.0);
@@ -47,7 +49,7 @@ class ScreenshotCapture extends StatelessWidget {
         text: 'Check out this anime! 🌸 — Shared from Anime Waifu',
       );
     } catch (e) {
-      debugPrint('Screenshot capture failed: $e');
+      if (kDebugMode) debugPrint('Screenshot capture failed: $e');
     }
   }
 }
@@ -85,12 +87,13 @@ class ScreenshotButton extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Colors.deepPurple, Colors.pinkAccent]),
+                colors: [Colors.deepPurple, Colors.pinkAccent]),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.deepPurple.withValues(alpha: 0.5),
-                blurRadius: 12, spreadRadius: 2),
+                  color: Colors.deepPurple.withValues(alpha: 0.5),
+                  blurRadius: 12,
+                  spreadRadius: 2),
             ],
           ),
           child: const Icon(Icons.camera_alt, color: Colors.white, size: 22),
@@ -99,5 +102,3 @@ class ScreenshotButton extends StatelessWidget {
     );
   }
 }
-
-

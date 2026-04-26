@@ -107,6 +107,7 @@ class _MultiplePersonasPageState extends State<MultiplePersonasPage> {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('active_persona');
     if (saved != null && _personas.any((p) => p.id == saved)) {
+      if (!mounted) return;
       setState(() => _activeId = saved);
     }
   }
@@ -135,6 +136,7 @@ class _MultiplePersonasPageState extends State<MultiplePersonasPage> {
       setState(() => _preview = reply);
       AffectionService.instance.addPoints(2);
     } catch (_) {
+      if (!mounted) return;
       setState(() => _preview = p.sampleLine);
     } finally {
       setState(() => _loading = false);

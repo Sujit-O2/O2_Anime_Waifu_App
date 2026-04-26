@@ -20,13 +20,63 @@ class AppProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..restore()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()..loadAll()),
-        ChangeNotifierProvider(create: (_) => PersonaProvider()..initialize()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()..loadPersistedState()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => PersonaProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => VoiceProvider()),
       ],
-      child: child,
+      child: _AppBootstrap(child: child),
+    );
+  }
+}
+
+class _AppBootstrap extends StatefulWidget {
+  final Widget child;
+  const _AppBootstrap({required this.child});
+
+  @override
+  State<_AppBootstrap> createState() => _AppBootstrapState();
+}
+
+class _AppBootstrapState extends State<_AppBootstrap> {
+  late final Future<void> _initializationFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializationFuture = _initializeProviders();
+  }
+
+  Future<void> _initializeProviders() async {
+    final themeProvider = context.read<ThemeProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+    final personaProvider = context.read<PersonaProvider>();
+    final chatProvider = context.read<ChatProvider>();
+
+    await Future.wait([
+      themeProvider.restore(),
+      settingsProvider.loadAll(),
+      personaProvider.initialize(),
+      chatProvider.loadPersistedState(),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initializationFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return widget.child;
+        }
+        return const Material(
+          color: Colors.black,
+          child: Center(
+            child: CircularProgressIndicator.adaptive(),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/core/image_cache_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
@@ -15,6 +20,10 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   int _memoryLimit = 15;
   bool _debugLogs = false;
   bool _strictWake = false;
+  CacheStatistics? _cacheStats;
+  int _tempStorageBytes = 0;
+  bool _storageBusy = false;
+  int _lastMaintenanceEpochMs = 0;
 
   @override
   void initState() {
@@ -24,22 +33,21 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() {
       _memoryLimit = prefs.getInt('flutter.advanced_memory_limit') ?? 15;
       _debugLogs = prefs.getBool('flutter.advanced_debug_logs') ?? false;
       _strictWake = prefs.getBool('flutter.advanced_strict_wake') ?? false;
+      _lastMaintenanceEpochMs =
+          prefs.getInt('storage_maintenance_last_run_epoch_ms') ?? 0;
     });
+    await _refreshStorageMetrics();
   }
 
   Future<void> _saveMemoryLimit(double value) async {
     HapticFeedback.selectionClick();
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _memoryLimit = value.toInt());
     await prefs.setInt('flutter.advanced_memory_limit', _memoryLimit);
   }
@@ -47,9 +55,7 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   Future<void> _saveDebugLogs(bool value) async {
     HapticFeedback.selectionClick();
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _debugLogs = value);
     await prefs.setBool('flutter.advanced_debug_logs', _debugLogs);
   }
@@ -57,14 +63,90 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   Future<void> _saveStrictWake(bool value) async {
     HapticFeedback.selectionClick();
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _strictWake = value);
     await prefs.setBool('flutter.advanced_strict_wake', _strictWake);
   }
 
   Future<void> _refresh() => _loadSettings();
+
+  Future<void> _refreshStorageMetrics() async {
+    try {
+      final stats = await ImageCacheManager().getCacheStatistics();
+      final tempDir = await getTemporaryDirectory();
+      final totalBytes = _calculateDirectoryBytes(tempDir);
+      if (!mounted) return;
+      setState(() {
+        _cacheStats = stats;
+        _tempStorageBytes = totalBytes;
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('Storage metrics refresh failed: $e');
+    }
+  }
+
+  int _calculateDirectoryBytes(Directory dir) {
+    int total = 0;
+    try {
+      final entities = dir.listSync(recursive: true, followLinks: false);
+      for (final entity in entities) {
+        if (entity is File) {
+          total += entity.lengthSync();
+        }
+      }
+    } catch (_) {}
+    return total;
+  }
+
+  Future<void> _quickCleanup() async {
+    if (_storageBusy) return;
+    HapticFeedback.lightImpact();
+    setState(() => _storageBusy = true);
+    try {
+      ImageCacheManager().clearMemoryCache();
+      ImageCacheManager().cleanupExpiredCache();
+      await _refreshStorageMetrics();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(
+          'storage_maintenance_last_run_epoch_ms', DateTime.now().millisecondsSinceEpoch);
+    } finally {
+      if (mounted) setState(() => _storageBusy = false);
+    }
+  }
+
+  Future<void> _deepCleanup() async {
+    if (_storageBusy) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _storageBusy = true);
+    try {
+      await ImageCacheManager().clearAllCaches();
+      final tempDir = await getTemporaryDirectory();
+      final entities = tempDir.listSync(recursive: false, followLinks: false);
+      for (final entity in entities) {
+        try {
+          entity.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+      await _refreshStorageMetrics();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(
+          'storage_maintenance_last_run_epoch_ms', DateTime.now().millisecondsSinceEpoch);
+    } finally {
+      if (mounted) setState(() => _storageBusy = false);
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    double size = bytes.toDouble();
+    int unit = 0;
+    while (size >= 1024 && unit < units.length - 1) {
+      size /= 1024;
+      unit++;
+    }
+    return '${size.toStringAsFixed(unit == 0 ? 0 : 1)} ${units[unit]}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -312,6 +394,106 @@ class _AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                   value: _strictWake,
                   accentColor: V2Theme.primaryColor,
                   onChanged: _saveStrictWake,
+                ),
+                const SizedBox(height: 12),
+                GlassCard(
+                  margin: EdgeInsets.zero,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Performance & Storage',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Live cache usage and cleanup controls for smoother performance.',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white60,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Memory cache objects: ${_cacheStats?.memoryCacheSize ?? 0}',
+                        style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: ((_cacheStats?.memoryCacheSize ?? 0) / 60).clamp(0.0, 1.0),
+                        minHeight: 5,
+                        backgroundColor: Colors.white12,
+                        valueColor: const AlwaysStoppedAnimation<Color>(V2Theme.secondaryColor),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Disk cache objects: ${_cacheStats?.diskCacheSize ?? 0}',
+                        style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: ((_cacheStats?.diskCacheSize ?? 0) / 40).clamp(0.0, 1.0),
+                        minHeight: 5,
+                        backgroundColor: Colors.white12,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.tealAccent),
+                      ),
+                      Text(
+                        'Temporary storage: ${_formatBytes(_tempStorageBytes)}',
+                        style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12),
+                      ),
+                      Text(
+                        'Last maintenance: ${_lastMaintenanceEpochMs == 0 ? 'never' : DateTime.fromMillisecondsSinceEpoch(_lastMaintenanceEpochMs).toLocal().toString().split('.').first}',
+                        style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          Semantics(
+                            button: true,
+                            label: 'Quick cleanup cached data',
+                            child: FilledButton.icon(
+                              onPressed: _storageBusy ? null : _quickCleanup,
+                              icon: const Icon(Icons.cleaning_services_outlined, size: 16),
+                              label: Text(
+                                'Quick Cleanup',
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            button: true,
+                            label: 'Deep cleanup temporary storage and cache',
+                            child: OutlinedButton.icon(
+                              onPressed: _storageBusy ? null : _deepCleanup,
+                              icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                              label: Text(
+                                'Deep Cleanup',
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            button: true,
+                            label: 'Refresh storage metrics',
+                            child: TextButton.icon(
+                              onPressed: _storageBusy ? null : _refreshStorageMetrics,
+                              icon: const Icon(Icons.refresh, size: 16),
+                              label: Text(
+                                'Refresh',
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

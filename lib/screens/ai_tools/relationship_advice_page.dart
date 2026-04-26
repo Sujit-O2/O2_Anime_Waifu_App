@@ -108,6 +108,7 @@ class _RelationshipAdvicePageState extends State<RelationshipAdvicePage> with Si
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _result = reply;
         _history.insert(
@@ -451,9 +452,9 @@ class _RelationshipAdvicePageState extends State<RelationshipAdvicePage> with Si
             ],
             const SizedBox(height: 16),
             if (_history.isEmpty)
-              GlassCard(
+              const GlassCard(
                 margin: EdgeInsets.zero,
-                child: const EmptyState(
+                child: EmptyState(
                   icon: Icons.favorite_border_rounded,
                   title: 'No advice history yet',
                   subtitle:

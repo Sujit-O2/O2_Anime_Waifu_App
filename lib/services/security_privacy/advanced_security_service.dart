@@ -4,7 +4,7 @@ import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart';
 
 /// Advanced security service: Biometric, device fingerprinting, certificate pinning
@@ -42,7 +42,7 @@ class AdvancedSecurityService {
       );
       return result ?? false;
     } catch (e) {
-      debugPrint('Biometric auth error: $e');
+      if (kDebugMode) debugPrint('Biometric auth error: $e');
       return false;
     }
   }
@@ -58,7 +58,7 @@ class AdvancedSecurityService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error enabling biometric lock: $e');
+      if (kDebugMode) debugPrint('Error enabling biometric lock: $e');
     }
   }
 
@@ -69,7 +69,7 @@ class AdvancedSecurityService {
         'biometricLockEnabled': false,
       });
     } catch (e) {
-      debugPrint('Error disabling biometric lock: $e');
+      if (kDebugMode) debugPrint('Error disabling biometric lock: $e');
     }
   }
 
@@ -136,7 +136,7 @@ class AdvancedSecurityService {
             'osVersion': Platform.operatingSystemVersion,
           }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error storing device fingerprint: $e');
+      if (kDebugMode) debugPrint('Error storing device fingerprint: $e');
     }
   }
 
@@ -158,7 +158,7 @@ class AdvancedSecurityService {
 
       // Check if fingerprint matches
       if (currentFingerprint != storedFingerprint) {
-        debugPrint('⚠️ WARNING: Device fingerprint mismatch!');
+        if (kDebugMode) debugPrint('⚠️ WARNING: Device fingerprint mismatch!');
         await _logSecurityAlert(
           uid: uid,
           message: 'Device fingerprint changed',
@@ -169,7 +169,7 @@ class AdvancedSecurityService {
 
       return true;
     } catch (e) {
-      debugPrint('Error verifying device fingerprint: $e');
+      if (kDebugMode) debugPrint('Error verifying device fingerprint: $e');
       return false;
     }
   }
@@ -217,7 +217,7 @@ class AdvancedSecurityService {
         'appVersion': '7.0.2', // Update with actual version
       });
     } catch (e) {
-      debugPrint('Error logging security alert: $e');
+      if (kDebugMode) debugPrint('Error logging security alert: $e');
     }
   }
 
@@ -236,7 +236,7 @@ class AdvancedSecurityService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching security alerts: $e');
+      if (kDebugMode) debugPrint('Error fetching security alerts: $e');
       return [];
     }
   }
@@ -258,7 +258,7 @@ class AdvancedSecurityService {
             }
           });
     } catch (e) {
-      debugPrint('Error clearing old security alerts: $e');
+      if (kDebugMode) debugPrint('Error clearing old security alerts: $e');
     }
   }
 
@@ -302,7 +302,7 @@ class AdvancedSecurityService {
       );
       await FirebaseAuth.instance.signOut();
     } catch (e) {
-      debugPrint('Error during secure logout: $e');
+      if (kDebugMode) debugPrint('Error during secure logout: $e');
     }
   }
 }

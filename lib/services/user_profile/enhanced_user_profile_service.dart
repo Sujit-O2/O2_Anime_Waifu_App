@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Enhanced User Profile Service
@@ -40,7 +40,7 @@ class EnhancedUserProfileService {
     _profile.lastUpdated = DateTime.now();
 
     await _saveProfile();
-    debugPrint('[UserProfile] Profile updated');
+    if (kDebugMode) debugPrint('[UserProfile] Profile updated');
   }
 
   // ===== AI PERSONA TRAINING =====
@@ -67,7 +67,7 @@ class EnhancedUserProfileService {
     _behaviorPatterns[action] = (_behaviorPatterns[action] ?? 0.5) * 0.8 + value * 0.2;
 
     await _savePersonaTraining();
-    debugPrint('[UserProfile] Recorded: $category -> $action ($value)');
+    if (kDebugMode) debugPrint('[UserProfile] Recorded: $category -> $action ($value)');
   }
 
   /// Get trained persona traits
@@ -126,7 +126,7 @@ class EnhancedUserProfileService {
     _behaviorPatterns[item] = score;
 
     await _saveProfile();
-    debugPrint('[UserProfile] Learned preference: $category -> $item ($score)');
+    if (kDebugMode) debugPrint('[UserProfile] Learned preference: $category -> $item ($score)');
   }
 
   /// Get recommendations based on learned preferences
@@ -168,7 +168,7 @@ class EnhancedUserProfileService {
     }
 
     await _saveProfile();
-    debugPrint('[UserProfile] Mood updated: $mood');
+    if (kDebugMode) debugPrint('[UserProfile] Mood updated: $mood');
   }
 
   /// Get mood trend
@@ -251,7 +251,7 @@ class EnhancedUserProfileService {
     );
 
     _profile.achievements.add(achievement);
-    debugPrint('[UserProfile] Achievement unlocked: $title');
+    if (kDebugMode) debugPrint('[UserProfile] Achievement unlocked: $title');
   }
 
   Future<List<Achievement>> getAchievements() async {
@@ -387,7 +387,7 @@ ACCOUNT AGE:
         final trait = PersonaTraits.fromJson(decoded['value'] as Map<String, dynamic>);
         _personaTraining[decoded['key'] as String] = trait;
       } catch (e) {
-        debugPrint('[UserProfile] Error loading persona: $e');
+        if (kDebugMode) debugPrint('[UserProfile] Error loading persona: $e');
       }
     }
   }

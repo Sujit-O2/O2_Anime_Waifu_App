@@ -80,6 +80,7 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
     final decoded = (jsonDecode(raw) as List<dynamic>)
         .map((item) => item.toString())
         .toSet();
+    if (!mounted) return;
     setState(() => _requested.addAll(decoded));
   }
 
@@ -181,8 +182,10 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: V2SearchBar(
                     hintText: 'Search by vibe, anime, or name...',
-                    onChanged: (value) =>
-                        setState(() => _searchQuery = value.trim()),
+                    onChanged: (value) {
+                      if (!mounted) return;
+                      setState(() => _searchQuery = value.trim());
+                    },
                   ),
                 ),
                 Padding(
@@ -215,9 +218,8 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
                 ),
                 const SizedBox(height: 12),
                 Expanded(
@@ -397,6 +399,3 @@ class _AnimeMatchmakerPageState extends State<AnimeMatchmakerPage>
     );
   }
 }
-
-
-

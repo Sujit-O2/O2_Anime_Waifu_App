@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Email Success Analytics Service - Monitor email delivery rates and performance
@@ -17,7 +17,7 @@ class EmailSuccessAnalyticsService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Email Success Analytics Service initialized');
+    if (kDebugMode) debugPrint('✅ Email Success Analytics Service initialized');
   }
 
   /// Record email send attempt
@@ -47,9 +47,9 @@ class EmailSuccessAnalyticsService {
       }
 
       await _prefs.setString(_emailRecordsKey, jsonEncode(recordsList));
-      debugPrint('📧 Email record: $provider ${success ? "✅" : "❌"}');
+      if (kDebugMode) debugPrint('📧 Email record: $provider ${success ? "✅" : "❌"}');
     } catch (e) {
-      debugPrint('❌ Error recording email attempt: $e');
+      if (kDebugMode) debugPrint('❌ Error recording email attempt: $e');
     }
   }
 
@@ -83,7 +83,7 @@ class EmailSuccessAnalyticsService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting success metrics: $e');
+      if (kDebugMode) debugPrint('❌ Error getting success metrics: $e');
       return EmailSuccessMetrics(
         totalAttempts: 0,
         successfulEmails: 0,
@@ -139,7 +139,7 @@ class EmailSuccessAnalyticsService {
       await _prefs.setString(_providerStatsKey, jsonEncode(_serializeProviderStats(result)));
       return result;
     } catch (e) {
-      debugPrint('❌ Error getting provider stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting provider stats: $e');
       return {};
     }
   }
@@ -159,7 +159,7 @@ class EmailSuccessAnalyticsService {
 
       return mostReliable.provider;
     } catch (e) {
-      debugPrint('❌ Error getting most reliable provider: $e');
+      if (kDebugMode) debugPrint('❌ Error getting most reliable provider: $e');
       return null;
     }
   }
@@ -182,7 +182,7 @@ class EmailSuccessAnalyticsService {
 
       return errorCounts;
     } catch (e) {
-      debugPrint('❌ Error getting common errors: $e');
+      if (kDebugMode) debugPrint('❌ Error getting common errors: $e');
       return {};
     }
   }
@@ -207,7 +207,7 @@ class EmailSuccessAnalyticsService {
 
       return recipientFailures.entries.reduce((a, b) => a.value > b.value ? a : b).key;
     } catch (e) {
-      debugPrint('❌ Error getting most problematic recipient: $e');
+      if (kDebugMode) debugPrint('❌ Error getting most problematic recipient: $e');
       return null;
     }
   }
@@ -251,7 +251,7 @@ class EmailSuccessAnalyticsService {
 
       return trend;
     } catch (e) {
-      debugPrint('❌ Error getting daily success trend: $e');
+      if (kDebugMode) debugPrint('❌ Error getting daily success trend: $e');
       return {};
     }
   }
@@ -291,7 +291,7 @@ class EmailSuccessAnalyticsService {
 
       return pattern;
     } catch (e) {
-      debugPrint('❌ Error getting hourly success pattern: $e');
+      if (kDebugMode) debugPrint('❌ Error getting hourly success pattern: $e');
       return {};
     }
   }
@@ -315,7 +315,7 @@ class EmailSuccessAnalyticsService {
         recommendations: _generateRecommendations(metrics, providerStats),
       );
     } catch (e) {
-      debugPrint('❌ Error generating delivery report: $e');
+      if (kDebugMode) debugPrint('❌ Error generating delivery report: $e');
       return EmailDeliveryReport(
         timestamp: DateTime.now(),
         overallMetrics: EmailSuccessMetrics(
@@ -380,9 +380,9 @@ class EmailSuccessAnalyticsService {
     try {
       await _prefs.remove(_emailRecordsKey);
       await _prefs.remove(_providerStatsKey);
-      debugPrint('✅ Email analytics data cleared');
+      if (kDebugMode) debugPrint('✅ Email analytics data cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing analytics data: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing analytics data: $e');
     }
   }
 }

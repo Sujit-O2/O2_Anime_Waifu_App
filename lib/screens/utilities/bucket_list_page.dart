@@ -185,6 +185,7 @@ class _BucketListPageState extends State<BucketListPage>
       context,
       'Bucket list item removed.',
       () async {
+        if (!mounted) return;
         setState(() => _items.insert(index, removed));
         await _sync();
       },
@@ -385,8 +386,10 @@ class _BucketListPageState extends State<BucketListPage>
                             V2SearchBar(
                               controller: _searchCtrl,
                               hintText: 'Search by goal or category...',
-                              onChanged: (value) =>
-                                  setState(() => _searchQuery = value.trim()),
+                              onChanged: (value) {
+                                if (!mounted) return;
+                                setState(() => _searchQuery = value.trim());
+                              },
                             ),
                             const SizedBox(height: 12),
                             SingleChildScrollView(
@@ -600,6 +603,3 @@ class _BucketListPageState extends State<BucketListPage>
     );
   }
 }
-
-
-

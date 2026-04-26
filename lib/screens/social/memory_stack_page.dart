@@ -51,6 +51,7 @@ class _MemoryStackPageState extends State<MemoryStackPage>
     final d = prefs.getString('memory_stack_data');
     if (d != null) {
       final decoded = jsonDecode(d) as Map<String, dynamic>;
+      if (!mounted) return;
       setState(() {
         for (final key in ['short', 'long', 'emotional', 'project']) {
           _memories[key] =

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Singleton Service Locator (without external dependencies)
 class ServiceLocator {
@@ -45,7 +45,7 @@ final locator = ServiceLocator();
 /// Example usage - customize based on your actual services
 Future<void> setupServiceLocator() async {
   try {
-    debugPrint('🔧 Initializing Service Locator...');
+    if (kDebugMode) debugPrint('🔧 Initializing Service Locator...');
 
     // Example: Register Performance Optimization Service
     // Uncomment when service is available
@@ -60,10 +60,10 @@ Future<void> setupServiceLocator() async {
 
     // Add more service registrations here as needed...
 
-    debugPrint('✅ Service Locator initialized');
-    debugPrint('✅ Services ready to use');
+    if (kDebugMode) debugPrint('✅ Service Locator initialized');
+    if (kDebugMode) debugPrint('✅ Services ready to use');
   } catch (e) {
-    debugPrint('❌ Error initializing Service Locator: $e');
+    if (kDebugMode) debugPrint('❌ Error initializing Service Locator: $e');
     rethrow;
   }
 }

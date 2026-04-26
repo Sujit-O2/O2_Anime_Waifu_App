@@ -105,7 +105,7 @@ class _GachaViewState extends State<_GachaView> with TickerProviderStateMixin {
     await _shakeCtrl.forward(from: 0);
 
     // Pick a random quote and determine rarity
-    final quotes = QuoteService.zeroTwoQuotes;
+    const quotes = QuoteService.zeroTwoQuotes;
     final quoteIndex =
         (DateTime.now().millisecondsSinceEpoch + _rollCount * 37) %
             quotes.length;
@@ -269,7 +269,7 @@ class _GachaViewState extends State<_GachaView> with TickerProviderStateMixin {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   gradient: _rolling
-                      ? LinearGradient(
+                      ? const LinearGradient(
                           colors: [
                             Colors.white12,
                             Colors.white10,

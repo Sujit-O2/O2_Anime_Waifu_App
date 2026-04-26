@@ -101,7 +101,7 @@ class _InnerThoughtsBubbleState extends State<InnerThoughtsBubble>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('💭 ', style: const TextStyle(fontSize: 13)),
+                      const Text('💭 ', style: TextStyle(fontSize: 13)),
                       Flexible(
                         child: Text(
                           widget.thought,

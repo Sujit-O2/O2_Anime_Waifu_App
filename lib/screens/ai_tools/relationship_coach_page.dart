@@ -161,7 +161,7 @@ class _RelationshipCoachPageState extends State<RelationshipCoachPage> with Sing
                 child: Align(
                   alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
                   child: Container(
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.78),
                     margin: const EdgeInsets.symmetric(vertical: 5),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(

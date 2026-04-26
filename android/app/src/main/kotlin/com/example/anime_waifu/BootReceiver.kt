@@ -28,10 +28,12 @@ class BootReceiver : BroadcastReceiver() {
         val assistantEnabled = flutterPrefs.getBoolean("flutter.assistant_mode_enabled", true)
         val proactiveEnabled = flutterPrefs.getBoolean("flutter.proactive_enabled", true)
         val wakeWordEnabled = flutterPrefs.getBoolean("flutter.wake_word_enabled", true)
-        if (!assistantEnabled || (!proactiveEnabled && !wakeWordEnabled)) {
+        val trueBgProactiveEnabled =
+            flutterPrefs.getBoolean("flutter.true_background_proactive_enabled", false)
+        if ((!assistantEnabled || (!proactiveEnabled && !wakeWordEnabled)) && !trueBgProactiveEnabled) {
             Log.d(
                 TAG,
-                "Skipping boot start: assistant=$assistantEnabled proactive=$proactiveEnabled wake=$wakeWordEnabled"
+                "Skipping boot start: assistant=$assistantEnabled proactive=$proactiveEnabled wake=$wakeWordEnabled trueBg=$trueBgProactiveEnabled"
             )
             return
         }

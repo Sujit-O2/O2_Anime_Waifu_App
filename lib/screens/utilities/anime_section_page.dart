@@ -12,7 +12,6 @@ import 'package:anime_waifu/services/utilities_core/download_service.dart';
 import 'package:anime_waifu/widgets/anime_visual_effects.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:anime_waifu/widgets/premium_animations.dart';
-import 'package:anime_waifu/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,6 +105,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _favoriteIds = watchlist.map((item) => item.id).toSet();
     });
@@ -127,6 +127,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _items = results;
       _dailyPick = dailyPick;
@@ -144,6 +145,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _searchResults = <AnimeItem>[];
         _loadingSearch = false;
@@ -168,6 +170,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _searchResults = results;
       _loadingSearch = false;
@@ -239,6 +242,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _favoriteIds.remove(anime.id);
       });
@@ -273,6 +277,7 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _favoriteIds.add(anime.id);
       });
@@ -509,323 +514,336 @@ class _AnimeSectionPageState extends State<AnimeSectionPage> {
         tint: V2Theme.surfaceDark,
         child: Column(
           children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        if (Navigator.canPop(context))
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white70,
-                            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      if (Navigator.canPop(context))
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white70,
                           ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Anime Universe',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              'Switch sources, save favorites, and refresh the latest picks.',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: accent.withValues(alpha: 0.18),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.42),
+                          ),
+                        ),
+                        child: Text(
+                          AnimeService.sourceName,
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  GlassCard(
+                    margin: EdgeInsets.zero,
+                    padding: const EdgeInsets.all(18),
+                    glow: true,
+                    child: Row(
+                      children: <Widget>[
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                'Anime Universe',
+                                'Curated for tonight',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                isSearching
+                                    ? 'Your search lane is active.'
+                                    : 'Trending shelves are loaded and ready.',
                                 style: GoogleFonts.outfit(
                                   color: Colors.white,
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
+                              const SizedBox(height: 8),
                               Text(
-                                'Switch sources, save favorites, and refresh the latest picks.',
+                                'Double tap a cover to save it and pull down inside the grid whenever you want a fresh batch.',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white54,
+                                  color: Colors.white60,
                                   fontSize: 12,
+                                  height: 1.35,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(999),
-                            color: accent.withValues(alpha: 0.18),
-                            border: Border.all(
-                              color: accent.withValues(alpha: 0.42),
-                            ),
-                          ),
-                          child: Text(
-                            AnimeService.sourceName,
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        const SizedBox(width: 16),
+                        ProgressRing(
+                          progress: ((displayItems.length).clamp(0, 24)) / 24,
+                          foreground: accent,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(
+                                Icons.play_circle_fill_rounded,
+                                color: accent,
+                                size: 28,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '${displayItems.length}',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                'Visible',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white54,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    GlassCard(
-                      margin: EdgeInsets.zero,
-                      padding: const EdgeInsets.all(18),
-                      glow: true,
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  'Curated for tonight',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  isSearching
-                                      ? 'Your search lane is active.'
-                                      : 'Trending shelves are loaded and ready.',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Double tap a cover to save it and pull down inside the grid whenever you want a fresh batch.',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white60,
-                                    fontSize: 12,
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          ProgressRing(
-                            progress:
-                                ((displayItems.length).clamp(0, 24)) / 24,
-                            foreground: accent,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Icon(
-                                  Icons.play_circle_fill_rounded,
-                                  color: accent,
-                                  size: 28,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${displayItems.length}',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                Text(
-                                  'Visible',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white54,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    WaifuCommentary(mood: _commentaryMood),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: StatCard(
-                            title: 'Trending',
-                            value: '${_items.length}',
-                            icon: Icons.local_fire_department_rounded,
-                            color: accent,
-                          ),
-                        ),
-                        Expanded(
-                          child: StatCard(
-                            title: 'Watchlist',
-                            value: '${_favoriteIds.length}',
-                            icon: Icons.favorite_rounded,
-                            color: Colors.pinkAccent,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: StatCard(
-                            title: 'Sources',
-                            value: '${AnimeSource.values.length}',
-                            icon: Icons.hub_rounded,
-                            color: V2Theme.secondaryColor,
-                          ),
-                        ),
-                        Expanded(
-                          child: StatCard(
-                            title: 'Top Score',
-                            value: _items.isNotEmpty && _items.first.score > 0
-                                ? _items.first.score.toStringAsFixed(1)
-                                : '--',
-                            icon: Icons.star_rounded,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // ── Server Selector Tabs with animated transitions ──
-              SizedBox(
-                height: 48,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  children: AnimeSource.values
-                      .map((source) => _buildSourceChip(source, accent))
-                      .toList(),
-                ),
-              ),
-
-              // ── Search Bar ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                child: GlassCard(
-                  margin: EdgeInsets.zero,
-                  padding: const EdgeInsets.all(16),
-                  child: V2SearchBar(
-                    controller: _searchController,
-                    hintText: 'Search anime across the current source...',
-                    initialValue: _searchQuery,
-                    onChanged: _onSearchChanged,
                   ),
-                ),
-              ),
-
-              // ── Daily Recommendation Banner ──
-              if (_dailyPick != null && !isSearching && !isLoading)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-                  child: AnimatedEntry(
-                    index: 3,
-                    child: _buildDailyPickCard(accent),
-                  ),
-                ),
-
-              // ── Section Title ──
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    isSearching ? 'Search Results' : '🔥 Trending Now',
-                    style: TextStyle(color: Colors.grey.shade300,
-                        fontWeight: FontWeight.w700, fontSize: 15),
-                  ),
-                ),
-              ),
-
-              // ── Grid with Shimmer Loading + 3D Tilt + Parallax + Pull-to-Refresh ──
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    final slide = Tween<Offset>(
-                      begin: const Offset(0.05, 0), end: Offset.zero,
-                    ).animate(animation);
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(position: slide, child: child),
-                    );
-                  },
-                  child: isLoading
-                    ? const ShimmerLoading(
-                        key: ValueKey('shimmer'),
-                        itemCount: 12, crossAxisCount: 3)
-                    : displayItems.isEmpty
-                      ? EmptyState(
-                          key: const ValueKey('empty'),
-                          icon: isSearching
-                              ? Icons.search_off_rounded
-                              : Icons.live_tv_rounded,
-                          title: isSearching
-                              ? 'Nothing matched this search'
-                              : 'No anime loaded yet',
-                          subtitle: isSearching
-                              ? 'Try a broader title, or switch sources for a different result pool.'
-                              : 'Pull down to refresh and let Zero Two scout a fresh batch for you.',
-                          buttonText: isSearching ? 'Clear Search' : 'Refresh',
-                          onButtonPressed: () {
-                            if (isSearching) {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            } else {
-                              _refreshPage();
-                            }
-                          },
-                        )
-                      : RefreshIndicator(
-                          key: ValueKey('grid_${AnimeService.currentSource.name}'),
-                          onRefresh: _refreshPage,
+                  const SizedBox(height: 12),
+                  WaifuCommentary(mood: _commentaryMood),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: StatCard(
+                          title: 'Trending',
+                          value: '${_items.length}',
+                          icon: Icons.local_fire_department_rounded,
                           color: accent,
-                          backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
-                          displacement: 60,
-                          strokeWidth: 3,
-                          child: GridView.builder(
-                            controller: _gridScrollCtrl,
-                            physics: const BouncingScrollPhysics(
-                              parent: AlwaysScrollableScrollPhysics()),
-                            padding: const EdgeInsets.all(12),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              childAspectRatio: 0.52,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                            ),
-                            itemCount: displayItems.length,
-                            itemBuilder: (_, i) {
-                              // Parallax: shift cover based on scroll position
-                              final parallaxShift = (_scrollOffset * 0.02) - (i * 3.0);
-                              return TiltCard(
-                                child: _AnimeTile(
-                                  anime: displayItems[i],
-                                  isFavorite:
-                                      _favoriteIds.contains(displayItems[i].id),
-                                  onTap: () => _openAnimeDetail(displayItems[i]),
-                                  onFavorite: () => _toggleFavorite(displayItems[i]),
-                                  accentColor: accent,
-                                  parallaxOffset: parallaxShift.clamp(-15.0, 15.0),
-                                ),
-                              );
-                            },
-                          ),
                         ),
+                      ),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Watchlist',
+                          value: '${_favoriteIds.length}',
+                          icon: Icons.favorite_rounded,
+                          color: Colors.pinkAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: StatCard(
+                          title: 'Sources',
+                          value: '${AnimeSource.values.length}',
+                          icon: Icons.hub_rounded,
+                          color: V2Theme.secondaryColor,
+                        ),
+                      ),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Top Score',
+                          value: _items.isNotEmpty && _items.first.score > 0
+                              ? (_items.isNotEmpty
+                                  ? _items.first.score.toStringAsFixed(1)
+                                  : '0.0')
+                              : '--',
+                          icon: Icons.star_rounded,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ── Server Selector Tabs with animated transitions ──
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                children: AnimeSource.values
+                    .map((source) => _buildSourceChip(source, accent))
+                    .toList(),
+              ),
+            ),
+
+            // ── Search Bar ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: GlassCard(
+                margin: EdgeInsets.zero,
+                padding: const EdgeInsets.all(16),
+                child: V2SearchBar(
+                  controller: _searchController,
+                  hintText: 'Search anime across the current source...',
+                  initialValue: _searchQuery,
+                  onChanged: _onSearchChanged,
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // ── Daily Recommendation Banner ──
+            if (_dailyPick != null && !isSearching && !isLoading)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                child: AnimatedEntry(
+                  index: 3,
+                  child: _buildDailyPickCard(accent),
+                ),
+              ),
+
+            // ── Section Title ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  isSearching ? 'Search Results' : '🔥 Trending Now',
+                  style: TextStyle(
+                      color: Colors.grey.shade300,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15),
+                ),
+              ),
+            ),
+
+            // ── Grid with Shimmer Loading + 3D Tilt + Parallax + Pull-to-Refresh ──
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final slide = Tween<Offset>(
+                    begin: const Offset(0.05, 0),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(position: slide, child: child),
+                  );
+                },
+                child: isLoading
+                    ? const Center(
+                        key: ValueKey('shimmer'),
+                        child: CircularProgressIndicator())
+                    : displayItems.isEmpty
+                        ? EmptyState(
+                            key: const ValueKey('empty'),
+                            icon: isSearching
+                                ? Icons.search_off_rounded
+                                : Icons.live_tv_rounded,
+                            title: isSearching
+                                ? 'Nothing matched this search'
+                                : 'No anime loaded yet',
+                            subtitle: isSearching
+                                ? 'Try a broader title, or switch sources for a different result pool.'
+                                : 'Pull down to refresh and let Zero Two scout a fresh batch for you.',
+                            buttonText:
+                                isSearching ? 'Clear Search' : 'Refresh',
+                            onButtonPressed: () {
+                              if (isSearching) {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              } else {
+                                _refreshPage();
+                              }
+                            },
+                          )
+                        : RefreshIndicator(
+                            key: ValueKey(
+                                'grid_${AnimeService.currentSource.name}'),
+                            onRefresh: _refreshPage,
+                            color: accent,
+                            backgroundColor: Theme.of(context)
+                                .scaffoldBackgroundColor
+                                .withValues(alpha: 0.95),
+                            displacement: 60,
+                            strokeWidth: 3,
+                            child: GridView.builder(
+                              controller: _gridScrollCtrl,
+                              physics: const BouncingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics()),
+                              padding: const EdgeInsets.all(12),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                childAspectRatio: 0.52,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
+                              itemCount: displayItems.length,
+                              itemBuilder: (_, i) {
+                                // Parallax: shift cover based on scroll position
+                                final parallaxShift =
+                                    (_scrollOffset * 0.02) - (i * 3.0);
+                                return TiltCard(
+                                  child: _AnimeTile(
+                                    anime: displayItems[i],
+                                    isFavorite: _favoriteIds
+                                        .contains(displayItems[i].id),
+                                    onTap: () =>
+                                        _openAnimeDetail(displayItems[i]),
+                                    onFavorite: () =>
+                                        _toggleFavorite(displayItems[i]),
+                                    accentColor: accent,
+                                    parallaxOffset:
+                                        parallaxShift.clamp(-15.0, 15.0),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -888,15 +906,20 @@ class _AnimeTile extends StatelessWidget {
                     Transform.translate(
                       offset: Offset(0, parallaxOffset),
                       child: anime.coverUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: anime.coverUrl, fit: BoxFit.cover,
-                            memCacheWidth: 200,
-                            placeholder: (_, __) => Container(color: Colors.grey.shade900),
-                            errorWidget: (_, __, ___) => Container(
+                          ? CachedNetworkImage(
+                              imageUrl: anime.coverUrl,
+                              fit: BoxFit.cover,
+                              memCacheWidth: 200,
+                              placeholder: (_, __) =>
+                                  Container(color: Colors.grey.shade900),
+                              errorWidget: (_, __, ___) => Container(
+                                  color: Colors.grey.shade900,
+                                  child: const Icon(Icons.broken_image,
+                                      color: Colors.grey)))
+                          : Container(
                               color: Colors.grey.shade900,
-                              child: const Icon(Icons.broken_image, color: Colors.grey)))
-                        : Container(color: Colors.grey.shade900,
-                            child: const Icon(Icons.movie, color: Colors.grey)),
+                              child:
+                                  const Icon(Icons.movie, color: Colors.grey)),
                     ),
                     Positioned.fill(
                       child: DecoratedBox(
@@ -932,39 +955,48 @@ class _AnimeTile extends StatelessWidget {
                             size: 14,
                           ),
                         ),
-                    ),
+                      ),
                     // Score badge
                     if (anime.score > 0)
                       Positioned(
-                        top: 4, right: 4,
+                        top: 4,
+                        right: 4,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.75),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 12),
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 12),
                             const SizedBox(width: 2),
                             Text('${anime.score}',
-                              style: const TextStyle(color: Colors.white, fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold)),
                           ]),
                         ),
                       ),
                     // Episode count
                     if (anime.totalEpisodes > 0)
                       Positioned(
-                        bottom: 4, left: 4,
+                        bottom: 4,
+                        left: 4,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text('${anime.totalEpisodes} ep',
-                            style: const TextStyle(color: Colors.white, fontSize: 10,
-                                fontWeight: FontWeight.bold)),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                     Positioned(
@@ -1065,8 +1097,10 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
       await WatchlistService.removeAnime(widget.anime.id);
     } else {
       await WatchlistService.addAnime(WatchlistItem(
-        id: widget.anime.id, title: widget.anime.title,
-        coverUrl: widget.anime.coverUrl, type: 'anime',
+        id: widget.anime.id,
+        title: widget.anime.title,
+        coverUrl: widget.anime.coverUrl,
+        type: 'anime',
       ));
     }
     _isFavorited = !_isFavorited;
@@ -1104,7 +1138,8 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
   void _showDownloadOptions() {
     if (_episodes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No episodes available to download'),
+        const SnackBar(
+            content: Text('No episodes available to download'),
             backgroundColor: Colors.red),
       );
       return;
@@ -1113,7 +1148,7 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
       context: context,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => _DownloadSheet(
         anime: widget.anime,
         episodes: _episodes,
@@ -1132,14 +1167,16 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
   }
 
   void _playEpisode(AnimeEpisode ep) {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => AnimePlayerPage(
-        animeTitle: widget.anime.title,
-        episode: ep,
-        animeId: widget.anime.id,
-        animeCoverUrl: widget.anime.coverUrl,
-      ),
-    ));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AnimePlayerPage(
+            animeTitle: widget.anime.title,
+            episode: ep,
+            animeId: widget.anime.id,
+            animeCoverUrl: widget.anime.coverUrl,
+          ),
+        ));
   }
 
   @override
@@ -1172,12 +1209,17 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
                 fit: StackFit.expand,
                 children: [
                   if (a.coverUrl.isNotEmpty)
-                    AppCachedImage(url: a.coverUrl, width: double.infinity, height: double.infinity, fit: BoxFit.cover),
+                    AppCachedImage(
+                        url: a.coverUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover),
                   // Glassmorphic gradient overlay
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
                           Colors.black.withValues(alpha: 0.3),
@@ -1189,7 +1231,9 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
                   ),
                   // Info overlay with glass effect
                   Positioned(
-                    bottom: 12, left: 12, right: 12,
+                    bottom: 12,
+                    left: 12,
+                    right: 12,
                     child: GlassContainer(
                       opacity: 0.12,
                       blur: 20,
@@ -1198,38 +1242,60 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(a.title, style: const TextStyle(
-                            color: Colors.white, fontSize: 18,
-                            fontWeight: FontWeight.w800)),
+                          Text(a.title,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800)),
                           const SizedBox(height: 6),
                           Row(children: [
                             if (a.score > 0) ...[
-                              const Icon(Icons.star, color: Colors.amber, size: 14),
+                              const Icon(Icons.star,
+                                  color: Colors.amber, size: 14),
                               const SizedBox(width: 3),
-                              Text('${a.score}', style: const TextStyle(
-                                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text('${a.score}',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
                               const SizedBox(width: 10),
                             ],
-                            Text(a.status, style: TextStyle(
-                                color: accent, fontSize: 12, fontWeight: FontWeight.w600)),
+                            Text(a.status,
+                                style: TextStyle(
+                                    color: accent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
                             if (a.totalEpisodes > 0) ...[
                               const SizedBox(width: 10),
                               Text('${a.totalEpisodes} ep',
-                                style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                                  style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 12)),
                             ],
                           ]),
                           if (a.genres.isNotEmpty) ...[
                             const SizedBox(height: 8),
-                            Wrap(spacing: 6, runSpacing: 4,
-                              children: a.genres.take(5).map((g) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: accent.withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(g, style: const TextStyle(
-                                    color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
-                              )).toList()),
+                            Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: a.genres
+                                    .take(5)
+                                    .map((g) => Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                accent.withValues(alpha: 0.3),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Text(g,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600)),
+                                        ))
+                                    .toList()),
                           ],
                         ],
                       ),
@@ -1242,165 +1308,206 @@ class _AnimeDetailPageState extends State<_AnimeDetailPage> {
 
           // ── Synopsis ──
           if (a.description.isNotEmpty)
-            SliverToBoxAdapter(child: Padding(
+            SliverToBoxAdapter(
+                child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(a.description,
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 13, height: 1.5),
-                maxLines: 6, overflow: TextOverflow.ellipsis),
+                  style: TextStyle(
+                      color: Colors.grey.shade400, fontSize: 13, height: 1.5),
+                  maxLines: 6,
+                  overflow: TextOverflow.ellipsis),
             )),
 
           // ── Action Buttons (Characters + Streak) ──
-          SliverToBoxAdapter(child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(children: [
-                Expanded(child: GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => CharacterDatabasePage(
-                      animeId: a.id, animeTitle: a.title))),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.deepOrange.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.deepOrange.withValues(alpha: 0.3)),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.people, color: Colors.deepOrange, size: 18),
-                        SizedBox(width: 6),
-                        Text('Characters', style: TextStyle(
-                          color: Colors.deepOrange, fontWeight: FontWeight.w700, fontSize: 13)),
-                      ],
-                    ),
+          SliverToBoxAdapter(
+              child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(children: [
+              Expanded(
+                  child: GestureDetector(
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => CharacterDatabasePage(
+                            animeId: a.id, animeTitle: a.title))),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.deepOrange.withValues(alpha: 0.3)),
                   ),
-                )),
-                const SizedBox(width: 10),
-                FutureBuilder<StreakInfo>(
-                  future: StreakService.getStreak(),
-                  builder: (_, snap) {
-                    final streak = snap.data?.current ?? 0;
-                    final badge = StreakService.streakBadge(streak);
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(children: [
-                        Text(badge, style: const TextStyle(fontSize: 16)),
-                        const SizedBox(width: 4),
-                        Text('$streak day streak',
-                          style: const TextStyle(color: Colors.amber,
-                            fontWeight: FontWeight.w700, fontSize: 12)),
-                      ]),
-                    );
-                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.people, color: Colors.deepOrange, size: 18),
+                      SizedBox(width: 6),
+                      Text('Characters',
+                          style: TextStyle(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13)),
+                    ],
+                  ),
                 ),
-              ]),
-            )),
+              )),
+              const SizedBox(width: 10),
+              FutureBuilder<StreakInfo>(
+                future: StreakService.getStreak(),
+                builder: (_, snap) {
+                  final streak = snap.data?.current ?? 0;
+                  final badge = StreakService.streakBadge(streak);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(children: [
+                      Text(badge, style: const TextStyle(fontSize: 16)),
+                      const SizedBox(width: 4),
+                      Text('$streak day streak',
+                          style: const TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12)),
+                    ]),
+                  );
+                },
+              ),
+            ]),
+          )),
 
           // ── Follow + Download Buttons ──
-          SliverToBoxAdapter(child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(children: [
-                // Follow for episode alerts
-                Expanded(child: GestureDetector(
-                  onTap: _toggleFollow,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: _isFollowed
-                          ? Colors.green.withValues(alpha: 0.2)
-                          : Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _isFollowed
-                          ? Colors.green.withValues(alpha: 0.4)
-                          : Colors.blue.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _isFollowed ? Icons.notifications_active : Icons.notifications_none,
-                          color: _isFollowed ? Colors.green : Colors.blue, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          _isFollowed ? 'Following' : 'Follow',
+          SliverToBoxAdapter(
+              child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(children: [
+              // Follow for episode alerts
+              Expanded(
+                  child: GestureDetector(
+                onTap: _toggleFollow,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _isFollowed
+                        ? Colors.green.withValues(alpha: 0.2)
+                        : Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: _isFollowed
+                            ? Colors.green.withValues(alpha: 0.4)
+                            : Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                          _isFollowed
+                              ? Icons.notifications_active
+                              : Icons.notifications_none,
+                          color: _isFollowed ? Colors.green : Colors.blue,
+                          size: 18),
+                      const SizedBox(width: 6),
+                      Text(_isFollowed ? 'Following' : 'Follow',
                           style: TextStyle(
-                            color: _isFollowed ? Colors.green : Colors.blue,
-                            fontWeight: FontWeight.w700, fontSize: 13)),
-                      ],
-                    ),
+                              color: _isFollowed ? Colors.green : Colors.blue,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13)),
+                    ],
                   ),
-                )),
-                const SizedBox(width: 10),
-                // Download button
-                Expanded(child: GestureDetector(
-                  onTap: () => _showDownloadOptions(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.download, color: Colors.green, size: 18),
-                        SizedBox(width: 6),
-                        Text('Download', style: TextStyle(
-                          color: Colors.green, fontWeight: FontWeight.w700, fontSize: 13)),
-                      ],
-                    ),
+                ),
+              )),
+              const SizedBox(width: 10),
+              // Download button
+              Expanded(
+                  child: GestureDetector(
+                onTap: () => _showDownloadOptions(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: Colors.green.withValues(alpha: 0.3)),
                   ),
-                )),
-              ]),
-            )),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.download, color: Colors.green, size: 18),
+                      SizedBox(width: 6),
+                      Text('Download',
+                          style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13)),
+                    ],
+                  ),
+                ),
+              )),
+            ]),
+          )),
 
           // ── Episodes ──
-          SliverToBoxAdapter(child: Padding(
+          SliverToBoxAdapter(
+              child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Text('Episodes',
-              style: TextStyle(color: Colors.grey.shade200,
-                  fontWeight: FontWeight.w700, fontSize: 18)),
+                style: TextStyle(
+                    color: Colors.grey.shade200,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18)),
           )),
 
           if (_loading)
-            const SliverToBoxAdapter(child: Center(child: Padding(
+            const SliverToBoxAdapter(
+                child: Center(
+                    child: Padding(
               padding: EdgeInsets.all(40),
               child: CircularProgressIndicator(color: Colors.deepPurple),
             )))
           else if (_episodes.isEmpty)
-            SliverToBoxAdapter(child: Center(child: Padding(
+            SliverToBoxAdapter(
+                child: Center(
+                    child: Padding(
               padding: const EdgeInsets.all(40),
-              child: Text('No episodes found.\nStreaming sources may be unavailable.',
+              child: Text(
+                  'No episodes found.\nStreaming sources may be unavailable.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey.shade600)),
             )))
           else
-            SliverList(delegate: SliverChildBuilderDelegate(
+            SliverList(
+                delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final ep = _episodes[index];
                 return ListTile(
                   leading: Container(
-                    width: 40, height: 40,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(10)),
-                    child: Center(child: Text('${ep.number}',
-                      style: const TextStyle(color: Colors.white,
-                          fontWeight: FontWeight.bold))),
+                        color: accent.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Center(
+                        child: Text('${ep.number}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
                   ),
                   title: Text(ep.title,
-                    style: const TextStyle(color: Colors.white, fontSize: 14)),
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: ep.isFiller
-                      ? const Text('Filler', style: TextStyle(color: Colors.orange, fontSize: 11))
+                      ? const Text('Filler',
+                          style: TextStyle(color: Colors.orange, fontSize: 11))
                       : null,
-                  trailing: Icon(Icons.play_circle_fill, color: accent, size: 32),
+                  trailing:
+                      Icon(Icons.play_circle_fill, color: accent, size: 32),
                   onTap: () => _playEpisode(ep),
                 );
               },
@@ -1427,7 +1534,8 @@ class _DownloadSheetState extends State<_DownloadSheet> {
 
   Future<void> _downloadEp(AnimeEpisode ep) async {
     final key = ep.id;
-    if (_status[key] == _DlStatus.downloading || _status[key] == _DlStatus.done) return;
+    if (_status[key] == _DlStatus.downloading || _status[key] == _DlStatus.done)
+      return;
     setState(() => _status[key] = _DlStatus.downloading);
 
     try {
@@ -1460,8 +1568,8 @@ class _DownloadSheetState extends State<_DownloadSheet> {
 
       if (mounted) {
         setState(() {
-        _status[key] = result != null ? _DlStatus.done : _DlStatus.error;
-      });
+          _status[key] = result != null ? _DlStatus.done : _DlStatus.error;
+        });
       }
     } catch (_) {
       if (mounted) setState(() => _status[key] = _DlStatus.error);
@@ -1472,28 +1580,33 @@ class _DownloadSheetState extends State<_DownloadSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade700,
-              borderRadius: BorderRadius.circular(2)),
+                color: Colors.grey.shade700,
+                borderRadius: BorderRadius.circular(2)),
           ),
           Text('Download Episodes',
-            style: TextStyle(color: Colors.grey.shade200,
-                fontWeight: FontWeight.w800, fontSize: 16)),
+              style: TextStyle(
+                  color: Colors.grey.shade200,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16)),
           const SizedBox(height: 4),
           Text(widget.anime.title,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-            maxLines: 1, overflow: TextOverflow.ellipsis),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           const SizedBox(height: 12),
-          Expanded(child: ListView.builder(
+          Expanded(
+              child: ListView.builder(
             itemCount: widget.episodes.length,
             itemBuilder: (_, i) {
               final ep = widget.episodes[i];
@@ -1501,20 +1614,26 @@ class _DownloadSheetState extends State<_DownloadSheet> {
               return ListTile(
                 dense: true,
                 leading: Container(
-                  width: 36, height: 36,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8)),
-                  child: Center(child: Text('${ep.number}',
-                    style: const TextStyle(color: Colors.white,
-                        fontWeight: FontWeight.bold, fontSize: 13))),
+                      color: Colors.green.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Center(
+                      child: Text('${ep.number}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13))),
                 ),
                 title: Text(ep.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 trailing: _dlIcon(st),
                 onTap: st == _DlStatus.idle || st == _DlStatus.error
-                    ? () => _downloadEp(ep) : null,
+                    ? () => _downloadEp(ep)
+                    : null,
               );
             },
           )),
@@ -1528,8 +1647,11 @@ class _DownloadSheetState extends State<_DownloadSheet> {
       case _DlStatus.idle:
         return const Icon(Icons.download, color: Colors.green, size: 22);
       case _DlStatus.downloading:
-        return const SizedBox(width: 20, height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.green));
+        return const SizedBox(
+            width: 20,
+            height: 20,
+            child:
+                CircularProgressIndicator(strokeWidth: 2, color: Colors.green));
       case _DlStatus.done:
         return const Icon(Icons.check_circle, color: Colors.green, size: 22);
       case _DlStatus.error:
@@ -1539,7 +1661,3 @@ class _DownloadSheetState extends State<_DownloadSheet> {
 }
 
 enum _DlStatus { idle, downloading, done, error }
-
-
-
-

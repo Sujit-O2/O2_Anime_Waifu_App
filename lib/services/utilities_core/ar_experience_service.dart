@@ -1,14 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// AR experience service: Avatar rendering, AR camera, location-based features
 class ArExperienceService {
-  static final ArExperienceService _instance =
-      ArExperienceService._internal();
+  static final ArExperienceService _instance = ArExperienceService._internal();
   factory ArExperienceService() => _instance;
   ArExperienceService._internal();
-
-
 
   // ── AR Avatar Configuration ──────────────────────────────────────────────
 
@@ -30,14 +27,14 @@ class ArExperienceService {
 
       // Default configuration if not set
       return {
-        'modelUrl': 'assets/models/avatar_default.glb',
+        'modelUrl': 'assets/models/anime_woman_model.glb',
         'scale': 1.0,
         'rotationY': 0.0,
         'animationState': 'idle',
         'emotionState': 'neutral',
       };
     } catch (e) {
-      debugPrint('Error fetching avatar config: $e');
+      if (kDebugMode) debugPrint('Error fetching avatar config: $e');
       return {};
     }
   }
@@ -66,7 +63,7 @@ class ArExperienceService {
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating avatar config: $e');
+      if (kDebugMode) debugPrint('Error updating avatar config: $e');
     }
   }
 
@@ -83,7 +80,7 @@ class ArExperienceService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching AR frames: $e');
+      if (kDebugMode) debugPrint('Error fetching AR frames: $e');
       return [];
     }
   }
@@ -100,19 +97,17 @@ class ArExperienceService {
         'characterId': characterId,
         'frameId': frameId,
         'timestamp': FieldValue.serverTimestamp(),
-        'imagePath': 'selfies/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg',
+        'imagePath':
+            'selfies/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg',
       });
 
       // Increase affection for taking selfie
-      await FirebaseFirestore.instance
-          .collection('affection')
-          .doc(uid)
-          .update({
+      await FirebaseFirestore.instance.collection('affection').doc(uid).update({
         '$characterId.selfieCount': FieldValue.increment(1),
         '$characterId.affectionPoints': FieldValue.increment(10),
       });
     } catch (e) {
-      debugPrint('Error logging AR selfie: $e');
+      if (kDebugMode) debugPrint('Error logging AR selfie: $e');
     }
   }
 
@@ -131,7 +126,7 @@ class ArExperienceService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching AR selfies: $e');
+      if (kDebugMode) debugPrint('Error fetching AR selfies: $e');
       return [];
     }
   }
@@ -170,7 +165,7 @@ class ArExperienceService {
         ),
       };
     } catch (e) {
-      debugPrint('Error getting location-based content: $e');
+      if (kDebugMode) debugPrint('Error getting location-based content: $e');
       return {'found': false};
     }
   }
@@ -192,7 +187,7 @@ class ArExperienceService {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error creating location message: $e');
+      if (kDebugMode) debugPrint('Error creating location message: $e');
     }
   }
 
@@ -227,7 +222,7 @@ class ArExperienceService {
         'animationTimestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error triggering animation: $e');
+      if (kDebugMode) debugPrint('Error triggering animation: $e');
     }
   }
 
@@ -247,7 +242,7 @@ class ArExperienceService {
         'emotionTimestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error setting emotion: $e');
+      if (kDebugMode) debugPrint('Error setting emotion: $e');
     }
   }
 
@@ -280,7 +275,7 @@ class ArExperienceService {
         'wink',
       ];
     } catch (e) {
-      debugPrint('Error fetching animations: $e');
+      if (kDebugMode) debugPrint('Error fetching animations: $e');
       return [];
     }
   }
@@ -305,11 +300,11 @@ class ArExperienceService {
       return {
         'selfiesTaken': selfiesSnapshot.count ?? 0,
         'locationsVisited': locationsSnapshot.count ?? 0,
-        'totalArTime': 0, // TODO: Calculate from sessions
-        'favoriteFrame': null, // TODO: Get most used frame
+        'totalArTime': 0,
+        'favoriteFrame': null,
       };
     } catch (e) {
-      debugPrint('Error getting AR statistics: $e');
+      if (kDebugMode) debugPrint('Error getting AR statistics: $e');
       return {};
     }
   }
@@ -321,18 +316,14 @@ class ArExperienceService {
     double longitude,
   ) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('ar_locations_visited')
-          .add({
+      await FirebaseFirestore.instance.collection('ar_locations_visited').add({
         'uid': uid,
         'latitude': latitude,
         'longitude': longitude,
         'visitedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error logging location visit: $e');
+      if (kDebugMode) debugPrint('Error logging location visit: $e');
     }
   }
 }
-
-

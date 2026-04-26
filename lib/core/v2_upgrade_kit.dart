@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -137,12 +138,14 @@ extension LinearGradientScaleX on LinearGradient {
 }
 
 void showSuccessSnackbar(BuildContext context, String message) {
+  final theme = Theme.of(context);
+  final tokens = context.appTokens;
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: V2Theme.surfaceLight,
+        backgroundColor: tokens.panelElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         content: Row(
           children: <Widget>[
@@ -150,16 +153,20 @@ void showSuccessSnackbar(BuildContext context, String message) {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                gradient: V2Theme.primaryGradient,
+                gradient: tokens.heroGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 18),
+              child: Icon(
+                Icons.check,
+                color: theme.colorScheme.onPrimary,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: theme.colorScheme.onSurface),
               ),
             ),
           ],
@@ -173,17 +180,19 @@ void showUndoSnackbar(
   String message,
   VoidCallback onUndo,
 ) {
+  final theme = Theme.of(context);
+  final tokens = context.appTokens;
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: V2Theme.surfaceLight,
+        backgroundColor: tokens.panelElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         content: Text(message),
         action: SnackBarAction(
           label: 'Undo',
-          textColor: V2Theme.secondaryColor,
+          textColor: theme.colorScheme.tertiary,
           onPressed: onUndo,
         ),
       ),
@@ -265,22 +274,39 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = _useCompactTopSectionLayout(context);
+    final ultraCompact = _useUltraCompactTopSectionLayout(context);
+    final radius = ultraCompact ? 18.0 : (compact ? 20.0 : 24.0);
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     final decoration = V2Theme.glassDecoration.copyWith(
+      gradient: tokens.glassGradient,
+      color: tokens.panel,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: tokens.outline),
       boxShadow: <BoxShadow>[
-        ...?V2Theme.glassDecoration.boxShadow,
+        BoxShadow(
+          color: tokens.shadowColor,
+          blurRadius: ultraCompact ? 18 : 30,
+          offset: const Offset(0, 14),
+          spreadRadius: -12,
+        ),
         if (glow)
           BoxShadow(
-            color: V2Theme.primaryColor.withValues(alpha: 0.18),
-            blurRadius: 36,
+            color: tokens.glowColor,
+            blurRadius: ultraCompact ? 24 : 36,
             spreadRadius: -2,
           ),
       ],
     );
 
     final cardBody = ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        filter: ImageFilter.blur(
+          sigmaX: ultraCompact ? 12 : 18,
+          sigmaY: ultraCompact ? 12 : 18,
+        ),
         child: Container(
           decoration: decoration,
           child: Stack(
@@ -294,7 +320,7 @@ class GlassCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: <Color>[
-                        Colors.white.withValues(alpha: 0.32),
+                        theme.colorScheme.onSurface.withValues(alpha: 0.16),
                         Colors.transparent,
                       ],
                     ),
@@ -311,7 +337,7 @@ class GlassCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: <Color>[
-                        V2Theme.secondaryColor.withValues(alpha: 0.10),
+                        theme.colorScheme.tertiary.withValues(alpha: 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -343,7 +369,7 @@ class GlassCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(radius),
           onTap: onTap,
           child: cardBody,
         ),
@@ -354,7 +380,12 @@ class GlassCard extends StatelessWidget {
 
 bool _useCompactTopSectionLayout(BuildContext context) {
   final size = MediaQuery.sizeOf(context);
-  return size.height < 820;
+  return size.height < 920 || size.width < 430;
+}
+
+bool _useUltraCompactTopSectionLayout(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return size.height < 760 || size.width < 390;
 }
 
 class ProgressRing extends StatelessWidget {
@@ -469,6 +500,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Padding(
       padding: padding,
       child: Row(
@@ -479,8 +512,8 @@ class SectionHeader extends StatelessWidget {
               children: <Widget>[
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -490,7 +523,7 @@ class SectionHeader extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: tokens.textMuted,
                       fontSize: 13,
                     ),
                   ),
@@ -534,24 +567,31 @@ class WaifuCommentary extends StatelessWidget {
       );
     }
     final compact = _useCompactTopSectionLayout(context);
+    final ultraCompact = _useUltraCompactTopSectionLayout(context);
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return GlassCard(
       glow: true,
       margin: EdgeInsets.zero,
-      padding: EdgeInsets.all(compact ? 14 : 18),
+      padding: EdgeInsets.all(ultraCompact ? 12 : (compact ? 14 : 18)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            width: compact ? 42 : 52,
-            height: compact ? 42 : 52,
+            width: ultraCompact ? 38 : (compact ? 42 : 52),
+            height: ultraCompact ? 38 : (compact ? 42 : 52),
             decoration: BoxDecoration(
               gradient: config.gradient,
-              borderRadius: BorderRadius.circular(compact ? 14 : 18),
+              borderRadius: BorderRadius.circular(
+                  ultraCompact ? 12 : (compact ? 14 : 18)),
             ),
-            child:
-                Icon(config.icon, color: Colors.white, size: compact ? 20 : 24),
+            child: Icon(
+              config.icon,
+              color: Colors.white,
+              size: ultraCompact ? 18 : (compact ? 20 : 24),
+            ),
           ),
-          SizedBox(width: compact ? 10 : 14),
+          SizedBox(width: ultraCompact ? 8 : (compact ? 10 : 14)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -559,21 +599,21 @@ class WaifuCommentary extends StatelessWidget {
                 Text(
                   config.title,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
-                    fontSize: compact ? 14 : 16,
+                    fontSize: ultraCompact ? 13 : (compact ? 14 : 16),
                   ),
                 ),
-                SizedBox(height: compact ? 4 : 6),
+                SizedBox(height: ultraCompact ? 3 : (compact ? 4 : 6)),
                 Text(
                   config.message,
-                  maxLines: compact ? 2 : null,
+                  maxLines: ultraCompact ? 1 : (compact ? 2 : null),
                   overflow:
                       compact ? TextOverflow.ellipsis : TextOverflow.visible,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.76),
+                    color: tokens.textMuted,
                     height: 1.35,
-                    fontSize: compact ? 12.5 : 14,
+                    fontSize: ultraCompact ? 11.5 : (compact ? 12.5 : 14),
                   ),
                 ),
               ],
@@ -653,6 +693,8 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -678,8 +720,8 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
               ),
@@ -691,7 +733,7 @@ class EmptyState extends StatelessWidget {
                 subtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.72),
+                  color: tokens.textMuted,
                   height: 1.4,
                 ),
               ),
@@ -721,6 +763,168 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+class PremiumLoadingState extends StatelessWidget {
+  const PremiumLoadingState({
+    super.key,
+    required this.label,
+    this.subtitle,
+    this.icon = Icons.auto_awesome_rounded,
+  });
+
+  final String label;
+  final String? subtitle;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    return Center(
+      child: GlassCard(
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
+        glow: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                SizedBox(
+                  width: 68,
+                  height: 68,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.primary),
+                  ),
+                ),
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    gradient: tokens.heroGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.onPrimary,
+                    size: 22,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (subtitle != null) ...<Widget>[
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  subtitle!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: tokens.textMuted,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PremiumErrorState extends StatelessWidget {
+  const PremiumErrorState({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.buttonText,
+    this.onRetry,
+    this.icon = Icons.cloud_off_rounded,
+  });
+
+  final String title;
+  final String subtitle;
+  final String? buttonText;
+  final VoidCallback? onRetry;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    return Center(
+      child: GlassCard(
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.error.withValues(alpha: 0.22),
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: theme.colorScheme.error,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 340),
+              child: Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: tokens.textMuted,
+                  height: 1.45,
+                ),
+              ),
+            ),
+            if (buttonText != null && onRetry != null) ...<Widget>[
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(buttonText!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -738,40 +942,48 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = _useCompactTopSectionLayout(context);
+    final ultraCompact = _useUltraCompactTopSectionLayout(context);
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return GlassCard(
       margin: EdgeInsets.symmetric(
-        horizontal: compact ? 4 : 8,
-        vertical: compact ? 4 : 8,
+        horizontal: ultraCompact ? 3 : (compact ? 4 : 8),
+        vertical: ultraCompact ? 3 : (compact ? 4 : 8),
       ),
-      padding: EdgeInsets.all(compact ? 14 : 18),
+      padding: EdgeInsets.all(ultraCompact ? 12 : (compact ? 14 : 18)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            width: compact ? 36 : 42,
-            height: compact ? 36 : 42,
+            width: ultraCompact ? 32 : (compact ? 36 : 42),
+            height: ultraCompact ? 32 : (compact ? 36 : 42),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(compact ? 12 : 14),
+              borderRadius: BorderRadius.circular(
+                  ultraCompact ? 10 : (compact ? 12 : 14)),
             ),
-            child: Icon(icon, color: color, size: compact ? 18 : 22),
+            child: Icon(
+              icon,
+              color: color,
+              size: ultraCompact ? 16 : (compact ? 18 : 22),
+            ),
           ),
-          SizedBox(height: compact ? 10 : 14),
+          SizedBox(height: ultraCompact ? 8 : (compact ? 10 : 14)),
           Text(
             value,
             style: TextStyle(
-              color: Colors.white,
-              fontSize: compact ? 16 : 18,
+              color: theme.colorScheme.onSurface,
+              fontSize: ultraCompact ? 14 : (compact ? 16 : 18),
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: compact ? 2 : 4),
+          SizedBox(height: ultraCompact ? 1 : (compact ? 2 : 4)),
           Text(
             title,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.66),
-              fontSize: compact ? 11 : 12,
+              color: tokens.textMuted,
+              fontSize: ultraCompact ? 10 : (compact ? 11 : 12),
             ),
           ),
         ],
@@ -834,33 +1046,38 @@ class V2SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = _useCompactTopSectionLayout(context);
+    final ultraCompact = _useUltraCompactTopSectionLayout(context);
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return TextFormField(
       controller: controller,
       initialValue: controller == null ? initialValue : null,
       onChanged: onChanged,
       style: TextStyle(
-        color: Colors.white,
-        fontSize: compact ? 13 : 14,
+        color: theme.colorScheme.onSurface,
+        fontSize: ultraCompact ? 12 : (compact ? 13 : 14),
       ),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.42),
-          fontSize: compact ? 13 : 14,
+          color: tokens.textSoft,
+          fontSize: ultraCompact ? 12 : (compact ? 13 : 14),
         ),
         prefixIcon: Icon(
           Icons.search,
-          color: Colors.white54,
-          size: compact ? 18 : 22,
+          color: tokens.textSoft,
+          size: ultraCompact ? 17 : (compact ? 18 : 22),
         ),
         filled: true,
-        fillColor: V2Theme.darkGlass,
+        fillColor: tokens.panelMuted,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(compact ? 16 : 18),
-          borderSide: BorderSide.none,
+          borderRadius:
+              BorderRadius.circular(ultraCompact ? 14 : (compact ? 16 : 18)),
+          borderSide: BorderSide(color: tokens.outline),
         ),
         isDense: compact,
-        contentPadding: EdgeInsets.symmetric(vertical: compact ? 13 : 16),
+        contentPadding: EdgeInsets.symmetric(
+            vertical: ultraCompact ? 11 : (compact ? 13 : 16)),
       ),
     );
   }
@@ -967,12 +1184,14 @@ class FeaturePageV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       bottomNavigationBar: bottomBar,
       body: WaifuBackground(
         opacity: 0.10,
-        tint: V2Theme.surfaceDark,
+        tint: theme.scaffoldBackgroundColor,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -988,15 +1207,15 @@ class FeaturePageV2 extends StatelessWidget {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
+                          color: tokens.panelMuted,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12),
+                            color: tokens.outlineStrong,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_ios_new,
-                          color: Colors.white60,
+                          color: tokens.textMuted,
                           size: 16,
                         ),
                       ),
@@ -1008,8 +1227,8 @@ class FeaturePageV2 extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             title,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.5,
@@ -1019,7 +1238,7 @@ class FeaturePageV2 extends StatelessWidget {
                             Text(
                               subtitle!,
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
+                                color: tokens.textSoft,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -1040,6 +1259,3 @@ class FeaturePageV2 extends StatelessWidget {
     );
   }
 }
-
-
-

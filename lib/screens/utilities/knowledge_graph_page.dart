@@ -34,6 +34,7 @@ class _KnowledgeGraphPageState extends State<KnowledgeGraphPage> {
     final d = prefs.getString('knowledge_graph_nodes');
     if (d != null && mounted) {
       try {
+        if (!mounted) return;
         setState(() => _nodes = (jsonDecode(d) as List).cast<Map<String, dynamic>>());
       } catch (_) {}
     }

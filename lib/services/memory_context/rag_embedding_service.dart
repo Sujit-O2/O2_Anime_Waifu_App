@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,7 +51,7 @@ class RagEmbeddingService {
     if (_lastRagCall != null) {
       final elapsed = DateTime.now().difference(_lastRagCall!).inSeconds;
       if (elapsed < _cooldownSeconds) {
-        debugPrint('RAG: skipping (cooldown ${_cooldownSeconds - elapsed}s remaining)');
+        if (kDebugMode) debugPrint('RAG: skipping (cooldown ${_cooldownSeconds - elapsed}s remaining)');
         return '';
       }
     }
@@ -118,7 +118,7 @@ class RagEmbeddingService {
       buf.writeln();
       return buf.toString();
     } catch (e) {
-      debugPrint('RAG context build failed: $e');
+      if (kDebugMode) debugPrint('RAG context build failed: $e');
       return '';
     }
   }
@@ -153,7 +153,7 @@ class RagEmbeddingService {
       await _saveStore(store);
       _cache = store;
     } catch (e) {
-      debugPrint('RAG assistant ingest failed: $e');
+      if (kDebugMode) debugPrint('RAG assistant ingest failed: $e');
     }
   }
 
@@ -188,7 +188,7 @@ class RagEmbeddingService {
 
         await Future.delayed(const Duration(milliseconds: 300));
       } catch (e) {
-        debugPrint('RAG bulk ingest error: $e');
+        if (kDebugMode) debugPrint('RAG bulk ingest error: $e');
       }
     }
   }
@@ -215,11 +215,11 @@ class RagEmbeddingService {
           return embeddingData.map<double>((e) => (e as num).toDouble()).toList();
         }
       } else {
-        debugPrint('Embedding API ${resp.statusCode}');
+        if (kDebugMode) debugPrint('Embedding API ${resp.statusCode}');
       }
       return null;
     } catch (e) {
-      debugPrint('Embedding API failed: $e');
+      if (kDebugMode) debugPrint('Embedding API failed: $e');
       return null;
     }
   }
@@ -248,7 +248,7 @@ class RagEmbeddingService {
       _cache = list.map((j) => RagChunk.fromJson(j as Map<String, dynamic>)).toList();
       return _cache!;
     } catch (e) {
-      debugPrint('RAG store load failed: $e');
+      if (kDebugMode) debugPrint('RAG store load failed: $e');
       return [];
     }
   }
@@ -259,7 +259,7 @@ class RagEmbeddingService {
       final json = jsonEncode(store.map((c) => c.toJson()).toList());
       await prefs.setString(_storageKey, json);
     } catch (e) {
-      debugPrint('RAG store save failed: $e');
+      if (kDebugMode) debugPrint('RAG store save failed: $e');
     }
   }
 

@@ -1,5 +1,5 @@
 import 'package:anime_waifu/services/analytics_monitoring/analytics_dashboard_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Performance/Security/Analytics Services Manager
 /// Manages initialization of all 11 new enterprise services
@@ -13,79 +13,79 @@ class EnterpriseServicesManager {
 
   Future<void> initializeAll() async {
     try {
-      debugPrint('⚙️ Initializing Enterprise Services...\n');
+      if (kDebugMode) debugPrint('⚙️ Initializing Enterprise Services...\n');
 
       _serviceStatus = ServiceStatus();
 
       // Performance Services
-      debugPrint('📊 PERFORMANCE SERVICES');
-      debugPrint('──────────────────────────────────');
+      if (kDebugMode) debugPrint('📊 PERFORMANCE SERVICES');
+      if (kDebugMode) debugPrint('──────────────────────────────────');
       
-      debugPrint('  Initializing Cache Manager...');
+      if (kDebugMode) debugPrint('  Initializing Cache Manager...');
       //await _cacheManager.initialize();
       _serviceStatus.cacheManagerReady = true;
-      debugPrint('  ✅ Cache Manager ready\n');
+      if (kDebugMode) debugPrint('  ✅ Cache Manager ready\n');
 
       // Security Services
-      debugPrint('🔒 SECURITY SERVICES');
-      debugPrint('──────────────────────────────────');
+      if (kDebugMode) debugPrint('🔒 SECURITY SERVICES');
+      if (kDebugMode) debugPrint('──────────────────────────────────');
       
-      debugPrint('  Initializing Encryption Service...');
+      if (kDebugMode) debugPrint('  Initializing Encryption Service...');
       _serviceStatus.encryptionServiceReady = true;
-      debugPrint('  ✅ Encryption Service ready');
+      if (kDebugMode) debugPrint('  ✅ Encryption Service ready');
 
-      debugPrint('  Initializing Rate Limiter...');
+      if (kDebugMode) debugPrint('  Initializing Rate Limiter...');
       _serviceStatus.rateLimiterReady = true;
-      debugPrint('  ✅ Rate Limiter ready');
+      if (kDebugMode) debugPrint('  ✅ Rate Limiter ready');
 
-      debugPrint('  Initializing Security Audit...');
+      if (kDebugMode) debugPrint('  Initializing Security Audit...');
       //await _securityAuditService.initialize();
       _serviceStatus.securityAuditReady = true;
-      debugPrint('  ✅ Security Audit ready');
+      if (kDebugMode) debugPrint('  ✅ Security Audit ready');
 
-      debugPrint('  Initializing Privacy Controller...');
+      if (kDebugMode) debugPrint('  Initializing Privacy Controller...');
       //await _privacyControlService.initialize();
       _serviceStatus.privacyControlReady = true;
-      debugPrint('  ✅ Privacy Controller ready');
+      if (kDebugMode) debugPrint('  ✅ Privacy Controller ready');
 
-      debugPrint('  Initializing Request Signing...');
+      if (kDebugMode) debugPrint('  Initializing Request Signing...');
       _serviceStatus.requestSigningReady = true;
-      debugPrint('  ✅ Request Signing ready\n');
+      if (kDebugMode) debugPrint('  ✅ Request Signing ready\n');
 
       // Analytics Services
-      debugPrint('📈 ANALYTICS SERVICES');
-      debugPrint('──────────────────────────────────');
+      if (kDebugMode) debugPrint('📈 ANALYTICS SERVICES');
+      if (kDebugMode) debugPrint('──────────────────────────────────');
       
-      debugPrint('  Initializing Firebase Analytics...');
+      if (kDebugMode) debugPrint('  Initializing Firebase Analytics...');
       //await _firebaseAnalyticsService.initialize();
       _serviceStatus.firebaseAnalyticsReady = true;
-      debugPrint('  ✅ Firebase Analytics ready');
+      if (kDebugMode) debugPrint('  ✅ Firebase Analytics ready');
 
-      debugPrint('  Initializing Theme Usage Analytics...');
+      if (kDebugMode) debugPrint('  Initializing Theme Usage Analytics...');
       //await _themeUsageAnalyticsService.initialize();
       _serviceStatus.themeUsageAnalyticsReady = true;
-      debugPrint('  ✅ Theme Usage Analytics ready');
+      if (kDebugMode) debugPrint('  ✅ Theme Usage Analytics ready');
 
-      debugPrint('  Initializing Email Success Analytics...');
+      if (kDebugMode) debugPrint('  Initializing Email Success Analytics...');
       //await _emailSuccessAnalyticsService.initialize();
       _serviceStatus.emailSuccessAnalyticsReady = true;
-      debugPrint('  ✅ Email Success Analytics ready');
+      if (kDebugMode) debugPrint('  ✅ Email Success Analytics ready');
 
-      debugPrint('  Initializing User Action Logging...');
+      if (kDebugMode) debugPrint('  Initializing User Action Logging...');
       //await _userActionLoggingService.initialize();
       _serviceStatus.userActionLoggingReady = true;
-      debugPrint('  ✅ User Action Logging ready');
+      if (kDebugMode) debugPrint('  ✅ User Action Logging ready');
 
-      debugPrint('  Initializing Analytics Dashboard...');
+      if (kDebugMode) debugPrint('  Initializing Analytics Dashboard...');
       await analyticsDashboardService.initialize();
       _serviceStatus.analyticsDashboardReady = true;
-      debugPrint('  ✅ Analytics Dashboard ready\n');
+      if (kDebugMode) debugPrint('  ✅ Analytics Dashboard ready\n');
 
       _serviceStatus.allServicesInitialized = true;
-      debugPrint('✅ ALL 11 ENTERPRISE SERVICES INITIALIZED SUCCESSFULLY\n');
+      if (kDebugMode) debugPrint('✅ ALL 11 ENTERPRISE SERVICES INITIALIZED SUCCESSFULLY\n');
       await printServiceOverview();
     } catch (e) {
-      debugPrint('❌ Error initializing services: $e');
+      if (kDebugMode) debugPrint('❌ Error initializing services: $e');
       _serviceStatus.allServicesInitialized = false;
     }
   }
@@ -110,29 +110,29 @@ class EnterpriseServicesManager {
     if (status.userActionLoggingReady) activeServices++;
     if (status.analyticsDashboardReady) activeServices++;
 
-    debugPrint('╔════════════════════════════════════════════════════════════╗');
-    debugPrint('║        ENTERPRISE SERVICES INITIALIZATION SUMMARY         ║');
-    debugPrint('╚════════════════════════════════════════════════════════════╝');
-    debugPrint('');
-    debugPrint('📊 PERFORMANCE SERVICES (1)');
-    debugPrint('  ${status.cacheManagerReady ? "✅" : "❌"} Cache Manager');
-    debugPrint('');
-    debugPrint('🔒 SECURITY SERVICES (5)');
-    debugPrint('  ${status.encryptionServiceReady ? "✅" : "❌"} Encryption Service');
-    debugPrint('  ${status.rateLimiterReady ? "✅" : "❌"} Rate Limiter');
-    debugPrint('  ${status.securityAuditReady ? "✅" : "❌"} Security Audit');
-    debugPrint('  ${status.privacyControlReady ? "✅" : "❌"} Privacy Control');
-    debugPrint('  ${status.requestSigningReady ? "✅" : "❌"} Request Signing');
-    debugPrint('');
-    debugPrint('📈 ANALYTICS SERVICES (5)');
-    debugPrint('  ${status.firebaseAnalyticsReady ? "✅" : "❌"} Firebase Analytics');
-    debugPrint('  ${status.themeUsageAnalyticsReady ? "✅" : "❌"} Theme Usage Analytics');
-    debugPrint('  ${status.emailSuccessAnalyticsReady ? "✅" : "❌"} Email Success Analytics');
-    debugPrint('  ${status.userActionLoggingReady ? "✅" : "❌"} User Action Logging');
-    debugPrint('  ${status.analyticsDashboardReady ? "✅" : "❌"} Analytics Dashboard');
-    debugPrint('');
-    debugPrint('STATUS: $activeServices/11 services active');
-    debugPrint('');
+    if (kDebugMode) debugPrint('╔════════════════════════════════════════════════════════════╗');
+    if (kDebugMode) debugPrint('║        ENTERPRISE SERVICES INITIALIZATION SUMMARY         ║');
+    if (kDebugMode) debugPrint('╚════════════════════════════════════════════════════════════╝');
+    if (kDebugMode) debugPrint('');
+    if (kDebugMode) debugPrint('📊 PERFORMANCE SERVICES (1)');
+    if (kDebugMode) debugPrint('  ${status.cacheManagerReady ? "✅" : "❌"} Cache Manager');
+    if (kDebugMode) debugPrint('');
+    if (kDebugMode) debugPrint('🔒 SECURITY SERVICES (5)');
+    if (kDebugMode) debugPrint('  ${status.encryptionServiceReady ? "✅" : "❌"} Encryption Service');
+    if (kDebugMode) debugPrint('  ${status.rateLimiterReady ? "✅" : "❌"} Rate Limiter');
+    if (kDebugMode) debugPrint('  ${status.securityAuditReady ? "✅" : "❌"} Security Audit');
+    if (kDebugMode) debugPrint('  ${status.privacyControlReady ? "✅" : "❌"} Privacy Control');
+    if (kDebugMode) debugPrint('  ${status.requestSigningReady ? "✅" : "❌"} Request Signing');
+    if (kDebugMode) debugPrint('');
+    if (kDebugMode) debugPrint('📈 ANALYTICS SERVICES (5)');
+    if (kDebugMode) debugPrint('  ${status.firebaseAnalyticsReady ? "✅" : "❌"} Firebase Analytics');
+    if (kDebugMode) debugPrint('  ${status.themeUsageAnalyticsReady ? "✅" : "❌"} Theme Usage Analytics');
+    if (kDebugMode) debugPrint('  ${status.emailSuccessAnalyticsReady ? "✅" : "❌"} Email Success Analytics');
+    if (kDebugMode) debugPrint('  ${status.userActionLoggingReady ? "✅" : "❌"} User Action Logging');
+    if (kDebugMode) debugPrint('  ${status.analyticsDashboardReady ? "✅" : "❌"} Analytics Dashboard');
+    if (kDebugMode) debugPrint('');
+    if (kDebugMode) debugPrint('STATUS: $activeServices/11 services active');
+    if (kDebugMode) debugPrint('');
   }
 }
 

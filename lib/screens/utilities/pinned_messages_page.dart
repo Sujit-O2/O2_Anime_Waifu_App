@@ -52,6 +52,7 @@ class _PinnedMessagesPageState extends State<PinnedMessagesPage>
           .get();
       if (snap.exists) {
         final list = ((snap.data() ?? {})['pins'] as List?) ?? [];
+        if (!mounted) return;
         setState(() => _pins =
             list.map((e) => Map<String, dynamic>.from(e as Map)).toList());
       }
@@ -83,6 +84,7 @@ class _PinnedMessagesPageState extends State<PinnedMessagesPage>
           label: 'UNDO',
           textColor: Colors.amberAccent,
           onPressed: () {
+            if (!mounted) return;
             setState(() => _pins.insert(idx, removed));
             FirebaseFirestore.instance
                 .collection('pinned_messages')

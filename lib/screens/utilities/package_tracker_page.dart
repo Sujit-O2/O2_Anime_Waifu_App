@@ -53,6 +53,7 @@ class _PackageTrackerPageState extends State<PackageTrackerPage> {
           (jsonDecode(p.getString('package_tracker_data') ?? '[]') as List)
               .cast<Map<String, dynamic>>();
     } catch (_) {}
+    if (!mounted) return;
     setState(() {});
   }
 

@@ -125,6 +125,22 @@ object AssistantOverlayController {
         }
     }
 
+    fun showNow(
+        context: Context,
+        status: String,
+        transcript: String,
+        autoHideMs: Long = DEFAULT_AUTO_HIDE_MS
+    ): Boolean {
+        val appContext = context.applicationContext
+        if (!canDrawOverlays(appContext)) return false
+
+        ensureAttached(appContext)
+        // Don't return false immediately if not attached - the show() method 
+        // will handle the attachment asynchronously and show the overlay when ready
+        show(appContext, status, transcript, autoHideMs)
+        return true
+    }
+
     fun update(
         context: Context,
         status: String,

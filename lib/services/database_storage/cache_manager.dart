@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Cache Manager - Smart caching for images, data, and API responses
@@ -18,7 +18,7 @@ class CacheManager {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Cache Manager initialized');
+    if (kDebugMode) debugPrint('✅ Cache Manager initialized');
   }
 
   /// Cache data with TTL
@@ -37,9 +37,9 @@ class CacheManager {
 
       _cache[key] = entry;
       await _prefs.setString(_cacheKey, jsonEncode(_serializeCache()));
-      debugPrint('✅ Cached: $key (TTL: ${ttl.inHours}h)');
+      if (kDebugMode) debugPrint('✅ Cached: $key (TTL: ${ttl.inHours}h)');
     } catch (e) {
-      debugPrint('❌ Error caching data: $e');
+      if (kDebugMode) debugPrint('❌ Error caching data: $e');
     }
   }
 
@@ -56,12 +56,12 @@ class CacheManager {
         }
 
         final value = jsonDecode(entry.value) as T;
-        debugPrint('✅ Cache hit: $key');
+        if (kDebugMode) debugPrint('✅ Cache hit: $key');
         return value;
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error retrieving cached data: $e');
+      if (kDebugMode) debugPrint('❌ Error retrieving cached data: $e');
       return null;
     }
   }
@@ -92,7 +92,7 @@ class CacheManager {
       await cache(key, data, ttl: ttl);
       return data;
     } catch (e) {
-      debugPrint('❌ Error in lazy load: $e');
+      if (kDebugMode) debugPrint('❌ Error in lazy load: $e');
       return null;
     }
   }
@@ -102,9 +102,9 @@ class CacheManager {
     try {
       _cache.remove(key);
       await _prefs.setString(_cacheKey, jsonEncode(_serializeCache()));
-      debugPrint('✅ Removed from cache: $key');
+      if (kDebugMode) debugPrint('✅ Removed from cache: $key');
     } catch (e) {
-      debugPrint('❌ Error removing cached data: $e');
+      if (kDebugMode) debugPrint('❌ Error removing cached data: $e');
     }
   }
 
@@ -113,9 +113,9 @@ class CacheManager {
     try {
       _cache.clear();
       await _prefs.remove(_cacheKey);
-      debugPrint('✅ Cache cleared');
+      if (kDebugMode) debugPrint('✅ Cache cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing cache: $e');
+      if (kDebugMode) debugPrint('❌ Error clearing cache: $e');
     }
   }
 
@@ -134,10 +134,10 @@ class CacheManager {
 
       if (expiredKeys.isNotEmpty) {
         await _prefs.setString(_cacheKey, jsonEncode(_serializeCache()));
-        debugPrint('✅ Cleaned ${expiredKeys.length} expired cache entries');
+        if (kDebugMode) debugPrint('✅ Cleaned ${expiredKeys.length} expired cache entries');
       }
     } catch (e) {
-      debugPrint('❌ Error cleaning cache: $e');
+      if (kDebugMode) debugPrint('❌ Error cleaning cache: $e');
     }
   }
 

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/security_privacy/secure_encryption_service.dart';
@@ -39,7 +39,7 @@ class FirestoreService {
       );
       _initialized = true;
     } catch (e) {
-      debugPrint('FirestoreService.init error: $e');
+      if (kDebugMode) debugPrint('FirestoreService.init error: $e');
     }
   }
 
@@ -62,7 +62,13 @@ class FirestoreService {
   // CHAT HISTORY
   // ─────────────────────────────────────────────────────────────────────────
 
+  DateTime _lastSaveAt = DateTime(2000);
+  
   Future<void> saveChatHistory(List<ChatMessage> messages) async {
+    // Rate-limit writes: max once per 3 seconds to reduce Firestore costs
+    final now = DateTime.now();
+    if (now.difference(_lastSaveAt).inSeconds < 3) return;
+    _lastSaveAt = now;
     await init();
     try {
       await _doc('chats').set({
@@ -70,7 +76,7 @@ class FirestoreService {
         'messages': messages.map((m) => m.toJson()).toList(),
       });
     } catch (e) {
-      debugPrint('saveChatHistory: $e');
+      if (kDebugMode) debugPrint('saveChatHistory: $e');
     }
   }
 
@@ -82,7 +88,7 @@ class FirestoreService {
         'messages': FieldValue.arrayUnion([message.toJson()]),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('addMessage: $e');
+      if (kDebugMode) debugPrint('addMessage: $e');
     }
   }
 
@@ -101,7 +107,7 @@ class FirestoreService {
         }
       }
     } catch (e) {
-      debugPrint('loadChatHistory: $e');
+      if (kDebugMode) debugPrint('loadChatHistory: $e');
     }
     return [];
   }
@@ -111,7 +117,7 @@ class FirestoreService {
     try {
       await _doc('chats').delete();
     } catch (e) {
-      debugPrint('clearChatHistory: $e');
+      if (kDebugMode) debugPrint('clearChatHistory: $e');
     }
   }
 
@@ -124,7 +130,7 @@ class FirestoreService {
           allMessages.where((m) => !idsToDelete.contains(m.id)).toList();
       await saveChatHistory(remaining);
     } catch (e) {
-      debugPrint('deleteMessages: $e');
+      if (kDebugMode) debugPrint('deleteMessages: $e');
     }
   }
 
@@ -142,7 +148,7 @@ class FirestoreService {
         return pin != null && pin.isNotEmpty;
       }
     } catch (e) {
-      debugPrint('hasPin: $e');
+      if (kDebugMode) debugPrint('hasPin: $e');
     }
     return false;
   }
@@ -175,7 +181,7 @@ class FirestoreService {
         return verified;
       }
     } catch (e) {
-      debugPrint('verifyPin: $e');
+      if (kDebugMode) debugPrint('verifyPin: $e');
       await _logAuditEvent('pin_verification_error', {'error': e.toString()});
     }
     return true;
@@ -191,12 +197,19 @@ class FirestoreService {
         if (raw != null && raw.isNotEmpty) {
           final decrypted =
               SecureEncryption.decrypt(raw, _encryptionPassword) ?? '';
-          return List<Map<String, String>>.from((jsonDecode(decrypted) as List)
-              .map((e) => Map<String, String>.from(e as Map)));
+          if (decrypted.isEmpty) return [];
+          try {
+            return List<Map<String, String>>.from(
+                (jsonDecode(decrypted) as List)
+                    .map((e) => Map<String, String>.from(e as Map)));
+          } catch (_) {
+            if (kDebugMode) debugPrint('getSecretNotes: corrupt JSON data');
+            return [];
+          }
         }
       }
     } catch (e) {
-      debugPrint('getSecretNotes: $e');
+      if (kDebugMode) debugPrint('getSecretNotes: $e');
     }
     return [];
   }
@@ -256,7 +269,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadProfile: $e');
+      if (kDebugMode) debugPrint('loadProfile: $e');
     }
     return {};
   }
@@ -295,7 +308,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadAffection: $e');
+      if (kDebugMode) debugPrint('loadAffection: $e');
     }
     return {};
   }
@@ -321,7 +334,7 @@ class FirestoreService {
       if (levelProgress != null) payload['levelProgress'] = levelProgress;
       await _doc('affection').set(payload, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveAffection: $e');
+      if (kDebugMode) debugPrint('saveAffection: $e');
     }
   }
 
@@ -339,7 +352,7 @@ class FirestoreService {
         };
       }
     } catch (e) {
-      debugPrint('loadRelationshipProgression: $e');
+      if (kDebugMode) debugPrint('loadRelationshipProgression: $e');
     }
     return {};
   }
@@ -363,7 +376,7 @@ class FirestoreService {
       }
       await _doc('affection').set(payload, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveRelationshipProgression: $e');
+      if (kDebugMode) debugPrint('saveRelationshipProgression: $e');
     }
   }
 
@@ -383,7 +396,7 @@ class FirestoreService {
         }
       }
     } catch (e) {
-      debugPrint('loadMemoryFacts: $e');
+      if (kDebugMode) debugPrint('loadMemoryFacts: $e');
     }
     return {};
   }
@@ -396,7 +409,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('saveMemoryFacts: $e');
+      if (kDebugMode) debugPrint('saveMemoryFacts: $e');
     }
   }
 
@@ -417,7 +430,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadQuests: $e');
+      if (kDebugMode) debugPrint('loadQuests: $e');
     }
     return {};
   }
@@ -431,7 +444,7 @@ class FirestoreService {
         'lastQuestDate': dateStr,
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveDailyQuests: $e');
+      if (kDebugMode) debugPrint('saveDailyQuests: $e');
     }
   }
 
@@ -442,7 +455,7 @@ class FirestoreService {
         'customQuests': jsonEncode(quests),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveCustomQuests: $e');
+      if (kDebugMode) debugPrint('saveCustomQuests: $e');
     }
   }
 
@@ -463,7 +476,7 @@ class FirestoreService {
         }
       }
     } catch (e) {
-      debugPrint('loadMoodEntries: $e');
+      if (kDebugMode) debugPrint('loadMoodEntries: $e');
     }
     return [];
   }
@@ -476,7 +489,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('saveMoodEntries: $e');
+      if (kDebugMode) debugPrint('saveMoodEntries: $e');
     }
   }
 
@@ -497,7 +510,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadSettings: $e');
+      if (kDebugMode) debugPrint('loadSettings: $e');
     }
     return {};
   }
@@ -510,7 +523,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveSettings: $e');
+      if (kDebugMode) debugPrint('saveSettings: $e');
     }
   }
 
@@ -522,7 +535,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveSetting $key: $e');
+      if (kDebugMode) debugPrint('saveSetting $key: $e');
     }
   }
 
@@ -538,7 +551,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadAlarm: $e');
+      if (kDebugMode) debugPrint('loadAlarm: $e');
     }
     return {};
   }
@@ -551,7 +564,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('saveAlarm: $e');
+      if (kDebugMode) debugPrint('saveAlarm: $e');
     }
   }
 
@@ -567,7 +580,7 @@ class FirestoreService {
         return snap.data() as Map<String, dynamic>;
       }
     } catch (e) {
-      debugPrint('loadScores: $e');
+      if (kDebugMode) debugPrint('loadScores: $e');
     }
     return {};
   }
@@ -585,7 +598,7 @@ class FirestoreService {
         }, SetOptions(merge: true));
       }
     } catch (e) {
-      debugPrint('saveScore: $e');
+      if (kDebugMode) debugPrint('saveScore: $e');
     }
   }
 
@@ -603,7 +616,7 @@ class FirestoreService {
         return list?.cast<String>() ?? [];
       }
     } catch (e) {
-      debugPrint('loadAchievements: $e');
+      if (kDebugMode) debugPrint('loadAchievements: $e');
     }
     return [];
   }
@@ -619,7 +632,7 @@ class FirestoreService {
       }, SetOptions(merge: true));
       return true; // newly unlocked
     } catch (e) {
-      debugPrint('unlockAchievement: $e');
+      if (kDebugMode) debugPrint('unlockAchievement: $e');
       return false;
     }
   }
@@ -643,7 +656,7 @@ class FirestoreService {
     try {
       await _doc('profiles').set(map, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('saveUserProfile: $e');
+      if (kDebugMode) debugPrint('saveUserProfile: $e');
     }
   }
 
@@ -666,7 +679,7 @@ class FirestoreService {
         'ip': 'mobile_app',
       });
     } catch (e) {
-      debugPrint('_logAuditEvent: $e');
+      if (kDebugMode) debugPrint('_logAuditEvent: $e');
     }
   }
 
@@ -705,13 +718,16 @@ class FirestoreService {
         'checked',
       ];
 
-      for (final collection in collections) {
-        try {
-          await _db.collection(collection).doc(uid).delete();
-        } catch (e) {
-          debugPrint('Error deleting $collection: $e');
-        }
-      }
+      // Batch delete top-level user collections in parallel
+      await Future.wait(
+        collections.map((collection) async {
+          try {
+            await _db.collection(collection).doc(uid).delete();
+          } catch (e) {
+            if (kDebugMode) debugPrint('Error deleting $collection: $e');
+          }
+        }),
+      );
 
       // Delete nested documents under /users/{uid}
       try {
@@ -729,14 +745,19 @@ class FirestoreService {
           'ai_content',
         ];
 
+        // Delete nested sub-collection docs using WriteBatch for speed
         for (final nestedCol in nestedCollections) {
           try {
             final docs = await userRef.collection(nestedCol).get();
-            for (final doc in docs.docs) {
-              await doc.reference.delete();
+            if (docs.docs.isNotEmpty) {
+              final batch = _db.batch();
+              for (final doc in docs.docs) {
+                batch.delete(doc.reference);
+              }
+              await batch.commit();
             }
           } catch (e) {
-            debugPrint('Error deleting nested $nestedCol: $e');
+            if (kDebugMode) debugPrint('Error deleting nested $nestedCol: $e');
           }
         }
 
@@ -749,12 +770,12 @@ class FirestoreService {
           'deletedAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        debugPrint('Error deleting user document: $e');
+        if (kDebugMode) debugPrint('Error deleting user document: $e');
       }
 
       await _logAuditEvent('account_deleted', {'uid': uid});
     } catch (e) {
-      debugPrint('deleteAllUserData error: $e');
+      if (kDebugMode) debugPrint('deleteAllUserData error: $e');
     }
   }
 
@@ -791,7 +812,7 @@ class FirestoreService {
             export[collection] = snap.data();
           }
         } catch (e) {
-          debugPrint('Error exporting $collection: $e');
+          if (kDebugMode) debugPrint('Error exporting $collection: $e');
         }
       }
 
@@ -800,7 +821,7 @@ class FirestoreService {
 
       return jsonEncode(export);
     } catch (e) {
-      debugPrint('exportUserData error: $e');
+      if (kDebugMode) debugPrint('exportUserData error: $e');
       return '{"error": "$e"}';
     }
   }

@@ -43,6 +43,7 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
   Future<void> _loadMemories() async {
     await V2Storage.init();
     final saved = V2Storage.getMap('memory_vault_data');
+    if (!mounted) return;
     setState(() {
       if (saved != null && saved['memories'] != null) {
         _memories = (saved['memories'] as List)
@@ -113,7 +114,7 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: MediaQuery.sizeOf(context).height * 0.7,
           decoration: const BoxDecoration(
             color: V2Theme.surfaceLight,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -142,7 +143,7 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                     hintText: 'Title',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: const TextStyle(color: Colors.white38),
                     filled: true,
                     fillColor: V2Theme.darkGlass,
                     border: OutlineInputBorder(
@@ -156,7 +157,7 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
                 maxLines: 3,
                 decoration: InputDecoration(
                     hintText: 'Description',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: const TextStyle(color: Colors.white38),
                     filled: true,
                     fillColor: V2Theme.darkGlass,
                     border: OutlineInputBorder(
@@ -324,7 +325,7 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: V2SearchBar(
-            hintText: "Search memories...",
+            hintText: 'Search memories...',
             onChanged: (v) => setState(() => _searchQuery = v),
           ),
         ),
@@ -461,13 +462,13 @@ class _MemoryVaultPageState extends State<MemoryVaultPage>
                         color: Colors.white)),
                 const SizedBox(height: 8),
                 Text(memory.description,
-                    style: TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.white70),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_today, size: 16, color: Colors.white54),
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.white54),
                     const SizedBox(width: 8),
                     Text(_formatDate(memory.date),
                         style: const TextStyle(color: Colors.white54)),

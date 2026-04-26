@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -58,6 +59,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
             d.year == todayDate.year &&
             d.month == todayDate.month &&
             d.day == todayDate.day);
+        if (!mounted) return;
         setState(() {
           _checkinHistory = history;
           _checkedInToday = checkedToday;
@@ -67,7 +69,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
         });
       }
     } catch (e) {
-      debugPrint('CheckIn load error: $e');
+      if (kDebugMode) debugPrint('CheckIn load error: $e');
     }
     setState(() => _loading = false);
   }
@@ -106,6 +108,7 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
               : 5;
       AffectionService.instance.addPoints(bonus);
 
+      if (!mounted) return;
       setState(() {
         _checkedInToday = true;
         _totalCheckins = _checkinHistory.length;
@@ -358,7 +361,3 @@ class _CheckinStreakPageState extends State<CheckinStreakPage> {
     );
   }
 }
-
-
-
-

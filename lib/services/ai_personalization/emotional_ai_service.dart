@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Emotional AI Service
@@ -22,7 +22,7 @@ class EmotionalAIService {
     _prefs = await SharedPreferences.getInstance();
     await _loadEmotionalHistory();
     await _initializeComfortResponses();
-    debugPrint('[EmotionalAI] Service initialized');
+    if (kDebugMode) debugPrint('[EmotionalAI] Service initialized');
   }
 
   // ===== EMOTION DETECTION =====
@@ -430,7 +430,7 @@ ${trend.emotionalStability > 0.7 ? '✓ Your emotional state is stable and healt
         final state = EmotionalState.fromJson(decoded['state'] as Map<String, dynamic>);
         _emotionalHistory[date] = state;
       } catch (e) {
-        debugPrint('[EmotionalAI] Error loading state: $e');
+        if (kDebugMode) debugPrint('[EmotionalAI] Error loading state: $e');
       }
     }
   }

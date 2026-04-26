@@ -1,4 +1,5 @@
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -79,6 +80,7 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _phase = 'Hold';
       _instruction = 'Hold the breath and keep your shoulders relaxed.';
@@ -90,6 +92,7 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _phase = 'Exhale';
       _instruction = 'Exhale slowly and let the circle shrink.';
@@ -101,11 +104,13 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
       return;
     }
 
+    if (!mounted) return;
     setState(() => _cyclesLeft--);
 
     if (_cyclesLeft > 0) {
       await _startCycle();
     } else {
+      if (!mounted) return;
       setState(() {
         _phase = 'Complete';
         _instruction = 'Well done. Your body should feel calmer now.';
@@ -117,64 +122,132 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
     return Scaffold(
-      backgroundColor: V2Theme.surfaceDark,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: tokens.textSoft, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'BREATHING',
-          style: GoogleFonts.outfit(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 2,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.lightBlueAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.air_rounded,
+                  color: Colors.lightBlueAccent, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Text('MINDFUL BREATHING',
+                style: GoogleFonts.outfit(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 1.5,
+                )),
+          ],
         ),
         centerTitle: true,
       ),
-      body: WaifuBackground(
-        opacity: 0.08,
-        tint: const Color(0xFF0A0A14),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.scaffoldBackgroundColor,
+              theme.scaffoldBackgroundColor.withValues(alpha: 0.95),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
-            GlassCard(
-              margin: EdgeInsets.zero,
-              glow: true,
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.lightBlueAccent.withValues(alpha: 0.08),
+                    Colors.cyanAccent.withValues(alpha: 0.04),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.lightBlueAccent.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.lightBlueAccent.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlueAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(Icons.spa_rounded,
+                        color: Colors.lightBlueAccent, size: 24),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '4-7-8 reset',
-                          style: GoogleFonts.outfit(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.access_time_rounded,
+                                color: Colors.lightBlueAccent, size: 14),
+                            const SizedBox(width: 6),
+                            Text(
+                              '4-7-8 BREATHING',
+                              style: GoogleFonts.outfit(
+                                color: tokens.textSoft,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         Text(
                           _running
                               ? 'Breathing cycle in progress'
                               : 'Start a guided calming session',
                           style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           'Five guided cycles with a simple 4 second inhale, 7 second hold, and 8 second exhale.',
                           style: GoogleFonts.outfit(
-                            color: Colors.white60,
+                            color: tokens.textSoft,
                             fontSize: 12,
                             height: 1.35,
                           ),
@@ -183,27 +256,41 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
                     ),
                   ),
                   const SizedBox(width: 16),
-                  ProgressRing(
-                    progress: (5 - _cyclesLeft).clamp(0, 5) / 5,
-                    foreground: _phaseColor,
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          _phaseColor.withValues(alpha: 0.2),
+                          _phaseColor.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: _phaseColor.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
+                    ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.spa_rounded, color: _phaseColor, size: 28),
-                        const SizedBox(height: 6),
+                        Icon(Icons.spa_rounded, color: _phaseColor, size: 24),
+                        const SizedBox(height: 4),
                         Text(
                           '${5 - _cyclesLeft}',
                           style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                         Text(
                           'Done',
                           style: GoogleFonts.outfit(
-                            color: Colors.white54,
-                            fontSize: 11,
+                            color: tokens.textMuted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -212,51 +299,43 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
-                  child: StatCard(
-                    title: 'Cycles Left',
-                    value: '$_cyclesLeft',
-                    icon: Icons.repeat_rounded,
-                    color: V2Theme.primaryColor,
+                  child: _buildPremiumStatCard(
+                    'Cycles Left',
+                    '$_cyclesLeft',
+                    Icons.repeat_rounded,
+                    Colors.lightBlueAccent,
                   ),
                 ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: StatCard(
-                    title: 'Phase',
-                    value: _phase,
-                    icon: Icons.timelapse_rounded,
-                    color: V2Theme.secondaryColor,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: StatCard(
-                    title: 'Inhale',
-                    value: '${_inhale}s',
-                    icon: Icons.north_rounded,
-                    color: Colors.lightGreenAccent,
-                  ),
-                ),
-                Expanded(
-                  child: StatCard(
-                    title: 'Exhale',
-                    value: '${_exhale}s',
-                    icon: Icons.south_rounded,
-                    color: Colors.orangeAccent,
+                  child: _buildPremiumStatCard(
+                    'Phase',
+                    _phase,
+                    Icons.access_time_rounded,
+                    _phaseColor,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            GlassCard(
-              margin: EdgeInsets.zero,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.pinkAccent.withValues(alpha: 0.08),
+                    Colors.purpleAccent.withValues(alpha: 0.04),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: V2Theme.primaryColor.withValues(alpha: 0.2),
+                ),
+              ),
               child: Row(
                 children: [
                   const Icon(Icons.favorite_border_rounded,
@@ -401,7 +480,66 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
       ),
     );
   }
+
+  Widget _buildPremiumStatCard(String title, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.1),
+            color.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              color: theme.colorScheme.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              color: tokens.textSoft,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-
-

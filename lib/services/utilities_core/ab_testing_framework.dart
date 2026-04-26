@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A/B Testing Framework
@@ -22,7 +22,7 @@ class ABTestingFramework {
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _loadTests();
-    debugPrint('[A/B Testing] Initialized');
+    if (kDebugMode) debugPrint('[A/B Testing] Initialized');
   }
 
   // ===== TEST CREATION =====
@@ -236,7 +236,7 @@ class ABTestingFramework {
 
   // ===== INTERNAL HELPERS =====
   double _calculateConfidence(int samplesA, int samplesB) {
-    final minSamples = 1000;
+    const minSamples = 1000;
     final avgSamples = (samplesA + samplesB) / 2;
     return (avgSamples / minSamples).clamp(0.0, 1.0);
   }

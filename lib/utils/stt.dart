@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:anime_waifu/services/audio_voice/gladia_stt_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -200,8 +200,10 @@ class SpeechService {
           .onAmplitudeChanged(const Duration(milliseconds: 120))
           .listen((amp) {
         // Live noise monitoring
-        debugPrint(
+        if (kDebugMode) {
+          debugPrint(
             '[STT Noise] Live level: ${amp.current.toStringAsFixed(1)} dB (Threshold: $_voiceThresholdDb)');
+        }
 
         if (amp.current > _voiceThresholdDb) {
           _hadVoiceSignal = true;
@@ -265,7 +267,7 @@ class SpeechService {
     try {
       path = await _recorder.stop();
     } catch (e) {
-      debugPrint('Record stop error: $e');
+      if (kDebugMode) debugPrint('Record stop error: $e');
       if (onError != null) onError!('record_stop_failed: $e');
     }
 
@@ -369,19 +371,19 @@ class SpeechService {
   Future<String> _transcribeFile(String path) async {
     final keys = _allKeys;
     if (keys.isEmpty) {
-      debugPrint('STT: No API key available for transcription');
+      if (kDebugMode) debugPrint('STT: No API key available for transcription');
       if (onError != null) onError!('stt_no_api_key');
       return '';
     }
 
     final file = File(path);
     if (!await file.exists()) {
-      debugPrint('STT: Audio file not found: $path');
+      if (kDebugMode) debugPrint('STT: Audio file not found: $path');
       return '';
     }
     final fileLength = await file.length();
     if (fileLength < _minUsefulAudioBytes) {
-      debugPrint('STT: Audio file too small ($fileLength bytes), skipping');
+      if (kDebugMode) debugPrint('STT: Audio file too small ($fileLength bytes), skipping');
       return '';
     }
 
@@ -405,14 +407,16 @@ class SpeechService {
         if (response.statusCode == 429 || response.statusCode == 401) {
           // Rate-limited or invalid key — try next key.
           lastError = 'key_${attempt + 1}_${response.statusCode}';
-          debugPrint(
+          if (kDebugMode) {
+            debugPrint(
               'STT: Key ${attempt + 1}/${keys.length} failed (${response.statusCode}), trying next...');
+          }
           continue;
         }
 
         if (response.statusCode != 200) {
           lastError = 'http_${response.statusCode}';
-          debugPrint('STT: Transcription error ${response.statusCode}');
+          if (kDebugMode) debugPrint('STT: Transcription error ${response.statusCode}');
           continue;
         }
 
@@ -420,29 +424,46 @@ class SpeechService {
         return (json['text'] ?? '').toString().trim();
       } on TimeoutException {
         lastError = 'timeout_key_${attempt + 1}';
-        debugPrint(
+        if (kDebugMode) {
+          debugPrint(
             'STT: Key ${attempt + 1}/${keys.length} timed out, trying next...');
+        }
         continue;
       } catch (e) {
         lastError = 'exception_key_${attempt + 1}';
-        debugPrint('STT: Key ${attempt + 1}/${keys.length} exception: $e');
+        if (kDebugMode) debugPrint('STT: Key ${attempt + 1}/${keys.length} exception: $e');
         continue;
       }
     }
 
     // All keys exhausted.
-    debugPrint('STT: All ${keys.length} key(s) failed. Last error: $lastError');
+    if (kDebugMode) debugPrint('STT: All ${keys.length} key(s) failed. Last error: $lastError');
     if (onError != null) onError!('stt_all_keys_failed: $lastError');
     return '';
   }
 
   void _deleteFile(String path) {
-    () async {
+    Future<void>.microtask(() async {
       try {
         final f = File(path);
         if (await f.exists()) await f.delete();
       } catch (_) {}
-    }();
+    });
+  }
+
+  /// Release all resources — call when the speech service is no longer needed
+  Future<void> dispose() async {
+    _silenceTimer?.cancel();
+    _maxDurationTimer?.cancel();
+    await _amplitudeSub?.cancel();
+    _amplitudeSub = null;
+    try {
+      if (listening) await _recorder.stop();
+    } catch (_) {}
+    listening = false;
+    _starting = false;
+    _stopping = false;
+    _currentPath = null;
   }
 }
 

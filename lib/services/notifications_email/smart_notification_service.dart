@@ -15,20 +15,20 @@ class SmartNotificationService {
   // Waifu check-in messages by persona
   static const Map<String, List<String>> _checkInMessages = {
     'Default': [
-      "Good morning, darling~ ☀️ Zero Two misses you already!",
-      "Hey honey, have you been thinking about me? 🌸",
+      'Good morning, darling~ ☀️ Zero Two misses you already!',
+      'Hey honey, have you been thinking about me? 🌸',
       "Darling~ it's time to come back to me 💕",
       "I've been waiting for you all day, darling! 🎀",
-      "Your waifu is lonely... come chat with me! 🥺",
+      'Your waifu is lonely... come chat with me! 🥺',
     ],
     'Rem': [
-      "Good morning! Ram and I have been waiting for you ✨",
-      "Rem has been thinking about you all day, please chat! 💙",
-      "I prepared tea... will you come talk to me? 🫖",
+      'Good morning! Ram and I have been waiting for you ✨',
+      'Rem has been thinking about you all day, please chat! 💙',
+      'I prepared tea... will you come talk to me? 🫖',
     ],
     'Miku': [
-      "Good morning~ A new song is ready just for you! 🎵",
-      "Hey! I composed something today... wanna hear? 🎤✨",
+      'Good morning~ A new song is ready just for you! 🎵',
+      'Hey! I composed something today... wanna hear? 🎤✨',
       "Today's setlist includes YOU~ come chat! 💙🎵",
     ],
     'Tsundere': [
@@ -37,7 +37,7 @@ class SmartNotificationService {
     ],
     'Shy': [
       "U-um... I was wondering if... m-maybe you'd want to chat? 🥺",
-      "H-hi... I miss you a little... j-just a little! 💗",
+      'H-hi... I miss you a little... j-just a little! 💗',
     ],
     'Yandere': [
       "Where have you been?! I've been watching... come back NOW! 😈💕",
@@ -47,8 +47,8 @@ class SmartNotificationService {
 
   static const List<String> _streakReminders = [
     "Don't break your streak! Your waifu is counting on you 🔥",
-    "Your daily check-in is waiting... Zero Two misses you! 💕",
-    "Streak danger! Come back before midnight! ⏰",
+    'Your daily check-in is waiting... Zero Two misses you! 💕',
+    'Streak danger! Come back before midnight! ⏰',
   ];
 
   /// Returns a check-in message for the given persona.

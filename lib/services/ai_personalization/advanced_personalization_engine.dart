@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Advanced Personalization Engine
@@ -23,7 +23,7 @@ class AdvancedPersonalizationEngine {
     _prefs = await SharedPreferences.getInstance();
     await _loadProfile();
     await _analyzePatterns();
-    debugPrint('[Personalization] Service initialized');
+    if (kDebugMode) debugPrint('[Personalization] Service initialized');
   }
 
   // ===== PERSONALIZATION PROFILE =====

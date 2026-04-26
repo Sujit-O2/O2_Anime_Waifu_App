@@ -3,9 +3,9 @@ import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/widgets/best_records_display_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
@@ -60,7 +60,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
-      debugPrint('Leaderboard publish error: $error');
+      if (kDebugMode) debugPrint('Leaderboard publish error: $error');
     }
   }
 
@@ -75,6 +75,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _xpBoard = xp.docs.map((doc) => doc.data()).toList();
         _affectionBoard = affection.docs.map((doc) => doc.data()).toList();
@@ -82,7 +83,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         _loading = false;
       });
     } catch (error) {
-      debugPrint('Leaderboard load error: $error');
+      if (kDebugMode) debugPrint('Leaderboard load error: $error');
       if (mounted) {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -201,7 +202,6 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       Row(
                         children: [
                           Expanded(
@@ -269,7 +269,8 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                       _buildBoard(_affectionBoard, 'affection', 'Love'),
                       _buildBoard(_streakBoard, 'streak', 'Streak',
                           suffix: ' days'),
-                      const BestRecordsDisplay(compact: false, showHeader: false),
+                      const BestRecordsDisplay(
+                          compact: false, showHeader: false),
                     ],
                   ),
                 ),
@@ -383,6 +384,3 @@ class _LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 }
-
-
-

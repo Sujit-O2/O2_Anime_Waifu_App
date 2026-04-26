@@ -147,107 +147,110 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
     final isCompact = screenSize.height < 700;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Stack(
-        children: [
-          const AnimatedBackground(),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(
+          children: [
+            const AnimatedBackground(),
 
-          // Dark cinematic overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.5),
-                  const Color(0xFF0A0015).withValues(alpha: 0.85),
-                  Colors.black.withValues(alpha: 0.95),
+            // Dark cinematic overlay
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.5),
+                    const Color(0xFF0A0015).withValues(alpha: 0.85),
+                    Colors.black.withValues(alpha: 0.95),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+
+            // Animated glow orbs
+            AnimatedBuilder(
+              animation: _pulse,
+              builder: (_, __) => Stack(
+                children: [
+                  Positioned(
+                    top: -80,
+                    right: -60,
+                    child: Container(
+                      width: 280,
+                      height: 280,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.pinkAccent.withValues(
+                              alpha: 0.12 * _pulse.value,
+                            ),
+                            blurRadius: 140,
+                            spreadRadius: 50,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -100,
+                    left: -50,
+                    child: Container(
+                      width: 260,
+                      height: 260,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.deepPurple.withValues(
+                              alpha: 0.18 * _pulse.value,
+                            ),
+                            blurRadius: 120,
+                            spreadRadius: 40,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
-                stops: const [0.0, 0.5, 1.0],
               ),
             ),
-          ),
 
-          // Animated glow orbs
-          AnimatedBuilder(
-            animation: _pulse,
-            builder: (_, __) => Stack(
-              children: [
-                Positioned(
-                  top: -80,
-                  right: -60,
-                  child: Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.pinkAccent.withValues(
-                            alpha: 0.12 * _pulse.value,
-                          ),
-                          blurRadius: 140,
-                          spreadRadius: 50,
-                        ),
-                      ],
-                    ),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenSize.width > 400 ? 36 : 24,
+                    vertical: 24,
                   ),
-                ),
-                Positioned(
-                  bottom: -100,
-                  left: -50,
-                  child: Container(
-                    width: 260,
-                    height: 260,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.deepPurple.withValues(
-                            alpha: 0.18 * _pulse.value,
-                          ),
-                          blurRadius: 120,
-                          spreadRadius: 40,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenSize.width > 400 ? 36 : 24,
-                  vertical: 24,
-                ),
-                child: FadeTransition(
-                  opacity: _fadeIn,
-                  child: SlideTransition(
-                    position: _slideUp,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildLogo(isCompact),
-                        SizedBox(height: isCompact ? 24 : 36),
-                        _buildCard(),
-                        const SizedBox(height: 20),
-                        _buildFooter(),
-                      ],
+                  child: FadeTransition(
+                    opacity: _fadeIn,
+                    child: SlideTransition(
+                      position: _slideUp,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildLogo(isCompact),
+                          SizedBox(height: isCompact ? 24 : 36),
+                          _buildCard(),
+                          const SizedBox(height: 20),
+                          _buildFooter(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -307,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen>
           // Pixel-art title logo
           Image.asset(
             'assets/img/front.png',
-            width: MediaQuery.of(context).size.width * 0.72,
+            width: MediaQuery.sizeOf(context).width * 0.72,
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => ShaderMask(
               shaderCallback: (bounds) => const LinearGradient(
@@ -396,8 +399,10 @@ class _LoginScreenState extends State<LoginScreen>
                     color: Colors.white30,
                     size: 20,
                   ),
-                  onPressed: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () {
+                    if (!mounted) return;
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
                 ),
               ),
               const SizedBox(height: 24),
@@ -559,7 +564,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildSignInButton() {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 56,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -675,7 +680,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       children: [
         Text(
-          'v7.0.2 · Zero Two AI',
+          'v8.0.0 · O2-WAIFU Production',
           style: GoogleFonts.jetBrainsMono(
             color: Colors.white.withValues(alpha: 0.15),
             fontSize: 10,

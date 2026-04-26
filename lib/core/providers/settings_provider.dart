@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:anime_waifu/services/ai_personalization/assistant_mode_service.dart';
+import 'package:anime_waifu/services/utilities_core/proactive_worker.dart'
+    as proactive_worker;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// SettingsProvider
@@ -39,6 +41,16 @@ class SettingsProvider extends ChangeNotifier {
   static const String _liteModeEnabledPrefKey = 'lite_mode_enabled_v1';
   static const String _appLockEnabledPrefKey = 'app_lock_enabled';
   static const String _sttProviderPrefKey = 'stt_provider_v1';
+  static const String _trueBackgroundProactiveEnabledPrefKey =
+      'true_background_proactive_enabled';
+  static const String _proactiveIntervalSecondsPrefKey =
+      'proactive_interval_seconds_v2';
+
+  Future<SharedPreferences>? _prefsFuture;
+
+  Future<SharedPreferences> _prefs() {
+    return _prefsFuture ??= SharedPreferences.getInstance();
+  }
 
   // ── Dev config pref keys ────────────────────────────────────────────────
   static const String _devApiKeyPrefKey = 'dev_api_key_override';
@@ -87,7 +99,7 @@ class SettingsProvider extends ChangeNotifier {
 
   // ── Dual Voice ──────────────────────────────────────────────────────────
   bool dualVoiceEnabled = false;
-  String dualVoiceSecondary = "alloy";
+  String dualVoiceSecondary = 'alloy';
   int dualVoiceTurn = 0;
 
   // ── Advanced ────────────────────────────────────────────────────────────
@@ -96,16 +108,16 @@ class SettingsProvider extends ChangeNotifier {
   bool advancedStrictWake = false;
 
   // ── Dev Config ──────────────────────────────────────────────────────────
-  String devApiKeyOverride = "";
-  String devModelOverride = "";
-  String devApiUrlOverride = "";
-  String devSystemQuery = "";
-  String devWakeKeyOverride = "";
-  String devTtsApiKeyOverride = "";
-  String devTtsModelOverride = "";
-  String devTtsVoiceOverride = "";
-  String devBrevoApiKeyOverride = "";
-  String devSttLangOverride = "";
+  String devApiKeyOverride = '';
+  String devModelOverride = '';
+  String devApiUrlOverride = '';
+  String devSystemQuery = '';
+  String devWakeKeyOverride = '';
+  String devTtsApiKeyOverride = '';
+  String devTtsModelOverride = '';
+  String devTtsVoiceOverride = '';
+  String devBrevoApiKeyOverride = '';
+  String devSttLangOverride = '';
   int devSttTimeoutOverride = 0;
 
   // ── Proactive / Idle Settings ───────────────────────────────────────────
@@ -115,6 +127,12 @@ class SettingsProvider extends ChangeNotifier {
   bool proactiveEnabled = true;
   bool proactiveRandomEnabled = true;
   bool trueBackgroundProactiveEnabled = false;
+  int backgroundLastRunEpochMs = 0;
+  int backgroundLastSuccessEpochMs = 0;
+  int backgroundLastHealEpochMs = 0;
+  int backgroundHealCount = 0;
+  String backgroundLastError = '';
+  String backgroundLastMessagePreview = '';
 
   // ── Derived Getters ─────────────────────────────────────────────────────
   double get chatFontSize {
@@ -148,26 +166,43 @@ class SettingsProvider extends ChangeNotifier {
 
   Duration get idleDuration => Duration(seconds: idleDurationSeconds);
   Duration get proactiveInterval => Duration(seconds: proactiveIntervalSeconds);
+  DateTime? get backgroundLastRunTime => backgroundLastRunEpochMs > 0
+      ? DateTime.fromMillisecondsSinceEpoch(backgroundLastRunEpochMs)
+      : null;
+  DateTime? get backgroundLastSuccessTime => backgroundLastSuccessEpochMs > 0
+      ? DateTime.fromMillisecondsSinceEpoch(backgroundLastSuccessEpochMs)
+      : null;
+  DateTime? get backgroundLastHealTime => backgroundLastHealEpochMs > 0
+      ? DateTime.fromMillisecondsSinceEpoch(backgroundLastHealEpochMs)
+      : null;
+  int get backgroundHealthScore {
+    var score = trueBackgroundProactiveEnabled ? 40 : 10;
+    if (backgroundLastRunEpochMs > 0) score += 25;
+    if (backgroundLastSuccessEpochMs > 0) score += 25;
+    if (backgroundLastError.trim().isNotEmpty) score -= 20;
+    if (backgroundHealCount > 0) score -= 5;
+    return score.clamp(0, 100);
+  }
 
   String get effectiveTtsApiKey {
     if (devTtsApiKeyOverride.trim().isNotEmpty) {
       return devTtsApiKeyOverride.trim();
     }
-    return dotenv.env['API_KEY'] ?? "";
+    return dotenv.env['API_KEY'] ?? '';
   }
 
   String get effectiveTtsModel {
     if (devTtsModelOverride.trim().isNotEmpty) {
       return devTtsModelOverride.trim();
     }
-    return "canopylabs/orpheus-arabic-saudi";
+    return 'canopylabs/orpheus-arabic-saudi';
   }
 
   String get effectiveTtsVoice {
     if (devTtsVoiceOverride.trim().isNotEmpty) {
       return devTtsVoiceOverride.trim();
     }
-    return "aisha";
+    return 'aisha';
   }
 
   ImageProvider imageProviderFor({
@@ -191,15 +226,36 @@ class SettingsProvider extends ChangeNotifier {
   // ═════════════════════════════════════════════════════════════════════════
 
   Future<void> loadAll() async {
-    await loadNewSettings();
-    await loadOutfitPreference();
-    await loadCustomImagePaths();
-    await loadDevConfig();
-    await loadAdvancedSettings();
+    final prefs = await _prefs();
+    _loadNewSettingsFromPrefs(prefs);
+    _loadOutfitFromPrefs(prefs);
+    _loadCustomImagePathsFromPrefs(prefs);
+    _loadDevConfigFromPrefs(prefs);
+    _loadAdvancedSettingsFromPrefs(prefs);
+    await refreshBackgroundTelemetry(notify: false);
+    notifyListeners();
+  }
+
+  Future<void> refreshBackgroundTelemetry({bool notify = true}) async {
+    final telemetry =
+        await proactive_worker.getProactiveBackgroundTelemetry();
+    backgroundLastRunEpochMs = (telemetry['lastRunEpochMs'] as int?) ?? 0;
+    backgroundLastSuccessEpochMs =
+        (telemetry['lastSuccessEpochMs'] as int?) ?? 0;
+    backgroundLastHealEpochMs = (telemetry['lastHealEpochMs'] as int?) ?? 0;
+    backgroundHealCount = (telemetry['healCount'] as int?) ?? 0;
+    backgroundLastError = (telemetry['lastError'] as String?) ?? '';
+    backgroundLastMessagePreview = (telemetry['lastMessage'] as String?) ?? '';
+    if (notify) notifyListeners();
   }
 
   Future<void> loadNewSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
+    _loadNewSettingsFromPrefs(prefs);
+    notifyListeners();
+  }
+
+  void _loadNewSettingsFromPrefs(SharedPreferences prefs) {
     showMessageTimestamps = prefs.getBool(_showTimestampsPrefKey) ?? false;
     hapticFeedbackEnabled = prefs.getBool(_hapticFeedbackPrefKey) ?? true;
     wakePopupEnabled = prefs.getBool(_wakePopupPrefKey) ?? true;
@@ -217,27 +273,42 @@ class SettingsProvider extends ChangeNotifier {
     dualVoiceSecondary = prefs.getString(_dualVoiceSecondaryPrefKey) ?? 'alloy';
     sttProvider = prefs.getString(_sttProviderPrefKey) ?? 'groq';
     trueBackgroundProactiveEnabled =
-        prefs.getBool('true_background_proactive_enabled') ?? false;
-    notifyListeners();
+        prefs.getBool(_trueBackgroundProactiveEnabledPrefKey) ?? false;
+    proactiveIntervalSeconds =
+        (prefs.getInt(_proactiveIntervalSecondsPrefKey) ?? 6 * 60 * 60)
+            .clamp(15 * 60, 24 * 60 * 60);
   }
 
   Future<void> loadOutfitPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    selectedOutfit = prefs.getString(_outfitPrefKey) ?? 'assets/img/z2s.jpg';
+    final prefs = await _prefs();
+    _loadOutfitFromPrefs(prefs);
     notifyListeners();
   }
 
+  void _loadOutfitFromPrefs(SharedPreferences prefs) {
+    selectedOutfit = prefs.getString(_outfitPrefKey) ?? 'assets/img/z2s.jpg';
+  }
+
   Future<void> loadCustomImagePaths() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
+    _loadCustomImagePathsFromPrefs(prefs);
+    notifyListeners();
+  }
+
+  void _loadCustomImagePathsFromPrefs(SharedPreferences prefs) {
     customChatImagePath = prefs.getString(_customChatImagePathPrefKey);
     chatImageFromSystem = prefs.getBool(_chatImageFromSystemPrefKey) ?? false;
     customAppIconPath = prefs.getString(_customAppIconPathPrefKey);
     appIconFromCustom = prefs.getBool(_appIconFromCustomPrefKey) ?? false;
-    notifyListeners();
   }
 
   Future<void> loadDevConfig() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
+    _loadDevConfigFromPrefs(prefs);
+    notifyListeners();
+  }
+
+  void _loadDevConfigFromPrefs(SharedPreferences prefs) {
     devApiKeyOverride = prefs.getString(_devApiKeyPrefKey) ?? '';
     devModelOverride = prefs.getString(_devModelPrefKey) ?? '';
     devApiUrlOverride = prefs.getString(_devApiUrlPrefKey) ?? '';
@@ -249,15 +320,18 @@ class SettingsProvider extends ChangeNotifier {
     devBrevoApiKeyOverride = prefs.getString(_devBrevoPrefKey) ?? '';
     devSttLangOverride = prefs.getString(_devSttLangPrefKey) ?? '';
     devSttTimeoutOverride = prefs.getInt(_devSttTimeoutPrefKey) ?? 0;
-    notifyListeners();
   }
 
   Future<void> loadAdvancedSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
+    _loadAdvancedSettingsFromPrefs(prefs);
+    notifyListeners();
+  }
+
+  void _loadAdvancedSettingsFromPrefs(SharedPreferences prefs) {
     advancedMemoryLimit = prefs.getInt(_advancedMemoryLimitPrefKey) ?? 15;
     advancedDebugLogs = prefs.getBool(_advancedDebugLogsPrefKey) ?? false;
     advancedStrictWake = prefs.getBool(_advancedStrictWakePrefKey) ?? false;
-    notifyListeners();
   }
 
   // ── Toggle / Set Methods ────────────────────────────────────────────────
@@ -265,45 +339,59 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> toggleShowTimestamps() async {
     showMessageTimestamps = !showMessageTimestamps;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_showTimestampsPrefKey, showMessageTimestamps);
+  }
+
+  Future<void> configureProactiveBackgroundTask({
+    required bool enabled,
+    required Duration interval,
+  }) async {
+    await proactive_worker.configureProactiveBackgroundTask(
+      enabled: enabled,
+      interval: interval,
+    );
   }
 
   Future<void> toggleTrueBackgroundProactiveEnabled() async {
     trueBackgroundProactiveEnabled = !trueBackgroundProactiveEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(
-        'true_background_proactive_enabled', trueBackgroundProactiveEnabled);
+        _trueBackgroundProactiveEnabledPrefKey, trueBackgroundProactiveEnabled);
 
-    // Register/cancel workmanager accordingly
+    await configureProactiveBackgroundTask(
+      enabled: trueBackgroundProactiveEnabled,
+      interval: Duration(seconds: proactiveIntervalSeconds),
+    );
+  }
+
+  Future<void> setProactiveIntervalSeconds(int seconds) async {
+    final safeSeconds = seconds.clamp(15 * 60, 24 * 60 * 60);
+    if (proactiveIntervalSeconds == safeSeconds) return;
+    proactiveIntervalSeconds = safeSeconds;
+    notifyListeners();
+    final prefs = await _prefs();
+    await prefs.setInt(_proactiveIntervalSecondsPrefKey, safeSeconds);
     if (trueBackgroundProactiveEnabled) {
-      Workmanager().registerOneOffTask(
-        "proactive-ai-checkin",
-        "proactiveAiCheckinTask",
-        initialDelay: const Duration(
-            minutes: 15), // First background check happens after 15 mins
-        constraints: Constraints(
-          networkType: NetworkType.connected, // Only when connected to internet
-          requiresBatteryNotLow: true, // Save battery
-        ),
+      await configureProactiveBackgroundTask(
+        enabled: true,
+        interval: Duration(seconds: safeSeconds),
       );
-    } else {
-      Workmanager().cancelByUniqueName("proactive-ai-checkin");
     }
   }
 
   Future<void> toggleHapticFeedback() async {
     hapticFeedbackEnabled = !hapticFeedbackEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_hapticFeedbackPrefKey, hapticFeedbackEnabled);
   }
 
   Future<void> toggleWakePopupEnabled() async {
     wakePopupEnabled = !wakePopupEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_wakePopupPrefKey, wakePopupEnabled);
     if (Platform.isAndroid && wakePopupEnabled) {
       final svc = AssistantModeService();
@@ -317,44 +405,48 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> toggleSoundOnWake() async {
     soundOnWake = !soundOnWake;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_soundOnWakePrefKey, soundOnWake);
   }
 
   Future<void> toggleShowChatHint() async {
     showChatHint = !showChatHint;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_showChatHintPrefKey, showChatHint);
   }
 
   Future<void> setWallpaperBrightness(double value,
       {bool persist = true}) async {
-    wallpaperBrightness = value.clamp(0.0, 1.0);
+    final clampedValue = value.clamp(0.0, 1.0);
+    if (wallpaperBrightness == clampedValue) return;
+    wallpaperBrightness = clampedValue;
     notifyListeners();
     if (!persist) return;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setDouble(_wallpaperBrightnessPrefKey, wallpaperBrightness);
   }
 
   Future<void> setResponseLength(String mode) async {
+    if (responseLengthMode == mode) return;
     responseLengthMode = mode;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setString(_responseLengthPrefKey, mode);
   }
 
   Future<void> setChatTextSize(String size) async {
+    if (chatTextSize == size) return;
     chatTextSize = size;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setString(_chatTextSizePrefKey, size);
   }
 
   Future<void> toggleAutoScrollChat() async {
     autoScrollChat = !autoScrollChat;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_autoScrollChatPrefKey, autoScrollChat);
   }
 
@@ -363,50 +455,53 @@ class SettingsProvider extends ChangeNotifier {
     if (ttsSpeed == s) return;
     ttsSpeed = s;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setDouble(_ttsSpeedPrefKey, s);
   }
 
   Future<void> setOutfit(String assetPath) async {
+    if (selectedOutfit == assetPath) return;
     selectedOutfit = assetPath;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setString(_outfitPrefKey, assetPath);
   }
 
   Future<void> toggleLiteMode() async {
     liteModeEnabled = !liteModeEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_liteModeEnabledPrefKey, liteModeEnabled);
   }
 
   Future<void> toggleAppLock() async {
     appLockEnabled = !appLockEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_appLockEnabledPrefKey, appLockEnabled);
   }
 
   Future<void> toggleDualVoice() async {
     dualVoiceEnabled = !dualVoiceEnabled;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setBool(_dualVoiceEnabledPrefKey, dualVoiceEnabled);
   }
 
   Future<void> setDualVoiceSecondary(String voice) async {
+    if (dualVoiceSecondary == voice) return;
     dualVoiceSecondary = voice;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setString(_dualVoiceSecondaryPrefKey, voice);
   }
 
   Future<void> setSttProvider(String provider) async {
     if (provider != 'groq' && provider != 'gladia') return;
+    if (sttProvider == provider) return;
     sttProvider = provider;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.setString(_sttProviderPrefKey, provider);
   }
 
@@ -421,7 +516,7 @@ class SettingsProvider extends ChangeNotifier {
 
       final path = picked.path.trim();
       if (path.isEmpty) return;
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefs();
 
       if (forChatImage) {
         customChatImagePath = path;
@@ -437,7 +532,7 @@ class SettingsProvider extends ChangeNotifier {
       evictImageCaches();
       notifyListeners();
     } catch (e) {
-      debugPrint('Gallery image pick failed: $e');
+      if (kDebugMode) debugPrint('Gallery image pick failed: $e');
     }
   }
 
@@ -447,7 +542,7 @@ class SettingsProvider extends ChangeNotifier {
     customAppIconPath = null;
     appIconFromCustom = false;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _prefs();
     await prefs.remove(_customChatImagePathPrefKey);
     await prefs.remove(_customAppIconPathPrefKey);
     await prefs.setBool(_chatImageFromSystemPrefKey, false);
@@ -487,6 +582,10 @@ class SettingsProvider extends ChangeNotifier {
     if (sttTimeout != null) devSttTimeoutOverride = sttTimeout;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    // SettingsProvider holds no Streams or Controllers to dispose
+    super.dispose();
+  }
 }
-
-

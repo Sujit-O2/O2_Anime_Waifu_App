@@ -45,6 +45,7 @@ class _AiDebugPanelPageState extends State<AiDebugPanelPage>
     final rawLogs = prefs.getString('ai_debug_panel_logs_v2');
     final rawCalls = prefs.getString('ai_debug_panel_calls_v2');
     final rawStats = prefs.getString('ai_debug_panel_stats_v2');
+    if (!mounted) return;
     setState(() {
       _logs = rawLogs == null
           ? _generateSampleLogs()

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/material.dart';
 
 enum WaifuBgType { sfw, action, waifuGif }
@@ -9,14 +10,16 @@ class WaifuBackground extends StatefulWidget {
     super.key,
     required this.child,
     this.type = WaifuBgType.sfw,
-    this.opacity = 0.22,
+    this.opacity = 0.12,
     this.tint = Colors.black,
+    this.animated = false,
   });
 
   final Widget child;
   final WaifuBgType type;
   final double opacity;
   final Color tint;
+  final bool animated;
 
   @override
   State<WaifuBackground> createState() => _WaifuBackgroundState();
@@ -24,7 +27,7 @@ class WaifuBackground extends StatefulWidget {
 
 class _WaifuBackgroundState extends State<WaifuBackground>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseCtrl;
+  AnimationController? _pulseCtrl;
   late final String _assetPath;
 
   static const List<String> _sfwAssets = [
@@ -48,16 +51,18 @@ class _WaifuBackgroundState extends State<WaifuBackground>
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat(reverse: true);
+    if (widget.animated) {
+      _pulseCtrl = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 16),
+      )..repeat(reverse: true);
+    }
     _assetPath = _pickAsset();
   }
 
   @override
   void dispose() {
-    _pulseCtrl.dispose();
+    _pulseCtrl?.dispose();
     super.dispose();
   }
 
@@ -73,110 +78,119 @@ class _WaifuBackgroundState extends State<WaifuBackground>
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.animated || _pulseCtrl == null) {
+      return _buildScene(context, 0.5);
+    }
     return AnimatedBuilder(
-      animation: _pulseCtrl,
-      builder: (context, _) {
-        final wave = _pulseCtrl.value;
+      animation: _pulseCtrl!,
+      builder: (context, _) => _buildScene(context, _pulseCtrl!.value),
+    );
+  }
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            const DecoratedBox(
+  Widget _buildScene(BuildContext context, double wave) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    final isDark = theme.brightness == Brightness.dark;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(gradient: tokens.heroGradient),
+        ),
+        Positioned(
+          top: -80 + wave * 28,
+          right: -50 + wave * 18,
+          child: _Orb(
+            size: 260,
+            colors: [
+              theme.colorScheme.primary.withValues(alpha: isDark ? 0.18 : 0.08),
+              Colors.transparent,
+            ],
+          ),
+        ),
+        Positioned(
+          left: -70 + (1 - wave) * 18,
+          bottom: -60 + (1 - wave) * 22,
+          child: _Orb(
+            size: 240,
+            colors: [
+              theme.colorScheme.tertiary
+                  .withValues(alpha: isDark ? 0.16 : 0.08),
+              Colors.transparent,
+            ],
+          ),
+        ),
+        Positioned(
+          top: 80 - wave * 12,
+          left: 40 + wave * 10,
+          child: _Orb(
+            size: 180,
+            colors: [
+              theme.colorScheme.secondary
+                  .withValues(alpha: isDark ? 0.10 : 0.06),
+              Colors.transparent,
+            ],
+          ),
+        ),
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: Opacity(
+              opacity: widget.opacity,
+              child: Image.asset(
+                _assetPath,
+                fit: BoxFit.cover,
+                alignment: const Alignment(0, -0.05),
+                cacheWidth: 720,
+                filterQuality: FilterQuality.low,
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  if (wasSynchronouslyLoaded) return child;
+                  return AnimatedOpacity(
+                    opacity: frame == null ? 0 : 1,
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOut,
+                    child: child,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  widget.tint.withValues(alpha: isDark ? 0.72 : 0.28),
+                  widget.tint.withValues(alpha: isDark ? 0.52 : 0.10),
+                  widget.tint.withValues(alpha: isDark ? 0.82 : 0.36),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF070B14),
-                    Color(0xFF101827),
-                    Color(0xFF1A0E21),
-                    Color(0xFF06080F),
+                    theme.colorScheme.onSurface
+                        .withValues(alpha: isDark ? 0.03 : 0.02),
+                    Colors.transparent,
+                    theme.colorScheme.shadow
+                        .withValues(alpha: isDark ? 0.12 : 0.04),
                   ],
                 ),
               ),
             ),
-            Positioned(
-              top: -80 + wave * 28,
-              right: -50 + wave * 18,
-              child: _Orb(
-                size: 260,
-                colors: [
-                  const Color(0xFFFF5B7F).withValues(alpha: 0.18),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            Positioned(
-              left: -70 + (1 - wave) * 18,
-              bottom: -60 + (1 - wave) * 22,
-              child: _Orb(
-                size: 240,
-                colors: [
-                  const Color(0xFF5FE2FF).withValues(alpha: 0.16),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            Positioned(
-              top: 80 - wave * 12,
-              left: 40 + wave * 10,
-              child: _Orb(
-                size: 180,
-                colors: [
-                  const Color(0xFFFFC857).withValues(alpha: 0.10),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            Positioned.fill(
-              child: Opacity(
-                opacity: widget.opacity,
-                child: Transform.scale(
-                  scale: 1.03 + wave * 0.02,
-                  child: Image.asset(
-                    _assetPath,
-                    fit: BoxFit.cover,
-                    alignment: Alignment(0, -0.1 + wave * 0.1),
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      widget.tint.withValues(alpha: 0.54),
-                      widget.tint.withValues(alpha: 0.26),
-                      widget.tint.withValues(alpha: 0.72),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withValues(alpha: 0.03),
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.12),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            widget.child,
-          ],
-        );
-      },
+          ),
+        ),
+        widget.child,
+      ],
     );
   }
 }
@@ -202,5 +216,3 @@ class _Orb extends StatelessWidget {
     );
   }
 }
-
-

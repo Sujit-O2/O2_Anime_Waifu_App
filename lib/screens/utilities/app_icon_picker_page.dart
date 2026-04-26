@@ -35,6 +35,7 @@ class _AppIconPickerPageState extends State<AppIconPickerPage> {
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _query = prefs.getString(_queryKey) ?? '';
       _filter = prefs.getString(_filterKey) ?? 'All';
@@ -54,6 +55,7 @@ class _AppIconPickerPageState extends State<AppIconPickerPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() => _currentVariant = variant ?? 'old');
     } catch (_) {}
   }
@@ -72,6 +74,7 @@ class _AppIconPickerPageState extends State<AppIconPickerPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _currentVariant = variant;
         _switching = false;
@@ -91,9 +94,9 @@ class _AppIconPickerPageState extends State<AppIconPickerPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
+          const SnackBar(
             backgroundColor: V2Theme.surfaceLight,
-            content: const Text(
+            content: Text(
               'Only Classic and Neon are registered launcher aliases. The rest are preview presets.',
             ),
           ),
@@ -240,6 +243,7 @@ class _AppIconPickerPageState extends State<AppIconPickerPage> {
                         V2SearchBar(
                           hintText: 'Search icon style...',
                           onChanged: (value) {
+                            if (!mounted) return;
                             setState(() => _query = value);
                             _persistState();
                           },

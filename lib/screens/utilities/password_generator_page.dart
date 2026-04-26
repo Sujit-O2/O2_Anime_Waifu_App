@@ -85,6 +85,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage>
       return;
     }
     if (_history.isNotEmpty) {
+      if (!mounted) return;
       setState(() {
         _password = _history.first['pw']?.toString() ?? '';
       });
@@ -514,9 +515,9 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage>
               ),
               const SizedBox(height: 14),
               if (_history.isEmpty)
-                GlassCard(
+                const GlassCard(
                   margin: EdgeInsets.zero,
-                  child: const EmptyState(
+                  child: EmptyState(
                     icon: Icons.history_toggle_off_rounded,
                     title: 'No saved history yet',
                     subtitle:

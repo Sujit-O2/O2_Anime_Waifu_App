@@ -133,10 +133,12 @@ class _ConversationSummaryPageState extends State<ConversationSummaryPage>
       ]);
       if (!mounted) return;
       final topics = _extractTopics(reply);
+      if (!mounted) return;
       setState(() => _summary = reply);
       await _saveSummary(text.length > 100 ? '${text.substring(0, 100)}...' : text, reply, topics);
       AffectionService.instance.addPoints(2);
     } catch (e) {
+      if (!mounted) return;
       setState(
           () => _summary = 'Something went wrong, Darling~ Please try again!');
     } finally {

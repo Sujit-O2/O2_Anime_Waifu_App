@@ -58,6 +58,7 @@ class _NotesPadPageState extends State<NotesPadPage> {
     if (raw != null) {
       try {
         final list = jsonDecode(raw) as List;
+        if (!mounted) return;
         setState(() => _notes = list
             .map((e) => _Note.fromJson(e as Map<String, dynamic>))
             .toList());

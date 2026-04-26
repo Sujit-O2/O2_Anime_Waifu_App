@@ -1,6 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+@immutable
+class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
+  const AppDesignTokens({
+    required this.panel,
+    required this.panelElevated,
+    required this.panelMuted,
+    required this.outline,
+    required this.outlineStrong,
+    required this.textMuted,
+    required this.textSoft,
+    required this.heroGradient,
+    required this.glassGradient,
+    required this.shadowColor,
+    required this.glowColor,
+  });
+
+  final Color panel;
+  final Color panelElevated;
+  final Color panelMuted;
+  final Color outline;
+  final Color outlineStrong;
+  final Color textMuted;
+  final Color textSoft;
+  final LinearGradient heroGradient;
+  final LinearGradient glassGradient;
+  final Color shadowColor;
+  final Color glowColor;
+
+  @override
+  AppDesignTokens copyWith({
+    Color? panel,
+    Color? panelElevated,
+    Color? panelMuted,
+    Color? outline,
+    Color? outlineStrong,
+    Color? textMuted,
+    Color? textSoft,
+    LinearGradient? heroGradient,
+    LinearGradient? glassGradient,
+    Color? shadowColor,
+    Color? glowColor,
+  }) {
+    return AppDesignTokens(
+      panel: panel ?? this.panel,
+      panelElevated: panelElevated ?? this.panelElevated,
+      panelMuted: panelMuted ?? this.panelMuted,
+      outline: outline ?? this.outline,
+      outlineStrong: outlineStrong ?? this.outlineStrong,
+      textMuted: textMuted ?? this.textMuted,
+      textSoft: textSoft ?? this.textSoft,
+      heroGradient: heroGradient ?? this.heroGradient,
+      glassGradient: glassGradient ?? this.glassGradient,
+      shadowColor: shadowColor ?? this.shadowColor,
+      glowColor: glowColor ?? this.glowColor,
+    );
+  }
+
+  @override
+  AppDesignTokens lerp(
+      covariant ThemeExtension<AppDesignTokens>? other, double t) {
+    if (other is! AppDesignTokens) {
+      return this;
+    }
+    return AppDesignTokens(
+      panel: Color.lerp(panel, other.panel, t)!,
+      panelElevated: Color.lerp(panelElevated, other.panelElevated, t)!,
+      panelMuted: Color.lerp(panelMuted, other.panelMuted, t)!,
+      outline: Color.lerp(outline, other.outline, t)!,
+      outlineStrong: Color.lerp(outlineStrong, other.outlineStrong, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      textSoft: Color.lerp(textSoft, other.textSoft, t)!,
+      heroGradient: LinearGradient(
+        begin: heroGradient.begin,
+        end: heroGradient.end,
+        colors: List<Color>.generate(
+          heroGradient.colors.length,
+          (index) => Color.lerp(
+            heroGradient.colors[index],
+            other.heroGradient.colors[index < other.heroGradient.colors.length
+                ? index
+                : other.heroGradient.colors.length - 1],
+            t,
+          )!,
+        ),
+      ),
+      glassGradient: LinearGradient(
+        begin: glassGradient.begin,
+        end: glassGradient.end,
+        colors: List<Color>.generate(
+          glassGradient.colors.length,
+          (index) => Color.lerp(
+            glassGradient.colors[index],
+            other.glassGradient.colors[index < other.glassGradient.colors.length
+                ? index
+                : other.glassGradient.colors.length - 1],
+            t,
+          )!,
+        ),
+      ),
+      shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
+      glowColor: Color.lerp(glowColor, other.glowColor, t)!,
+    );
+  }
+}
+
+extension AppThemeContext on BuildContext {
+  AppDesignTokens get appTokens => Theme.of(this).extension<AppDesignTokens>()!;
+}
+
+class _ThemeSeed {
+  const _ThemeSeed({
+    required this.primary,
+    required this.secondary,
+    required this.background,
+    required this.accent,
+  });
+
+  final Color primary;
+  final Color secondary;
+  final Color background;
+  final Color accent;
+}
+
 // ============================================================
 //   THEME STYLE ENUMS — Drive per-theme visual identity
 // ============================================================
@@ -42,8 +165,8 @@ class ThemeStyle {
     required this.borderColor,
     required this.hintText,
     this.leftAccentBar = false,
-    this.labelUser = "YOU",
-    this.labelAI = "ZERO TWO",
+    this.labelUser = 'YOU',
+    this.labelAI = 'ZERO TWO',
   });
 }
 
@@ -125,10 +248,12 @@ class AppThemes {
     if (_customAccentColor == c) return;
     _customAccentColor = c;
     _themeCache.clear();
+    _lightThemeCache.clear();
     _styleCache.clear();
   }
 
   static final Map<AppThemeMode, ThemeData> _themeCache = {};
+  static final Map<AppThemeMode, ThemeData> _lightThemeCache = {};
   static final Map<AppThemeMode, ThemeStyle> _styleCache = {};
 
   // ── Resolve legacy aliases to new modes ──────────────────────────────────
@@ -217,9 +342,11 @@ class AppThemes {
     final Color? old = _customAccentColor;
     _customAccentColor = null;
     _themeCache.clear();
+    _lightThemeCache.clear();
     final ThemeData t = getTheme(mode);
     _customAccentColor = old;
     _themeCache.clear();
+    _lightThemeCache.clear();
     return t;
   }
 
@@ -229,110 +356,132 @@ class AppThemes {
 
   static ThemeData getTheme(AppThemeMode mode) {
     final resolved = _resolve(mode);
-    return _themeCache[resolved] ??= _buildTheme(resolved);
+    return _themeCache[resolved] ??= _buildTheme(resolved, Brightness.dark);
   }
 
-  static ThemeData _buildTheme(AppThemeMode mode) {
+  static ThemeData getLightTheme(AppThemeMode mode) {
+    final resolved = _resolve(mode);
+    return _lightThemeCache[resolved] ??=
+        _buildTheme(resolved, Brightness.light);
+  }
+
+  static ThemeData getDarkTheme(AppThemeMode mode) {
+    final resolved = _resolve(mode);
+    return _themeCache[resolved] ??= _buildTheme(resolved, Brightness.dark);
+  }
+
+  static ThemeData _buildTheme(AppThemeMode mode, Brightness brightness) {
+    final seed = _seedFor(mode);
+    return _build(
+      primary: seed.primary,
+      secondary: seed.secondary,
+      bg: seed.background,
+      accent: seed.accent,
+      brightness: brightness,
+    );
+  }
+
+  static _ThemeSeed _seedFor(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.zeroTwo:
-        return _build(
-            primary: const Color(0xFFFF1744),
-            secondary: const Color(0xFF880E4F),
-            bg: const Color(0xFF0A0003),
-            accent: const Color(0xFFFF4081));
+        return const _ThemeSeed(
+            primary: Color(0xFFFF1744),
+            secondary: Color(0xFF880E4F),
+            background: Color(0xFF0A0003),
+            accent: Color(0xFFFF4081));
       case AppThemeMode.cyberPhantom:
-        return _build(
-            primary: const Color(0xFF00E5FF),
-            secondary: const Color(0xFF7C4DFF),
-            bg: const Color(0xFF020810),
-            accent: const Color(0xFF18FFFF));
+        return const _ThemeSeed(
+            primary: Color(0xFF00E5FF),
+            secondary: Color(0xFF7C4DFF),
+            background: Color(0xFF020810),
+            accent: Color(0xFF18FFFF));
       case AppThemeMode.velvetNoir:
-        return _build(
-            primary: const Color(0xFFB76E79),
-            secondary: const Color(0xFF3E2723),
-            bg: const Color(0xFF0C0808),
-            accent: const Color(0xFFF7E7CE));
+        return const _ThemeSeed(
+            primary: Color(0xFFB76E79),
+            secondary: Color(0xFF3E2723),
+            background: Color(0xFF0C0808),
+            accent: Color(0xFFF7E7CE));
       case AppThemeMode.toxicVenom:
-        return _build(
-            primary: const Color(0xFF39FF14),
-            secondary: const Color(0xFF00C853),
-            bg: const Color(0xFF010D02),
-            accent: const Color(0xFFADFF2F));
+        return const _ThemeSeed(
+            primary: Color(0xFF39FF14),
+            secondary: Color(0xFF00C853),
+            background: Color(0xFF010D02),
+            accent: Color(0xFFADFF2F));
       case AppThemeMode.astralDream:
-        return _build(
-            primary: const Color(0xFFB388FF),
-            secondary: const Color(0xFFCE93D8),
-            bg: const Color(0xFF080010),
-            accent: const Color(0xFFFF80AB));
+        return const _ThemeSeed(
+            primary: Color(0xFFB388FF),
+            secondary: Color(0xFFCE93D8),
+            background: Color(0xFF080010),
+            accent: Color(0xFFFF80AB));
       case AppThemeMode.infernoCore:
-        return _build(
-            primary: const Color(0xFFFF6D00),
-            secondary: const Color(0xFFD50000),
-            bg: const Color(0xFF0C0200),
-            accent: const Color(0xFFFFAB00));
+        return const _ThemeSeed(
+            primary: Color(0xFFFF6D00),
+            secondary: Color(0xFFD50000),
+            background: Color(0xFF0C0200),
+            accent: Color(0xFFFFAB00));
       case AppThemeMode.arcticBlade:
-        return _build(
-            primary: const Color(0xFF80D8FF),
-            secondary: const Color(0xFF4FC3F7),
-            bg: const Color(0xFF020A10),
-            accent: const Color(0xFFE0F7FA));
+        return const _ThemeSeed(
+            primary: Color(0xFF80D8FF),
+            secondary: Color(0xFF4FC3F7),
+            background: Color(0xFF020A10),
+            accent: Color(0xFFE0F7FA));
       case AppThemeMode.goldenEmperor:
-        return _build(
-            primary: const Color(0xFFFFD700),
-            secondary: const Color(0xFFCD7F32),
-            bg: const Color(0xFF0A0600),
-            accent: const Color(0xFFFFF8E1));
+        return const _ThemeSeed(
+            primary: Color(0xFFFFD700),
+            secondary: Color(0xFFCD7F32),
+            background: Color(0xFF0A0600),
+            accent: Color(0xFFFFF8E1));
       case AppThemeMode.phantomViolet:
-        return _build(
-            primary: const Color(0xFFD500F9),
-            secondary: const Color(0xFF6200EA),
-            bg: const Color(0xFF0A0010),
-            accent: const Color(0xFFEA80FC));
+        return const _ThemeSeed(
+            primary: Color(0xFFD500F9),
+            secondary: Color(0xFF6200EA),
+            background: Color(0xFF0A0010),
+            accent: Color(0xFFEA80FC));
       case AppThemeMode.oceanAbyss:
-        return _build(
-            primary: const Color(0xFF1DE9B6),
-            secondary: const Color(0xFF006064),
-            bg: const Color(0xFF00080A),
-            accent: const Color(0xFF84FFFF));
-      
+        return const _ThemeSeed(
+            primary: Color(0xFF1DE9B6),
+            secondary: Color(0xFF006064),
+            background: Color(0xFF00080A),
+            accent: Color(0xFF84FFFF));
+
       // ─ NEW THEMES (11-15) ─────────────────────────────────────────────
       case AppThemeMode.neonPulse:
-        return _build(
-            primary: const Color(0xFF00FF88),
-            secondary: const Color(0xFFFF00FF),
-            bg: const Color(0xFF0A0E27),
-            accent: const Color(0xFF00FFFF));
+        return const _ThemeSeed(
+            primary: Color(0xFF00FF88),
+            secondary: Color(0xFFFF00FF),
+            background: Color(0xFF0A0E27),
+            accent: Color(0xFF00FFFF));
       case AppThemeMode.moonlitMagic:
-        return _build(
-            primary: const Color(0xFFE0E3FF),
-            secondary: const Color(0xFF9D8FD1),
-            bg: const Color(0xFF0F0B1E),
-            accent: const Color(0xFFC8B6FF));
+        return const _ThemeSeed(
+            primary: Color(0xFFE0E3FF),
+            secondary: Color(0xFF9D8FD1),
+            background: Color(0xFF0F0B1E),
+            accent: Color(0xFFC8B6FF));
       case AppThemeMode.solsticeBlaze:
-        return _build(
-            primary: const Color(0xFFFF4500),
-            secondary: const Color(0xFFFF1744),
-            bg: const Color(0xFF1A0A00),
-            accent: const Color(0xFFFFB74D));
+        return const _ThemeSeed(
+            primary: Color(0xFFFF4500),
+            secondary: Color(0xFFFF1744),
+            background: Color(0xFF1A0A00),
+            accent: Color(0xFFFFB74D));
       case AppThemeMode.auroraBorealis:
-        return _build(
-            primary: const Color(0xFF00D9A3),
-            secondary: const Color(0xFF00E5B3),
-            bg: const Color(0xFF0A1F1F),
-            accent: const Color(0xFF7FFF00));
+        return const _ThemeSeed(
+            primary: Color(0xFF00D9A3),
+            secondary: Color(0xFF00E5B3),
+            background: Color(0xFF0A1F1F),
+            accent: Color(0xFF7FFF00));
       case AppThemeMode.midnightEclipse:
-        return _build(
-            primary: const Color(0xFFC9A961),
-            secondary: const Color(0xFF2D2D44),
-            bg: const Color(0xFF0D0D0D),
-            accent: const Color(0xFFE5D4B1));
-      
+        return const _ThemeSeed(
+            primary: Color(0xFFC9A961),
+            secondary: Color(0xFF2D2D44),
+            background: Color(0xFF0D0D0D),
+            accent: Color(0xFFE5D4B1));
+
       default:
-        return _build(
-            primary: const Color(0xFFFF1744),
-            secondary: const Color(0xFF880E4F),
-            bg: const Color(0xFF0A0003),
-            accent: const Color(0xFFFF4081));
+        return const _ThemeSeed(
+            primary: Color(0xFFFF1744),
+            secondary: Color(0xFF880E4F),
+            background: Color(0xFF0A0003),
+            accent: Color(0xFFFF4081));
     }
   }
 
@@ -340,27 +489,175 @@ class AppThemes {
       {required Color primary,
       required Color secondary,
       required Color bg,
-      required Color accent}) {
+      required Color accent,
+      required Brightness brightness}) {
     final effectivePrimary = _customAccentColor ?? primary;
     final effectiveAccent = _customAccentColor ?? accent;
-    final textTheme = GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme);
-    final surface = Color.alphaBlend(
-      effectivePrimary.withValues(alpha: 0.08),
-      bg.withValues(alpha: 0.96),
+    final isDark = brightness == Brightness.dark;
+    final baseBackground = isDark
+        ? bg
+        : Color.alphaBlend(
+            effectivePrimary.withValues(alpha: 0.08),
+            Colors.white,
+          );
+    final surface = isDark
+        ? Color.alphaBlend(
+            effectivePrimary.withValues(alpha: 0.08),
+            bg.withValues(alpha: 0.96),
+          )
+        : Color.alphaBlend(
+            effectivePrimary.withValues(alpha: 0.05),
+            Colors.white,
+          );
+    final panel = isDark
+        ? Color.alphaBlend(
+            Colors.white.withValues(alpha: 0.02),
+            surface,
+          )
+        : Color.alphaBlend(
+            effectivePrimary.withValues(alpha: 0.06),
+            Colors.white,
+          );
+    final panelElevated = isDark
+        ? Color.alphaBlend(
+            effectiveAccent.withValues(alpha: 0.10),
+            surface,
+          )
+        : Color.alphaBlend(
+            effectiveAccent.withValues(alpha: 0.12),
+            const Color(0xFFFFFFFF),
+          );
+    final panelMuted = isDark
+        ? Color.alphaBlend(
+            Colors.white.withValues(alpha: 0.03),
+            bg,
+          )
+        : const Color(0xFFF5F7FB);
+    final outline =
+        isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0x140F172A);
+    final outlineStrong = isDark
+        ? Colors.white.withValues(alpha: 0.14)
+        : effectivePrimary.withValues(alpha: 0.18);
+    final onSurface = isDark ? Colors.white : const Color(0xFF101828);
+    final onSurfaceMuted =
+        isDark ? Colors.white.withValues(alpha: 0.72) : const Color(0xFF475467);
+    final onSurfaceSoft =
+        isDark ? Colors.white.withValues(alpha: 0.54) : const Color(0xFF667085);
+    final shadowColor = isDark
+        ? Colors.black.withValues(alpha: 0.34)
+        : const Color(0xFF0F172A).withValues(alpha: 0.10);
+    final glowColor = effectivePrimary.withValues(alpha: isDark ? 0.16 : 0.10);
+    final textTheme = GoogleFonts.outfitTextTheme(
+      (isDark ? ThemeData.dark() : ThemeData.light()).textTheme,
+    ).copyWith(
+      displayLarge: GoogleFonts.outfit(
+        fontWeight: FontWeight.w800,
+        color: onSurface,
+      ),
+      displayMedium: GoogleFonts.outfit(
+        fontWeight: FontWeight.w800,
+        color: onSurface,
+      ),
+      headlineLarge: GoogleFonts.outfit(
+        fontWeight: FontWeight.w800,
+        color: onSurface,
+      ),
+      headlineMedium: GoogleFonts.outfit(
+        fontWeight: FontWeight.w700,
+        color: onSurface,
+      ),
+      titleLarge: GoogleFonts.outfit(
+        fontWeight: FontWeight.w700,
+        color: onSurface,
+      ),
+      titleMedium: GoogleFonts.outfit(
+        fontWeight: FontWeight.w700,
+        color: onSurface,
+      ),
+      bodyLarge: GoogleFonts.outfit(
+        color: onSurface,
+        height: 1.45,
+      ),
+      bodyMedium: GoogleFonts.outfit(
+        color: onSurfaceMuted,
+        height: 1.45,
+      ),
+      labelLarge: GoogleFonts.outfit(
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+        color: onSurface,
+      ),
     );
-    final elevatedSurface = Color.alphaBlend(
-      effectiveAccent.withValues(alpha: 0.08),
-      bg.withValues(alpha: 0.92),
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: effectivePrimary,
+      brightness: brightness,
+    ).copyWith(
+      primary: effectivePrimary,
+      secondary: secondary,
+      tertiary: effectiveAccent,
+      surface: surface,
+      surfaceContainerHighest: panelElevated,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onTertiary: isDark ? Colors.black : Colors.white,
+      onSurface: onSurface,
+      onSurfaceVariant: onSurfaceMuted,
+      outline: outlineStrong,
+      shadow: shadowColor,
+      scrim: Colors.black.withValues(alpha: isDark ? 0.55 : 0.38),
+    );
+    final tokens = AppDesignTokens(
+      panel: panel,
+      panelElevated: panelElevated,
+      panelMuted: panelMuted,
+      outline: outline,
+      outlineStrong: outlineStrong,
+      textMuted: onSurfaceMuted,
+      textSoft: onSurfaceSoft,
+      heroGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          Color.alphaBlend(
+            effectivePrimary.withValues(alpha: isDark ? 0.34 : 0.18),
+            baseBackground,
+          ),
+          Color.alphaBlend(
+            secondary.withValues(alpha: isDark ? 0.24 : 0.12),
+            baseBackground,
+          ),
+          Color.alphaBlend(
+            effectiveAccent.withValues(alpha: isDark ? 0.28 : 0.14),
+            baseBackground,
+          ),
+        ],
+      ),
+      glassGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          (isDark ? Colors.white : Colors.white)
+              .withValues(alpha: isDark ? 0.14 : 0.84),
+          (isDark ? Colors.white : Colors.white)
+              .withValues(alpha: isDark ? 0.06 : 0.58),
+          (isDark ? Colors.white : Colors.white)
+              .withValues(alpha: isDark ? 0.03 : 0.42),
+        ],
+      ),
+      shadowColor: shadowColor,
+      glowColor: glowColor,
     );
 
     return ThemeData(
-      brightness: Brightness.dark,
+      brightness: brightness,
       primaryColor: effectivePrimary,
-      scaffoldBackgroundColor: bg,
+      scaffoldBackgroundColor: baseBackground,
       canvasColor: surface,
       splashColor: effectivePrimary.withValues(alpha: 0.08),
-      highlightColor: Colors.white.withValues(alpha: 0.03),
+      highlightColor: onSurface.withValues(alpha: 0.03),
       textTheme: textTheme,
+      extensions: <ThemeExtension<dynamic>>[tokens],
+      useMaterial3: true,
       // Modern page transitions
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -368,104 +665,153 @@ class AppThemes {
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
         },
       ),
-      colorScheme: ColorScheme.dark(
-        primary: effectivePrimary,
-        secondary: secondary,
-        surface: surface,
-        tertiary: effectiveAccent,
-      ),
+      colorScheme: colorScheme,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        foregroundColor: Colors.white,
+        foregroundColor: onSurface,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w800,
-          color: Colors.white,
+          color: onSurface,
         ),
       ),
       cardColor: surface,
       cardTheme: CardThemeData(
-        color: surface,
+        color: panel,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          side: BorderSide(color: outline),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      dividerColor: Colors.white.withValues(alpha: 0.08),
+      dividerColor: outline,
       dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: outline,
         thickness: 1,
         space: 1,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: elevatedSurface,
+        backgroundColor: panelElevated,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white.withValues(alpha: 0.9),
+          color: onSurface,
         ),
       ),
       // Modern dialog theme
       dialogTheme: DialogThemeData(
         backgroundColor: Color.alphaBlend(
-          effectivePrimary.withValues(alpha: 0.04),
-          bg.withValues(alpha: 0.98),
+          effectivePrimary.withValues(alpha: isDark ? 0.09 : 0.04),
+          surface.withValues(alpha: 0.98),
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 24,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          side: BorderSide(color: outlineStrong),
         ),
         titleTextStyle: textTheme.titleMedium?.copyWith(
-          color: Colors.white,
+          color: onSurface,
           fontWeight: FontWeight.w800,
           fontSize: 18,
         ),
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white70,
+          color: onSurfaceMuted,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: elevatedSurface,
-        hintStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white38,
+        fillColor: Color.alphaBlend(
+          effectivePrimary.withValues(alpha: isDark ? 0.08 : 0.03),
+          panelElevated,
         ),
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: onSurfaceMuted,
+          fontWeight: FontWeight.w600,
+        ),
+        floatingLabelStyle: textTheme.bodySmall?.copyWith(
+          color: effectivePrimary,
+          fontWeight: FontWeight.w700,
+        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: onSurfaceSoft,
+        ),
+        helperStyle: textTheme.bodySmall?.copyWith(
+          color: onSurfaceSoft,
+        ),
+        errorStyle: textTheme.bodySmall?.copyWith(
+          color: colorScheme.error,
+          fontWeight: FontWeight.w600,
+        ),
+        prefixIconColor: onSurfaceSoft,
+        suffixIconColor: onSurfaceSoft,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide:
-              BorderSide(color: effectivePrimary.withValues(alpha: 0.7), width: 1.5),
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: effectivePrimary.withValues(alpha: 0.7),
+            width: 1.6,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: colorScheme.error.withValues(alpha: 0.7),
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: colorScheme.error,
+            width: 1.6,
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: effectivePrimary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: elevatedSurface,
+        backgroundColor: panelMuted,
         selectedColor: effectivePrimary.withValues(alpha: 0.22),
-        disabledColor: Colors.white.withValues(alpha: 0.04),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+        disabledColor: onSurface.withValues(alpha: 0.04),
+        side: BorderSide(color: outline),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
-        labelStyle: textTheme.bodySmall?.copyWith(color: Colors.white70, fontWeight: FontWeight.w600),
+        labelStyle: textTheme.bodySmall?.copyWith(
+          color: onSurfaceMuted,
+          fontWeight: FontWeight.w600,
+        ),
         showCheckmark: false,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -477,15 +823,15 @@ class AppThemes {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle:
-              textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5),
+          textStyle: textTheme.labelLarge
+              ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
+          foregroundColor: onSurface,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+          side: BorderSide(color: outlineStrong),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -507,17 +853,19 @@ class AppThemes {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return effectivePrimary;
-          return Colors.white54;
+          return onSurface.withValues(alpha: 0.58);
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return effectivePrimary.withValues(alpha: 0.35);
-          return Colors.white.withValues(alpha: 0.1);
+          if (states.contains(WidgetState.selected)) {
+            return effectivePrimary.withValues(alpha: 0.35);
+          }
+          return onSurface.withValues(alpha: 0.1);
         }),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: effectivePrimary,
-        inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+        inactiveTrackColor: onSurface.withValues(alpha: 0.1),
         thumbColor: effectivePrimary,
         overlayColor: effectivePrimary.withValues(alpha: 0.12),
         trackHeight: 4,
@@ -525,43 +873,83 @@ class AppThemes {
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: effectivePrimary,
-        linearTrackColor: Colors.white.withValues(alpha: 0.08),
-        circularTrackColor: Colors.white.withValues(alpha: 0.08),
+        linearTrackColor: onSurface.withValues(alpha: 0.08),
+        circularTrackColor: onSurface.withValues(alpha: 0.08),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: Color.alphaBlend(
           effectivePrimary.withValues(alpha: 0.03),
-          bg.withValues(alpha: 0.98),
+          baseBackground.withValues(alpha: 0.98),
         ),
         modalBackgroundColor: Color.alphaBlend(
           effectivePrimary.withValues(alpha: 0.03),
-          bg.withValues(alpha: 0.98),
+          baseBackground.withValues(alpha: 0.98),
         ),
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        dragHandleColor: Colors.white.withValues(alpha: 0.2),
+        dragHandleColor: onSurface.withValues(alpha: 0.2),
         showDragHandle: true,
+      ),
+      tabBarTheme: TabBarThemeData(
+        dividerColor: Colors.transparent,
+        labelColor: onSurface,
+        unselectedLabelColor: onSurfaceSoft,
+        labelStyle: textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: [
+              effectivePrimary.withValues(alpha: 0.22),
+              effectiveAccent.withValues(alpha: 0.14),
+            ],
+          ),
+          border: Border.all(color: outlineStrong),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: effectivePrimary,
+        selectionColor: effectivePrimary.withValues(alpha: 0.22),
+        selectionHandleColor: effectivePrimary,
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: elevatedSurface,
+          color: panelElevated,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: outline),
         ),
-        textStyle: textTheme.bodySmall?.copyWith(color: Colors.white70),
+        textStyle: textTheme.bodySmall?.copyWith(color: onSurfaceMuted),
       ),
       popupMenuTheme: PopupMenuThemeData(
         color: Color.alphaBlend(
           effectivePrimary.withValues(alpha: 0.05),
-          bg.withValues(alpha: 0.97),
+          baseBackground.withValues(alpha: 0.97),
         ),
         surfaceTintColor: Colors.transparent,
         elevation: 12,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          side: BorderSide(color: outline),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: onSurface,
+          backgroundColor: panelMuted.withValues(alpha: 0.55),
+          hoverColor: effectivePrimary.withValues(alpha: 0.08),
+          highlightColor: effectivePrimary.withValues(alpha: 0.10),
+          padding: const EdgeInsets.all(10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: outline),
+          ),
         ),
       ),
       listTileTheme: ListTileThemeData(
@@ -569,17 +957,17 @@ class AppThemes {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
-        iconColor: Colors.white54,
+        iconColor: onSurfaceSoft,
         titleTextStyle: textTheme.bodyMedium?.copyWith(
-          color: Colors.white,
+          color: onSurface,
           fontWeight: FontWeight.w600,
         ),
         subtitleTextStyle: textTheme.bodySmall?.copyWith(
-          color: Colors.white54,
+          color: onSurfaceSoft,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: bg.withValues(alpha: 0.95),
+        backgroundColor: panel,
         indicatorColor: effectivePrimary.withValues(alpha: 0.2),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
@@ -682,7 +1070,7 @@ class AppThemes {
           Color(0xFF001828),
           Color(0xFF000402)
         ];
-      
+
       // ─ NEW THEME GRADIENTS ────────────────────────────────────────────
       case AppThemeMode.neonPulse:
         // Neon electric gradient with high energy
@@ -729,7 +1117,7 @@ class AppThemes {
           Color(0xFF161625),
           Color(0xFF000000)
         ];
-      
+
       default:
         return const [
           Color(0xFF0A0010),
@@ -767,19 +1155,19 @@ class AppThemes {
         return ParticleType.bubbles;
       case AppThemeMode.oceanAbyss:
         return ParticleType.bubbles;
-      
+
       // ─ NEW PARTICLE TYPES ─────────────────────────────────────────────
       case AppThemeMode.neonPulse:
-        return ParticleType.circles;  // Pulsing circles
+        return ParticleType.circles; // Pulsing circles
       case AppThemeMode.moonlitMagic:
-        return ParticleType.bubbles;  // Floating ethereal bubbles
+        return ParticleType.bubbles; // Floating ethereal bubbles
       case AppThemeMode.solsticeBlaze:
-        return ParticleType.embers;   // Animated fire particles
+        return ParticleType.embers; // Animated fire particles
       case AppThemeMode.auroraBorealis:
-        return ParticleType.bubbles;  // Aurora flowing bubbles
+        return ParticleType.bubbles; // Aurora flowing bubbles
       case AppThemeMode.midnightEclipse:
-        return ParticleType.circles;  // Elegant circles
-      
+        return ParticleType.circles; // Elegant circles
+
       default:
         return ParticleType.sakura;
     }
@@ -792,40 +1180,40 @@ class AppThemes {
   static String getThemeName(AppThemeMode mode) {
     switch (_resolve(mode)) {
       case AppThemeMode.zeroTwo:
-        return "Zero Two";
+        return 'Zero Two';
       case AppThemeMode.cyberPhantom:
-        return "Cyber Phantom";
+        return 'Cyber Phantom';
       case AppThemeMode.velvetNoir:
-        return "Velvet Noir";
+        return 'Velvet Noir';
       case AppThemeMode.toxicVenom:
-        return "Toxic Venom";
+        return 'Toxic Venom';
       case AppThemeMode.astralDream:
-        return "Astral Dream";
+        return 'Astral Dream';
       case AppThemeMode.infernoCore:
-        return "Inferno Core";
+        return 'Inferno Core';
       case AppThemeMode.arcticBlade:
-        return "Arctic Blade";
+        return 'Arctic Blade';
       case AppThemeMode.goldenEmperor:
-        return "Golden Emperor";
+        return 'Golden Emperor';
       case AppThemeMode.phantomViolet:
-        return "Phantom Violet";
+        return 'Phantom Violet';
       case AppThemeMode.oceanAbyss:
-        return "Ocean Abyss";
-      
+        return 'Ocean Abyss';
+
       // ─ NEW THEME NAMES ────────────────────────────────────────────────
       case AppThemeMode.neonPulse:
-        return "Neon Pulse";
+        return 'Neon Pulse';
       case AppThemeMode.moonlitMagic:
-        return "Moonlit Magic";
+        return 'Moonlit Magic';
       case AppThemeMode.solsticeBlaze:
-        return "Solstice Blaze";
+        return 'Solstice Blaze';
       case AppThemeMode.auroraBorealis:
-        return "Aurora Borealis";
+        return 'Aurora Borealis';
       case AppThemeMode.midnightEclipse:
-        return "Midnight Eclipse";
-      
+        return 'Midnight Eclipse';
+
       default:
-        return "Zero Two";
+        return 'Zero Two';
     }
   }
 
@@ -843,7 +1231,7 @@ class AppThemes {
         return 28.0; // soft luxury
       case AppThemeMode.arcticBlade:
         return 25.0; // frosted glass
-      
+
       // ─ NEW THEME BLUR ─────────────────────────────────────────────────
       case AppThemeMode.neonPulse:
         return 15.0; // Crisp neon effect
@@ -855,7 +1243,7 @@ class AppThemes {
         return 25.0; // Shimmering aurora
       case AppThemeMode.midnightEclipse:
         return 28.0; // Sophisticated blur
-      
+
       default:
         return 20.0;
     }
@@ -863,9 +1251,9 @@ class AppThemes {
 
   static bool hasScanlines(AppThemeMode mode) {
     final r = _resolve(mode);
-    return r == AppThemeMode.cyberPhantom || 
-           r == AppThemeMode.toxicVenom || 
-           r == AppThemeMode.neonPulse;
+    return r == AppThemeMode.cyberPhantom ||
+        r == AppThemeMode.toxicVenom ||
+        r == AppThemeMode.neonPulse;
   }
 
   static double getGrainIntensity(AppThemeMode mode) {
@@ -905,19 +1293,19 @@ class AppThemes {
         return 0.60;
       case AppThemeMode.oceanAbyss:
         return 0.70;
-      
+
       // ─ NEW THEME GLOW ─────────────────────────────────────────────────
       case AppThemeMode.neonPulse:
-        return 0.95;  // High neon glow
+        return 0.95; // High neon glow
       case AppThemeMode.moonlitMagic:
-        return 0.55;  // Soft moonlit glow
+        return 0.55; // Soft moonlit glow
       case AppThemeMode.solsticeBlaze:
-        return 0.92;  // Intense fire glow
+        return 0.92; // Intense fire glow
       case AppThemeMode.auroraBorealis:
-        return 0.75;  // Light aurora glow
+        return 0.75; // Light aurora glow
       case AppThemeMode.midnightEclipse:
-        return 0.50;  // Subtle luxury glow
-      
+        return 0.50; // Subtle luxury glow
+
       default:
         return 0.50;
     }
@@ -949,7 +1337,7 @@ class AppThemes {
         return const Color(0x33D500F9);
       case AppThemeMode.oceanAbyss:
         return const Color(0x331DE9B6);
-      
+
       // ─ NEW BUBBLE ACCENTS ─────────────────────────────────────────────
       case AppThemeMode.neonPulse:
         return const Color(0x3300FF88);
@@ -961,7 +1349,7 @@ class AppThemes {
         return const Color(0x3300D9A3);
       case AppThemeMode.midnightEclipse:
         return const Color(0x33C9A961);
-      
+
       default:
         return const Color(0x33FF1744);
     }
@@ -995,9 +1383,9 @@ class AppThemes {
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.6),
-          hintText: "Speak to the darkness...",
-          labelUser: "YOU",
-          labelAI: "ZERO TWO",
+          hintText: 'Speak to the darkness...',
+          labelUser: 'YOU',
+          labelAI: 'ZERO TWO',
         );
 
       // ── 2. CYBER PHANTOM — Neon Cyberpunk ──────────────────────────────
@@ -1017,9 +1405,9 @@ class AppThemes {
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.9),
-          hintText: "> TRANSMIT_SIGNAL_",
-          labelUser: "PILOT",
-          labelAI: "PHANTOM",
+          hintText: '> TRANSMIT_SIGNAL_',
+          labelUser: 'PILOT',
+          labelAI: 'PHANTOM',
         );
 
       // ── 3. VELVET NOIR — Luxury Elegance ───────────────────────────────
@@ -1036,9 +1424,9 @@ class AppThemes {
           sharpCorner: 28,
           leftAccentBar: false,
           borderColor: (p) => Colors.white.withValues(alpha: 0.15),
-          hintText: "Whisper something beautiful...",
-          labelUser: "♡",
-          labelAI: "Darling",
+          hintText: 'Whisper something beautiful...',
+          labelUser: '♡',
+          labelAI: 'Darling',
         );
 
       // ── 4. TOXIC VENOM — Matrix Hacker ─────────────────────────────────
@@ -1059,9 +1447,9 @@ class AppThemes {
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.85),
-          hintText: "inject payload >",
-          labelUser: "\$USER",
-          labelAI: "\$VENOM",
+          hintText: 'inject payload >',
+          labelUser: '\$USER',
+          labelAI: '\$VENOM',
         );
 
       // ── 5. ASTRAL DREAM — Ethereal Aurora ──────────────────────────────
@@ -1081,9 +1469,9 @@ class AppThemes {
           sharpCorner: 32,
           leftAccentBar: false,
           borderColor: (p) => Colors.white.withValues(alpha: 0.12),
-          hintText: "drift into the cosmos...",
-          labelUser: "✦",
-          labelAI: "Zero Two ✧",
+          hintText: 'drift into the cosmos...',
+          labelUser: '✦',
+          labelAI: 'Zero Two ✧',
         );
 
       // ── 6. INFERNO CORE — Volcanic Fury ────────────────────────────────
@@ -1103,9 +1491,9 @@ class AppThemes {
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.7),
-          hintText: "FORGE YOUR MESSAGE...",
-          labelUser: "WARRIOR",
-          labelAI: "INFERNO",
+          hintText: 'FORGE YOUR MESSAGE...',
+          labelUser: 'WARRIOR',
+          labelAI: 'INFERNO',
         );
 
       // ── 7. ARCTIC BLADE — Frozen Minimal ───────────────────────────────
@@ -1125,9 +1513,9 @@ class AppThemes {
           sharpCorner: 20,
           leftAccentBar: false,
           borderColor: (p) => Colors.white.withValues(alpha: 0.10),
-          hintText: "whisper to the ice...",
-          labelUser: "❄",
-          labelAI: "Zero Two ~",
+          hintText: 'whisper to the ice...',
+          labelUser: '❄',
+          labelAI: 'Zero Two ~',
         );
 
       // ── 8. GOLDEN EMPEROR — Royal Opulence ─────────────────────────────
@@ -1147,9 +1535,9 @@ class AppThemes {
           sharpCorner: 4,
           leftAccentBar: false,
           borderColor: (p) => const Color(0xFFFFD700).withValues(alpha: 0.4),
-          hintText: "Address the throne...",
-          labelUser: "LORD",
-          labelAI: "EMPRESS",
+          hintText: 'Address the throne...',
+          labelUser: 'LORD',
+          labelAI: 'EMPRESS',
         );
 
       // ── 9. PHANTOM VIOLET — Dark Mystery ───────────────────────────────
@@ -1169,9 +1557,9 @@ class AppThemes {
           sharpCorner: 0,
           leftAccentBar: true,
           borderColor: (p) => p.withValues(alpha: 0.75),
-          hintText: "speak into the void...",
-          labelUser: "·",
-          labelAI: "ZT ~",
+          hintText: 'speak into the void...',
+          labelUser: '·',
+          labelAI: 'ZT ~',
         );
 
       // ── 10. OCEAN ABYSS — Deep Sea Glow ────────────────────────────────
@@ -1191,9 +1579,9 @@ class AppThemes {
           sharpCorner: 24,
           leftAccentBar: false,
           borderColor: (p) => p.withValues(alpha: 0.3),
-          hintText: "echo through the deep...",
-          labelUser: "🫧",
-          labelAI: "Zero Two 🌊",
+          hintText: 'echo through the deep...',
+          labelUser: '🫧',
+          labelAI: 'Zero Two 🌊',
         );
 
       default:
@@ -1201,5 +1589,3 @@ class AppThemes {
     }
   }
 }
-
-

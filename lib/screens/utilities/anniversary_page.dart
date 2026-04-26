@@ -36,6 +36,7 @@ class _AnniversaryPageState extends State<AnniversaryPage> {
       if (snap.exists) {
         final iso = (snap.data() ?? {})['anniversaryDate'] as String?;
         if (iso != null && iso.isNotEmpty) {
+          if (!mounted) return;
           setState(() => _startDate = DateTime.tryParse(iso));
         }
       }

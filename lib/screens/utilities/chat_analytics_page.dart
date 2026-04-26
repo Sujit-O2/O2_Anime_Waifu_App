@@ -110,6 +110,7 @@ class _ChatAnalyticsPageState extends State<ChatAnalyticsPage> {
         return;
       }
 
+      if (!mounted) return;
       setState(() {
         _totalMessages = snap.docs.length;
         _userMessages = userMsgs;

@@ -43,6 +43,7 @@ class _ParkingSpotSaverPageState extends State<ParkingSpotSaverPage>
     final p = await SharedPreferences.getInstance();
     final raw = p.getString('parking_spots_data') ?? '[]';
     try {
+      if (!mounted) return;
       setState(() => _spots =
           (jsonDecode(raw) as List).cast<Map<String, dynamic>>());
     } catch (_) {}
@@ -78,6 +79,7 @@ class _ParkingSpotSaverPageState extends State<ParkingSpotSaverPage>
     await _getCurrentLocation();
     if (_currentPos == null) {
       _snack('❌ Could not get GPS location', Colors.redAccent);
+      if (!mounted) return;
       setState(() => _saving = false);
       return;
     }
@@ -130,6 +132,7 @@ class _ParkingSpotSaverPageState extends State<ParkingSpotSaverPage>
       'photo': photoPath,
     };
 
+    if (!mounted) return;
     setState(() {
       _spots.insert(0, spot);
       _saving = false;

@@ -94,6 +94,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() {
         _exercises = exercises;
         _completed.clear();
@@ -104,6 +105,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage> {
       if (!mounted) {
         return;
       }
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
@@ -303,7 +305,7 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage> {
                       color: V2Theme.secondaryColor,
                     ),
                   ),
-                  Expanded(
+                  const Expanded(
                     child: StatCard(
                       title: 'Source',
                       value: 'AI',
@@ -325,9 +327,9 @@ class _WorkoutPlannerPageState extends State<WorkoutPlannerPage> {
                   ),
                 )
               else if (_exercises.isEmpty)
-                GlassCard(
+                const GlassCard(
                   margin: EdgeInsets.zero,
-                  child: const EmptyState(
+                  child: EmptyState(
                     icon: Icons.fitness_center_rounded,
                     title: 'No workout ready',
                     subtitle:

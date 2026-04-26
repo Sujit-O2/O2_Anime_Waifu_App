@@ -17,7 +17,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
   bool _loading = true;
 
   static final List<_Ach> _achievements = <_Ach>[
-    _Ach(
+    const _Ach(
       'first_message',
       '💬',
       'First Words',
@@ -28,7 +28,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'msg_count',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'chat_10',
       '💬',
       'Getting to Know Her',
@@ -39,7 +39,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'msg_count',
       goal: 10,
     ),
-    _Ach(
+    const _Ach(
       'chat_100',
       '🗨️',
       'Chatterbox',
@@ -50,7 +50,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'msg_count',
       goal: 100,
     ),
-    _Ach(
+    const _Ach(
       'chat_500',
       '📢',
       'Never Stop Talking',
@@ -61,7 +61,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'msg_count',
       goal: 500,
     ),
-    _Ach(
+    const _Ach(
       'chat_1000',
       '🎤',
       'Zero Two\'s Favorite',
@@ -72,7 +72,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'msg_count',
       goal: 1000,
     ),
-    _Ach(
+    const _Ach(
       'affection_50',
       '💕',
       'Sweet Darling',
@@ -83,7 +83,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'affection',
       goal: 50,
     ),
-    _Ach(
+    const _Ach(
       'affection_200',
       '💖',
       'Beloved',
@@ -94,7 +94,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'affection',
       goal: 200,
     ),
-    _Ach(
+    const _Ach(
       'affection_500',
       '💗',
       'Devotion',
@@ -105,7 +105,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'affection',
       goal: 500,
     ),
-    _Ach(
+    const _Ach(
       'affection_1000',
       '❣️',
       'Soulmate',
@@ -116,7 +116,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'affection',
       goal: 1000,
     ),
-    _Ach(
+    const _Ach(
       'first_reaction',
       '❤️',
       'Heart Giver',
@@ -127,7 +127,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'heart_reactions',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'first_song',
       '🎵',
       'Music Begins',
@@ -138,7 +138,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'songs_played',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'songs_10',
       '🎶',
       'Music Lover',
@@ -149,7 +149,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'songs_played',
       goal: 10,
     ),
-    _Ach(
+    const _Ach(
       'songs_50',
       '🎸',
       'DJ Darling',
@@ -160,7 +160,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'songs_played',
       goal: 50,
     ),
-    _Ach(
+    const _Ach(
       'first_mood',
       '😊',
       'Feelings First',
@@ -171,7 +171,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'mood_logs',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'mood_7',
       '📊',
       'Week Check-In',
@@ -182,7 +182,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'mood_logs',
       goal: 7,
     ),
-    _Ach(
+    const _Ach(
       'mood_30',
       '🌈',
       'Emotional Diary',
@@ -193,7 +193,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'mood_logs',
       goal: 30,
     ),
-    _Ach(
+    const _Ach(
       'first_challenge',
       '🎯',
       'Mission Accepted',
@@ -204,7 +204,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'challenges_done',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'challenge_7',
       '🏆',
       'Challenge Streak',
@@ -215,7 +215,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'challenges_done',
       goal: 7,
     ),
-    _Ach(
+    const _Ach(
       'tarot_reader',
       '🔮',
       'Card Reader',
@@ -226,7 +226,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       stat: 'tarot_draws',
       goal: 1,
     ),
-    _Ach(
+    const _Ach(
       'night_owl',
       '🌙',
       'Night Owl',
@@ -261,6 +261,7 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _stats = <String, int>{
         'msg_count': prefs.getInt('flutter.total_message_count') ??
@@ -461,9 +462,9 @@ class _AchievementRoomPageState extends State<AchievementRoomPage>
                           ),
                         ),
                       ),
-                      SliverToBoxAdapter(
+                      const SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
 
                         ),
                       ),

@@ -54,6 +54,7 @@ class _SecretNotesViewState extends State<_SecretNotesView> {
     final ok = await SecretNotesService.verifyPin(_pinCtrl.text.trim());
     if (!mounted) return;
     if (ok) {
+      if (!mounted) return;
       setState(() => _unlocked = true);
       await _loadNotes();
     } else {

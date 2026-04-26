@@ -49,6 +49,7 @@ class _PluginSystemPageState extends State<PluginSystemPage>
       final userPlugins = stored != null
           ? (jsonDecode(stored) as List).cast<Map<String, dynamic>>()
           : <Map<String, dynamic>>[];
+      if (!mounted) return;
       setState(() => _plugins = [..._builtInPlugins, ...userPlugins]);
     } catch (_) {
       setState(() => _plugins = [..._builtInPlugins]);

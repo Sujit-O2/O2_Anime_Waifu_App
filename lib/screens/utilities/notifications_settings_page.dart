@@ -355,7 +355,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
               ),
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: StatCard(
                       title: 'Sync',
                       value: 'Cloud',
@@ -443,6 +443,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
         inactiveTrackColor: Colors.white12,
         onChanged: (bool value) {
           HapticFeedback.selectionClick();
+          if (!mounted) return;
           setState(() => item.enabled = value);
         },
       ),

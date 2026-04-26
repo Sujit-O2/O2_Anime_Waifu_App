@@ -28,6 +28,7 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
     try {
       final raw = prefs.getString('calendar_events') ?? '[]';
       final decoded = jsonDecode(raw) as List<dynamic>;
+      if (!mounted) return;
       setState(() {
         _events = decoded
             .map((e) => _CalendarEvent.fromJson(e as Map<String, dynamic>))
@@ -44,7 +45,10 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
 
   List<_CalendarEvent> _eventsForDay(DateTime day) {
     return _events
-        .where((e) => e.date.year == day.year && e.date.month == day.month && e.date.day == day.day)
+        .where((e) =>
+            e.date.year == day.year &&
+            e.date.month == day.month &&
+            e.date.day == day.day)
         .toList();
   }
 
@@ -55,7 +59,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
       builder: (_) => AlertDialog(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Add Event for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
+        title: Text(
+            'Add Event for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
             style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
         content: TextField(
           controller: titleCtrl,
@@ -64,7 +69,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
             hintText: 'Event title...',
             hintStyle: const TextStyle(color: Colors.white38),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.pinkAccent.withValues(alpha: 0.4)),
+              borderSide:
+                  BorderSide(color: Colors.pinkAccent.withValues(alpha: 0.4)),
               borderRadius: BorderRadius.circular(10),
             ),
             focusedBorder: OutlineInputBorder(
@@ -76,7 +82,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: GoogleFonts.outfit(color: Colors.white54)),
+            child: Text('Cancel',
+                style: GoogleFonts.outfit(color: Colors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
@@ -103,11 +110,15 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-    final firstWeekday = DateTime(_selectedMonth.year, _selectedMonth.month, 1).weekday % 7;
+    final daysInMonth =
+        DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
+    final firstWeekday =
+        DateTime(_selectedMonth.year, _selectedMonth.month, 1).weekday % 7;
     final now = DateTime.now();
     final monthEvents = _events
-        .where((e) => e.date.year == _selectedMonth.year && e.date.month == _selectedMonth.month)
+        .where((e) =>
+            e.date.year == _selectedMonth.year &&
+            e.date.month == _selectedMonth.month)
         .toList();
 
     return Scaffold(
@@ -121,12 +132,15 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white54),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white54),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Zero Two Calendar',
             style: GoogleFonts.outfit(
-                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18)),
         actions: [
           // Today button
           TextButton(
@@ -146,9 +160,11 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(children: [
             IconButton(
-              icon: const Icon(Icons.chevron_left_rounded, color: Colors.white54),
+              icon:
+                  const Icon(Icons.chevron_left_rounded, color: Colors.white54),
               onPressed: () => setState(() {
-                _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+                _selectedMonth =
+                    DateTime(_selectedMonth.year, _selectedMonth.month - 1);
               }),
             ),
             Expanded(
@@ -156,13 +172,17 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
                 '${_monthName(_selectedMonth.month)} ${_selectedMonth.year}',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
-                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+              icon: const Icon(Icons.chevron_right_rounded,
+                  color: Colors.white54),
               onPressed: () => setState(() {
-                _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+                _selectedMonth =
+                    DateTime(_selectedMonth.year, _selectedMonth.month + 1);
               }),
             ),
           ]),
@@ -171,7 +191,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
-            children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) {
+            children:
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) {
               return Expanded(
                 child: Center(
                   child: Text(d,
@@ -199,9 +220,14 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
             itemBuilder: (_, idx) {
               if (idx < firstWeekday) return const SizedBox();
               final day = idx - firstWeekday + 1;
-              final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
-              final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-              final isSelected = date.year == _selectedDay.year && date.month == _selectedDay.month && date.day == _selectedDay.day;
+              final date =
+                  DateTime(_selectedMonth.year, _selectedMonth.month, day);
+              final isToday = date.year == now.year &&
+                  date.month == now.month &&
+                  date.day == now.day;
+              final isSelected = date.year == _selectedDay.year &&
+                  date.month == _selectedDay.month &&
+                  date.day == _selectedDay.day;
               final hasEvents = _eventsForDay(date).isNotEmpty;
 
               return GestureDetector(
@@ -216,7 +242,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
                             ? Colors.pinkAccent.withValues(alpha: 0.2)
                             : Colors.transparent,
                     border: isToday && !isSelected
-                        ? Border.all(color: Colors.pinkAccent.withValues(alpha: 0.6))
+                        ? Border.all(
+                            color: Colors.pinkAccent.withValues(alpha: 0.6))
                         : null,
                   ),
                   child: Stack(
@@ -226,7 +253,9 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
                           style: GoogleFonts.outfit(
                             color: isSelected ? Colors.white : Colors.white70,
                             fontSize: 13,
-                            fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
+                            fontWeight: isToday || isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w400,
                           )),
                       if (hasEvents)
                         Positioned(
@@ -235,7 +264,8 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
                             width: 4,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : Colors.pinkAccent,
+                              color:
+                                  isSelected ? Colors.white : Colors.pinkAccent,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -256,12 +286,15 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
               Text(
                 '${_selectedDay.day} ${_monthName(_selectedDay.month)} ${_selectedDay.year}',
                 style: GoogleFonts.outfit(
-                    color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               ..._eventsForDay(_selectedDay).map((e) => _EventTile(
                     event: e,
                     onDelete: () async {
+                      if (!mounted) return;
                       setState(() => _events.remove(e));
                       await _saveEvents();
                     },
@@ -270,20 +303,24 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: Text('No events — tap + to add one 💕',
-                      style: GoogleFonts.outfit(color: Colors.white38, fontSize: 13),
+                      style: GoogleFonts.outfit(
+                          color: Colors.white38, fontSize: 13),
                       textAlign: TextAlign.center),
                 ),
               if (monthEvents.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 Text('This Month (${monthEvents.length})',
                     style: GoogleFonts.outfit(
-                        color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 ...monthEvents.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
                         '${e.emoji} ${e.date.day}/${e.date.month} — ${e.title}',
-                        style: GoogleFonts.outfit(color: Colors.white60, fontSize: 12),
+                        style: GoogleFonts.outfit(
+                            color: Colors.white60, fontSize: 12),
                       ),
                     )),
               ],
@@ -294,8 +331,20 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
     );
   }
 
-  String _monthName(int month) =>
-      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1];
+  String _monthName(int month) => [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ][month - 1];
 }
 
 class _EventTile extends StatelessWidget {
@@ -321,7 +370,8 @@ class _EventTile extends StatelessWidget {
               style: GoogleFonts.outfit(color: Colors.white, fontSize: 13)),
         ),
         IconButton(
-          icon: const Icon(Icons.delete_outline_rounded, color: Colors.white30, size: 18),
+          icon: const Icon(Icons.delete_outline_rounded,
+              color: Colors.white30, size: 18),
           onPressed: onDelete,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -336,7 +386,8 @@ class _CalendarEvent {
   final String title;
   final String emoji;
 
-  const _CalendarEvent({required this.date, required this.title, required this.emoji});
+  const _CalendarEvent(
+      {required this.date, required this.title, required this.emoji});
 
   Map<String, dynamic> toJson() => {
         'date': date.toIso8601String(),
@@ -350,6 +401,3 @@ class _CalendarEvent {
         emoji: j['emoji'] as String? ?? '💕',
       );
 }
-
-
-

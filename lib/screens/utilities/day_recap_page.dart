@@ -37,6 +37,7 @@ class _DayRecapPageState extends State<DayRecapPage>
     await V2Storage.init();
     final saved = V2Storage.getMap(
         'day_recap_${_selectedDate.toIso8601String().split('T')[0]}');
+    if (!mounted) return;
     setState(() {
       if (saved != null) {
         _stats = Map<String, dynamic>.from(saved['stats'] ?? {});
@@ -84,12 +85,14 @@ class _DayRecapPageState extends State<DayRecapPage>
 
   void _selectDate(DateTime date) {
     HapticFeedback.lightImpact();
+    if (!mounted) return;
     setState(() => _selectedDate = date);
     _loadData();
   }
 
   void _updateMood(String mood) {
     HapticFeedback.lightImpact();
+    if (!mounted) return;
     setState(() => _mood = mood);
     _saveData();
     showSuccessSnackbar(context, 'Mood updated! $mood');

@@ -21,7 +21,7 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 
     afterEvaluate {
-        // Force Java 17 target compatibility natively on all Android subprojects
+        // Keep plugin builds compatible with common Android JDK setups.
         if (project.hasProperty("android")) {
             val android = project.extensions.getByName("android")
             try {
@@ -80,3 +80,5 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+// Removed redundant Java enforcement block as it's now handled in the main afterEvaluate block above.

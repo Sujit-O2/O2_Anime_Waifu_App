@@ -1,12 +1,12 @@
 import 'package:home_widget/home_widget.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 
 // Background callback when a widget button is clicked and the app is dead
 @pragma('vm:entry-point')
 Future<void> interactiveCallback(Uri? data) async {
   if (data?.host == 'action') {
-    debugPrint('Widget action clicked: ${data?.pathSegments.first}');
+    if (kDebugMode) debugPrint('Widget action clicked: ${data?.pathSegments.first}');
   }
 }
 
@@ -38,7 +38,7 @@ class HomeWidgetService {
     try {
       await HomeWidget.saveWidgetData<T>(key, value);
     } catch (e) {
-      debugPrint('HomeWidget save error for $key: $e');
+      if (kDebugMode) debugPrint('HomeWidget save error for $key: $e');
     }
   }
 
@@ -48,7 +48,7 @@ class HomeWidgetService {
       try {
         await HomeWidget.updateWidget(androidName: provider);
       } catch (e) {
-        debugPrint('HomeWidget update error for $provider: $e');
+        if (kDebugMode) debugPrint('HomeWidget update error for $provider: $e');
       }
     }
   }
@@ -62,7 +62,7 @@ class HomeWidgetService {
       await _save<int>('affection_progress', (svc.levelProgress * 100).toInt());
       await _triggerAll();
     } catch (e) {
-      debugPrint('Error updating Affection Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Affection Widget: $e');
     }
   }
 
@@ -72,7 +72,7 @@ class HomeWidgetService {
       await _save<String>('daily_quote', quote);
       await _triggerAll();
     } catch (e) {
-      debugPrint('Error updating Quote Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Quote Widget: $e');
     }
   }
 
@@ -82,7 +82,7 @@ class HomeWidgetService {
       await _save<String>('latest_chat', message);
       await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
     } catch (e) {
-      debugPrint('Error updating latest message: $e');
+      if (kDebugMode) debugPrint('Error updating latest message: $e');
     }
   }
 
@@ -93,7 +93,7 @@ class HomeWidgetService {
       await _save<String>('weather_desc', description);
       await HomeWidget.updateWidget(androidName: 'WaifuWeatherTimeWidgetProvider');
     } catch (e) {
-      debugPrint('Error updating Weather Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Weather Widget: $e');
     }
   }
 
@@ -109,7 +109,7 @@ class HomeWidgetService {
       await _save<bool>('music_playing', isPlaying);
       await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
     } catch (e) {
-      debugPrint('Error updating Music Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Music Widget: $e');
     }
   }
 
@@ -120,7 +120,7 @@ class HomeWidgetService {
       await _save<String>('anime_of_day_image', imageUrl);
       await HomeWidget.updateWidget(androidName: 'WaifuDashboardWidgetProvider');
     } catch (e) {
-      debugPrint('Error updating Anime of Day Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Anime of Day Widget: $e');
     }
   }
 
@@ -132,7 +132,7 @@ class HomeWidgetService {
       await _save<String>('waifu_mood_emoji', moodEmoji);
       await HomeWidget.updateWidget(androidName: 'WaifuStatusMonitorWidgetProvider');
     } catch (e) {
-      debugPrint('Error updating Streak/Mood Widget: $e');
+      if (kDebugMode) debugPrint('Error updating Streak/Mood Widget: $e');
     }
   }
 
@@ -151,7 +151,7 @@ class HomeWidgetService {
         iOSName: 'WaifuWatchProgressActivity'
       );
     } catch (e) {
-      debugPrint('Error updating Lock Screen Watch Progress: $e');
+      if (kDebugMode) debugPrint('Error updating Lock Screen Watch Progress: $e');
     }
   }
 

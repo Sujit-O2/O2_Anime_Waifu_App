@@ -243,10 +243,10 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                ProgressRing(
+                const ProgressRing(
                   progress: 0.3,
                   foreground: V2Theme.primaryColor,
-                  child: const Icon(
+                  child: Icon(
                     Icons.auto_awesome_rounded,
                     color: V2Theme.primaryColor,
                     size: 28,

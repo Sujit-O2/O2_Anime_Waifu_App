@@ -4,6 +4,7 @@ import 'package:anime_waifu/models/manga_models.dart';
 import 'package:anime_waifu/screens/admin/user_analytics_dashboard_page.dart';
 import 'package:anime_waifu/screens/ai_tools/ai_art_generator_page.dart';
 import 'package:anime_waifu/screens/ai_tools/ai_debug_panel_page.dart';
+import 'package:anime_waifu/screens/utilities/ai_image_journal_page.dart';
 import 'package:anime_waifu/screens/ai_tools/ai_personality_modes_page.dart';
 import 'package:anime_waifu/screens/ai_tools/dream_interpreter_page.dart';
 import 'package:anime_waifu/screens/ai_tools/language_translator_page.dart';
@@ -48,6 +49,7 @@ import 'package:anime_waifu/screens/media/anime_recommender_page.dart';
 import 'package:anime_waifu/screens/media/anime_watch_party_page.dart';
 import 'package:anime_waifu/screens/media/downloads_page.dart';
 import 'package:anime_waifu/screens/media/episode_alerts_page.dart';
+import 'package:anime_waifu/screens/media/gif_viewer_page.dart';
 import 'package:anime_waifu/screens/media/hianime_webview_page.dart';
 import 'package:anime_waifu/screens/media/manga_reader_page.dart';
 import 'package:anime_waifu/screens/media/manga_section_page.dart';
@@ -82,8 +84,53 @@ import 'package:anime_waifu/screens/social/memory_wall_page.dart';
 import 'package:anime_waifu/screens/social/relationship_evolution_page.dart';
 import 'package:anime_waifu/screens/social/relationship_level_map_page.dart';
 import 'package:anime_waifu/screens/social/relationship_timeline_page.dart';
+import 'package:anime_waifu/screens/social/gift_intelligence_page.dart';
+import 'package:anime_waifu/screens/social/conflict_resolution_page.dart';
+import 'package:anime_waifu/screens/social/long_distance_relationship_page.dart';
+import 'package:anime_waifu/screens/social/social_event_planner_page.dart';
+import 'package:anime_waifu/screens/travel/travel_planner_page.dart';
+import 'package:anime_waifu/screens/productivity/academic_research_page.dart';
+import 'package:anime_waifu/screens/productivity/meeting_intelligence_page.dart';
+import 'package:anime_waifu/screens/financial/budget_coach_page.dart';
+import 'package:anime_waifu/screens/financial/investment_companion_page.dart';
+import 'package:anime_waifu/screens/productivity/code_review_helper_page.dart';
+import 'package:anime_waifu/screens/productivity/project_management_page.dart';
+import 'package:anime_waifu/screens/educational/language_learning_page.dart';
+import 'package:anime_waifu/screens/educational/personalized_learning_page.dart';
+import 'package:anime_waifu/screens/educational/skill_gap_analyzer_page.dart';
+import 'package:anime_waifu/screens/educational/debate_critical_thinking_page.dart';
+import 'package:anime_waifu/screens/creative/art_direction_page.dart';
+import 'package:anime_waifu/screens/creative/collaborative_storytelling_page.dart';
+import 'package:anime_waifu/screens/creative/game_master_page.dart';
+import 'package:anime_waifu/screens/creative/music_composition_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/hydration_nutrition_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/stress_detection_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/meditation_guide_page.dart';
+import 'package:anime_waifu/screens/wellness_advanced/sleep_tracking_page.dart';
+import 'package:anime_waifu/screens/memory_ai/voice_clone_training_page.dart';
+import 'package:anime_waifu/screens/memory_ai/enhanced_dream_journal_page.dart';
+import 'package:anime_waifu/screens/memory_ai/relationship_heatmap_page.dart';
+import 'package:anime_waifu/screens/memory_ai/smart_photo_memory_page.dart';
+import 'package:anime_waifu/screens/memory_ai/conversation_bookmarks_page.dart';
+import 'package:anime_waifu/screens/memory_ai/emotion_memory_timeline_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/personality_evolution_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/semantic_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/conversation_mode_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/smart_reply_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/enhanced_memory_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/ai_copilot_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/alter_ego_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/voice_emotion_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/ai_content_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_ai_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/emotional_recovery_page.dart';
+import 'package:anime_waifu/screens/ai_advanced/self_reflection_page.dart';
+import 'package:anime_waifu/screens/social_advanced/contacts_lookup_page.dart';
+import 'package:anime_waifu/screens/social_advanced/social_features_page.dart';
 import 'package:anime_waifu/screens/utilities/advanced_settings_page.dart';
 import 'package:anime_waifu/screens/utilities/anime_section_page.dart';
+import 'package:anime_waifu/screens/utilities/anime_sticker_sheet.dart';
 import 'package:anime_waifu/screens/utilities/anniversary_page.dart';
 import 'package:anime_waifu/screens/utilities/app_icon_picker_page.dart';
 import 'package:anime_waifu/screens/utilities/ar_companion_page.dart';
@@ -103,6 +150,7 @@ import 'package:anime_waifu/screens/utilities/clipboard_manager_page.dart';
 import 'package:anime_waifu/screens/utilities/cloud_sync_page.dart';
 import 'package:anime_waifu/screens/utilities/code_reviewer_page.dart';
 import 'package:anime_waifu/screens/utilities/commands_page.dart';
+import 'package:anime_waifu/screens/utilities/comprehensive_features_hub.dart';
 // conversation_summary_page.dart requires constructor args — use MaterialPageRoute
 import 'package:anime_waifu/screens/utilities/countdown_timer_page.dart';
 import 'package:anime_waifu/screens/utilities/date_night_planner_page.dart';
@@ -201,6 +249,8 @@ class AppRouter {
   static const String achievementsGallery = '/achievements-gallery';
   static const String advancedSettings = '/advanced-settings';
   static const String aiArtGenerator = '/ai-art-generator';
+  static const String aiImageJournal = '/ai-image-journal';
+  static const String animeStickerSheet = '/anime-sticker-sheet';
   static const String splash = '/splash';
   static const String animeCalendar = '/anime-calendar';
   static const String animeMatchmaker = '/anime-matchmaker';
@@ -223,6 +273,7 @@ class AppRouter {
   static const String checkinStreak = '/checkin-streak';
   static const String cloudSync = '/cloud-sync';
   static const String commands = '/commands';
+  static const String comprehensiveFeaturesHub = '/comprehensive-features-hub';
   static const String conversationSummary = '/conversation-summary';
   static const String countdownTimer = '/countdown-timer';
   static const String dailyAffirmations = '/daily-affirmations';
@@ -373,6 +424,51 @@ class AppRouter {
   static const String memoryVault = '/memory-vault';
   static const String hianime = '/hianime';
   static const String mangaReader = '/manga-reader';
+  static const String gifViewer = '/gif-viewer';
+  static const String giftIntelligence = '/gift-intelligence';
+  static const String conflictResolution = '/conflict-resolution';
+  static const String longDistanceRelationship = '/long-distance-relationship';
+  static const String socialEventPlanner = '/social-event-planner';
+  static const String travelPlanner = '/travel-planner';
+  static const String academicResearch = '/academic-research';
+  static const String meetingIntelligence = '/meeting-intelligence';
+  static const String budgetCoach = '/budget-coach';
+  static const String investmentCompanion = '/investment-companion';
+  static const String codeReviewHelper = '/code-review-helper';
+  static const String projectManagement = '/project-management';
+  static const String languageLearning = '/language-learning';
+  static const String personalizedLearning = '/personalized-learning';
+  static const String skillGapAnalyzer = '/skill-gap-analyzer';
+  static const String debateCriticalThinking = '/debate-critical-thinking';
+  static const String artDirection = '/art-direction';
+  static const String collaborativeStorytelling = '/collaborative-storytelling';
+  static const String gameMaster = '/game-master';
+  static const String musicComposition = '/music-composition';
+  static const String hydrationNutrition = '/hydration-nutrition';
+  static const String stressDetection = '/stress-detection';
+  static const String meditationGuide = '/meditation-guide';
+  static const String sleepTracking = '/sleep-tracking';
+  static const String voiceCloneTraining = '/voice-clone-training';
+  static const String enhancedDreamJournal = '/enhanced-dream-journal';
+  static const String relationshipHeatmap = '/relationship-heatmap';
+  static const String smartPhotoMemory = '/smart-photo-memory';
+  static const String conversationBookmarks = '/conversation-bookmarks';
+  static const String emotionMemoryTimeline = '/emotion-memory-timeline';
+  static const String personalityEvolution = '/personality-evolution';
+  static const String semanticMemory = '/semantic-memory';
+  static const String conversationMode = '/conversation-mode';
+  static const String emotionalMemory = '/emotional-memory';
+  static const String smartReply = '/smart-reply';
+  static const String enhancedMemory = '/enhanced-memory';
+  static const String aiCopilot = '/ai-copilot';
+  static const String alterEgo = '/alter-ego';
+  static const String voiceEmotion = '/voice-emotion';
+  static const String aiContent = '/ai-content';
+  static const String emotionalAi = '/emotional-ai';
+  static const String emotionalRecovery = '/emotional-recovery';
+  static const String selfReflection = '/self-reflection';
+  static const String contactsLookup = '/contacts-lookup';
+  static const String socialFeatures = '/social-features';
 
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
@@ -384,6 +480,8 @@ class AppRouter {
         achievementsGallery: (_) => const AchievementsGalleryPage(),
         advancedSettings: (_) => const AdvancedSettingsPage(),
         aiArtGenerator: (_) => const AiArtGeneratorPage(),
+        aiImageJournal: (_) => const AiImageJournalPage(),
+        animeStickerSheet: (_) => const AnimeStickerSheet(),
         animeCalendar: (_) => const AnimeCalendarPage(),
         animeMatchmaker: (_) => const AnimeMatchmakerPage(),
         animeOst: (_) => const AnimeOstPage(),
@@ -407,6 +505,7 @@ class AppRouter {
         checkinStreak: (_) => const CheckinStreakPage(),
         cloudSync: (_) => const CloudSyncPage(),
         commands: (_) => const CommandsPage(),
+        comprehensiveFeaturesHub: (_) => const ComprehensiveFeaturesHub(),
         // conversationSummary requires args — use MaterialPageRoute directly
         countdownTimer: (_) => const CountdownTimerPage(),
         dailyAffirmations: (_) => const DailyAffirmationsPage(),
@@ -555,12 +654,16 @@ class AppRouter {
         arCompanion: (_) => const ArCompanionPage(),
         geofencingSettings: (_) => const GeofencingSettingsPage(),
         memoryVault: (_) => const MemoryVaultPage(),
-        AppRouter.hianime: (_) => const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
+        AppRouter.hianime: (_) =>
+            const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
+        AppRouter.gifViewer: (_) => const GifViewerPage(),
         AppRouter.mangaReader: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>?;
           final chapter = args?['chapter'];
           if (chapter == null || chapter is! ChapterItem) {
-            return const Scaffold(body: Center(child: Text('Invalid manga chapter')));
+            return const Scaffold(
+                body: Center(child: Text('Invalid manga chapter')));
           }
           return MangaReaderPage(
             chapter: chapter,
@@ -568,9 +671,130 @@ class AppRouter {
           );
         },
         // New explicit routes for orphans
-        AppRouter.morningGreetingCard: (_) => MorningGreetingCard(onDismiss: () {}),
+        AppRouter.morningGreetingCard: (_) =>
+            MorningGreetingCard(onDismiss: () {}),
+        // Social & Travel Services
+        AppRouter.giftIntelligence: (_) => const GiftIntelligencePage(),
+        AppRouter.conflictResolution: (_) => const ConflictResolutionPage(),
+        AppRouter.longDistanceRelationship: (_) => const LongDistanceRelationshipPage(),
+        AppRouter.socialEventPlanner: (_) => const SocialEventPlannerPage(),
+        AppRouter.travelPlanner: (_) => const TravelPlannerPage(),
+        AppRouter.academicResearch: (_) => const AcademicResearchPage(),
+        AppRouter.meetingIntelligence: (_) => const MeetingIntelligencePage(),
+        AppRouter.budgetCoach: (_) => const BudgetCoachPage(),
+        AppRouter.investmentCompanion: (_) => const InvestmentCompanionPage(),
+        AppRouter.codeReviewHelper: (_) => const CodeReviewHelperPage(),
+        AppRouter.projectManagement: (_) => const ProjectManagementPage(),
+        AppRouter.languageLearning: (_) => const LanguageLearningPage(),
+        AppRouter.personalizedLearning: (_) => const PersonalizedLearningPage(),
+        AppRouter.skillGapAnalyzer: (_) => const SkillGapAnalyzerPage(),
+        AppRouter.debateCriticalThinking: (_) => const DebateCriticalThinkingPage(),
+        AppRouter.artDirection: (_) => const ArtDirectionPage(),
+        AppRouter.collaborativeStorytelling: (_) => const CollaborativeStorytellingPage(),
+        AppRouter.gameMaster: (_) => const GameMasterPage(),
+        AppRouter.musicComposition: (_) => const MusicCompositionPage(),
+        AppRouter.hydrationNutrition: (_) => const HydrationNutritionPage(),
+        AppRouter.stressDetection: (_) => const StressDetectionPage(),
+        AppRouter.meditationGuide: (_) => const MeditationGuidePage(),
+        AppRouter.sleepTracking: (_) => const SleepTrackingPage(),
+        AppRouter.voiceCloneTraining: (_) => const VoiceCloneTrainingPage(),
+        AppRouter.enhancedDreamJournal: (_) => const EnhancedDreamJournalPage(),
+        AppRouter.relationshipHeatmap: (_) => const RelationshipHeatmapPage(),
+        AppRouter.smartPhotoMemory: (_) => const SmartPhotoMemoryPage(),
+        AppRouter.conversationBookmarks: (_) => const ConversationBookmarksPage(),
+        AppRouter.emotionMemoryTimeline: (_) => const EmotionMemoryTimelinePage(),
+        AppRouter.personalityEvolution: (_) => const PersonalityEvolutionPage(),
+        AppRouter.semanticMemory: (_) => const SemanticMemoryPage(),
+        AppRouter.conversationMode: (_) => const ConversationModePage(),
+        AppRouter.emotionalMemory: (_) => const EmotionalMemoryPage(),
+        AppRouter.smartReply: (_) => const SmartReplyPage(),
+        AppRouter.enhancedMemory: (_) => const EnhancedMemoryPage(),
+        AppRouter.aiCopilot: (_) => const AiCopilotPage(),
+        AppRouter.alterEgo: (_) => const AlterEgoPage(),
+        AppRouter.voiceEmotion: (_) => const VoiceEmotionPage(),
+        AppRouter.aiContent: (_) => const AiContentPage(),
+        AppRouter.emotionalAi: (_) => const EmotionalAiPage(),
+        AppRouter.emotionalRecovery: (_) => const EmotionalRecoveryPage(),
+        AppRouter.selfReflection: (_) => const SelfReflectionPage(),
+        AppRouter.contactsLookup: (_) => const ContactsLookupPage(),
+        AppRouter.socialFeatures: (_) => const SocialFeaturesPage(),
       };
+
+  /// Premium page transition that makes navigation feel smooth and modern.
+  /// Uses a slide + fade combo with a spring curve for buttery page switches.
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final builder = routes[settings.name];
+    if (builder == null) {
+      return onUnknownRoute(settings);
+    }
+
+    return PageRouteBuilder<dynamic>(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 350),
+      reverseTransitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (context, _, __) => builder(context),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        // Primary: slide up + fade in
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(0.0, 0.04),
+          end: Offset.zero,
+        ).animate(curvedAnimation);
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(curvedAnimation);
+
+        // Secondary: subtle scale-down when this page is being replaced
+        final secondaryCurve = CurvedAnimation(
+          parent: secondaryAnimation,
+          curve: Curves.easeInOut,
+        );
+        final scaleAnimation = Tween<double>(
+          begin: 1.0,
+          end: 0.96,
+        ).animate(secondaryCurve);
+        final secondaryFade = Tween<double>(
+          begin: 1.0,
+          end: 0.6,
+        ).animate(secondaryCurve);
+
+        return FadeTransition(
+          opacity: secondaryFade,
+          child: ScaleTransition(
+            scale: scaleAnimation,
+            child: SlideTransition(
+              position: slideAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: child,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Route<dynamic> onUnknownRoute(RouteSettings settings) {
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Page not found')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Route "${settings.name ?? 'unknown'}" is not available.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
-
-
-

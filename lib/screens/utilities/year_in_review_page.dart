@@ -69,6 +69,7 @@ class _YearInReviewPageState extends State<YearInReviewPage> {
       } catch (_) {}
     }
 
+    if (!mounted) return;
     setState(() => _loading = false);
   }
 

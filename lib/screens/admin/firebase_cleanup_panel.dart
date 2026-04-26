@@ -59,6 +59,7 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
       // Delete all user data
       final cleanupService = UserDataCleanupService();
       await cleanupService.deleteAllUserData(uid);
+      if (!mounted) return;
       setState(() => _deletedCollections = 23);
 
       // Export audit entry
@@ -70,6 +71,7 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
         metadata: {'uid': uid, 'collections_deleted': 23},
       );
 
+      if (!mounted) return;
       setState(
           () => _deletionStatus = '✅ All data deleted successfully (23 collections)');
 
@@ -77,6 +79,7 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
       await Future.delayed(const Duration(seconds: 3));
       if (mounted) Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       setState(() =>
           _deletionStatus = '❌ Error: ${e.toString().substring(0, 50)}...');
     } finally {
@@ -99,8 +102,10 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
         metadata: {'uid': uid},
       );
 
+      if (!mounted) return;
       setState(() => _deletionStatus = '✅ Data exported (check downloads)');
       await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
       setState(() => _deletionStatus = null);
     } catch (e) {
       setState(() => _deletionStatus = '❌ Export failed: $e');

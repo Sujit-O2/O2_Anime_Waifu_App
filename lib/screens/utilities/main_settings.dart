@@ -3,6 +3,8 @@ part of 'package:anime_waifu/main.dart';
 extension _MainSettingsExtension on _ChatHomePageState {
 // —— Page: Settings ————————————————————————————————————————————————————————————————
   Widget _buildVoiceOption(BuildContext context, String id, String label) {
+    final colors = Theme.of(context).colorScheme;
+    final tokens = context.appTokens;
     final bool sel = _voiceModel == id;
     return Expanded(
       child: GestureDetector(
@@ -10,17 +12,22 @@ extension _MainSettingsExtension on _ChatHomePageState {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: sel
-                ? Colors.cyanAccent.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.05),
+            gradient: sel
+                ? tokens.glassGradient
+                : LinearGradient(
+                    colors: [tokens.panelElevated, tokens.panel],
+                  ),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: sel ? Colors.cyanAccent : Colors.white12),
+            border: Border.all(
+              color:
+                  sel ? colors.primary.withValues(alpha: 0.45) : tokens.outline,
+            ),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: GoogleFonts.outfit(
-                color: sel ? Colors.cyanAccent : Colors.white70,
+                color: sel ? colors.primary : tokens.textSoft,
                 fontSize: 12,
                 fontWeight: sel ? FontWeight.bold : FontWeight.normal),
           ),
@@ -97,7 +104,10 @@ extension _MainSettingsExtension on _ChatHomePageState {
   }
 
   Widget _buildSettingsPage() {
-    final primary = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final tokens = context.appTokens;
+    final primary = colors.primary;
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +116,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
             child: Text('SETTINGS',
                 style: GoogleFonts.outfit(
-                    color: Colors.white,
+                    color: colors.onSurface,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 2)),
@@ -121,6 +131,64 @@ extension _MainSettingsExtension on _ChatHomePageState {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: tokens.heroGradient,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: tokens.outlineStrong),
+                      boxShadow: [
+                        BoxShadow(
+                          color: tokens.shadowColor.withValues(alpha: 0.24),
+                          blurRadius: 28,
+                          spreadRadius: -8,
+                          offset: const Offset(0, 16),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: colors.primary.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            Icons.tune_rounded,
+                            color: colors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Assistant Controls',
+                                style: GoogleFonts.outfit(
+                                  color: colors.onSurface,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Voice, automation, persona, and background behavior in one place.',
+                                style: GoogleFonts.outfit(
+                                  color: tokens.textMuted,
+                                  fontSize: 11.5,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   _buildSettingsV2Overview(primary),
                   const SizedBox(height: 8),
                   _settingsSectionCard('VOICE & ASSISTANT', [
@@ -165,6 +233,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           unawaited(_sp.toggleTrueBackgroundProactiveEnabled()),
                       activeColor: Colors.tealAccent,
                     ),
+                    _backgroundTelemetryCard(),
                     _settingsTile(
                       icon: Icons.timer_outlined,
                       label: 'Idle Timer',
@@ -1267,14 +1336,16 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       label: 'App Theme',
                       subtitle: 'Choose from 10+ stunning themes',
                       color: Colors.pinkAccent,
-                      onTap: () => Navigator.pushNamed(context, '/theme-switcher'),
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/theme-switcher'),
                     ),
                     _buildToolShortcut(
                       icon: Icons.color_lens_rounded,
                       label: 'Accent Color',
                       subtitle: 'Customize the app glow and highlights',
                       color: Colors.cyanAccent,
-                      onTap: () => Navigator.pushNamed(context, '/theme-accent'),
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/theme-accent'),
                     ),
                     const SizedBox(height: 16),
                   ]),
@@ -1585,6 +1656,16 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       },
                     ),
                     _buildToolShortcut(
+                      icon: Icons.auto_fix_high_rounded,
+                      label: 'Optimize Now',
+                      subtitle:
+                          'Cleanup cache + refresh widgets + heal background scheduler',
+                      color: Colors.lightGreenAccent,
+                      onTap: () async {
+                        await _runOptimizeNow();
+                      },
+                    ),
+                    _buildToolShortcut(
                       icon: Icons.notifications_active_rounded,
                       label: 'Test Notification',
                       subtitle: 'Send a test notification to verify setup',
@@ -1829,6 +1910,36 @@ extension _MainSettingsExtension on _ChatHomePageState {
     }
   }
 
+  Future<void> _runOptimizeNow() async {
+    try {
+      final cacheManager = ImageCacheManager();
+      await cacheManager.initialize();
+      cacheManager.cleanupExpiredCache();
+      cacheManager.clearMemoryCache();
+
+      await proactive_worker.ensureProactiveBackgroundHealthy();
+      await _sp.refreshBackgroundTelemetry();
+      await HomeWidgetService.forceUpdateAll();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('✅ Optimization complete: cache cleaned + scheduler healed'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Optimization failed: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   Widget _buildToolShortcut({
     required IconData icon,
     required String label,
@@ -1836,54 +1947,62 @@ extension _MainSettingsExtension on _ChatHomePageState {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: color.withValues(alpha: 0.1),
-        highlightColor: color.withValues(alpha: 0.05),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            border: const Border(bottom: BorderSide(color: Colors.white10)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 18),
+    return Semantics(
+      button: true,
+      label: label,
+      hint: subtitle,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: color.withValues(alpha: 0.1),
+            highlightColor: color.withValues(alpha: 0.05),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.white10)),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.outfit(
-                        color: Colors.white54,
-                        fontSize: 11,
-                      ),
+                    child: Icon(icon, color: color, size: 18),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.outfit(
+                            color: Colors.white54,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: Colors.white24, size: 20),
+                ],
               ),
-              const Icon(Icons.chevron_right_rounded,
-                  color: Colors.white24, size: 20),
-            ],
+            ),
           ),
         ),
       ),
@@ -1891,6 +2010,8 @@ extension _MainSettingsExtension on _ChatHomePageState {
   }
 
   Widget _settingsSectionCard(String title, List<Widget> children) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -1900,19 +2021,34 @@ extension _MainSettingsExtension on _ChatHomePageState {
             padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
             child: Text(title,
                 style: GoogleFonts.outfit(
-                    color: Colors.white38,
+                    color: tokens.textSoft,
                     fontSize: 11,
                     letterSpacing: 2,
-                    fontWeight: FontWeight.w600)),
+                    fontWeight: FontWeight.w700)),
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              gradient: tokens.glassGradient,
+              color: tokens.panel.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: tokens.outlineStrong),
+              boxShadow: [
+                BoxShadow(
+                  color: tokens.shadowColor,
+                  blurRadius: 22,
+                  offset: const Offset(0, 12),
+                  spreadRadius: -12,
+                ),
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                  spreadRadius: -10,
+                ),
+              ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: children,
@@ -1925,11 +2061,14 @@ extension _MainSettingsExtension on _ChatHomePageState {
   }
 
   Widget _buildSettingsHero() {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final tokens = context.appTokens;
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(22),
       child: SizedBox(
         width: double.infinity,
-        height: 250,
+        height: 260,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -1945,32 +2084,96 @@ extension _MainSettingsExtension on _ChatHomePageState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.08),
-                    Colors.black.withValues(alpha: 0.6),
+                    colors.primary.withValues(alpha: 0.14),
+                    Colors.black.withValues(alpha: 0.24),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.82),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.primary.withValues(alpha: 0.18),
+                    colors.tertiary.withValues(alpha: 0.10),
+                    Colors.transparent,
                   ],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: colors.primary.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    child: Text(
+                      'SYSTEM CONTROL',
+                      style: GoogleFonts.outfit(
+                        color: colors.primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                   Text(
                     'Control Panel',
                     style: GoogleFonts.outfit(
                       color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
+                  const SizedBox(height: 6),
                   Text(
-                    'Wake, idle and check-in behavior',
+                    'Wake, background assist, persona behavior, and visual tuning in one place.',
                     style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontSize: 11,
+                      color: tokens.textMuted,
+                      fontSize: 12.5,
+                      height: 1.4,
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _heroMetric(
+                        icon: Icons.hearing_rounded,
+                        label: 'Wake',
+                        value: _wakeWordEnabledByUser ? 'On' : 'Off',
+                        accent: Colors.lightGreenAccent,
+                      ),
+                      const SizedBox(width: 8),
+                      _heroMetric(
+                        icon: Icons.auto_mode_rounded,
+                        label: 'Assist',
+                        value: _assistantModeEnabled ? 'Live' : 'Manual',
+                        accent: colors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      _heroMetric(
+                        icon: Icons.favorite_rounded,
+                        label: 'Persona',
+                        value: _selectedPersona == 'Default'
+                            ? 'Zero Two'
+                            : _selectedPersona,
+                        accent: Colors.pinkAccent,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1979,6 +2182,146 @@ extension _MainSettingsExtension on _ChatHomePageState {
         ),
       ),
     );
+  }
+
+  Widget _heroMetric({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color accent,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.28),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: accent.withValues(alpha: 0.18)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: accent, size: 15),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.outfit(
+                color: Colors.white70,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _backgroundTelemetryCard() {
+    final tokens = context.appTokens;
+    final colors = Theme.of(context).colorScheme;
+    final lastRun = _formatBgTelemetryTime(_sp.backgroundLastRunTime);
+    final lastSuccess = _formatBgTelemetryTime(_sp.backgroundLastSuccessTime);
+    final lastHeal = _formatBgTelemetryTime(_sp.backgroundLastHealTime);
+    final lastError = _sp.backgroundLastError.trim();
+    final msg = _sp.backgroundLastMessagePreview.trim();
+    final health = _sp.backgroundHealthScore;
+    final healthColor = health >= 80
+        ? Colors.lightGreenAccent
+        : health >= 50
+            ? Colors.amberAccent
+            : Colors.redAccent;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: tokens.glassGradient,
+        color: tokens.panelMuted,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: tokens.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.monitor_heart_outlined,
+                  size: 16, color: Colors.tealAccent),
+              const SizedBox(width: 8),
+              Text(
+                'Background Scheduler Health',
+                style: GoogleFonts.outfit(
+                  color: colors.onSurface,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => unawaited(_sp.refreshBackgroundTelemetry()),
+                child: Text(
+                  'Refresh',
+                  style: GoogleFonts.outfit(
+                    color: Colors.tealAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Health score: $health/100',
+            style: GoogleFonts.outfit(
+              color: healthColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            'Last run: $lastRun',
+            style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11),
+          ),
+          Text(
+            'Last success: $lastSuccess',
+            style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11),
+          ),
+          if (_sp.backgroundHealCount > 0)
+            Text(
+              'Self-heals: ${_sp.backgroundHealCount} (last: $lastHeal)',
+              style:
+                  GoogleFonts.outfit(color: Colors.orangeAccent, fontSize: 11),
+            ),
+          if (msg.isNotEmpty)
+            Text(
+              'Last message: ${msg.length > 70 ? '${msg.substring(0, 70)}…' : msg}',
+              style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11),
+            ),
+          if (lastError.isNotEmpty)
+            Text(
+              'Last error: ${lastError.length > 80 ? '${lastError.substring(0, 80)}…' : lastError}',
+              style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 11),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatBgTelemetryTime(DateTime? dt) {
+    if (dt == null) return 'never';
+    return dt.toLocal().toString().split('.').first;
   }
 
   Widget _buildOutfitChangerCard() {
@@ -2094,25 +2437,28 @@ extension _MainSettingsExtension on _ChatHomePageState {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          gradient: tokens.glassGradient,
+          color: tokens.panelMuted,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: tokens.outline),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white70, size: 14),
+            Icon(icon, color: theme.colorScheme.primary, size: 14),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.outfit(
-                color: Colors.white70,
+                color: theme.colorScheme.onSurface,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -2276,46 +2622,54 @@ extension _MainSettingsExtension on _ChatHomePageState {
     final ctrl = TextEditingController(text: initial);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title,
-            style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 15)),
-        content: TextField(
-          controller: ctrl,
-          maxLines: maxLines,
-          style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.outfit(color: Colors.white24, fontSize: 12),
-            filled: true,
-            fillColor: Colors.white10,
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none),
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final tokens = ctx.appTokens;
+        return AlertDialog(
+          title: Text(title,
+              style: GoogleFonts.outfit(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15)),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: TextField(
+              controller: ctrl,
+              maxLines: maxLines,
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface,
+                fontSize: 13,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Prompt',
+                hintText: hint,
+                helperText: 'Changes save immediately to the assistant config.',
+                helperMaxLines: 2,
+                prefixIcon: Icon(
+                  Icons.edit_note_rounded,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
+          actions: [
+            TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: Text('Cancel',
-                  style: GoogleFonts.outfit(color: Colors.white38))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                foregroundColor: Colors.white),
-            onPressed: () async {
-              await onSave(ctrl.text.trim());
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            child: Text('Save to Cloud',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+                  style: GoogleFonts.outfit(color: tokens.textMuted)),
+            ),
+            FilledButton.icon(
+              onPressed: () async {
+                await onSave(ctrl.text.trim());
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              icon: const Icon(Icons.cloud_upload_rounded),
+              label: Text('Save to Cloud',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -2328,43 +2682,104 @@ Widget _settingsTile({
   required ValueChanged<bool> onChanged,
   required Color activeColor,
 }) {
-  return InkWell(
-    onTap: () => onChanged(!value),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.02))),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: value ? activeColor : Colors.white38, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600)),
-                Text(subtitle,
-                    style: GoogleFonts.outfit(
-                        color: Colors.white38, fontSize: 11)),
-              ],
+  return Builder(
+    builder: (context) {
+      final theme = Theme.of(context);
+      final tokens = context.appTokens;
+      return InkWell(
+        onTap: () => onChanged(!value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: tokens.outline.withValues(alpha: 0.9)),
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: activeColor,
-            inactiveThumbColor: Colors.white38,
-            inactiveTrackColor: Colors.white12,
+          child: Row(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: value
+                      ? LinearGradient(
+                          colors: [
+                            activeColor.withValues(alpha: 0.28),
+                            activeColor.withValues(alpha: 0.10),
+                          ],
+                        )
+                      : LinearGradient(
+                          colors: [
+                            tokens.panelElevated,
+                            tokens.panelMuted,
+                          ],
+                        ),
+                  border: Border.all(
+                    color: value
+                        ? activeColor.withValues(alpha: 0.35)
+                        : tokens.outline,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: value ? activeColor : tokens.textSoft,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: GoogleFonts.outfit(
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        style: GoogleFonts.outfit(
+                            color: tokens.textMuted, fontSize: 11.2)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: value
+                      ? activeColor.withValues(alpha: 0.14)
+                      : tokens.panelMuted,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: value
+                        ? activeColor.withValues(alpha: 0.28)
+                        : tokens.outline,
+                  ),
+                ),
+                child: Text(
+                  value ? 'On' : 'Off',
+                  style: GoogleFonts.outfit(
+                    color: value ? activeColor : tokens.textSoft,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: activeColor,
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
+        ),
+      );
+    },
   );
 }
 
@@ -2405,6 +2820,3 @@ class _GoogleDriveBackupWidget extends StatelessWidget {
     );
   }
 }
-
-
-

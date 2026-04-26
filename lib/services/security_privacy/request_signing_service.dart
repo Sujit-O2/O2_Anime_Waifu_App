@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Request Signing Service - Sign API requests for integrity verification
 class RequestSigningService {
@@ -28,10 +28,10 @@ class RequestSigningService {
       final bytes = utf8.encode(data + _secretKeyPrefix);
       final digest = sha256.convert(bytes);
       
-      debugPrint('✅ Request signature generated');
+      if (kDebugMode) debugPrint('✅ Request signature generated');
       return digest.toString();
     } catch (e) {
-      debugPrint('❌ Error generating signature: $e');
+      if (kDebugMode) debugPrint('❌ Error generating signature: $e');
       return '';
     }
   }
@@ -55,12 +55,14 @@ class RequestSigningService {
       );
 
       final isValid = signature == expectedSignature;
-      debugPrint(isValid
+      if (kDebugMode) {
+        debugPrint(isValid
           ? '✅ Request signature verified'
           : '⚠️ Request signature verification failed');
+      }
       return isValid;
     } catch (e) {
-      debugPrint('❌ Error verifying signature: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying signature: $e');
       return false;
     }
   }
@@ -89,7 +91,7 @@ class RequestSigningService {
         'X-Nonce': _generateNonce(),
       };
     } catch (e) {
-      debugPrint('❌ Error signing API request: $e');
+      if (kDebugMode) debugPrint('❌ Error signing API request: $e');
       return {};
     }
   }
@@ -103,7 +105,7 @@ class RequestSigningService {
       final hash = sha256.convert(utf8.encode(data));
       return hash.toString().substring(0, length);
     } catch (e) {
-      debugPrint('❌ Error generating nonce: $e');
+      if (kDebugMode) debugPrint('❌ Error generating nonce: $e');
       return '';
     }
   }
@@ -114,14 +116,14 @@ class RequestSigningService {
       // In production: Check against stored nonces list
       // For now: Just return true if nonce exists
       if (nonce.isEmpty) {
-        debugPrint('⚠️ Nonce verification failed: empty nonce');
+        if (kDebugMode) debugPrint('⚠️ Nonce verification failed: empty nonce');
         return false;
       }
 
-      debugPrint('✅ Nonce verification passed');
+      if (kDebugMode) debugPrint('✅ Nonce verification passed');
       return true;
     } catch (e) {
-      debugPrint('❌ Error verifying nonce: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying nonce: $e');
       return false;
     }
   }
@@ -134,7 +136,7 @@ class RequestSigningService {
       final digest = sha256.convert(bytes);
       return digest.toString();
     } catch (e) {
-      debugPrint('❌ Error creating integrity token: $e');
+      if (kDebugMode) debugPrint('❌ Error creating integrity token: $e');
       return '';
     }
   }
@@ -145,7 +147,7 @@ class RequestSigningService {
       final expectedToken = createIntegrityToken(data);
       return token == expectedToken;
     } catch (e) {
-      debugPrint('❌ Error verifying data integrity: $e');
+      if (kDebugMode) debugPrint('❌ Error verifying data integrity: $e');
       return false;
     }
   }
@@ -161,7 +163,7 @@ class RequestSigningService {
         timestamp: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('❌ Error getting signing stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting signing stats: $e');
       return SigningStats(
         requestsSigned: 0,
         requestsVerified: 0,

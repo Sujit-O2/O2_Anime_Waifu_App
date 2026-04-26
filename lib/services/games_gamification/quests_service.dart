@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show ChangeNotifier, debugPrint, kDebugMode;
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/services/database_storage/firestore_service.dart';
 import 'package:anime_waifu/utils/api_call.dart';
@@ -125,7 +126,7 @@ class QuestsService extends ChangeNotifier {
           .toList();
       await _saveDailyQuests(todayStr);
     } catch (e) {
-      debugPrint('AI quest generation failed: $e');
+      if (kDebugMode) debugPrint('AI quest generation failed: $e');
       _dailyQuests = _fallbackQuests();
       await _saveDailyQuests(DateTime.now().toIso8601String().split('T')[0]);
     } finally {
@@ -265,5 +266,3 @@ class QuestsService extends ChangeNotifier {
     return pool.take(5).toList();
   }
 }
-
-

@@ -47,8 +47,10 @@ class _StorymodePageState extends State<StoryModePage> with SingleTickerProvider
       final snap = await FirebaseFirestore.instance.collection('users').doc(_uid)
           .collection('storyChapters').orderBy('ts', descending: true).limit(1).get();
       if (snap.docs.isNotEmpty && mounted) {
+        if (snap.docs.isEmpty) return;
         final doc = snap.docs.first;
         final data = doc.data();
+        if (!mounted) return;
         setState(() {
           _docId = doc.id;
           _activeStarter = {'title': data['title'], 'icon': data['icon']};

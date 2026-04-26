@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -12,40 +13,44 @@ import 'package:http/http.dart' as http;
 class TtsService {
   final AudioPlayer _player = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
+  double _speedMultiplier = 1.0;
+
+  /// Set playback speed multiplier (0.5 - 2.0)
+  set speed(double v) => _speedMultiplier = v.clamp(0.5, 2.0);
 
   VoidCallback? onStart;
   VoidCallback? onComplete;
 
-  String _apiKeyOverride = "";
-  String _voiceOverride = "";
-  String _modelOverride = "";
+  String _apiKeyOverride = '';
+  String _voiceOverride = '';
+  String _modelOverride = '';
   int _sessionCounter = 0;
   int _activeSessionId = 0;
   int _playerSessionId = 0;
   int _fallbackSessionId = 0;
   Timer? _completionGuard;
   bool _fallbackVoiceConfigured = false;
-  String _fallbackVoiceSignature = "";
+  String _fallbackVoiceSignature = '';
 
   static const Duration _ttsRequestTimeout = Duration(seconds: 18);
 
   String get _effectiveApiKey {
     if (_apiKeyOverride.trim().isNotEmpty) return _apiKeyOverride.trim();
-    return dotenv.env['API_KEY'] ?? "";
+    return dotenv.env['API_KEY'] ?? '';
   }
 
   String get _effectiveVoice {
     if (_voiceOverride.trim().isNotEmpty) return _voiceOverride.trim();
-    return "aisha";
+    return 'autumn';
   }
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
     final voice = _effectiveVoice.toLowerCase();
-    if (voice == 'autumn' || voice == 'hannah' || voice == 'english') {
-      return "canopylabs/orpheus-v1-english";
+    if (voice == 'autumn' || voice == 'hannah' || voice == 'diana' || voice == 'english') {
+      return 'canopylabs/orpheus-v1-english';
     }
-    return "canopylabs/orpheus-arabic-saudi";
+    return 'canopylabs/orpheus-arabic-saudi';
   }
 
   void configure({
@@ -104,19 +109,19 @@ class TtsService {
         .toList();
 
     if (keys.isEmpty) {
-      debugPrint("TTS API key is missing");
+      if (kDebugMode) debugPrint('TTS API key is missing');
       return null;
     }
 
     // Shuffle for random rotation
     keys.shuffle();
 
-    final url = Uri.parse("https://api.groq.com/openai/v1/audio/speech");
+    final url = Uri.parse('https://api.groq.com/openai/v1/audio/speech');
     final bodyData = {
-      "model": _effectiveModel,
-      "voice": _effectiveVoice,
-      "input": text,
-      "response_format": "wav"
+      'model': _effectiveModel,
+      'voice': _effectiveVoice,
+      'input': text,
+      'response_format': 'wav'
     };
 
     for (int i = 0; i < keys.length; i++) {
@@ -126,8 +131,8 @@ class TtsService {
             .post(
               url,
               headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer $key",
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $key',
               },
               body: jsonEncode(bodyData),
             )
@@ -136,17 +141,19 @@ class TtsService {
         if (response.statusCode == 200) {
           return response.bodyBytes;
         } else {
-          debugPrint(
-              "TTS API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body}");
+          if (kDebugMode) {
+            debugPrint(
+              'TTS API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body}');
+          }
         }
       } on TimeoutException catch (_) {
-        debugPrint("TTS API request timeout (Key ${i + 1}/${keys.length})");
+        if (kDebugMode) debugPrint('TTS API request timeout (Key ${i + 1}/${keys.length})');
       } catch (e) {
-        debugPrint("TTS API Exception (Key ${i + 1}/${keys.length}): $e");
+        if (kDebugMode) debugPrint('TTS API Exception (Key ${i + 1}/${keys.length}): $e');
       }
     }
 
-    debugPrint("All TTS API keys failed.");
+    if (kDebugMode) debugPrint('All TTS API keys failed.');
     return null;
   }
 
@@ -154,7 +161,7 @@ class TtsService {
   Future<void> speak(String text) async {
     final cleanText = text.trim();
     if (cleanText.isEmpty) {
-      debugPrint("TTS: Empty text provided");
+      if (kDebugMode) debugPrint('TTS: Empty text provided');
       return;
     }
 
@@ -167,7 +174,7 @@ class TtsService {
       final audioBytes = await _fetchAudioFromApi(cleanText);
 
       if (audioBytes == null || audioBytes.isEmpty) {
-        debugPrint("No audio from Groq TTS, falling back to device TTS");
+        if (kDebugMode) debugPrint('No audio from Groq TTS, falling back to device TTS');
         await _speakWithFallbackTts(cleanText, sessionId);
         return;
       }
@@ -176,9 +183,12 @@ class TtsService {
       _fallbackSessionId = 0;
       await _player.stop();
       await Future.delayed(const Duration(milliseconds: 100));
+      if (_speedMultiplier != 1.0) {
+        await _player.setPlaybackRate(_speedMultiplier);
+      }
       await _player.play(BytesSource(audioBytes));
     } catch (e) {
-      debugPrint("TTS speak error: $e");
+      if (kDebugMode) debugPrint('TTS speak error: $e');
       await _speakWithFallbackTts(cleanText, sessionId);
     }
   }
@@ -195,11 +205,11 @@ class TtsService {
 
       final result = await _flutterTts.speak(text);
       if (result != 1) {
-        debugPrint("Fallback TTS speak returned: $result");
+        if (kDebugMode) debugPrint('Fallback TTS speak returned: $result');
         _notifyComplete(sessionId);
       }
     } catch (e) {
-      debugPrint("Fallback TTS Exception: $e");
+      if (kDebugMode) debugPrint('Fallback TTS Exception: $e');
       _notifyComplete(sessionId);
     }
   }
@@ -216,13 +226,13 @@ class TtsService {
     try {
       await _player.stop();
     } catch (e) {
-      debugPrint("TTS player stop error: $e");
+      if (kDebugMode) debugPrint('TTS player stop error: $e');
     }
 
     try {
       await _flutterTts.stop();
     } catch (e) {
-      debugPrint("FlutterTTS stop error: $e");
+      if (kDebugMode) debugPrint('FlutterTTS stop error: $e');
     }
 
     if (previous != 0) {
@@ -232,7 +242,7 @@ class TtsService {
 
   Future<void> _configureFallbackVoice() async {
     final signature =
-        "${_voiceOverride.trim().toLowerCase()}|${_effectiveVoice.toLowerCase()}";
+        '${_voiceOverride.trim().toLowerCase()}|${_effectiveVoice.toLowerCase()}';
     if (_fallbackVoiceConfigured && _fallbackVoiceSignature == signature) {
       return;
     }
@@ -256,10 +266,10 @@ class TtsService {
         return;
       }
     } catch (e) {
-      debugPrint("Fallback voice discovery failed: $e");
+      if (kDebugMode) debugPrint('Fallback voice discovery failed: $e');
     }
 
-    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setLanguage('en-US');
   }
 
   List<Map<String, dynamic>> _normalizeVoices(dynamic voicesRaw) {
@@ -326,6 +336,19 @@ class TtsService {
     if (bestScore > 0) return scored.first.key;
 
     return null;
+  }
+
+  /// Dispose of all resources — call when TTS is no longer needed
+  Future<void> dispose() async {
+    _completionGuard?.cancel();
+    _completionGuard = null;
+    _activeSessionId = 0;
+    try {
+      await _player.dispose();
+    } catch (_) {}
+    try {
+      await _flutterTts.stop();
+    } catch (_) {}
   }
 }
 

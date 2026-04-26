@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Privacy Control Service - GDPR compliance, data deletion, privacy controls
@@ -18,7 +18,7 @@ class PrivacyControlService {
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    debugPrint('✅ Privacy Control Service initialized');
+    if (kDebugMode) debugPrint('✅ Privacy Control Service initialized');
   }
 
   /// Get user privacy preferences
@@ -30,7 +30,7 @@ class PrivacyControlService {
       }
       return PrivacyPreferences();
     } catch (e) {
-      debugPrint('❌ Error getting privacy preferences: $e');
+      if (kDebugMode) debugPrint('❌ Error getting privacy preferences: $e');
       return PrivacyPreferences();
     }
   }
@@ -42,10 +42,10 @@ class PrivacyControlService {
         _privacyPreferencesKey,
         jsonEncode(preferences.toJson()),
       );
-      debugPrint('✅ Privacy preferences updated');
+      if (kDebugMode) debugPrint('✅ Privacy preferences updated');
       return true;
     } catch (e) {
-      debugPrint('❌ Error setting privacy preferences: $e');
+      if (kDebugMode) debugPrint('❌ Error setting privacy preferences: $e');
       return false;
     }
   }
@@ -65,10 +65,10 @@ class PrivacyControlService {
       logList.add(consent.toJson());
 
       await _prefs.setString(_consentLogKey, jsonEncode(logList));
-      debugPrint('✅ Consent recorded: $consentType = $accepted');
+      if (kDebugMode) debugPrint('✅ Consent recorded: $consentType = $accepted');
       return true;
     } catch (e) {
-      debugPrint('❌ Error recording consent: $e');
+      if (kDebugMode) debugPrint('❌ Error recording consent: $e');
       return false;
     }
   }
@@ -83,7 +83,7 @@ class PrivacyControlService {
           .map((json) => UserConsent.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error getting consent history: $e');
+      if (kDebugMode) debugPrint('❌ Error getting consent history: $e');
       return [];
     }
   }
@@ -103,10 +103,10 @@ class PrivacyControlService {
         trackedDataFiles: trackedFiles,
       );
 
-      debugPrint('✅ User data exported for: $userId');
+      if (kDebugMode) debugPrint('✅ User data exported for: $userId');
       return export;
     } catch (e) {
-      debugPrint('❌ Error exporting user data: $e');
+      if (kDebugMode) debugPrint('❌ Error exporting user data: $e');
       return null;
     }
   }
@@ -132,10 +132,10 @@ class PrivacyControlService {
       deletionList.add(deletion.toJson());
 
       await _prefs.setString('data_deletion_log', jsonEncode(deletionList));
-      debugPrint('✅ User data deleted: $userId');
+      if (kDebugMode) debugPrint('✅ User data deleted: $userId');
       return true;
     } catch (e) {
-      debugPrint('❌ Error deleting user data: $e');
+      if (kDebugMode) debugPrint('❌ Error deleting user data: $e');
       return false;
     }
   }
@@ -158,7 +158,7 @@ class PrivacyControlService {
           return false;
       }
     } catch (e) {
-      debugPrint('❌ Error checking collection allowed: $e');
+      if (kDebugMode) debugPrint('❌ Error checking collection allowed: $e');
       return false;
     }
   }
@@ -171,9 +171,9 @@ class PrivacyControlService {
         files.add(filePath);
         await _prefs.setStringList(_dataFilesKey, files);
       }
-      debugPrint('📄 Data file tracked: $filePath');
+      if (kDebugMode) debugPrint('📄 Data file tracked: $filePath');
     } catch (e) {
-      debugPrint('❌ Error tracking data file: $e');
+      if (kDebugMode) debugPrint('❌ Error tracking data file: $e');
     }
   }
 
@@ -196,7 +196,7 @@ class PrivacyControlService {
       logs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return logs.take(limit).toList();
     } catch (e) {
-      debugPrint('❌ Error getting access logs: $e');
+      if (kDebugMode) debugPrint('❌ Error getting access logs: $e');
       return [];
     }
   }
@@ -222,7 +222,7 @@ class PrivacyControlService {
         privacyPolicyVersion: getPrivacyPolicyVersion(),
       );
     } catch (e) {
-      debugPrint('❌ Error generating compliance report: $e');
+      if (kDebugMode) debugPrint('❌ Error generating compliance report: $e');
       return PrivacyComplianceReport(
         timestamp: DateTime.now(),
         gdprCompliant: false,

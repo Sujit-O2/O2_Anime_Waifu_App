@@ -50,6 +50,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
     final prefs = await SharedPreferences.getInstance();
     final lastBonusDate = prefs.getString('last_daily_bonus_date_v1') ?? '';
     final today = _todayStr();
+    if (!mounted) return;
     setState(() => _bonusAvailable = lastBonusDate != today);
   }
 
@@ -133,7 +134,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
               boxShadow: [BoxShadow(color: srv.levelColor.withValues(alpha: 0.2), blurRadius: 20)],
             ),
             child: Row(children: [
-              Text('💖', style: const TextStyle(fontSize: 40)),
+              const Text('💖', style: TextStyle(fontSize: 40)),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -157,7 +158,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
               ),
               const SizedBox(width: 12),
               Column(children: [
-                Text('🔥', style: const TextStyle(fontSize: 24)),
+                const Text('🔥', style: TextStyle(fontSize: 24)),
                 Text('${srv.streakDays}d',
                     style: GoogleFonts.outfit(
                         color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
@@ -329,7 +330,7 @@ class _TierCard extends StatelessWidget {
         if (isUnlocked)
           Icon(Icons.check_circle_rounded, color: tier.color, size: 20)
         else
-          Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 18),
+          const Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 18),
       ]),
     );
   }

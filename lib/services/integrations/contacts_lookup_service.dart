@@ -1,5 +1,5 @@
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 class ContactsLookupService {
   /// Searches device contacts by name (case-insensitive) and returns the best
@@ -56,8 +56,8 @@ class ContactsLookupService {
 
       return parts.join('\n');
     } catch (e) {
-      debugPrint('ContactsLookup error: $e');
-      return "Something went wrong looking up contacts, sorry!";
+      if (kDebugMode) debugPrint('ContactsLookup error: $e');
+      return 'Something went wrong looking up contacts, sorry!';
     }
   }
 
@@ -104,7 +104,7 @@ class ContactsLookupService {
       final phone = ranked.first.phones.firstOrNull?.number;
       return phone?.replaceAll(RegExp(r'\s'), ''); // strip spaces
     } catch (e) {
-      debugPrint('ContactsLookup resolvePhone error: $e');
+      if (kDebugMode) debugPrint('ContactsLookup resolvePhone error: $e');
       return null;
     }
   }

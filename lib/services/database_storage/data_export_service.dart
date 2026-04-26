@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Service for exporting user data (GDPR Article 20)
 /// Implements right to data portability
@@ -16,7 +16,7 @@ class DataExportService {
   /// Returns high-level data structure with all personal information
   Future<String> exportAllUserData(String uid) async {
     try {
-      debugPrint('[DataExport] Starting export for uid: $uid');
+      if (kDebugMode) debugPrint('[DataExport] Starting export for uid: $uid');
 
       final export = <String, dynamic>{
         'header': {
@@ -53,7 +53,7 @@ class DataExportService {
             export['data'][collection] = snap.data();
           }
         } catch (e) {
-          debugPrint('[DataExport] Error exporting $collection: $e');
+          if (kDebugMode) debugPrint('[DataExport] Error exporting $collection: $e');
         }
       }
 
@@ -64,14 +64,14 @@ class DataExportService {
           export['data']['user_profile'] = userSnap.data();
         }
       } catch (e) {
-        debugPrint('[DataExport] Error exporting user profile: $e');
+        if (kDebugMode) debugPrint('[DataExport] Error exporting user profile: $e');
       }
 
       final jsonString = jsonEncode(export);
-      debugPrint('[DataExport] Exported ${jsonString.length} bytes for uid: $uid');
+      if (kDebugMode) debugPrint('[DataExport] Exported ${jsonString.length} bytes for uid: $uid');
       return jsonString;
     } catch (e) {
-      debugPrint('[DataExport] Error in exportAllUserData: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error in exportAllUserData: $e');
       return '{"error": "$e"}';
     }
   }
@@ -82,7 +82,7 @@ class DataExportService {
     required String category, // 'chats', 'profile', 'relationships', etc
   }) async {
     try {
-      debugPrint('[DataExport] Exporting category: $category for uid: $uid');
+      if (kDebugMode) debugPrint('[DataExport] Exporting category: $category for uid: $uid');
 
       final export = <String, dynamic>{
         'category': category,
@@ -133,7 +133,7 @@ class DataExportService {
 
       return jsonEncode(export);
     } catch (e) {
-      debugPrint('[DataExport] Error exporting category: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error exporting category: $e');
       return '{"error": "$e"}';
     }
   }
@@ -183,14 +183,14 @@ class DataExportService {
             summary['categories'][collection] = {'available': false};
           }
         } catch (e) {
-          debugPrint('[DataExport] Error checking $collection: $e');
+          if (kDebugMode) debugPrint('[DataExport] Error checking $collection: $e');
           summary['categories'][collection] = {'available': false, 'error': e.toString()};
         }
       }
 
       return summary;
     } catch (e) {
-      debugPrint('[DataExport] Error in getExportSummary: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error in getExportSummary: $e');
       return {};
     }
   }
@@ -234,7 +234,7 @@ class DataExportService {
 
       return csvLines.join('\n');
     } catch (e) {
-      debugPrint('[DataExport] Error exporting as CSV: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error exporting as CSV: $e');
       return '';
     }
   }
@@ -249,7 +249,7 @@ class DataExportService {
         'ip': 'mobile_app',
       });
     } catch (e) {
-      debugPrint('[DataExport] Error logging export: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error logging export: $e');
     }
   }
 
@@ -265,7 +265,7 @@ class DataExportService {
       final hasData = data.isNotEmpty;
       return hasData;
     } catch (e) {
-      debugPrint('[DataExport] Error validating export: $e');
+      if (kDebugMode) debugPrint('[DataExport] Error validating export: $e');
       return false;
     }
   }

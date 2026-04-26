@@ -69,6 +69,7 @@ class _SleepModePageState extends State<SleepModePage> {
     );
     if (picked != null) {
       HapticFeedback.selectionClick();
+      if (!mounted) return;
       setState(() {
         if (isSleep) {
           _sleepTime = picked;
@@ -184,6 +185,7 @@ class _SleepModePageState extends State<SleepModePage> {
               value: _sleepModeEnabled,
               onChanged: (v) async {
                 HapticFeedback.selectionClick();
+                if (!mounted) return;
                 setState(() => _sleepModeEnabled = v);
                 await _save();
               },
@@ -218,6 +220,7 @@ class _SleepModePageState extends State<SleepModePage> {
               value: _sendGoodnight,
               onChanged: (v) async {
                 HapticFeedback.selectionClick();
+                if (!mounted) return;
                 setState(() => _sendGoodnight = v);
                 await _save();
               },
@@ -236,6 +239,7 @@ class _SleepModePageState extends State<SleepModePage> {
               value: _sendGoodmorning,
               onChanged: (v) async {
                 HapticFeedback.selectionClick();
+                if (!mounted) return;
                 setState(() => _sendGoodmorning = v);
                 await _save();
               },

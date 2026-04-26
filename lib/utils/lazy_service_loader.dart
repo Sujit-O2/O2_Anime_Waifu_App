@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Lazy-loads services in background to not block UI thread
 class LazyServiceLoader {
@@ -19,7 +19,7 @@ class LazyServiceLoader {
         await loader();
         _initialized.add(name);
       } catch (e) {
-        debugPrint('❌ Failed to load service $name: $e');
+        if (kDebugMode) debugPrint('❌ Failed to load service $name: $e');
       }
     }
   }
@@ -38,7 +38,7 @@ class LazyServiceLoader {
           .map((s) => init(s)),
       eagerError: false,
     ).then((_) {
-      debugPrint('✅ All services loaded');
+      if (kDebugMode) debugPrint('✅ All services loaded');
     });
   }
 }

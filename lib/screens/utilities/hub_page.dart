@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 // --- Models ------------------------------------------------------------------
 
@@ -118,12 +119,13 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final filtered = _filteredGroups;
     final isSearching = _searchQuery.isNotEmpty;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: V2Theme.surfaceDark,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: WaifuBackground(
         opacity: 0.12,
-        tint: V2Theme.surfaceDark,
+        tint: theme.scaffoldBackgroundColor,
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -151,6 +153,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Row(
@@ -161,12 +165,15 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: tokens.panelMuted,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(color: tokens.outlineStrong),
               ),
-              child: const Icon(Icons.arrow_back_ios_new,
-                  color: Colors.white60, size: 16),
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                color: tokens.textMuted,
+                size: 16,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -176,7 +183,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
             child: Text(
               widget.hubTitle,
               style: GoogleFonts.outfit(
-                color: Colors.white,
+                color: theme.colorScheme.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.5,
@@ -188,7 +195,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               color: widget.hubColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: widget.hubColor.withValues(alpha: 0.4)),
+              border:
+                  Border.all(color: widget.hubColor.withValues(alpha: 0.34)),
             ),
             child: Text(
               '$_totalFeatures Features',
@@ -205,54 +213,61 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   }
 
   Widget _buildSearchBar() {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Container(
-        height: 44,
+        height: 48,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.08),
-              Colors.white.withValues(alpha: 0.03),
-            ],
-          ),
+          gradient: tokens.glassGradient,
+          color: tokens.panel,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _searchQuery.isNotEmpty
                 ? widget.hubColor.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.12),
+                : tokens.outline,
             width: _searchQuery.isNotEmpty ? 1.2 : 1.0,
           ),
           boxShadow: _searchQuery.isNotEmpty
               ? [
                   BoxShadow(
-                    color: widget.hubColor.withValues(alpha: 0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 2),
+                    color: widget.hubColor.withValues(alpha: 0.12),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                    spreadRadius: -8,
                   ),
                 ]
-              : null,
+              : [
+                  BoxShadow(
+                    color: tokens.shadowColor,
+                    blurRadius: 20,
+                    offset: const Offset(0, 12),
+                    spreadRadius: -14,
+                  ),
+                ],
         ),
         child: Row(
           children: [
             const SizedBox(width: 12),
             Icon(Icons.search_rounded,
                 color:
-                    _searchQuery.isNotEmpty ? widget.hubColor : Colors.white38,
+                    _searchQuery.isNotEmpty ? widget.hubColor : tokens.textSoft,
                 size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: _searchCtrl,
-                style: GoogleFonts.outfit(color: Colors.white, fontSize: 14),
+                style: GoogleFonts.outfit(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 14,
+                ),
                 cursorColor: widget.hubColor,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search features...',
                   hintStyle:
-                      GoogleFonts.outfit(color: Colors.white30, fontSize: 13),
+                      GoogleFonts.outfit(color: tokens.textSoft, fontSize: 13),
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -264,8 +279,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                   _searchCtrl.clear();
                   setState(() => _searchQuery = '');
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Icon(Icons.close_rounded,
                       color: Colors.white38, size: 16),
                 ),
@@ -277,20 +292,21 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   }
 
   Widget _buildStats(List<HubGroup> filtered, bool isSearching) {
+    final tokens = context.appTokens;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
       child: Row(
         children: [
           Icon(
               isSearching ? Icons.filter_list_rounded : Icons.touch_app_rounded,
-              color: Colors.white24,
+              color: tokens.textSoft,
               size: 13),
           const SizedBox(width: 6),
           Text(
             isSearching
                 ? '${filtered.fold<int>(0, (s, g) => s + g.features.length)} results for "$_searchQuery"'
-                : 'Tap a group to expand ? ${widget.groups.length} groups',
-            style: GoogleFonts.outfit(color: Colors.white30, fontSize: 11),
+                : 'Tap a group to expand · ${widget.groups.length} groups',
+            style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11),
           ),
         ],
       ),
@@ -298,6 +314,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   }
 
   Widget _buildEmpty() {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -305,10 +323,11 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
           const Text('??', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           Text('No features found',
-              style: GoogleFonts.outfit(color: Colors.white38, fontSize: 16)),
+              style: GoogleFonts.outfit(
+                  color: theme.colorScheme.onSurface, fontSize: 16)),
           const SizedBox(height: 4),
           Text('Try a different search term',
-              style: GoogleFonts.outfit(color: Colors.white24, fontSize: 12)),
+              style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 12)),
           const SizedBox(height: 24),
         ],
       ),
@@ -317,6 +336,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
 
   Widget _buildGroupCard(int index, HubGroup group, bool isSearching) {
     final isOpen = isSearching || _openGroupIndex == index;
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 280),
@@ -334,15 +355,13 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               )
             : LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.04),
-                  Colors.white.withValues(alpha: 0.01),
+                  tokens.panel.withValues(alpha: 0.92),
+                  tokens.panelMuted.withValues(alpha: 0.78),
                 ],
               ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isOpen
-              ? group.accent.withValues(alpha: 0.5)
-              : Colors.white.withValues(alpha: 0.08),
+          color: isOpen ? group.accent.withValues(alpha: 0.5) : tokens.outline,
           width: isOpen ? 1.4 : 1.0,
         ),
         boxShadow: isOpen
@@ -359,9 +378,10 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               ]
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  color: tokens.shadowColor,
+                  blurRadius: 16,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -12,
                 ),
               ],
       ),
@@ -411,7 +431,10 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                       children: [
                         Text(group.title,
                             style: GoogleFonts.outfit(
-                              color: isOpen ? Colors.white : Colors.white70,
+                              color: isOpen
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.84),
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
                             )),
@@ -420,7 +443,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                           style: GoogleFonts.outfit(
                             color: isOpen
                                 ? group.accent.withValues(alpha: 0.8)
-                                : Colors.white38,
+                                : tokens.textSoft,
                             fontSize: 11,
                           ),
                         ),
@@ -432,7 +455,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
                       turns: isOpen ? 0.5 : 0,
                       duration: const Duration(milliseconds: 250),
                       child: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: isOpen ? group.accent : Colors.white24,
+                          color: isOpen ? group.accent : tokens.textSoft,
                           size: 22),
                     ),
                 ],
@@ -468,6 +491,8 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
   }
 
   Widget _buildFeatureTile(HubFeature feature) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -508,7 +533,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
             Expanded(
               child: Text(feature.label,
                   style: GoogleFonts.outfit(
-                    color: Colors.white70,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.84),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   )),
@@ -543,7 +568,11 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
               ),
               const SizedBox(width: 6),
             ],
-            Icon(Icons.chevron_right_rounded, color: Colors.white12, size: 16),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: tokens.textSoft.withValues(alpha: 0.6),
+              size: 16,
+            ),
           ],
         ),
       ),

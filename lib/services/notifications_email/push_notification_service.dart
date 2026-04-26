@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Push notification service: FCM, affection milestones, reminders
 class PushNotificationService {
@@ -16,9 +16,9 @@ class PushNotificationService {
   Future<void> initializeLocalNotifications() async {
     try {
       // Initialize local notifications - simplified for now
-      debugPrint('Local notifications initialized');
+      if (kDebugMode) debugPrint('Local notifications initialized');
     } catch (e) {
-      debugPrint('Error initializing notifications: $e');
+      if (kDebugMode) debugPrint('Error initializing notifications: $e');
     }
   }
 
@@ -31,9 +31,9 @@ class PushNotificationService {
     String? payload,
   }) async {
     try {
-      debugPrint('Notification: $title - $body');
+      if (kDebugMode) debugPrint('Notification: $title - $body');
     } catch (e) {
-      debugPrint('Error showing notification: $e');
+      if (kDebugMode) debugPrint('Error showing notification: $e');
     }
   }
 
@@ -71,7 +71,7 @@ class PushNotificationService {
         'read': false,
       });
     } catch (e) {
-      debugPrint('Error sending proactive message: $e');
+      if (kDebugMode) debugPrint('Error sending proactive message: $e');
     }
   }
 
@@ -128,7 +128,7 @@ class PushNotificationService {
         }
       }
     } catch (e) {
-      debugPrint('Error checking affection milestones: $e');
+      if (kDebugMode) debugPrint('Error checking affection milestones: $e');
     }
   }
 
@@ -162,7 +162,7 @@ class PushNotificationService {
         body: 'Daily reminder set for $hourOfDay:${minute.toString().padLeft(2, '0')}',
       );
     } catch (e) {
-      debugPrint('Error scheduling reminder: $e');
+      if (kDebugMode) debugPrint('Error scheduling reminder: $e');
     }
   }
 
@@ -181,7 +181,7 @@ class PushNotificationService {
         body: 'You won\'t receive daily reminders anymore',
       );
     } catch (e) {
-      debugPrint('Error disabling reminders: $e');
+      if (kDebugMode) debugPrint('Error disabling reminders: $e');
     }
   }
 
@@ -194,7 +194,7 @@ class PushNotificationService {
           .get();
       return doc.data();
     } catch (e) {
-      debugPrint('Error getting reminder settings: $e');
+      if (kDebugMode) debugPrint('Error getting reminder settings: $e');
       return null;
     }
   }
@@ -216,7 +216,7 @@ class PushNotificationService {
 
       return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      debugPrint('Error fetching notifications: $e');
+      if (kDebugMode) debugPrint('Error fetching notifications: $e');
       return [];
     }
   }
@@ -229,7 +229,7 @@ class PushNotificationService {
           .doc(notificationId)
           .update({'read': true});
     } catch (e) {
-      debugPrint('Error marking notification as read: $e');
+      if (kDebugMode) debugPrint('Error marking notification as read: $e');
     }
   }
 
@@ -245,7 +245,7 @@ class PushNotificationService {
 
       return snapshot.count ?? 0;
     } catch (e) {
-      debugPrint('Error getting unread count: $e');
+      if (kDebugMode) debugPrint('Error getting unread count: $e');
       return 0;
     }
   }
@@ -272,7 +272,7 @@ class PushNotificationService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating preferences: $e');
+      if (kDebugMode) debugPrint('Error updating preferences: $e');
     }
   }
 
@@ -287,7 +287,7 @@ class PushNotificationService {
           .get();
       return doc.data();
     } catch (e) {
-      debugPrint('Error getting preferences: $e');
+      if (kDebugMode) debugPrint('Error getting preferences: $e');
       return null;
     }
   }

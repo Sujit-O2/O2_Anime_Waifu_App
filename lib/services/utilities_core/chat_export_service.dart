@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -39,7 +39,7 @@ class ChatExportService {
         text: 'My chat history with Zero Two 💕',
       );
     } catch (e) {
-      debugPrint('Export error: $e');
+      if (kDebugMode) debugPrint('Export error: $e');
     }
   }
 }

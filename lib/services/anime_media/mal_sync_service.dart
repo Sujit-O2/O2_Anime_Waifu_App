@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// MyAnimeList Sync using Jikan API.
 /// Requires NO API Key or OAuth login — just a username!
@@ -76,7 +76,7 @@ class MalSyncService {
         );
       }).toList();
     } catch (e) {
-      debugPrint('MAL list fetch failed: $e');
+      if (kDebugMode) debugPrint('MAL list fetch failed: $e');
       return [];
     }
   }

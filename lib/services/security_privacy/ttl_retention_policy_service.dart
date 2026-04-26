@@ -1,6 +1,6 @@
 import 'package:anime_waifu/core/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// TTL Retention Policy Service
 /// Manages automatic deletion of old data based on TTL policies
@@ -31,7 +31,7 @@ class TTLRetentionPolicyService {
   /// Set the TTL field for Firestore automatic deletion
   Future<void> initializeTTLPolicies() async {
     try {
-      debugPrint('📋 Initializing TTL Retention Policies...');
+      if (kDebugMode) debugPrint('📋 Initializing TTL Retention Policies...');
 
       // For each collection with TTL policy, ensure TTL field exists
       for (final entry in _ttlPolicies.entries) {
@@ -43,16 +43,16 @@ class TTLRetentionPolicyService {
               await _firestore.collection(collection).limit(1).get();
 
           if (snapshot.docs.isNotEmpty) {
-            debugPrint('✅ TTL policy enabled for $collection (${entry.value.inDays} days)');
+            if (kDebugMode) debugPrint('✅ TTL policy enabled for $collection (${entry.value.inDays} days)');
           }
         } catch (e) {
-          debugPrint('⚠️ Could not verify collection $collection: $e');
+          if (kDebugMode) debugPrint('⚠️ Could not verify collection $collection: $e');
         }
       }
 
-      debugPrint('✅ TTL Retention Policies initialized');
+      if (kDebugMode) debugPrint('✅ TTL Retention Policies initialized');
     } catch (e) {
-      debugPrint('❌ Error initializing TTL policies: $e');
+      if (kDebugMode) debugPrint('❌ Error initializing TTL policies: $e');
     }
   }
 
@@ -67,7 +67,7 @@ class TTLRetentionPolicyService {
       final ttl = customTTL ?? _ttlPolicies[collection];
 
       if (ttl == null) {
-        debugPrint('⚠️ No TTL policy found for collection: $collection');
+        if (kDebugMode) debugPrint('⚠️ No TTL policy found for collection: $collection');
         return;
       }
 
@@ -85,11 +85,13 @@ class TTLRetentionPolicyService {
             SetOptions(merge: true),
           );
 
-      debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         '✅ TTL set for $collection/$documentId (expires in ${ttl.inDays} days)',
       );
+      }
     } catch (e) {
-      debugPrint('❌ Error adding TTL to document: $e');
+      if (kDebugMode) debugPrint('❌ Error adding TTL to document: $e');
     }
   }
 
@@ -99,7 +101,7 @@ class TTLRetentionPolicyService {
       final ttl = _ttlPolicies[collection];
 
       if (ttl == null) {
-        debugPrint('⚠️ No TTL policy found for collection: $collection');
+        if (kDebugMode) debugPrint('⚠️ No TTL policy found for collection: $collection');
         return;
       }
 
@@ -112,7 +114,7 @@ class TTLRetentionPolicyService {
           .get();
 
       if (snapshot.docs.isEmpty) {
-        debugPrint('✅ No expired documents found in $collection');
+        if (kDebugMode) debugPrint('✅ No expired documents found in $collection');
         return;
       }
 
@@ -124,31 +126,33 @@ class TTLRetentionPolicyService {
 
       await batch.commit();
 
-      debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         '✅ Deleted ${snapshot.docs.length} expired documents from $collection',
       );
+      }
 
       // Recursively cleanup more if needed
       if (snapshot.docs.length == 100) {
         await manualCleanup(collection);
       }
     } catch (e) {
-      debugPrint('❌ Error performing manual cleanup: $e');
+      if (kDebugMode) debugPrint('❌ Error performing manual cleanup: $e');
     }
   }
 
   /// Cleanup all expired data
   Future<void> cleanupAllExpiredData() async {
     try {
-      debugPrint('🧹 Starting comprehensive cleanup of expired data...');
+      if (kDebugMode) debugPrint('🧹 Starting comprehensive cleanup of expired data...');
 
       for (final collection in _ttlPolicies.keys) {
         await manualCleanup(collection);
       }
 
-      debugPrint('✅ Comprehensive cleanup completed');
+      if (kDebugMode) debugPrint('✅ Comprehensive cleanup completed');
     } catch (e) {
-      debugPrint('❌ Error during comprehensive cleanup: $e');
+      if (kDebugMode) debugPrint('❌ Error during comprehensive cleanup: $e');
     }
   }
 
@@ -160,13 +164,13 @@ class TTLRetentionPolicyService {
   /// Update TTL policy
   void updateTTLPolicy(String collection, Duration ttl) {
     _ttlPolicies[collection] = ttl;
-    debugPrint('📋 Updated TTL policy for $collection: ${ttl.inDays} days');
+    if (kDebugMode) debugPrint('📋 Updated TTL policy for $collection: ${ttl.inDays} days');
   }
 
   /// Add custom TTL policy
   void addCustomTTLPolicy(String collection, Duration ttl) {
     _ttlPolicies[collection] = ttl;
-    debugPrint('📋 Added custom TTL policy for $collection: ${ttl.inDays} days');
+    if (kDebugMode) debugPrint('📋 Added custom TTL policy for $collection: ${ttl.inDays} days');
   }
 
   /// Get all TTL policies
@@ -178,11 +182,11 @@ class TTLRetentionPolicyService {
   /// Call this periodically (e.g., daily) to maintain data hygiene
   Future<void> scheduledCleanup() async {
     try {
-      debugPrint('📋 Running scheduled cleanup...');
+      if (kDebugMode) debugPrint('📋 Running scheduled cleanup...');
       await cleanupAllExpiredData();
-      debugPrint('✅ Scheduled cleanup completed');
+      if (kDebugMode) debugPrint('✅ Scheduled cleanup completed');
     } catch (e) {
-      debugPrint('❌ Error in scheduled cleanup: $e');
+      if (kDebugMode) debugPrint('❌ Error in scheduled cleanup: $e');
     }
   }
 
@@ -192,7 +196,7 @@ class TTLRetentionPolicyService {
       final snapshot = await _firestore.collection(collection).count().get();
       return snapshot.count ?? 0;
     } catch (e) {
-      debugPrint('❌ Error getting collection count: $e');
+      if (kDebugMode) debugPrint('❌ Error getting collection count: $e');
       return 0;
     }
   }
@@ -210,7 +214,7 @@ class TTLRetentionPolicyService {
         };
       }
     } catch (e) {
-      debugPrint('❌ Error getting retention stats: $e');
+      if (kDebugMode) debugPrint('❌ Error getting retention stats: $e');
     }
 
     return stats;

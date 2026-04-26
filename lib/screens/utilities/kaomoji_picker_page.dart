@@ -117,6 +117,7 @@ class _KaomojiPickerPageState extends State<KaomojiPickerPage>
     if (!mounted) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _favorites = prefs.getStringList(_favoritesKey)?.toSet() ?? <String>{};
       _recent = prefs.getStringList(_recentKey) ?? <String>[];
