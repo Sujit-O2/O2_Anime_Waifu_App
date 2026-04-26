@@ -57,7 +57,7 @@ class _PremiumSettingsPageState extends State<PremiumSettingsPage> {
             ),
 
             // ── Voice & Audio ──────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(
                 title: 'Voice & Audio',
                 subtitle: 'Configure speech and sound settings',
@@ -154,7 +154,7 @@ class _PremiumSettingsPageState extends State<PremiumSettingsPage> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             // ── Chat Settings ──────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(
                 title: 'Chat Settings',
                 subtitle: 'Customize your conversation experience',
@@ -206,7 +206,7 @@ class _PremiumSettingsPageState extends State<PremiumSettingsPage> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             // ── Notifications ──────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(
                 title: 'Notifications',
                 subtitle: 'Manage alerts and reminders',
@@ -251,7 +251,7 @@ class _PremiumSettingsPageState extends State<PremiumSettingsPage> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             // ── Advanced ───────────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SectionHeader(
                 title: 'Advanced',
                 subtitle: 'Developer and debug options',

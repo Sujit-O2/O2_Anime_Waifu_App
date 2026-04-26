@@ -13,7 +13,7 @@ class ARLiveCompanionService {
   static final ARLiveCompanionService instance = ARLiveCompanionService._();
 
   CompanionState _state = CompanionState.idle;
-  CompanionPosition _position = CompanionPosition(x: 0, y: 0, z: 1.5);
+  CompanionPosition _position = const CompanionPosition(x: 0, y: 0, z: 1.5);
   CompanionAnimation _currentAnimation = CompanionAnimation.idle;
 
   StreamSubscription<AccelerometerEvent>? _accelSub;
@@ -344,17 +344,17 @@ class ARLiveCompanionService {
       case CompanionState.idle:
         return mood == CompanionMood.lonely
             ? "Darling... you've been ignoring me~ 🥺"
-            : "What should we do next, darling? 💕";
+            : 'What should we do next, darling? 💕';
       case CompanionState.walking:
-        return "Just exploring a bit~ 🚶‍♀️";
+        return 'Just exploring a bit~ 🚶‍♀️';
       case CompanionState.sitting:
         return "I'll just sit here and watch you work, darling~ 💕";
       case CompanionState.waving:
-        return "Hi darling! 👋";
+        return 'Hi darling! 👋';
       case CompanionState.dancing:
-        return "Dance with me! 💃";
+        return 'Dance with me! 💃';
       case CompanionState.jumping:
-        return "Wheee! 🎉";
+        return 'Wheee! 🎉';
       default:
         return "I'm here for you, darling~ 💕";
     }

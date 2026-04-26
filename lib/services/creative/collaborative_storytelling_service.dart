@@ -264,8 +264,7 @@ class CollaborativeStorytellingService {
         break;
     }
 
-    return '📝 Story Suggestions for "${project.title}":\n' +
-        suggestions.map((s) => '• $s').join('\n');
+    return '📝 Story Suggestions for "${project.title}":\n${suggestions.map((s) => '• $s').join('\n')}';
   }
 
   String getWritingPrompts(String genre) {
@@ -315,12 +314,11 @@ class CollaborativeStorytellingService {
         ]);
     }
 
-    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n' +
-        prompts
+    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n${prompts
             .asMap()
             .entries
             .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n');
+            .join('\n')}';
   }
 
   String getStoryInsights() {

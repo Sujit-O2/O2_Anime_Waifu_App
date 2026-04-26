@@ -470,8 +470,7 @@ class LanguageLearningService {
     tips.add('Don\'t be afraid to make mistakes - they\'re part of learning');
     tips.add('Find a language partner or tutor for conversation practice');
 
-    return '💡 Learning Tips for ${language.name}:\n' +
-        tips.map((t) => '• $t').join('\n');
+    return '💡 Learning Tips for ${language.name}:\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getLanguageInsights() {

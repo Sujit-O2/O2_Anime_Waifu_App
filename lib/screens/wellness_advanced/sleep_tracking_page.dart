@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/wellness/sleep_tracking_service.dart';
 
 class SleepTrackingPage extends StatefulWidget {
   const SleepTrackingPage({super.key});
@@ -16,28 +15,28 @@ class _SleepTrackingPageState extends State<SleepTrackingPage> {
         title: const Text('😴 Sleep Tracking'),
         backgroundColor: Colors.indigo.shade900,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16),
         child: Column(
           children: [
             Card(
-              child: const ListTile(
+              child: ListTile(
                 title: Text('Sleep Quality'),
                 subtitle: LinearProgressIndicator(value: 0.85),
                 trailing: Text('85%'),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Card(
-              child: const ListTile(
+              child: ListTile(
                 title: Text('Average Sleep'),
                 subtitle: Text('7.5 hours'),
                 trailing: Icon(Icons.bedtime),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Card(
-              child: const ListTile(
+              child: ListTile(
                 title: Text('Today'),
                 subtitle: Text('7h 30m'),
                 trailing: Text('Good'),

@@ -62,7 +62,7 @@ class SmartHabitTrackerService {
   Future<HabitCompletionResult> completeHabit(String habitId) async {
     final habitIndex = _habits.indexWhere((h) => h.id == habitId);
     if (habitIndex == -1) {
-      return HabitCompletionResult(
+      return const HabitCompletionResult(
         success: false,
         message: 'Habit not found',
         pointsEarned: 0,

@@ -142,21 +142,6 @@ class SmartNotificationBundlingService {
     }
   }
 
-  String _getBundleMessage(
-      NotificationType type, List<PendingNotification> notifications) {
-    if (notifications.length == 1) {
-      return notifications.first.message;
-    }
-
-    final preview = notifications.take(2).map((n) => n.message).join(', ');
-    final remaining = notifications.length - 2;
-
-    if (remaining > 0) {
-      return '$preview, and $remaining more...';
-    }
-
-    return preview;
-  }
 
   /// Get pending notification count
   int getPendingCount() => _pendingNotifications.length;

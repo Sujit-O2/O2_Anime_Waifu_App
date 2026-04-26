@@ -211,7 +211,7 @@ class _SleepTrackingPageState extends State<SleepTrackingPage> {
           ),
           const SizedBox(height: 8),
           if (_isTracking) ...[
-            WaifuCommentary(mood: 'relaxed'),
+            const WaifuCommentary(mood: 'relaxed'),
             const SizedBox(height: 12),
             GlassCard(
               margin: EdgeInsets.zero,
@@ -308,12 +308,12 @@ class _SleepTrackingPageState extends State<SleepTrackingPage> {
                     color: Colors.white.withValues(alpha: 0.03),
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      leading: Icon(Icons.bedtime, color: Colors.pinkAccent),
+                      leading: const Icon(Icons.bedtime, color: Colors.pinkAccent),
                       title: Text('${_formatTimeOfDay(record.startTime)} - ${_formatTimeOfDay(record.endTime)}',
                           style: GoogleFonts.outfit(color: Colors.white)),
                       subtitle: Text('Score: ${record.sleepScore.toStringAsFixed(0)} | ${record.sleepQuality}',
                           style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
-                      trailing: Icon(Icons.chevron_right, color: Colors.white38),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
                     ),
                   );
                 },

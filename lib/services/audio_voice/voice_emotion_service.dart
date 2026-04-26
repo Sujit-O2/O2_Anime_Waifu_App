@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 /// 🎤 Voice Emotion Detection Service
@@ -134,7 +133,7 @@ class VoiceEmotionService {
   /// Estimate speaking tempo (words per minute approximation)
   double _estimateTempo(List<double> samples) {
     // Count energy peaks as syllable approximation
-    final frameSize = 400; // ~25ms at 16kHz
+    const frameSize = 400; // ~25ms at 16kHz
     int peakCount = 0;
     double threshold = 0.02;
 

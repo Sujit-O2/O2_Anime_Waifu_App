@@ -19,11 +19,11 @@ class _SocialFeaturesPageState extends State<SocialFeaturesPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
+            const Card(
               child: ListTile(
-                title: const Text('Social Score'),
-                subtitle: const LinearProgressIndicator(value: 0.75),
-                trailing: const Text('75'),
+                title: Text('Social Score'),
+                subtitle: LinearProgressIndicator(value: 0.75),
+                trailing: Text('75'),
               ),
             ),
             const SizedBox(height: 16),

@@ -379,7 +379,7 @@ class SkeletonLoader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShimmerLoading(
+                    const ShimmerLoading(
                       width: double.infinity,
                       height: 16,
                       borderRadius: 8,

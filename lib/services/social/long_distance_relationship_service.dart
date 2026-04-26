@@ -212,7 +212,7 @@ class LongDistanceRelationshipService {
       '🌟 Stargazing: Look at the night sky "together"',
     ];
 
-    return '💕 Virtual Date Ideas:\n' + ideas.join('\n');
+    return '💕 Virtual Date Ideas:\n${ideas.join('\n')}';
   }
 
   String getLongDistanceTips() {
@@ -234,7 +234,7 @@ class LongDistanceRelationshipService {
       '🤗 Send virtual hugs often',
     ];
 
-    return '💡 Long-Distance Relationship Tips:\n' + tips.join('\n');
+    return '💡 Long-Distance Relationship Tips:\n${tips.join('\n')}';
   }
 
   String getTimezoneHelp(String timezone1, String timezone2) {

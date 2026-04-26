@@ -511,7 +511,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                 color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.menu_book_rounded,
+              child: const Icon(Icons.menu_book_rounded,
                   color: Colors.deepPurpleAccent, size: 20),
             ),
             const SizedBox(width: 12),

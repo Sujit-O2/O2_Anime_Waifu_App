@@ -342,8 +342,7 @@ class ArtDirectionService {
           '👥 Consider color preferences and cultural meanings for $targetAudience');
     }
 
-    return '🎨 Color Suggestions for $mood mood (${type.label}):\n' +
-        suggestions.map((s) => '• $s').join('\n');
+    return '🎨 Color Suggestions for $mood mood (${type.label}):\n${suggestions.map((s) => '• $s').join('\n')}';
   }
 
   String getDesignPrinciples(DesignType type) {
@@ -397,8 +396,7 @@ class ArtDirectionService {
         break;
     }
 
-    return '📐 Design Principles for ${type.label}:\n' +
-        principles.map((p) => '• $p').join('\n');
+    return '📐 Design Principles for ${type.label}:\n${principles.map((p) => '• $p').join('\n')}';
   }
 
   String getArtInsights() {

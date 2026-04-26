@@ -217,7 +217,7 @@ class _StressDetectionPageState extends State<StressDetectionPage> {
           ),
           const SizedBox(height: 8),
           if (_isMonitoring) ...[
-            WaifuCommentary(mood: 'focused'),
+            const WaifuCommentary(mood: 'focused'),
             const SizedBox(height: 12),
             GlassCard(
               margin: EdgeInsets.zero,
@@ -352,7 +352,7 @@ class _StressDetectionPageState extends State<StressDetectionPage> {
                           style: GoogleFonts.outfit(color: Colors.white)),
                       subtitle: Text('${_formatTime(record.timestamp)} | ${record.voiceSamples}v ${record.typingSamples}t',
                           style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
-                      trailing: Icon(Icons.chevron_right, color: Colors.white38),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
                     ),
                   );
                 },

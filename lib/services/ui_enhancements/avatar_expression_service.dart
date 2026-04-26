@@ -65,5 +65,5 @@ enum AvatarExpression {
     }
   }
 
-  String get assetPath => 'assets/avatars/zerotwo_${name}.png';
+  String get assetPath => 'assets/avatars/zerotwo_$name.png';
 }

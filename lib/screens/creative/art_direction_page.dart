@@ -36,12 +36,12 @@ class _ArtDirectionPageState extends State<ArtDirectionPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Style Guide', style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
                     Text('• Color palette suggestions'),

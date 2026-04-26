@@ -30,16 +30,16 @@ class _SmartPhotoMemoryPageState extends State<SmartPhotoMemoryPage> {
           children: [
             Card(
               color: Colors.blue.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Photo memories: 25 photos organized"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Photo memories: 25 photos organized'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Memory insights: Happy moments captured"),
+                padding: EdgeInsets.all(16),
+                child: Text('Memory insights: Happy moments captured'),
               ),
             ),
           ],

@@ -30,16 +30,16 @@ class _GameMasterPageState extends State<GameMasterPage> {
           children: [
             Card(
               color: Colors.brown.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Campaign: Epic Adventure"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Campaign: Epic Adventure'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Quest ideas: Explore the dungeon, Find the artifact..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Quest ideas: Explore the dungeon, Find the artifact...'),
               ),
             ),
           ],

@@ -384,8 +384,7 @@ class BudgetCoachService {
           'You\'re doing well! Keep tracking your expenses to maintain good habits');
     }
 
-    return '💡 Savings Recommendations:\n' +
-        recommendations.map((r) => '• $r').join('\n');
+    return '💡 Savings Recommendations:\n${recommendations.map((r) => '• $r').join('\n')}';
   }
 
   String getSpendingTrends() {

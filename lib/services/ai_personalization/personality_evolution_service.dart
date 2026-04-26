@@ -25,7 +25,7 @@ class PersonalityEvolutionService {
   Future<void> initialize() async {
     await _loadData();
     _initializeTraits();
-    if (kDebugMode) debugPrint('[PersonalityEvolution] Initialized with ${_totalInteractions} interactions');
+    if (kDebugMode) debugPrint('[PersonalityEvolution] Initialized with $_totalInteractions interactions');
   }
 
   void _initializeTraits() {

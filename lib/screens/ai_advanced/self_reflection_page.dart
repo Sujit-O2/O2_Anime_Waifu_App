@@ -19,12 +19,12 @@ class _SelfReflectionPageState extends State<SelfReflectionPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('AI Observations',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18)),

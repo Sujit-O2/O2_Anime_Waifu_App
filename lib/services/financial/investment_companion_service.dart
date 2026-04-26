@@ -179,7 +179,7 @@ class InvestmentCompanionService {
     final portfolioIndex = _portfolios.indexWhere((p) => p.id == portfolioId);
     if (portfolioIndex != -1) {
       final portfolio = _portfolios[portfolioIndex];
-      final newHolding = '${quantity} shares of $symbol';
+      final newHolding = '$quantity shares of $symbol';
       _portfolios[portfolioIndex] = portfolio.copyWith(
         holdings: [...portfolio.holdings, newHolding],
         currentValue: portfolio.currentValue + (quantity * purchasePrice),
@@ -376,8 +376,7 @@ class InvestmentCompanionService {
     recommendations
         .add('Don\'t chase past performance - focus on fundamentals');
 
-    return '💡 Investment Recommendations:\n' +
-        recommendations.map((r) => '• $r').join('\n');
+    return '💡 Investment Recommendations:\n${recommendations.map((r) => '• $r').join('\n')}';
   }
 
   String getPortfolioSummary() {

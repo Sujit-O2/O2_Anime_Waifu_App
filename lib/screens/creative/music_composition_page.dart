@@ -30,16 +30,16 @@ class _MusicCompositionPageState extends State<MusicCompositionPage> {
           children: [
             Card(
               color: Colors.purple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Composition ideas: Try a minor key progression..."),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Composition ideas: Try a minor key progression...'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Theory tips: Use the circle of fifths..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Theory tips: Use the circle of fifths...'),
               ),
             ),
           ],

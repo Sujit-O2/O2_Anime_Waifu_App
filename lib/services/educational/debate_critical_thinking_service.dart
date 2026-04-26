@@ -329,7 +329,7 @@ class DebateCriticalThinkingService {
       '🎯 Focus on what can be known, not just what is believed',
     ];
 
-    return '🧠 Critical Thinking Tips:\n' + tips.map((t) => '• $t').join('\n');
+    return '🧠 Critical Thinking Tips:\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getDebateInsights() {

@@ -86,7 +86,7 @@ class VoiceCloneTrainingService {
     _profiles[profileIndex] = profile;
     await _saveProfiles();
 
-    if (kDebugMode) debugPrint('[VoiceClone] Added sample ${profile.samples.length}/${_maxSamples}');
+    if (kDebugMode) debugPrint('[VoiceClone] Added sample ${profile.samples.length}/$_maxSamples');
     return true;
   }
 

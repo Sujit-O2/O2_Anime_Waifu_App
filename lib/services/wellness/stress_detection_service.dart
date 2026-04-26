@@ -92,7 +92,7 @@ class StressDetectionService {
 
   String getStressInsights() {
     if (_stressHistory.isEmpty) {
-      return "Start monitoring your stress levels to get personalized insights!";
+      return 'Start monitoring your stress levels to get personalized insights!';
     }
 
     final recentReadings = _stressHistory.take(10).toList();
@@ -114,7 +114,7 @@ class StressDetectionService {
   }
 
   String getCopingStrategies() {
-    if (_stressHistory.isEmpty) return "Monitor your stress first to get personalized coping strategies.";
+    if (_stressHistory.isEmpty) return 'Monitor your stress first to get personalized coping strategies.';
     
     final recentStress = _stressHistory.take(3).fold<double>(0, (sum, r) => sum + r.combinedStress) / 3;
     final strategies = <String>[];

@@ -27,11 +27,11 @@ class _EmotionalRecoveryPageState extends State<EmotionalRecoveryPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: ListTile(
-                title: const Text('Recovery Progress'),
-                subtitle: const LinearProgressIndicator(value: 0.6),
-                trailing: const Text('60%'),
+                title: Text('Recovery Progress'),
+                subtitle: LinearProgressIndicator(value: 0.6),
+                trailing: Text('60%'),
               ),
             ),
             const SizedBox(height: 16),

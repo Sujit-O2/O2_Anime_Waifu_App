@@ -474,12 +474,11 @@ class MusicCompositionService {
         break;
     }
 
-    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n' +
-        progressions
+    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n${progressions
             .asMap()
             .entries
             .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n');
+            .join('\n')}';
   }
 
   String getCompositionTips({
@@ -539,8 +538,7 @@ class MusicCompositionService {
         break;
     }
 
-    return '💡 Composition Tips for ${genre.label} ($mood):\n' +
-        tips.map((t) => '• $t').join('\n');
+    return '💡 Composition Tips for ${genre.label} ($mood):\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getMusicInsights() {

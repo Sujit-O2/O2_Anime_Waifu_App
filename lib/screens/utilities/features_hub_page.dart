@@ -1647,7 +1647,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.diamond_rounded,
+                            const Icon(Icons.diamond_rounded,
                                 color: Colors.white, size: 16),
                             const SizedBox(width: 6),
                             Text('$visibleItems',

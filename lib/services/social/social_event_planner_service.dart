@@ -294,7 +294,7 @@ class SocialEventPlannerService {
       buffer.writeln('Upcoming Events (${upcoming.length}):');
       for (final event in upcoming) {
         final daysUntil = event.date.difference(now).inDays;
-        buffer.writeln('• ${event.title} - ${daysUntil} days away');
+        buffer.writeln('• ${event.title} - $daysUntil days away');
 
         if (daysUntil <= 7) {
           final pendingTasks = event.checklist.length;

@@ -411,25 +411,19 @@ class GameSoundsService {
        'affection_decrease',
      ];
       for (final sound in sounds) {
-        bool loaded = false;
         // Try .wav first
         try {
           await _player.play(AssetSource('sounds/$sound.wav'));
           await _player.stop();
-          loaded = true;
         } catch (_) {
           // Try .mp3 fallback
           try {
             await _player.play(AssetSource('sounds/$sound.mp3'));
             await _player.stop();
-            loaded = true;
           } catch (_) {
             // Preload failed for this sound, skip
-}
-
-}
+          }
         }
       }
-
-
+    }
 }

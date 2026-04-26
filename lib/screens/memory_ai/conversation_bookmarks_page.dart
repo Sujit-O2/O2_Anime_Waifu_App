@@ -30,16 +30,16 @@ class _ConversationBookmarksPageState extends State<ConversationBookmarksPage> {
           children: [
             Card(
               color: Colors.amber.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Bookmarked conversations list"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Bookmarked conversations list'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Bookmark summary: 5 important moments"),
+                padding: EdgeInsets.all(16),
+                child: Text('Bookmark summary: 5 important moments'),
               ),
             ),
           ],

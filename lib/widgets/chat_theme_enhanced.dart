@@ -20,7 +20,7 @@ class EnhancedChatTheme {
   }) {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
-    
+
     return GestureDetector(
       onLongPress: onLongPress,
       child: Padding(
@@ -96,7 +96,8 @@ class EnhancedChatTheme {
                               ? Colors.white
                               : theme.colorScheme.onSurface,
                           fontSize: 15,
-                          fontWeight: isUser ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight:
+                              isUser ? FontWeight.w600 : FontWeight.w500,
                           height: 1.5,
                           letterSpacing: 0.2,
                         ),
@@ -158,9 +159,9 @@ class EnhancedChatTheme {
     required Function(String) onTap,
   }) {
     if (replies.isEmpty) return const SizedBox.shrink();
-    
+
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Wrap(
@@ -211,7 +212,7 @@ class EnhancedChatTheme {
   /// Typing Indicator with Smooth Animation
   static Widget typingIndicator(BuildContext context) {
     final tokens = context.appTokens;
-    
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 60, 6),
       child: Container(
@@ -234,11 +235,11 @@ class EnhancedChatTheme {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _TypingDot(isActive: true),
+            const _TypingDot(isActive: true),
             const SizedBox(width: 6),
-            _TypingDot(isActive: false, delay: 150),
+            const _TypingDot(isActive: false, delay: 150),
             const SizedBox(width: 6),
-            _TypingDot(isActive: false, delay: 300),
+            const _TypingDot(isActive: false, delay: 300),
             const SizedBox(width: 12),
             Text(
               'Zero Two is typing...',
@@ -314,7 +315,7 @@ class _TypingDotState extends State<_TypingDot>
         curve: Curves.easeInOut,
       ),
     );
-    
+
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) {
         _controller.repeat(reverse: true);
@@ -330,8 +331,8 @@ class _TypingDotState extends State<_TypingDot>
 
   @override
   Widget build(BuildContext context) {
-    final tokens = Theme.of(context).appTokens;
-    
+    final tokens = context.appTokens;
+
     return ScaleTransition(
       scale: _scaleAnim,
       child: Container(
