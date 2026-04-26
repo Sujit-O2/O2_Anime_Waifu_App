@@ -299,54 +299,62 @@ class _MoodGradientBackgroundState extends State<MoodGradientBackground>
 
   static List<Color> _colorsForMood(String label) {
     final l = label.toLowerCase();
-    if (l.contains('happy'))
+    if (l.contains('happy')) {
       return [
         const Color(0xFF1A0A1E),
         const Color(0xFF2D0A24),
         const Color(0xFF1A0A1E)
       ];
-    if (l.contains('playful'))
+    }
+    if (l.contains('playful')) {
       return [
         const Color(0xFF1A0D00),
         const Color(0xFF2A1500),
         const Color(0xFF0D0A00)
       ];
-    if (l.contains('clingy'))
+    }
+    if (l.contains('clingy')) {
       return [
         const Color(0xFF1E0015),
         const Color(0xFF3A0030),
         const Color(0xFF1A0015)
       ];
-    if (l.contains('jealous'))
+    }
+    if (l.contains('jealous')) {
       return [
         const Color(0xFF1A0800),
         const Color(0xFF2A1000),
         const Color(0xFF150600)
       ];
-    if (l.contains('cold'))
+    }
+    if (l.contains('cold')) {
       return [
         const Color(0xFF001629),
         const Color(0xFF00203D),
         const Color(0xFF001020)
       ];
-    if (l.contains('guarded'))
+    }
+    if (l.contains('guarded')) {
       return [
         const Color(0xFF120020),
         const Color(0xFF1E0035),
         const Color(0xFF0E0018)
       ];
-    if (l.contains('sad'))
+    }
+    if (l.contains('sad')) {
       return [
         const Color(0xFF080E1A),
         const Color(0xFF0F1628),
         const Color(0xFF060A14)
       ];
-    if (l.contains('sleepy'))
+    }
+    if (l.contains('sleepy')) {
       return [
         const Color(0xFF050810),
         const Color(0xFF0A0E1B),
         const Color(0xFF040609)
       ];
+    }
     return [
       const Color(0xFF0D0D19),
       const Color(0xFF16161E),
