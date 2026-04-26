@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/ai_personalization/emotional_memory_service.dart';
 
 class EmotionalMemoryPage extends StatefulWidget {
   const EmotionalMemoryPage({super.key});
@@ -9,8 +8,6 @@ class EmotionalMemoryPage extends StatefulWidget {
 }
 
 class _EmotionalMemoryPageState extends State<EmotionalMemoryPage> {
-  final _service = EmotionalMemoryService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,13 +27,15 @@ class _EmotionalMemoryPageState extends State<EmotionalMemoryPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ...List.generate(5, (i) => Card(
-              child: ListTile(
-                title: Text('Memory ${i + 1}'),
-                subtitle: const Text('Emotional moment recorded'),
-                trailing: const Text('Today'),
-              ),
-            )),
+            ...List.generate(
+                5,
+                (i) => Card(
+                      child: ListTile(
+                        title: Text('Memory ${i + 1}'),
+                        subtitle: const Text('Emotional moment recorded'),
+                        trailing: const Text('Today'),
+                      ),
+                    )),
           ],
         ),
       ),

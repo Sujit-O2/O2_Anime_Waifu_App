@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../services/ai_personalization/personality_evolution_service.dart';
 
 class PersonalityEvolutionPage extends StatefulWidget {
   const PersonalityEvolutionPage({super.key});
 
   @override
-  State<PersonalityEvolutionPage> createState() => _PersonalityEvolutionPageState();
+  State<PersonalityEvolutionPage> createState() =>
+      _PersonalityEvolutionPageState();
 }
 
 class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
-  final _service = PersonalityEvolutionService.instance;
-
   final Map<String, double> _traits = {
     'Affection': 75.0,
     'Playfulness': 60.0,
@@ -38,12 +36,12 @@ class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
             ),
             const SizedBox(height: 16),
             ..._traits.entries.map((trait) => Card(
-              child: ListTile(
-                title: Text(trait.key),
-                subtitle: LinearProgressIndicator(value: trait.value / 100),
-                trailing: Text('${trait.value.toInt()}'),
-              ),
-            )),
+                  child: ListTile(
+                    title: Text(trait.key),
+                    subtitle: LinearProgressIndicator(value: trait.value / 100),
+                    trailing: Text('${trait.value.toInt()}'),
+                  ),
+                )),
           ],
         ),
       ),

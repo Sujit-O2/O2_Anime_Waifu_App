@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/audio_voice/voice_emotion_service.dart';
 
 class VoiceEmotionPage extends StatefulWidget {
   const VoiceEmotionPage({super.key});
@@ -9,8 +8,6 @@ class VoiceEmotionPage extends StatefulWidget {
 }
 
 class _VoiceEmotionPageState extends State<VoiceEmotionPage> {
-  final _service = VoiceEmotionService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +41,8 @@ class _VoiceEmotionPageState extends State<VoiceEmotionPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text('Voice Metrics', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Voice Metrics',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
                     Text('Pitch: 220.0 Hz'),
                     Text('Tempo: 120.0 BPM'),

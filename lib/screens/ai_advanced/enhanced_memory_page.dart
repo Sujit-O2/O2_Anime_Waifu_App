@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/memory_context/enhanced_memory_service.dart';
 
 class EnhancedMemoryPage extends StatefulWidget {
   const EnhancedMemoryPage({super.key});
@@ -9,8 +8,6 @@ class EnhancedMemoryPage extends StatefulWidget {
 }
 
 class _EnhancedMemoryPageState extends State<EnhancedMemoryPage> {
-  final _service = EnhancedMemoryService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,13 +35,15 @@ class _EnhancedMemoryPageState extends State<EnhancedMemoryPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ...List.generate(5, (i) => Card(
-              child: ListTile(
-                title: Text('Memory ${i + 1}'),
-                subtitle: const Text('Important conversation'),
-                trailing: Text('${90 - i * 5}'),
-              ),
-            )),
+            ...List.generate(
+                5,
+                (i) => Card(
+                      child: ListTile(
+                        title: Text('Memory ${i + 1}'),
+                        subtitle: const Text('Important conversation'),
+                        trailing: Text('${90 - i * 5}'),
+                      ),
+                    )),
           ],
         ),
       ),

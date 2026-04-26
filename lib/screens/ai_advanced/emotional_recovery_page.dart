@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/ai_personalization/emotional_recovery_service.dart';
 
 class EmotionalRecoveryPage extends StatefulWidget {
   const EmotionalRecoveryPage({super.key});
@@ -9,8 +8,6 @@ class EmotionalRecoveryPage extends StatefulWidget {
 }
 
 class _EmotionalRecoveryPageState extends State<EmotionalRecoveryPage> {
-  final _service = EmotionalRecoveryService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,12 +41,17 @@ class _EmotionalRecoveryPageState extends State<EmotionalRecoveryPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Recovery Tips', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Recovery Tips',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    ...['Take deep breaths', 'Practice mindfulness', 'Stay positive'].map((tip) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text('• $tip'),
-                    )),
+                    ...[
+                      'Take deep breaths',
+                      'Practice mindfulness',
+                      'Stay positive'
+                    ].map((tip) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text('• $tip'),
+                        )),
                   ],
                 ),
               ),

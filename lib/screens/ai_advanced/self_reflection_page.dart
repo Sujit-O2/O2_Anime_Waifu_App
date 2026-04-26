@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/ai_personalization/self_reflection_service.dart';
 
 class SelfReflectionPage extends StatefulWidget {
   const SelfReflectionPage({super.key});
@@ -9,8 +8,6 @@ class SelfReflectionPage extends StatefulWidget {
 }
 
 class _SelfReflectionPageState extends State<SelfReflectionPage> {
-  final _service = SelfReflectionService.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,21 +25,26 @@ class _SelfReflectionPageState extends State<SelfReflectionPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text('AI Observations', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text('AI Observations',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
                     SizedBox(height: 8),
-                    Text('You tend to chat more in the evenings. Your conversations are thoughtful and engaging.'),
+                    Text(
+                        'You tend to chat more in the evenings. Your conversations are thoughtful and engaging.'),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            ...List.generate(5, (i) => Card(
-              child: ListTile(
-                title: Text('Reflection ${i + 1}'),
-                subtitle: const Text('Insightful observation'),
-                trailing: const Text('Today'),
-              ),
-            )),
+            ...List.generate(
+                5,
+                (i) => Card(
+                      child: ListTile(
+                        title: Text('Reflection ${i + 1}'),
+                        subtitle: const Text('Insightful observation'),
+                        trailing: const Text('Today'),
+                      ),
+                    )),
           ],
         ),
       ),

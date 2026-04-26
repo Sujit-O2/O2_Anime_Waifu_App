@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/ai_personalization/smart_reply_service.dart';
 
 class SmartReplyPage extends StatefulWidget {
   const SmartReplyPage({super.key});
@@ -9,7 +8,6 @@ class SmartReplyPage extends StatefulWidget {
 }
 
 class _SmartReplyPageState extends State<SmartReplyPage> {
-  final _service = SmartReplyService.instance;
   final _controller = TextEditingController();
   List<String> _suggestions = [];
 
@@ -50,23 +48,23 @@ class _SmartReplyPageState extends State<SmartReplyPage> {
             ElevatedButton(
               onPressed: () {
                 setState(() => _suggestions = [
-                  'That sounds great!',
-                  'I agree with you',
-                  'Tell me more',
-                ]);
+                      'That sounds great!',
+                      'I agree with you',
+                      'Tell me more',
+                    ]);
               },
               child: const Text('Get Suggestions'),
             ),
             const SizedBox(height: 16),
             ..._suggestions.map((suggestion) => Card(
-              child: ListTile(
-                title: Text(suggestion),
-                trailing: IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () {},
-                ),
-              ),
-            )),
+                  child: ListTile(
+                    title: Text(suggestion),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {},
+                    ),
+                  ),
+                )),
           ],
         ),
       ),

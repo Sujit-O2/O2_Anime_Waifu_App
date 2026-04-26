@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/memory_context/semantic_memory_service.dart';
 
 class SemanticMemoryPage extends StatefulWidget {
   const SemanticMemoryPage({super.key});
@@ -9,7 +8,6 @@ class SemanticMemoryPage extends StatefulWidget {
 }
 
 class _SemanticMemoryPageState extends State<SemanticMemoryPage> {
-  final _service = SemanticMemoryService.instance;
   final _controller = TextEditingController();
   List<Map<String, dynamic>> _results = [];
 
@@ -42,20 +40,28 @@ class _SemanticMemoryPageState extends State<SemanticMemoryPage> {
             ElevatedButton(
               onPressed: () {
                 setState(() => _results = [
-                  {'topic': 'Conversation', 'content': 'Found memory about ${_controller.text}', 'relevance': 95},
-                  {'topic': 'Memory', 'content': 'Related discussion', 'relevance': 80},
-                ]);
+                      {
+                        'topic': 'Conversation',
+                        'content': 'Found memory about ${_controller.text}',
+                        'relevance': 95
+                      },
+                      {
+                        'topic': 'Memory',
+                        'content': 'Related discussion',
+                        'relevance': 80
+                      },
+                    ]);
               },
               child: const Text('Search'),
             ),
             const SizedBox(height: 16),
             ..._results.map((result) => Card(
-              child: ListTile(
-                title: Text(result['topic'] ?? 'Memory'),
-                subtitle: Text(result['content'] ?? ''),
-                trailing: Text('${result['relevance']}%'),
-              ),
-            )),
+                  child: ListTile(
+                    title: Text(result['topic'] ?? 'Memory'),
+                    subtitle: Text(result['content'] ?? ''),
+                    trailing: Text('${result['relevance']}%'),
+                  ),
+                )),
           ],
         ),
       ),
