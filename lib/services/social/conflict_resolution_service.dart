@@ -3,24 +3,26 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🤝 Conflict Resolution Coach Service
-/// 
+///
 /// Help navigate disagreements with communication strategies.
 class ConflictResolutionService {
   ConflictResolutionService._();
-  static final ConflictResolutionService instance = ConflictResolutionService._();
+  static final ConflictResolutionService instance =
+      ConflictResolutionService._();
 
   final List<ConflictSession> _sessions = [];
   final List<CommunicationStrategy> _strategies = [];
-  
+
   int _totalSessions = 0;
   int _resolvedConflicts = 0;
-  
+
   static const String _storageKey = 'conflict_resolution_v1';
-  static const int _maxSessions = 100;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[ConflictResolution] Initialized with $_totalSessions sessions');
+    if (kDebugMode)
+      debugPrint(
+          '[ConflictResolution] Initialized with $_totalSessions sessions');
   }
 
   Future<ConflictSession> createSession({
@@ -43,12 +45,12 @@ class ConflictResolutionService {
       resolutionNotes: '',
       createdAt: DateTime.now(),
     );
-    
+
     _sessions.insert(0, session);
     _totalSessions++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[ConflictResolution] Created session: $title');
     return session;
   }
@@ -59,13 +61,14 @@ class ConflictResolutionService {
     required List<String> involvedParties,
   }) async {
     final strategies = <CommunicationStrategy>[];
-    
+
     // De-escalation strategies (always include for intensity > 5)
     if (intensity > 5) {
       strategies.addAll([
         CommunicationStrategy(
           name: 'Take a Break',
-          description: 'Step away for 20-30 minutes to cool down before continuing',
+          description:
+              'Step away for 20-30 minutes to cool down before continuing',
           category: StrategyCategory.deEscalation,
           effectiveness: 8,
           steps: [
@@ -87,7 +90,7 @@ class ConflictResolutionService {
         ),
       ]);
     }
-    
+
     // Type-specific strategies
     switch (type) {
       case ConflictType.miscommunication:
@@ -118,7 +121,7 @@ class ConflictResolutionService {
           ),
         ]);
         break;
-        
+
       case ConflictType.valuesDifference:
         strategies.addAll([
           CommunicationStrategy(
@@ -147,7 +150,7 @@ class ConflictResolutionService {
           ),
         ]);
         break;
-        
+
       case ConflictType.expectations:
         strategies.addAll([
           CommunicationStrategy(
@@ -176,7 +179,7 @@ class ConflictResolutionService {
           ),
         ]);
         break;
-        
+
       case ConflictType.stress:
         strategies.addAll([
           CommunicationStrategy(
@@ -205,7 +208,7 @@ class ConflictResolutionService {
           ),
         ]);
         break;
-        
+
       case ConflictType.trust:
         strategies.addAll([
           CommunicationStrategy(
@@ -235,7 +238,7 @@ class ConflictResolutionService {
         ]);
         break;
     }
-    
+
     // Party count strategies
     if (involvedParties.length > 2) {
       strategies.add(CommunicationStrategy(
@@ -251,43 +254,46 @@ class ConflictResolutionService {
         ],
       ));
     }
-    
+
     // Store strategies
     _strategies.addAll(strategies);
-    
+
     return strategies;
   }
 
-  Future<void> addStrategyToSession(String sessionId, CommunicationStrategy strategy) async {
+  Future<void> addStrategyToSession(
+      String sessionId, CommunicationStrategy strategy) async {
     final sessionIndex = _sessions.indexWhere((s) => s.id == sessionId);
     if (sessionIndex == -1) return;
-    
+
     final session = _sessions[sessionIndex];
     _sessions[sessionIndex] = session.copyWith(
       strategies: [...session.strategies, strategy],
     );
-    
+
     await _saveData();
   }
 
-  Future<void> updateSessionStatus(String sessionId, ConflictStatus status, {String? notes}) async {
+  Future<void> updateSessionStatus(String sessionId, ConflictStatus status,
+      {String? notes}) async {
     final sessionIndex = _sessions.indexWhere((s) => s.id == sessionId);
     if (sessionIndex == -1) return;
-    
+
     final session = _sessions[sessionIndex];
     _sessions[sessionIndex] = session.copyWith(
       status: status,
       resolutionNotes: notes ?? session.resolutionNotes,
       resolvedAt: status == ConflictStatus.resolved ? DateTime.now() : null,
     );
-    
+
     if (status == ConflictStatus.resolved) {
       _resolvedConflicts++;
     }
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[ConflictResolution] Session updated: $sessionId -> $status');
+
+    if (kDebugMode)
+      debugPrint('[ConflictResolution] Session updated: $sessionId -> $status');
   }
 
   String getDeEscalationTechniques() {
@@ -301,7 +307,7 @@ class ConflictResolutionService {
       '💭 Acknowledge their feelings first',
       '🌟 Find something to agree with',
     ];
-    
+
     return '🕊️ De-escalation Techniques:\n' + techniques.join('\n');
   }
 
@@ -316,7 +322,7 @@ class ConflictResolutionService {
       '"Let me make sure I understand..."',
       '"What would help right now?"',
     ];
-    
+
     return '👂 Active Listening Prompts:\n' + prompts.join('\n');
   }
 
@@ -345,31 +351,38 @@ as soon as you know there might be a change."
     if (_sessions.isEmpty) {
       return 'No conflict sessions recorded yet.';
     }
-    
-    final resolved = _sessions.where((s) => s.status == ConflictStatus.resolved).length;
-    final inProgress = _sessions.where((s) => s.status == ConflictStatus.inProgress).length;
-    final resolutionRate = _totalSessions > 0 ? (resolved / _totalSessions * 100).toStringAsFixed(0) : '0';
-    
-    final avgIntensity = _sessions.fold<double>(0, (sum, s) => sum + s.intensity) / _sessions.length;
-    
+
+    final resolved =
+        _sessions.where((s) => s.status == ConflictStatus.resolved).length;
+    final inProgress =
+        _sessions.where((s) => s.status == ConflictStatus.inProgress).length;
+    final resolutionRate = _totalSessions > 0
+        ? (resolved / _totalSessions * 100).toStringAsFixed(0)
+        : '0';
+
+    final avgIntensity =
+        _sessions.fold<double>(0, (sum, s) => sum + s.intensity) /
+            _sessions.length;
+
     final byType = <ConflictType, int>{};
     for (final session in _sessions) {
       byType[session.type] = (byType[session.type] ?? 0) + 1;
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🤝 Conflict Resolution Insights:');
     buffer.writeln('• Total Sessions: $_totalSessions');
     buffer.writeln('• Resolved: $resolved');
     buffer.writeln('• In Progress: $inProgress');
     buffer.writeln('• Resolution Rate: $resolutionRate%');
-    buffer.writeln('• Average Intensity: ${avgIntensity.toStringAsFixed(1)}/10');
+    buffer
+        .writeln('• Average Intensity: ${avgIntensity.toStringAsFixed(1)}/10');
     buffer.writeln('');
     buffer.writeln('Conflicts by Type:');
     for (final entry in byType.entries) {
       buffer.writeln('  • ${entry.key.label}: ${entry.value}');
     }
-    
+
     return buffer.toString();
   }
 
@@ -392,24 +405,20 @@ as soon as you know there might be a change."
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _sessions.clear();
-        _sessions.addAll(
-          (data['sessions'] as List<dynamic>)
-              .map((s) => ConflictSession.fromJson(s as Map<String, dynamic>))
-        );
-        
+        _sessions.addAll((data['sessions'] as List<dynamic>)
+            .map((s) => ConflictSession.fromJson(s as Map<String, dynamic>)));
+
         _strategies.clear();
         if (data['strategies'] != null) {
-          _strategies.addAll(
-            (data['strategies'] as List<dynamic>)
-                .map((s) => CommunicationStrategy.fromJson(s as Map<String, dynamic>))
-          );
+          _strategies.addAll((data['strategies'] as List<dynamic>).map((s) =>
+              CommunicationStrategy.fromJson(s as Map<String, dynamic>)));
         }
-        
+
         _totalSessions = data['totalSessions'] as int;
         _resolvedConflicts = data['resolvedConflicts'] as int;
       }
@@ -472,42 +481,46 @@ class ConflictSession {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'type': type.name,
-    'intensity': intensity,
-    'involvedParties': involvedParties,
-    'status': status.name,
-    'strategies': strategies.map((s) => s.toJson()).toList(),
-    'outcome': outcome,
-    'resolutionNotes': resolutionNotes,
-    'resolvedAt': resolvedAt?.toIso8601String(),
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'type': type.name,
+        'intensity': intensity,
+        'involvedParties': involvedParties,
+        'status': status.name,
+        'strategies': strategies.map((s) => s.toJson()).toList(),
+        'outcome': outcome,
+        'resolutionNotes': resolutionNotes,
+        'resolvedAt': resolvedAt?.toIso8601String(),
+        'createdAt': createdAt.toIso8601String(),
+      };
 
-  factory ConflictSession.fromJson(Map<String, dynamic> json) => ConflictSession(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    type: ConflictType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => ConflictType.miscommunication,
-    ),
-    intensity: json['intensity'],
-    involvedParties: List<String>.from(json['involvedParties'] ?? []),
-    status: ConflictStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => ConflictStatus.identified,
-    ),
-    strategies: (json['strategies'] as List<dynamic>? ?? [])
-        .map((s) => CommunicationStrategy.fromJson(s as Map<String, dynamic>))
-        .toList(),
-    outcome: json['outcome'],
-    resolutionNotes: json['resolutionNotes'] ?? '',
-    resolvedAt: json['resolvedAt'] != null ? DateTime.parse(json['resolvedAt']) : null,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+  factory ConflictSession.fromJson(Map<String, dynamic> json) =>
+      ConflictSession(
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        type: ConflictType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => ConflictType.miscommunication,
+        ),
+        intensity: json['intensity'],
+        involvedParties: List<String>.from(json['involvedParties'] ?? []),
+        status: ConflictStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => ConflictStatus.identified,
+        ),
+        strategies: (json['strategies'] as List<dynamic>? ?? [])
+            .map((s) =>
+                CommunicationStrategy.fromJson(s as Map<String, dynamic>))
+            .toList(),
+        outcome: json['outcome'],
+        resolutionNotes: json['resolutionNotes'] ?? '',
+        resolvedAt: json['resolvedAt'] != null
+            ? DateTime.parse(json['resolvedAt'])
+            : null,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class CommunicationStrategy {
@@ -526,23 +539,24 @@ class CommunicationStrategy {
   });
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'description': description,
-    'category': category.name,
-    'effectiveness': effectiveness,
-    'steps': steps,
-  };
+        'name': name,
+        'description': description,
+        'category': category.name,
+        'effectiveness': effectiveness,
+        'steps': steps,
+      };
 
-  factory CommunicationStrategy.fromJson(Map<String, dynamic> json) => CommunicationStrategy(
-    name: json['name'],
-    description: json['description'],
-    category: StrategyCategory.values.firstWhere(
-      (e) => e.name == json['category'],
-      orElse: () => StrategyCategory.communication,
-    ),
-    effectiveness: json['effectiveness'],
-    steps: List<String>.from(json['steps'] ?? []),
-  );
+  factory CommunicationStrategy.fromJson(Map<String, dynamic> json) =>
+      CommunicationStrategy(
+        name: json['name'],
+        description: json['description'],
+        category: StrategyCategory.values.firstWhere(
+          (e) => e.name == json['category'],
+          orElse: () => StrategyCategory.communication,
+        ),
+        effectiveness: json['effectiveness'],
+        steps: List<String>.from(json['steps'] ?? []),
+      );
 }
 
 enum ConflictType {
@@ -551,7 +565,7 @@ enum ConflictType {
   expectations('Unmet Expectations'),
   stress('Stress-Related'),
   trust('Trust Issue');
-  
+
   final String label;
   const ConflictType(this.label);
 }
@@ -564,7 +578,7 @@ enum StrategyCategory {
   empathy('Empathy'),
   collaboration('Collaboration'),
   relationship('Relationship');
-  
+
   final String label;
   const StrategyCategory(this.label);
 }

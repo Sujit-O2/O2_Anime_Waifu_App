@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎨 Art Direction Assistant Service
-/// 
+///
 /// Suggest visual concepts, color palettes, or design elements.
 class ArtDirectionService {
   ArtDirectionService._();
@@ -12,16 +12,16 @@ class ArtDirectionService {
   final List<DesignProject> _projects = [];
   final List<ColorPalette> _palettes = [];
   final List<VisualConcept> _concepts = [];
-  
+
   int _totalProjects = 0;
   int _totalPalettes = 0;
-  
+
   static const String _storageKey = 'art_direction_v1';
-  static const int _maxProjects = 50;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[ArtDirection] Initialized with $_totalProjects projects');
+    if (kDebugMode)
+      debugPrint('[ArtDirection] Initialized with $_totalProjects projects');
   }
 
   Future<DesignProject> createDesignProject({
@@ -46,12 +46,12 @@ class ArtDirectionService {
       notes: '',
       createdAt: DateTime.now(),
     );
-    
+
     _projects.insert(0, project);
     _totalProjects++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[ArtDirection] Created project: $title');
     return project;
   }
@@ -64,7 +64,7 @@ class ArtDirectionService {
     String? description,
   }) async {
     final colors = _generateColors(baseColor, type, mood);
-    
+
     final palette = ColorPalette(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
@@ -76,20 +76,21 @@ class ArtDirectionService {
       usage: [],
       createdAt: DateTime.now(),
     );
-    
+
     _palettes.insert(0, palette);
     _totalPalettes++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[ArtDirection] Generated palette: $name');
     return palette;
   }
 
-  List<String> _generateColors(String baseColor, PaletteType type, String mood) {
+  List<String> _generateColors(
+      String baseColor, PaletteType type, String mood) {
     // Simplified color generation - in reality would use color theory
     final colors = <String>[];
-    
+
     switch (type) {
       case PaletteType.monochromatic:
         colors.add(baseColor);
@@ -127,7 +128,7 @@ class ArtDirectionService {
         colors.add(_adjustBrightness(_shiftHue(baseColor, 90), 0.8));
         break;
     }
-    
+
     return colors;
   }
 
@@ -136,12 +137,18 @@ class ArtDirectionService {
     if (color.startsWith('#')) {
       color = color.substring(1);
     }
-    
+
     try {
-      final r = (int.parse(color.substring(0, 2), radix: 16) * factor).clamp(0, 255).toInt();
-      final g = (int.parse(color.substring(2, 4), radix: 16) * factor).clamp(0, 255).toInt();
-      final b = (int.parse(color.substring(4, 6), radix: 16) * factor).clamp(0, 255).toInt();
-      
+      final r = (int.parse(color.substring(0, 2), radix: 16) * factor)
+          .clamp(0, 255)
+          .toInt();
+      final g = (int.parse(color.substring(2, 4), radix: 16) * factor)
+          .clamp(0, 255)
+          .toInt();
+      final b = (int.parse(color.substring(4, 6), radix: 16) * factor)
+          .clamp(0, 255)
+          .toInt();
+
       return '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}';
     } catch (e) {
       return color;
@@ -153,17 +160,17 @@ class ArtDirectionService {
     if (color.startsWith('#')) {
       color = color.substring(1);
     }
-    
+
     try {
       var r = int.parse(color.substring(0, 2), radix: 16) / 255;
       var g = int.parse(color.substring(2, 4), radix: 16) / 255;
       var b = int.parse(color.substring(4, 6), radix: 16) / 255;
-      
+
       // Simple RGB shift (not true hue rotation, but good enough for demo)
       r = (r + degrees / 360).clamp(0.0, 1.0);
       g = (g + degrees / 360).clamp(0.0, 1.0);
       b = (b + degrees / 360).clamp(0.0, 1.0);
-      
+
       return '#${(r * 255).toInt().toRadixString(16).padLeft(2, '0')}${(g * 255).toInt().toRadixString(16).padLeft(2, '0')}${(b * 255).toInt().toRadixString(16).padLeft(2, '0')}';
     } catch (e) {
       return color;
@@ -204,11 +211,11 @@ class ArtDirectionService {
       status: ConceptStatus.draft,
       createdAt: DateTime.now(),
     );
-    
+
     _concepts.insert(0, concept);
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[ArtDirection] Created concept: $title');
     return concept;
   }
@@ -216,7 +223,7 @@ class ArtDirectionService {
   Future<void> addPaletteToProject(String projectId, String paletteId) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     if (!project.palettes.contains(paletteId)) {
       _projects[projectIndex] = project.copyWith(
@@ -229,7 +236,7 @@ class ArtDirectionService {
   Future<void> addConceptToProject(String projectId, String conceptId) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     if (!project.concepts.contains(conceptId)) {
       _projects[projectIndex] = project.copyWith(
@@ -239,16 +246,19 @@ class ArtDirectionService {
     }
   }
 
-  Future<void> updateProjectStatus(String projectId, DesignStatus status) async {
+  Future<void> updateProjectStatus(
+      String projectId, DesignStatus status) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(status: status);
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[ArtDirection] Updated project status: $projectId -> $status');
+
+    if (kDebugMode)
+      debugPrint(
+          '[ArtDirection] Updated project status: $projectId -> $status');
   }
 
   String getColorSuggestions({
@@ -257,7 +267,7 @@ class ArtDirectionService {
     String? targetAudience,
   }) {
     final suggestions = <String>[];
-    
+
     switch (mood.toLowerCase()) {
       case 'energetic':
         suggestions.addAll([
@@ -302,10 +312,11 @@ class ArtDirectionService {
         ]);
         break;
     }
-    
+
     switch (type) {
       case DesignType.branding:
-        suggestions.add('🎯 Consider how colors will look across all brand touchpoints');
+        suggestions.add(
+            '🎯 Consider how colors will look across all brand touchpoints');
         suggestions.add('📱 Test colors on different screens and devices');
         break;
       case DesignType.web:
@@ -325,17 +336,19 @@ class ArtDirectionService {
         suggestions.add('🎭 Consider emotional impact of color choices');
         break;
     }
-    
+
     if (targetAudience != null) {
-      suggestions.add('👥 Consider color preferences and cultural meanings for $targetAudience');
+      suggestions.add(
+          '👥 Consider color preferences and cultural meanings for $targetAudience');
     }
-    
-    return '🎨 Color Suggestions for $mood mood (${type.label}):\n' + suggestions.map((s) => '• $s').join('\n');
+
+    return '🎨 Color Suggestions for $mood mood (${type.label}):\n' +
+        suggestions.map((s) => '• $s').join('\n');
   }
 
   String getDesignPrinciples(DesignType type) {
     final principles = <String>[];
-    
+
     switch (type) {
       case DesignType.branding:
         principles.addAll([
@@ -383,47 +396,48 @@ class ArtDirectionService {
         ]);
         break;
     }
-    
-    return '📐 Design Principles for ${type.label}:\n' + principles.map((p) => '• $p').join('\n');
+
+    return '📐 Design Principles for ${type.label}:\n' +
+        principles.map((p) => '• $p').join('\n');
   }
 
   String getArtInsights() {
     if (_projects.isEmpty && _palettes.isEmpty) {
       return 'No design projects or palettes created yet. Start exploring visual concepts!';
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🎨 Art Direction Insights:');
     buffer.writeln('• Total Projects: $_totalProjects');
     buffer.writeln('• Total Palettes: $_totalPalettes');
     buffer.writeln('• Total Concepts: ${_concepts.length}');
-    
+
     if (_projects.isNotEmpty) {
       final byStatus = <DesignStatus, int>{};
       for (final project in _projects) {
         byStatus[project.status] = (byStatus[project.status] ?? 0) + 1;
       }
-      
+
       buffer.writeln('');
       buffer.writeln('Projects by Status:');
       for (final entry in byStatus.entries) {
         buffer.writeln('  • ${entry.key.label}: ${entry.value}');
       }
     }
-    
+
     if (_palettes.isNotEmpty) {
       final byType = <PaletteType, int>{};
       for (final palette in _palettes) {
         byType[palette.type] = (byType[palette.type] ?? 0) + 1;
       }
-      
+
       buffer.writeln('');
       buffer.writeln('Palettes by Type:');
       for (final entry in byType.entries) {
         buffer.writeln('  • ${entry.key.label}: ${entry.value}');
       }
     }
-    
+
     return buffer.toString();
   }
 
@@ -447,28 +461,22 @@ class ArtDirectionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _projects.clear();
-        _projects.addAll(
-          (data['projects'] as List<dynamic>? ?? [])
-              .map((p) => DesignProject.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _projects.addAll((data['projects'] as List<dynamic>? ?? [])
+            .map((p) => DesignProject.fromJson(p as Map<String, dynamic>)));
+
         _palettes.clear();
-        _palettes.addAll(
-          (data['palettes'] as List<dynamic>? ?? [])
-              .map((p) => ColorPalette.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _palettes.addAll((data['palettes'] as List<dynamic>? ?? [])
+            .map((p) => ColorPalette.fromJson(p as Map<String, dynamic>)));
+
         _concepts.clear();
-        _concepts.addAll(
-          (data['concepts'] as List<dynamic>? ?? [])
-              .map((c) => VisualConcept.fromJson(c as Map<String, dynamic>))
-        );
-        
+        _concepts.addAll((data['concepts'] as List<dynamic>? ?? [])
+            .map((c) => VisualConcept.fromJson(c as Map<String, dynamic>)));
+
         _totalProjects = data['totalProjects'] as int? ?? 0;
         _totalPalettes = data['totalPalettes'] as int? ?? 0;
       }
@@ -535,42 +543,42 @@ class DesignProject {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'type': type.name,
-    'description': description,
-    'targetAudience': targetAudience,
-    'mood': mood,
-    'status': status.name,
-    'palettes': palettes,
-    'concepts': concepts,
-    'elements': elements,
-    'inspiration': inspiration,
-    'notes': notes,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'type': type.name,
+        'description': description,
+        'targetAudience': targetAudience,
+        'mood': mood,
+        'status': status.name,
+        'palettes': palettes,
+        'concepts': concepts,
+        'elements': elements,
+        'inspiration': inspiration,
+        'notes': notes,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory DesignProject.fromJson(Map<String, dynamic> json) => DesignProject(
-    id: json['id'],
-    title: json['title'],
-    type: DesignType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => DesignType.branding,
-    ),
-    description: json['description'],
-    targetAudience: json['targetAudience'],
-    mood: json['mood'],
-    status: DesignStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => DesignStatus.planning,
-    ),
-    palettes: List<String>.from(json['palettes'] ?? []),
-    concepts: List<String>.from(json['concepts'] ?? []),
-    elements: List<String>.from(json['elements'] ?? []),
-    inspiration: json['inspiration'] ?? '',
-    notes: json['notes'] ?? '',
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        type: DesignType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => DesignType.branding,
+        ),
+        description: json['description'],
+        targetAudience: json['targetAudience'],
+        mood: json['mood'],
+        status: DesignStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => DesignStatus.planning,
+        ),
+        palettes: List<String>.from(json['palettes'] ?? []),
+        concepts: List<String>.from(json['concepts'] ?? []),
+        elements: List<String>.from(json['elements'] ?? []),
+        inspiration: json['inspiration'] ?? '',
+        notes: json['notes'] ?? '',
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class ColorPalette {
@@ -597,31 +605,31 @@ class ColorPalette {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'baseColor': baseColor,
-    'type': type.name,
-    'mood': mood,
-    'colors': colors,
-    'description': description,
-    'usage': usage,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'baseColor': baseColor,
+        'type': type.name,
+        'mood': mood,
+        'colors': colors,
+        'description': description,
+        'usage': usage,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory ColorPalette.fromJson(Map<String, dynamic> json) => ColorPalette(
-    id: json['id'],
-    name: json['name'],
-    baseColor: json['baseColor'],
-    type: PaletteType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => PaletteType.analogous,
-    ),
-    mood: json['mood'],
-    colors: List<String>.from(json['colors'] ?? []),
-    description: json['description'] ?? '',
-    usage: List<String>.from(json['usage'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        name: json['name'],
+        baseColor: json['baseColor'],
+        type: PaletteType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => PaletteType.analogous,
+        ),
+        mood: json['mood'],
+        colors: List<String>.from(json['colors'] ?? []),
+        description: json['description'] ?? '',
+        usage: List<String>.from(json['usage'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class VisualConcept {
@@ -648,34 +656,34 @@ class VisualConcept {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'type': type.name,
-    'elements': elements,
-    'style': style,
-    'referenceImages': referenceImages,
-    'status': status.name,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'type': type.name,
+        'elements': elements,
+        'style': style,
+        'referenceImages': referenceImages,
+        'status': status.name,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory VisualConcept.fromJson(Map<String, dynamic> json) => VisualConcept(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    type: ConceptType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => ConceptType.moodboard,
-    ),
-    elements: List<String>.from(json['elements'] ?? []),
-    style: json['style'],
-    referenceImages: json['referenceImages'],
-    status: ConceptStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => ConceptStatus.draft,
-    ),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        type: ConceptType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => ConceptType.moodboard,
+        ),
+        elements: List<String>.from(json['elements'] ?? []),
+        style: json['style'],
+        referenceImages: json['referenceImages'],
+        status: ConceptStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => ConceptStatus.draft,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 enum DesignType {
@@ -684,7 +692,7 @@ enum DesignType {
   print('Print Design'),
   ui('UI/UX'),
   illustration('Illustration');
-  
+
   final String label;
   const DesignType(this.label);
 }
@@ -694,7 +702,7 @@ enum DesignStatus {
   inProgress('In Progress'),
   review('Review'),
   completed('Completed');
-  
+
   final String label;
   const DesignStatus(this.label);
 }
@@ -705,7 +713,7 @@ enum PaletteType {
   complementary('Complementary'),
   triadic('Triadic'),
   gradient('Gradient');
-  
+
   final String label;
   const PaletteType(this.label);
 }
@@ -716,7 +724,7 @@ enum ConceptType {
   mockup('Mockup'),
   storyboard('Storyboard'),
   sketch('Sketch');
-  
+
   final String label;
   const ConceptType(this.label);
 }
@@ -726,7 +734,7 @@ enum ConceptStatus {
   review('Review'),
   approved('Approved'),
   implemented('Implemented');
-  
+
   final String label;
   const ConceptStatus(this.label);
 }

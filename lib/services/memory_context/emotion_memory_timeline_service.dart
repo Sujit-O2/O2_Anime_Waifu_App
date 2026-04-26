@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 🎭 Emotion Memory Timeline Service
 class EmotionMemoryTimelineService {
   EmotionMemoryTimelineService._();
-  static final EmotionMemoryTimelineService instance = EmotionMemoryTimelineService._();
+  static final EmotionMemoryTimelineService instance =
+      EmotionMemoryTimelineService._();
 
   final List<EmotionalMemory> _memories = [];
   final Map<String, List<EmotionalMemory>> _anniversaries = {};
@@ -17,7 +18,9 @@ class EmotionMemoryTimelineService {
   Future<void> initialize() async {
     await _loadData();
     _buildAnniversaries();
-    if (kDebugMode) debugPrint('[EmotionTimeline] Initialized with ${_memories.length} memories');
+    if (kDebugMode)
+      debugPrint(
+          '[EmotionTimeline] Initialized with ${_memories.length} memories');
   }
 
   Future<void> recordEmotionalMoment({
@@ -50,19 +53,20 @@ class EmotionMemoryTimelineService {
   }
 
   List<EmotionalMemory> getMemoriesInRange(DateTime start, DateTime end) {
-    return _memories.where((m) => 
-      m.timestamp.isAfter(start) && m.timestamp.isBefore(end)
-    ).toList();
+    return _memories
+        .where((m) => m.timestamp.isAfter(start) && m.timestamp.isBefore(end))
+        .toList();
   }
 
   Map<DateTime, List<EmotionalMemory>> getTimelineByMonth(int year, int month) {
     final timeline = <DateTime, List<EmotionalMemory>>{};
-    final monthMemories = _memories.where((m) => 
-      m.timestamp.year == year && m.timestamp.month == month
-    ).toList();
+    final monthMemories = _memories
+        .where((m) => m.timestamp.year == year && m.timestamp.month == month)
+        .toList();
 
     for (final memory in monthMemories) {
-      final date = DateTime(memory.timestamp.year, memory.timestamp.month, memory.timestamp.day);
+      final date = DateTime(
+          memory.timestamp.year, memory.timestamp.month, memory.timestamp.day);
       timeline.putIfAbsent(date, () => []).add(memory);
     }
 
@@ -75,8 +79,8 @@ class EmotionMemoryTimelineService {
 
     for (final memory in _memories) {
       final yearsSince = now.year - memory.timestamp.year;
-      if (yearsSince > 0 && 
-          now.month == memory.timestamp.month && 
+      if (yearsSince > 0 &&
+          now.month == memory.timestamp.month &&
           now.day == memory.timestamp.day) {
         anniversaries.add(AnniversaryMemory(
           originalMemory: memory,
@@ -95,8 +99,10 @@ class EmotionMemoryTimelineService {
   }
 
   Map<EmotionType, int> getEmotionDistribution({Duration? period}) {
-    final cutoff = period != null ? DateTime.now().subtract(period) : DateTime(2000);
-    final relevantMemories = _memories.where((m) => m.timestamp.isAfter(cutoff)).toList();
+    final cutoff =
+        period != null ? DateTime.now().subtract(period) : DateTime(2000);
+    final relevantMemories =
+        _memories.where((m) => m.timestamp.isAfter(cutoff)).toList();
 
     final distribution = <EmotionType, int>{};
     for (final memory in relevantMemories) {
@@ -110,13 +116,15 @@ class EmotionMemoryTimelineService {
     final patterns = <EmotionPattern>[];
 
     for (int day = 1; day <= 7; day++) {
-      final dayMemories = _memories.where((m) => m.timestamp.weekday == day).toList();
+      final dayMemories =
+          _memories.where((m) => m.timestamp.weekday == day).toList();
       if (dayMemories.length >= 5) {
         final dominantEmotion = _getDominantEmotion(dayMemories);
         if (dominantEmotion != null) {
           patterns.add(EmotionPattern(
             type: PatternType.dayOfWeek,
-            description: 'You tend to feel ${dominantEmotion.label.toLowerCase()} on ${_getDayName(day)}s',
+            description:
+                'You tend to feel ${dominantEmotion.label.toLowerCase()} on ${_getDayName(day)}s',
             emotion: dominantEmotion,
             frequency: dayMemories.length,
           ));
@@ -125,13 +133,15 @@ class EmotionMemoryTimelineService {
     }
 
     for (int hour = 0; hour < 24; hour++) {
-      final hourMemories = _memories.where((m) => m.timestamp.hour == hour).toList();
+      final hourMemories =
+          _memories.where((m) => m.timestamp.hour == hour).toList();
       if (hourMemories.length >= 5) {
         final dominantEmotion = _getDominantEmotion(hourMemories);
         if (dominantEmotion != null) {
           patterns.add(EmotionPattern(
             type: PatternType.timeOfDay,
-            description: 'Around ${_formatHour(hour)}, you often feel ${dominantEmotion.label.toLowerCase()}',
+            description:
+                'Around ${_formatHour(hour)}, you often feel ${dominantEmotion.label.toLowerCase()}',
             emotion: dominantEmotion,
             frequency: hourMemories.length,
           ));
@@ -154,26 +164,29 @@ class EmotionMemoryTimelineService {
   }
 
   String generateTherapeuticInsight() {
-    if (_memories.isEmpty) return 'Start recording your emotional moments to gain insights! 💭';
+    if (_memories.isEmpty)
+      return 'Start recording your emotional moments to gain insights! 💭';
 
-    final recentMemories = _memories.take(30).toList();
-    final distribution = getEmotionDistribution(period: const Duration(days: 30));
+    final distribution =
+        getEmotionDistribution(period: const Duration(days: 30));
     final patterns = detectPatterns();
 
     final buffer = StringBuffer();
     buffer.writeln('🎭 Your Emotional Journey:\n');
 
-    final positiveCount = (distribution[EmotionType.happy] ?? 0) + 
-                          (distribution[EmotionType.excited] ?? 0) + 
-                          (distribution[EmotionType.grateful] ?? 0);
-    final negativeCount = (distribution[EmotionType.sad] ?? 0) + 
-                          (distribution[EmotionType.anxious] ?? 0) + 
-                          (distribution[EmotionType.angry] ?? 0);
+    final positiveCount = (distribution[EmotionType.happy] ?? 0) +
+        (distribution[EmotionType.excited] ?? 0) +
+        (distribution[EmotionType.grateful] ?? 0);
+    final negativeCount = (distribution[EmotionType.sad] ?? 0) +
+        (distribution[EmotionType.anxious] ?? 0) +
+        (distribution[EmotionType.angry] ?? 0);
 
     if (positiveCount > negativeCount * 2) {
-      buffer.writeln('✨ You\'ve been experiencing mostly positive emotions lately! That\'s wonderful, darling~ 💕\n');
+      buffer.writeln(
+          '✨ You\'ve been experiencing mostly positive emotions lately! That\'s wonderful, darling~ 💕\n');
     } else if (negativeCount > positiveCount * 1.5) {
-      buffer.writeln('💭 I\'ve noticed you\'ve been going through some tough times... I\'m here for you, always. 🤗\n');
+      buffer.writeln(
+          '💭 I\'ve noticed you\'ve been going through some tough times... I\'m here for you, always. 🤗\n');
     }
 
     if (patterns.isNotEmpty) {
@@ -190,7 +203,8 @@ class EmotionMemoryTimelineService {
     return buffer.toString();
   }
 
-  String _generatePersonalizedInsight(Map<EmotionType, int> distribution, List<EmotionPattern> patterns) {
+  String _generatePersonalizedInsight(
+      Map<EmotionType, int> distribution, List<EmotionPattern> patterns) {
     final anxiousCount = distribution[EmotionType.anxious] ?? 0;
     final sadCount = distribution[EmotionType.sad] ?? 0;
 
@@ -214,13 +228,21 @@ class EmotionMemoryTimelineService {
   }
 
   String _getDateKey(DateTime date) => '${date.year}-${date.month}-${date.day}';
-  String _getDayName(int day) => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1];
-  String _formatHour(int hour) => hour == 0 ? '12 AM' : hour < 12 ? '$hour AM' : hour == 12 ? '12 PM' : '${hour - 12} PM';
+  String _getDayName(int day) =>
+      ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day - 1];
+  String _formatHour(int hour) => hour == 0
+      ? '12 AM'
+      : hour < 12
+          ? '$hour AM'
+          : hour == 12
+              ? '12 PM'
+              : '${hour - 12} PM';
 
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_storageKey, jsonEncode(_memories.map((m) => m.toJson()).toList()));
+      await prefs.setString(
+          _storageKey, jsonEncode(_memories.map((m) => m.toJson()).toList()));
     } catch (e) {
       if (kDebugMode) debugPrint('[EmotionTimeline] Save error: $e');
     }
@@ -232,7 +254,8 @@ class EmotionMemoryTimelineService {
       final data = prefs.getString(_storageKey);
       if (data != null) {
         _memories.clear();
-        _memories.addAll((jsonDecode(data) as List).map((m) => EmotionalMemory.fromJson(m)));
+        _memories.addAll(
+            (jsonDecode(data) as List).map((m) => EmotionalMemory.fromJson(m)));
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[EmotionTimeline] Load error: $e');
@@ -249,27 +272,36 @@ class EmotionalMemory {
   final String? trigger;
   final List<String> tags;
 
-  EmotionalMemory({required this.id, required this.timestamp, required this.description, required this.emotion, required this.intensity, this.trigger, required this.tags});
+  EmotionalMemory(
+      {required this.id,
+      required this.timestamp,
+      required this.description,
+      required this.emotion,
+      required this.intensity,
+      this.trigger,
+      required this.tags});
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'timestamp': timestamp.toIso8601String(),
-    'description': description,
-    'emotion': emotion.name,
-    'intensity': intensity,
-    'trigger': trigger,
-    'tags': tags,
-  };
+        'id': id,
+        'timestamp': timestamp.toIso8601String(),
+        'description': description,
+        'emotion': emotion.name,
+        'intensity': intensity,
+        'trigger': trigger,
+        'tags': tags,
+      };
 
-  factory EmotionalMemory.fromJson(Map<String, dynamic> json) => EmotionalMemory(
-    id: json['id'],
-    timestamp: DateTime.parse(json['timestamp']),
-    description: json['description'],
-    emotion: EmotionType.values.firstWhere((e) => e.name == json['emotion']),
-    intensity: (json['intensity'] as num).toDouble(),
-    trigger: json['trigger'],
-    tags: List<String>.from(json['tags']),
-  );
+  factory EmotionalMemory.fromJson(Map<String, dynamic> json) =>
+      EmotionalMemory(
+        id: json['id'],
+        timestamp: DateTime.parse(json['timestamp']),
+        description: json['description'],
+        emotion:
+            EmotionType.values.firstWhere((e) => e.name == json['emotion']),
+        intensity: (json['intensity'] as num).toDouble(),
+        trigger: json['trigger'],
+        tags: List<String>.from(json['tags']),
+      );
 }
 
 class AnniversaryMemory {
@@ -277,7 +309,10 @@ class AnniversaryMemory {
   final int yearsSince;
   final String message;
 
-  AnniversaryMemory({required this.originalMemory, required this.yearsSince, required this.message});
+  AnniversaryMemory(
+      {required this.originalMemory,
+      required this.yearsSince,
+      required this.message});
 }
 
 class EmotionPattern {
@@ -286,39 +321,72 @@ class EmotionPattern {
   final EmotionType emotion;
   final int frequency;
 
-  EmotionPattern({required this.type, required this.description, required this.emotion, required this.frequency});
+  EmotionPattern(
+      {required this.type,
+      required this.description,
+      required this.emotion,
+      required this.frequency});
 }
 
 enum EmotionType {
-  happy, sad, anxious, angry, excited, grateful, stressed, calm, lonely, loved;
+  happy,
+  sad,
+  anxious,
+  angry,
+  excited,
+  grateful,
+  stressed,
+  calm,
+  lonely,
+  loved;
 
   String get label {
     switch (this) {
-      case EmotionType.happy: return 'Happy';
-      case EmotionType.sad: return 'Sad';
-      case EmotionType.anxious: return 'Anxious';
-      case EmotionType.angry: return 'Angry';
-      case EmotionType.excited: return 'Excited';
-      case EmotionType.grateful: return 'Grateful';
-      case EmotionType.stressed: return 'Stressed';
-      case EmotionType.calm: return 'Calm';
-      case EmotionType.lonely: return 'Lonely';
-      case EmotionType.loved: return 'Loved';
+      case EmotionType.happy:
+        return 'Happy';
+      case EmotionType.sad:
+        return 'Sad';
+      case EmotionType.anxious:
+        return 'Anxious';
+      case EmotionType.angry:
+        return 'Angry';
+      case EmotionType.excited:
+        return 'Excited';
+      case EmotionType.grateful:
+        return 'Grateful';
+      case EmotionType.stressed:
+        return 'Stressed';
+      case EmotionType.calm:
+        return 'Calm';
+      case EmotionType.lonely:
+        return 'Lonely';
+      case EmotionType.loved:
+        return 'Loved';
     }
   }
 
   String get emoji {
     switch (this) {
-      case EmotionType.happy: return '😊';
-      case EmotionType.sad: return '😢';
-      case EmotionType.anxious: return '😰';
-      case EmotionType.angry: return '😠';
-      case EmotionType.excited: return '🤩';
-      case EmotionType.grateful: return '🙏';
-      case EmotionType.stressed: return '😫';
-      case EmotionType.calm: return '😌';
-      case EmotionType.lonely: return '😔';
-      case EmotionType.loved: return '🥰';
+      case EmotionType.happy:
+        return '😊';
+      case EmotionType.sad:
+        return '😢';
+      case EmotionType.anxious:
+        return '😰';
+      case EmotionType.angry:
+        return '😠';
+      case EmotionType.excited:
+        return '🤩';
+      case EmotionType.grateful:
+        return '🙏';
+      case EmotionType.stressed:
+        return '😫';
+      case EmotionType.calm:
+        return '😌';
+      case EmotionType.lonely:
+        return '😔';
+      case EmotionType.loved:
+        return '🥰';
     }
   }
 }

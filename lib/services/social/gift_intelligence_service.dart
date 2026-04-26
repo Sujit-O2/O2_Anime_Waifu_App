@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎁 Gift Intelligence Service
-/// 
+///
 /// Suggest personalized gifts based on conversations, occasions, and budget.
 class GiftIntelligenceService {
   GiftIntelligenceService._();
@@ -11,16 +11,16 @@ class GiftIntelligenceService {
 
   final List<GiftIdea> _giftIdeas = [];
   final Map<String, List<String>> _personPreferences = {};
-  
+
   int _totalIdeas = 0;
   int _giftsGiven = 0;
-  
+
   static const String _storageKey = 'gift_intelligence_v1';
-  static const int _maxIdeas = 500;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[GiftIntelligence] Initialized with $_totalIdeas gift ideas');
+    if (kDebugMode)
+      debugPrint('[GiftIntelligence] Initialized with $_totalIdeas gift ideas');
   }
 
   Future<GiftIdea> generateGiftIdea({
@@ -37,29 +37,32 @@ class GiftIntelligenceService {
       budget: budget,
       interests: interests,
       relationship: relationship,
-      suggestedGifts: _generateSuggestions(forPerson, occasion, budget, interests),
+      suggestedGifts:
+          _generateSuggestions(forPerson, occasion, budget, interests),
       createdAt: DateTime.now(),
       used: false,
     );
-    
+
     _giftIdeas.insert(0, idea);
     _totalIdeas++;
-    
+
     // Store person preferences
     if (!_personPreferences.containsKey(forPerson)) {
       _personPreferences[forPerson] = [];
     }
     _personPreferences[forPerson]?.addAll(interests);
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[GiftIntelligence] Generated gift idea for: $forPerson');
+
+    if (kDebugMode)
+      debugPrint('[GiftIntelligence] Generated gift idea for: $forPerson');
     return idea;
   }
 
-  List<String> _generateSuggestions(String person, String occasion, double budget, List<String> interests) {
+  List<String> _generateSuggestions(
+      String person, String occasion, double budget, List<String> interests) {
     final suggestions = <String>[];
-    
+
     // Budget-based suggestions
     if (budget < 20) {
       suggestions.addAll(_generateBudgetSuggestions('low', interests));
@@ -70,21 +73,21 @@ class GiftIntelligenceService {
     } else {
       suggestions.addAll(_generateBudgetSuggestions('luxury', interests));
     }
-    
+
     // Occasion-based additions
     suggestions.addAll(_generateOccasionSuggestions(occasion, budget));
-    
+
     // Interest-based personalization
     for (final interest in interests) {
       suggestions.addAll(_generateInterestSuggestions(interest, budget));
     }
-    
+
     return suggestions.toSet().toList(); // Remove duplicates
   }
 
   List<String> _generateBudgetSuggestions(String tier, List<String> interests) {
     final suggestions = <String>[];
-    
+
     switch (tier) {
       case 'low':
         suggestions.add('Personalized handwritten letter or card');
@@ -115,13 +118,13 @@ class GiftIntelligenceService {
         suggestions.add('Exclusive event tickets or VIP experience');
         break;
     }
-    
+
     return suggestions;
   }
 
   List<String> _generateOccasionSuggestions(String occasion, double budget) {
     final suggestions = <String>[];
-    
+
     switch (occasion.toLowerCase()) {
       case 'birthday':
         suggestions.add('Birthday cake or dessert');
@@ -155,40 +158,45 @@ class GiftIntelligenceService {
         suggestions.add('Plant or flowers');
         break;
     }
-    
+
     return suggestions;
   }
 
   List<String> _generateInterestSuggestions(String interest, double budget) {
     final suggestions = <String>[];
     final lowerInterest = interest.toLowerCase();
-    
+
     if (lowerInterest.contains('music')) {
       suggestions.add('Vinyl records or music collection');
       suggestions.add('Concert tickets or music lessons');
       suggestions.add('Quality headphones or speaker');
       suggestions.add('Musical instrument accessory');
-    } else if (lowerInterest.contains('book') || lowerInterest.contains('reading')) {
+    } else if (lowerInterest.contains('book') ||
+        lowerInterest.contains('reading')) {
       suggestions.add('Signed book or first edition');
       suggestions.add('E-reader or reading light');
       suggestions.add('Book subscription service');
       suggestions.add('Personalized bookmark or bookplate');
-    } else if (lowerInterest.contains('art') || lowerInterest.contains('paint')) {
+    } else if (lowerInterest.contains('art') ||
+        lowerInterest.contains('paint')) {
       suggestions.add('Premium art supplies');
       suggestions.add('Art class or workshop');
       suggestions.add('Museum membership or gallery visit');
       suggestions.add('Custom portrait or artwork');
-    } else if (lowerInterest.contains('game') || lowerInterest.contains('gaming')) {
+    } else if (lowerInterest.contains('game') ||
+        lowerInterest.contains('gaming')) {
       suggestions.add('New game release or pre-order');
       suggestions.add('Gaming accessory or peripheral');
       suggestions.add('Gaming subscription or gift card');
       suggestions.add('Retro game or collector item');
-    } else if (lowerInterest.contains('fitness') || lowerInterest.contains('sport')) {
+    } else if (lowerInterest.contains('fitness') ||
+        lowerInterest.contains('sport')) {
       suggestions.add('Fitness tracker or smartwatch');
       suggestions.add('Gym membership or class package');
       suggestions.add('Quality athletic wear');
       suggestions.add('Personal training session');
-    } else if (lowerInterest.contains('cook') || lowerInterest.contains('food')) {
+    } else if (lowerInterest.contains('cook') ||
+        lowerInterest.contains('food')) {
       suggestions.add('Cooking class or workshop');
       suggestions.add('Quality kitchen gadget or tool');
       suggestions.add('Gourmet ingredient collection');
@@ -198,32 +206,34 @@ class GiftIntelligenceService {
       suggestions.add('Experience gift certificate');
       suggestions.add('Travel guide or photography book');
       suggestions.add('Luggage or travel gear upgrade');
-    } else if (lowerInterest.contains('tech') || lowerInterest.contains('gadget')) {
+    } else if (lowerInterest.contains('tech') ||
+        lowerInterest.contains('gadget')) {
       suggestions.add('Latest tech accessory');
       suggestions.add('Smart home device');
       suggestions.add('Tech subscription or service');
       suggestions.add('Portable charger or power bank');
     }
-    
+
     return suggestions;
   }
 
   Future<void> markGiftAsGiven(String giftId, String recipientReaction) async {
     final giftIndex = _giftIdeas.indexWhere((g) => g.id == giftId);
     if (giftIndex == -1) return;
-    
+
     final gift = _giftIdeas[giftIndex];
     _giftIdeas[giftIndex] = gift.copyWith(
       used: true,
       recipientReaction: recipientReaction,
       givenAt: DateTime.now(),
     );
-    
+
     _giftsGiven++;
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[GiftIntelligence] Gift marked as given: $giftId');
+
+    if (kDebugMode)
+      debugPrint('[GiftIntelligence] Gift marked as given: $giftId');
   }
 
   List<GiftIdea> getGiftIdeasForPerson(String person) {
@@ -231,73 +241,80 @@ class GiftIntelligenceService {
   }
 
   List<GiftIdea> getGiftIdeasForOccasion(String occasion) {
-    return _giftIdeas.where((g) => g.occasion.toLowerCase() == occasion.toLowerCase()).toList();
+    return _giftIdeas
+        .where((g) => g.occasion.toLowerCase() == occasion.toLowerCase())
+        .toList();
   }
 
   String getGiftInsights() {
     if (_giftIdeas.isEmpty) {
       return 'No gift ideas generated yet. Start creating personalized gift suggestions!';
     }
-    
+
     final givenGifts = _giftIdeas.where((g) => g.used).length;
-    final avgBudget = _giftIdeas.fold<double>(0, (sum, g) => sum + g.budget) / _giftIdeas.length;
-    
-    final positiveReactions = _giftIdeas.where((g) => 
-      g.recipientReaction?.toLowerCase().contains('love') == true ||
-      g.recipientReaction?.toLowerCase().contains('like') == true ||
-      g.recipientReaction?.toLowerCase().contains('happy') == true
-    ).length;
-    
+    final avgBudget = _giftIdeas.fold<double>(0, (sum, g) => sum + g.budget) /
+        _giftIdeas.length;
+
+    final positiveReactions = _giftIdeas
+        .where((g) =>
+            g.recipientReaction?.toLowerCase().contains('love') == true ||
+            g.recipientReaction?.toLowerCase().contains('like') == true ||
+            g.recipientReaction?.toLowerCase().contains('happy') == true)
+        .length;
+
     final buffer = StringBuffer();
     buffer.writeln('🎁 Gift Intelligence Insights:');
     buffer.writeln('• Total Ideas Generated: $_totalIdeas');
     buffer.writeln('• Gifts Given: $givenGifts');
     buffer.writeln('• Average Budget: \$${avgBudget.toStringAsFixed(2)}');
-    
+
     if (givenGifts > 0) {
-      final satisfactionRate = (positiveReactions / givenGifts * 100).toStringAsFixed(0);
+      final satisfactionRate =
+          (positiveReactions / givenGifts * 100).toStringAsFixed(0);
       buffer.writeln('• Recipient Satisfaction: $satisfactionRate%');
     }
-    
+
     // Most popular interests
     final allInterests = <String>[];
     for (final interests in _personPreferences.values) {
       allInterests.addAll(interests);
     }
-    
+
     if (allInterests.isNotEmpty) {
       final interestCounts = <String, int>{};
       for (final interest in allInterests) {
         interestCounts[interest] = (interestCounts[interest] ?? 0) + 1;
       }
-      
+
       final topInterests = interestCounts.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      
+
       buffer.writeln('\n📊 Top Interests:');
       for (final entry in topInterests.take(3)) {
         buffer.writeln('  • ${entry.key}: ${entry.value} mentions');
       }
     }
-    
+
     return buffer.toString();
   }
 
   String getPersonalizedRecommendation(String person, double budget) {
     final personInterests = _personPreferences[person] ?? [];
-    
+
     if (personInterests.isEmpty) {
       return 'Add some interests for $person to get personalized recommendations!';
     }
-    
-    final suggestions = _generateSuggestions(person, 'general', budget, personInterests);
-    
+
+    final suggestions =
+        _generateSuggestions(person, 'general', budget, personInterests);
+
     if (suggestions.isEmpty) {
       return 'No specific recommendations available. Try adding more interests.';
     }
-    
+
     final buffer = StringBuffer();
-    buffer.writeln('🎯 Personalized Recommendations for $person (\$${budget.toStringAsFixed(2)} budget):');
+    buffer.writeln(
+        '🎯 Personalized Recommendations for $person (\$${budget.toStringAsFixed(2)} budget):');
     buffer.writeln('');
     buffer.writeln('Based on interests: ${personInterests.join(", ")}');
     buffer.writeln('');
@@ -305,19 +322,21 @@ class GiftIntelligenceService {
     for (final suggestion in suggestions.take(5)) {
       buffer.writeln('• $suggestion');
     }
-    
+
     return buffer.toString();
   }
 
-  Future<void> addPersonPreference(String person, List<String> interests) async {
+  Future<void> addPersonPreference(
+      String person, List<String> interests) async {
     if (!_personPreferences.containsKey(person)) {
       _personPreferences[person] = [];
     }
-    
+
     _personPreferences[person]?.addAll(interests);
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[GiftIntelligence] Added preferences for: $person');
+
+    if (kDebugMode)
+      debugPrint('[GiftIntelligence] Added preferences for: $person');
   }
 
   Future<void> _saveData() async {
@@ -339,16 +358,14 @@ class GiftIntelligenceService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _giftIdeas.clear();
-        _giftIdeas.addAll(
-          (data['giftIdeas'] as List<dynamic>)
-              .map((g) => GiftIdea.fromJson(g as Map<String, dynamic>))
-        );
-        
+        _giftIdeas.addAll((data['giftIdeas'] as List<dynamic>)
+            .map((g) => GiftIdea.fromJson(g as Map<String, dynamic>)));
+
         _totalIdeas = data['totalIdeas'] as int;
         _giftsGiven = data['giftsGiven'] as int;
         _personPreferences.clear();
@@ -414,30 +431,31 @@ class GiftIdea {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'forPerson': forPerson,
-    'occasion': occasion,
-    'budget': budget,
-    'interests': interests,
-    'relationship': relationship,
-    'suggestedGifts': suggestedGifts,
-    'createdAt': createdAt.toIso8601String(),
-    'used': used,
-    'recipientReaction': recipientReaction,
-    'givenAt': givenAt?.toIso8601String(),
-  };
+        'id': id,
+        'forPerson': forPerson,
+        'occasion': occasion,
+        'budget': budget,
+        'interests': interests,
+        'relationship': relationship,
+        'suggestedGifts': suggestedGifts,
+        'createdAt': createdAt.toIso8601String(),
+        'used': used,
+        'recipientReaction': recipientReaction,
+        'givenAt': givenAt?.toIso8601String(),
+      };
 
   factory GiftIdea.fromJson(Map<String, dynamic> json) => GiftIdea(
-    id: json['id'],
-    forPerson: json['forPerson'],
-    occasion: json['occasion'],
-    budget: (json['budget'] as num).toDouble(),
-    interests: List<String>.from(json['interests'] ?? []),
-    relationship: json['relationship'],
-    suggestedGifts: List<String>.from(json['suggestedGifts'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-    used: json['used'] ?? false,
-    recipientReaction: json['recipientReaction'],
-    givenAt: json['givenAt'] != null ? DateTime.parse(json['givenAt']) : null,
-  );
+        id: json['id'],
+        forPerson: json['forPerson'],
+        occasion: json['occasion'],
+        budget: (json['budget'] as num).toDouble(),
+        interests: List<String>.from(json['interests'] ?? []),
+        relationship: json['relationship'],
+        suggestedGifts: List<String>.from(json['suggestedGifts'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+        used: json['used'] ?? false,
+        recipientReaction: json['recipientReaction'],
+        givenAt:
+            json['givenAt'] != null ? DateTime.parse(json['givenAt']) : null,
+      );
 }

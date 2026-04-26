@@ -33,7 +33,6 @@ class PremiumDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
-    final size = MediaQuery.sizeOf(context);
 
     return Drawer(
       backgroundColor: Colors.transparent,
@@ -381,9 +380,8 @@ class PremiumDrawer extends StatelessWidget {
                   child: Icon(
                     item.icon,
                     size: 18,
-                    color: isActive
-                        ? theme.colorScheme.primary
-                        : tokens.textMuted,
+                    color:
+                        isActive ? theme.colorScheme.primary : tokens.textMuted,
                   ),
                 ),
                 const SizedBox(width: 14),

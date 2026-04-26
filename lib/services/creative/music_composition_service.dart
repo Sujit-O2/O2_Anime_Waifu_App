@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎵 Music Composition Partner Service
-/// 
+///
 /// Help create melodies, lyrics, or produce simple tracks.
 class MusicCompositionService {
   MusicCompositionService._();
@@ -11,16 +11,17 @@ class MusicCompositionService {
 
   final List<MusicProject> _projects = [];
   final List<Track> _tracks = [];
-  
+
   int _totalProjects = 0;
   int _totalTracks = 0;
-  
+
   static const String _storageKey = 'music_composition_v1';
-  static const int _maxProjects = 50;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[MusicComposition] Initialized with $_totalProjects projects');
+    if (kDebugMode)
+      debugPrint(
+          '[MusicComposition] Initialized with $_totalProjects projects');
   }
 
   Future<MusicProject> createMusicProject({
@@ -50,12 +51,12 @@ class MusicCompositionService {
       instruments: [],
       createdAt: DateTime.now(),
     );
-    
+
     _projects.insert(0, project);
     _totalProjects++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[MusicComposition] Created project: $title');
     return project;
   }
@@ -85,10 +86,10 @@ class MusicCompositionService {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    
+
     _tracks.insert(0, track);
     _totalTracks++;
-    
+
     // Update project
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex != -1) {
@@ -98,9 +99,9 @@ class MusicCompositionService {
         status: ProjectStatus.inProgress,
       );
     }
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[MusicComposition] Created track: $title');
     return track;
   }
@@ -122,7 +123,7 @@ class MusicCompositionService {
   }) async {
     final trackIndex = _tracks.indexWhere((t) => t.id == trackId);
     if (trackIndex == -1) return;
-    
+
     final track = _tracks[trackIndex];
     _tracks[trackIndex] = track.copyWith(
       content: content ?? track.content,
@@ -133,9 +134,9 @@ class MusicCompositionService {
       status: status ?? track.status,
       updatedAt: DateTime.now(),
     );
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[MusicComposition] Updated track: $trackId');
   }
 
@@ -147,23 +148,25 @@ class MusicCompositionService {
   }) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(
       key: key,
       scale: scale,
       bpm: bpm,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[MusicComposition] Updated project key: $projectId');
+
+    if (kDebugMode)
+      debugPrint('[MusicComposition] Updated project key: $projectId');
   }
 
-  Future<void> addInstrumentToProject(String projectId, String instrument) async {
+  Future<void> addInstrumentToProject(
+      String projectId, String instrument) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     if (!project.instruments.contains(instrument)) {
       _projects[projectIndex] = project.copyWith(
@@ -173,16 +176,19 @@ class MusicCompositionService {
     }
   }
 
-  Future<void> updateProjectStatus(String projectId, ProjectStatus status) async {
+  Future<void> updateProjectStatus(
+      String projectId, ProjectStatus status) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(status: status);
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[MusicComposition] Updated project status: $projectId -> $status');
+
+    if (kDebugMode)
+      debugPrint(
+          '[MusicComposition] Updated project status: $projectId -> $status');
   }
 
   List<Track> getTracksByProject(String projectId) {
@@ -203,51 +209,52 @@ class MusicCompositionService {
     bool includeBridge = false,
   }) {
     final buffer = StringBuffer();
-    
+
     // Verse 1
     buffer.writeln('[Verse 1]');
     buffer.writeln(_generateVerse(theme, mood, genre));
     buffer.writeln();
-    
+
     // Chorus
     if (includeChorus) {
       buffer.writeln('[Chorus]');
       buffer.writeln(_generateChorus(theme, mood, genre));
       buffer.writeln();
     }
-    
+
     // Verse 2
     if (verses >= 2) {
       buffer.writeln('[Verse 2]');
       buffer.writeln(_generateVerse(theme, mood, genre, secondVerse: true));
       buffer.writeln();
     }
-    
+
     // Chorus repeat
     if (includeChorus) {
       buffer.writeln('[Chorus]');
       buffer.writeln(_generateChorus(theme, mood, genre));
       buffer.writeln();
     }
-    
+
     // Bridge
     if (includeBridge) {
       buffer.writeln('[Bridge]');
       buffer.writeln(_generateBridge(theme, mood, genre));
       buffer.writeln();
-      
+
       if (includeChorus) {
         buffer.writeln('[Chorus]');
         buffer.writeln(_generateChorus(theme, mood, genre));
       }
     }
-    
+
     return buffer.toString();
   }
 
-  String _generateVerse(String theme, String mood, MusicGenre genre, {bool secondVerse = false}) {
+  String _generateVerse(String theme, String mood, MusicGenre genre,
+      {bool secondVerse = false}) {
     final lines = <String>[];
-    
+
     switch (genre) {
       case MusicGenre.pop:
         lines.add('Walking through the city lights at night');
@@ -314,13 +321,13 @@ class MusicCompositionService {
         }
         break;
     }
-    
+
     return lines.join('\n');
   }
 
   String _generateChorus(String theme, String mood, MusicGenre genre) {
     final lines = <String>[];
-    
+
     switch (genre) {
       case MusicGenre.pop:
         lines.add('Oh, this is where we\'re meant to be');
@@ -371,13 +378,13 @@ class MusicCompositionService {
         lines.add('I\'m falling deeper, it\'s true');
         break;
     }
-    
+
     return lines.join('\n');
   }
 
   String _generateBridge(String theme, String mood, MusicGenre genre) {
     final lines = <String>[];
-    
+
     switch (genre) {
       case MusicGenre.pop:
         lines.add('And if the world should fall apart');
@@ -412,7 +419,7 @@ class MusicCompositionService {
         lines.add('You\'re the fire, you\'re the song');
         break;
     }
-    
+
     return lines.join('\n');
   }
 
@@ -423,7 +430,7 @@ class MusicCompositionService {
     required String mood,
   }) {
     final progressions = <String>[];
-    
+
     switch (genre) {
       case MusicGenre.pop:
         progressions.add('$key - $scale - $key - $scale');
@@ -466,9 +473,13 @@ class MusicCompositionService {
         progressions.add('$key - $scale - $key - $scale');
         break;
     }
-    
-    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n' + 
-           progressions.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n');
+
+    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n' +
+        progressions
+            .asMap()
+            .entries
+            .map((e) => '${e.key + 1}. ${e.value}')
+            .join('\n');
   }
 
   String getCompositionTips({
@@ -476,7 +487,7 @@ class MusicCompositionService {
     required String mood,
   }) {
     final tips = <String>[];
-    
+
     switch (genre) {
       case MusicGenre.pop:
         tips.add('Focus on catchy, memorable melodies');
@@ -527,23 +538,24 @@ class MusicCompositionService {
         tips.add('Emphasize the vocal performance');
         break;
     }
-    
-    return '💡 Composition Tips for ${genre.label} ($mood):\n' + tips.map((t) => '• $t').join('\n');
+
+    return '💡 Composition Tips for ${genre.label} ($mood):\n' +
+        tips.map((t) => '• $t').join('\n');
   }
 
   String getMusicInsights() {
     if (_projects.isEmpty) {
       return 'No music projects started yet. Begin composing!';
     }
-    
-    final inProgress = _projects.where((p) => p.status == ProjectStatus.inProgress).length;
-    const completed = 0; // Would calculate from completed projects
-    
+
+    final inProgress =
+        _projects.where((p) => p.status == ProjectStatus.inProgress).length;
+
     final byGenre = <MusicGenre, int>{};
     for (final project in _projects) {
       byGenre[project.genre] = (byGenre[project.genre] ?? 0) + 1;
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🎵 Music Composition Insights:');
     buffer.writeln('• Total Projects: $_totalProjects');
@@ -554,7 +566,7 @@ class MusicCompositionService {
     for (final entry in byGenre.entries) {
       buffer.writeln('  • ${entry.key.label}: ${entry.value}');
     }
-    
+
     return buffer.toString();
   }
 
@@ -577,22 +589,18 @@ class MusicCompositionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _projects.clear();
-        _projects.addAll(
-          (data['projects'] as List<dynamic>)
-              .map((p) => MusicProject.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _projects.addAll((data['projects'] as List<dynamic>)
+            .map((p) => MusicProject.fromJson(p as Map<String, dynamic>)));
+
         _tracks.clear();
-        _tracks.addAll(
-          (data['tracks'] as List<dynamic>)
-              .map((t) => Track.fromJson(t as Map<String, dynamic>))
-        );
-        
+        _tracks.addAll((data['tracks'] as List<dynamic>)
+            .map((t) => Track.fromJson(t as Map<String, dynamic>)));
+
         _totalProjects = data['totalProjects'] as int;
         _totalTracks = data['totalTracks'] as int;
       }
@@ -671,53 +679,53 @@ class MusicProject {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'genre': genre.name,
-    'description': description,
-    'type': type.name,
-    'mood': mood,
-    'targetTracks': targetTracks,
-    'status': status.name,
-    'tracks': tracks,
-    'key': key,
-    'bpm': bpm,
-    'scale': scale,
-    'lyrics': lyrics,
-    'melody': melody,
-    'chordProgression': chordProgression,
-    'instruments': instruments,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'genre': genre.name,
+        'description': description,
+        'type': type.name,
+        'mood': mood,
+        'targetTracks': targetTracks,
+        'status': status.name,
+        'tracks': tracks,
+        'key': key,
+        'bpm': bpm,
+        'scale': scale,
+        'lyrics': lyrics,
+        'melody': melody,
+        'chordProgression': chordProgression,
+        'instruments': instruments,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory MusicProject.fromJson(Map<String, dynamic> json) => MusicProject(
-    id: json['id'],
-    title: json['title'],
-    genre: MusicGenre.values.firstWhere(
-      (e) => e.name == json['genre'],
-      orElse: () => MusicGenre.pop,
-    ),
-    description: json['description'],
-    type: ProjectType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => ProjectType.single,
-    ),
-    mood: json['mood'],
-    targetTracks: json['targetTracks'],
-    status: ProjectStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => ProjectStatus.planning,
-    ),
-    tracks: List<String>.from(json['tracks'] ?? []),
-    key: json['key'] ?? 'C',
-    bpm: json['bpm'] ?? 120,
-    scale: json['scale'] ?? 'Major',
-    lyrics: json['lyrics'] ?? '',
-    melody: json['melody'] ?? '',
-    chordProgression: json['chordProgression'] ?? '',
-    instruments: List<String>.from(json['instruments'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        genre: MusicGenre.values.firstWhere(
+          (e) => e.name == json['genre'],
+          orElse: () => MusicGenre.pop,
+        ),
+        description: json['description'],
+        type: ProjectType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => ProjectType.single,
+        ),
+        mood: json['mood'],
+        targetTracks: json['targetTracks'],
+        status: ProjectStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => ProjectStatus.planning,
+        ),
+        tracks: List<String>.from(json['tracks'] ?? []),
+        key: json['key'] ?? 'C',
+        bpm: json['bpm'] ?? 120,
+        scale: json['scale'] ?? 'Major',
+        lyrics: json['lyrics'] ?? '',
+        melody: json['melody'] ?? '',
+        chordProgression: json['chordProgression'] ?? '',
+        instruments: List<String>.from(json['instruments'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class Track {
@@ -778,42 +786,42 @@ class Track {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'projectId': projectId,
-    'title': title,
-    'type': type.name,
-    'content': content,
-    'lyrics': lyrics,
-    'melody': melody,
-    'chordProgression': chordProgression,
-    'instruments': instruments,
-    'duration': duration,
-    'status': status.name,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+        'id': id,
+        'projectId': projectId,
+        'title': title,
+        'type': type.name,
+        'content': content,
+        'lyrics': lyrics,
+        'melody': melody,
+        'chordProgression': chordProgression,
+        'instruments': instruments,
+        'duration': duration,
+        'status': status.name,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
 
   factory Track.fromJson(Map<String, dynamic> json) => Track(
-    id: json['id'],
-    projectId: json['projectId'],
-    title: json['title'],
-    type: TrackType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => TrackType.melody,
-    ),
-    content: json['content'],
-    lyrics: json['lyrics'],
-    melody: json['melody'],
-    chordProgression: json['chordProgression'],
-    instruments: List<String>.from(json['instruments'] ?? []),
-    duration: json['duration'],
-    status: TrackStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => TrackStatus.draft,
-    ),
-    createdAt: DateTime.parse(json['createdAt']),
-    updatedAt: DateTime.parse(json['updatedAt']),
-  );
+        id: json['id'],
+        projectId: json['projectId'],
+        title: json['title'],
+        type: TrackType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => TrackType.melody,
+        ),
+        content: json['content'],
+        lyrics: json['lyrics'],
+        melody: json['melody'],
+        chordProgression: json['chordProgression'],
+        instruments: List<String>.from(json['instruments'] ?? []),
+        duration: json['duration'],
+        status: TrackStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => TrackStatus.draft,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+      );
 }
 
 enum MusicGenre {
@@ -825,12 +833,15 @@ enum MusicGenre {
   jazz('Jazz'),
   classical('Classical'),
   rnb('R&B');
-  
+
   final String label;
   const MusicGenre(this.label);
 }
 
 enum ProjectType { album, ep, single, soundtrack }
+
 enum ProjectStatus { planning, inProgress, completed, onHold }
+
 enum TrackType { melody, lyrics, chord, full, instrumental }
+
 enum TrackStatus { draft, revised, finalized, mastered }

@@ -1,13 +1,12 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 /// 🎤 Voice Emotion Detection Service
-/// 
+///
 /// Analyzes voice tone, pitch, and tempo to detect emotions in real-time.
 /// Zero Two responds differently based on HOW you sound, not just what you say.
-/// 
+///
 /// Features:
 /// - Real-time pitch analysis (fundamental frequency detection)
 /// - Tempo/speed detection (words per minute)
@@ -30,7 +29,7 @@ class VoiceEmotionService {
     try {
       // Convert bytes to float samples
       final samples = _bytesToFloatSamples(audioBuffer);
-      
+
       if (samples.length < _frameSize) {
         return VoiceEmotion(
           emotion: EmotionType.neutral,
@@ -82,13 +81,13 @@ class VoiceEmotionService {
   /// Convert byte array to float samples
   List<double> _bytesToFloatSamples(Uint8List bytes) {
     final samples = <double>[];
-    
+
     // Assuming 16-bit PCM audio
     for (int i = 0; i < bytes.length - 1; i += 2) {
       final sample = (bytes[i] | (bytes[i + 1] << 8)).toSigned(16);
       samples.add(sample / 32768.0); // Normalize to [-1, 1]
     }
-    
+
     return samples;
   }
 
@@ -105,7 +104,7 @@ class VoiceEmotionService {
     // Autocorrelation method
     for (int lag = minLag; lag < maxLag && lag < samples.length ~/ 2; lag++) {
       double correlation = 0.0;
-      
+
       for (int i = 0; i < samples.length - lag; i++) {
         correlation += samples[i] * samples[i + lag];
       }
@@ -123,11 +122,11 @@ class VoiceEmotionService {
   /// Calculate volume (RMS amplitude)
   double _calculateVolume(List<double> samples) {
     double sum = 0.0;
-    
+
     for (final sample in samples) {
       sum += sample * sample;
     }
-    
+
     final rms = math.sqrt(sum / samples.length);
     return rms.clamp(0.0, 1.0);
   }
@@ -149,7 +148,8 @@ class VoiceEmotionService {
     // Estimate WPM (rough approximation)
     final durationSeconds = samples.length / _sampleRate;
     final syllablesPerSecond = peakCount / durationSeconds;
-    final wordsPerMinute = syllablesPerSecond * 60 / 2.5; // Avg 2.5 syllables per word
+    final wordsPerMinute =
+        syllablesPerSecond * 60 / 2.5; // Avg 2.5 syllables per word
 
     return wordsPerMinute.clamp(0.0, 300.0);
   }
@@ -157,25 +157,25 @@ class VoiceEmotionService {
   /// Calculate signal energy
   double _calculateEnergy(List<double> samples) {
     double sum = 0.0;
-    
+
     for (final sample in samples) {
       sum += sample.abs();
     }
-    
+
     return sum / samples.length;
   }
 
   /// Calculate zero-crossing rate (voice quality indicator)
   double _calculateZeroCrossingRate(List<double> samples) {
     int crossings = 0;
-    
+
     for (int i = 1; i < samples.length; i++) {
       if ((samples[i - 1] >= 0 && samples[i] < 0) ||
           (samples[i - 1] < 0 && samples[i] >= 0)) {
         crossings++;
       }
     }
-    
+
     return crossings / samples.length;
   }
 
@@ -196,12 +196,13 @@ class VoiceEmotionService {
     );
 
     // Emotion classification rules based on acoustic research
-    
+
     // HAPPY: High pitch, high energy, moderate-fast tempo
     if (pitch > 180 && energy > 0.15 && tempo > 140) {
       return VoiceEmotion(
         emotion: EmotionType.happy,
-        confidence: _calculateConfidence([pitch > 180, energy > 0.15, tempo > 140]),
+        confidence:
+            _calculateConfidence([pitch > 180, energy > 0.15, tempo > 140]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -213,7 +214,8 @@ class VoiceEmotionService {
     if (pitch < 140 && energy < 0.1 && tempo < 100) {
       return VoiceEmotion(
         emotion: EmotionType.sad,
-        confidence: _calculateConfidence([pitch < 140, energy < 0.1, tempo < 100]),
+        confidence:
+            _calculateConfidence([pitch < 140, energy < 0.1, tempo < 100]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -225,7 +227,8 @@ class VoiceEmotionService {
     if (volume > 0.3 && tempo > 160 && energy > 0.2) {
       return VoiceEmotion(
         emotion: EmotionType.angry,
-        confidence: _calculateConfidence([volume > 0.3, tempo > 160, energy > 0.2]),
+        confidence:
+            _calculateConfidence([volume > 0.3, tempo > 160, energy > 0.2]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -237,7 +240,8 @@ class VoiceEmotionService {
     if (pitch > 200 && tempo > 180 && zeroCrossingRate > 0.15) {
       return VoiceEmotion(
         emotion: EmotionType.stressed,
-        confidence: _calculateConfidence([pitch > 200, tempo > 180, zeroCrossingRate > 0.15]),
+        confidence: _calculateConfidence(
+            [pitch > 200, tempo > 180, zeroCrossingRate > 0.15]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -249,7 +253,8 @@ class VoiceEmotionService {
     if (pitch > 220 && energy > 0.25 && tempo > 170) {
       return VoiceEmotion(
         emotion: EmotionType.excited,
-        confidence: _calculateConfidence([pitch > 220, energy > 0.25, tempo > 170]),
+        confidence:
+            _calculateConfidence([pitch > 220, energy > 0.25, tempo > 170]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -261,11 +266,8 @@ class VoiceEmotionService {
     if (pitch >= 140 && pitch <= 180 && energy < 0.12 && tempo < 120) {
       return VoiceEmotion(
         emotion: EmotionType.calm,
-        confidence: _calculateConfidence([
-          pitch >= 140 && pitch <= 180,
-          energy < 0.12,
-          tempo < 120
-        ]),
+        confidence: _calculateConfidence(
+            [pitch >= 140 && pitch <= 180, energy < 0.12, tempo < 120]),
         pitch: pitch,
         tempo: tempo,
         volume: volume,
@@ -315,11 +317,23 @@ class VoiceEmotionService {
   List<String> getSuggestedActions(EmotionType emotion) {
     switch (emotion) {
       case EmotionType.happy:
-        return ['Share their joy', 'Ask what made them happy', 'Celebrate with them'];
+        return [
+          'Share their joy',
+          'Ask what made them happy',
+          'Celebrate with them'
+        ];
       case EmotionType.sad:
-        return ['Offer comfort', 'Ask if they want to talk', 'Send virtual hug'];
+        return [
+          'Offer comfort',
+          'Ask if they want to talk',
+          'Send virtual hug'
+        ];
       case EmotionType.angry:
-        return ['Listen without judgment', 'Validate feelings', 'Offer to help'];
+        return [
+          'Listen without judgment',
+          'Validate feelings',
+          'Offer to help'
+        ];
       case EmotionType.stressed:
         return ['Suggest relaxation', 'Offer distraction', 'Be supportive'];
       case EmotionType.excited:
@@ -371,12 +385,12 @@ class EmotionFeatures {
   });
 
   factory EmotionFeatures.neutral() => const EmotionFeatures(
-    pitch: 150,
-    volume: 0.1,
-    tempo: 120,
-    energy: 0.1,
-    zeroCrossingRate: 0.1,
-  );
+        pitch: 150,
+        volume: 0.1,
+        tempo: 120,
+        energy: 0.1,
+        zeroCrossingRate: 0.1,
+      );
 }
 
 enum EmotionType {
@@ -390,37 +404,58 @@ enum EmotionType {
 
   String get label {
     switch (this) {
-      case EmotionType.happy: return 'Happy';
-      case EmotionType.sad: return 'Sad';
-      case EmotionType.angry: return 'Angry';
-      case EmotionType.stressed: return 'Stressed';
-      case EmotionType.excited: return 'Excited';
-      case EmotionType.calm: return 'Calm';
-      case EmotionType.neutral: return 'Neutral';
+      case EmotionType.happy:
+        return 'Happy';
+      case EmotionType.sad:
+        return 'Sad';
+      case EmotionType.angry:
+        return 'Angry';
+      case EmotionType.stressed:
+        return 'Stressed';
+      case EmotionType.excited:
+        return 'Excited';
+      case EmotionType.calm:
+        return 'Calm';
+      case EmotionType.neutral:
+        return 'Neutral';
     }
   }
 
   String get emoji {
     switch (this) {
-      case EmotionType.happy: return '😊';
-      case EmotionType.sad: return '😢';
-      case EmotionType.angry: return '😠';
-      case EmotionType.stressed: return '😰';
-      case EmotionType.excited: return '🤩';
-      case EmotionType.calm: return '😌';
-      case EmotionType.neutral: return '😐';
+      case EmotionType.happy:
+        return '😊';
+      case EmotionType.sad:
+        return '😢';
+      case EmotionType.angry:
+        return '😠';
+      case EmotionType.stressed:
+        return '😰';
+      case EmotionType.excited:
+        return '🤩';
+      case EmotionType.calm:
+        return '😌';
+      case EmotionType.neutral:
+        return '😐';
     }
   }
 
   String get description {
     switch (this) {
-      case EmotionType.happy: return 'Joyful and upbeat';
-      case EmotionType.sad: return 'Down and melancholic';
-      case EmotionType.angry: return 'Frustrated or upset';
-      case EmotionType.stressed: return 'Anxious and tense';
-      case EmotionType.excited: return 'Energetic and thrilled';
-      case EmotionType.calm: return 'Peaceful and relaxed';
-      case EmotionType.neutral: return 'Balanced and steady';
+      case EmotionType.happy:
+        return 'Joyful and upbeat';
+      case EmotionType.sad:
+        return 'Down and melancholic';
+      case EmotionType.angry:
+        return 'Frustrated or upset';
+      case EmotionType.stressed:
+        return 'Anxious and tense';
+      case EmotionType.excited:
+        return 'Energetic and thrilled';
+      case EmotionType.calm:
+        return 'Peaceful and relaxed';
+      case EmotionType.neutral:
+        return 'Balanced and steady';
     }
   }
 }

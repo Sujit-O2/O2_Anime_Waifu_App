@@ -3,26 +3,27 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎯 Personalized Learning Paths Service
-/// 
+///
 /// Curated content recommendations for skill acquisition.
 class PersonalizedLearningService {
   PersonalizedLearningService._();
-  static final PersonalizedLearningService instance = PersonalizedLearningService._();
+  static final PersonalizedLearningService instance =
+      PersonalizedLearningService._();
 
   final List<LearningPath> _paths = [];
   final List<ContentRecommendation> _recommendations = [];
   final List<LearningSession> _sessions = [];
-  
+
   int _totalPaths = 0;
   int _totalRecommendations = 0;
   int _totalSessions = 0;
-  
+
   static const String _storageKey = 'personalized_learning_v1';
-  static const int _maxPaths = 50;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Initialized with $_totalPaths paths');
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Initialized with $_totalPaths paths');
   }
 
   Future<LearningPath> createLearningPath({
@@ -49,13 +50,14 @@ class PersonalizedLearningService {
       currentModule: 0,
       createdAt: DateTime.now(),
     );
-    
+
     _paths.insert(0, path);
     _totalPaths++;
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Created learning path: $title');
+
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Created learning path: $title');
     return path;
   }
 
@@ -68,7 +70,7 @@ class PersonalizedLearningService {
   }) async {
     final pathIndex = _paths.indexWhere((p) => p.id == pathId);
     if (pathIndex == -1) return;
-    
+
     final module = LearningModule(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
@@ -78,15 +80,16 @@ class PersonalizedLearningService {
       completed: false,
       createdAt: DateTime.now(),
     );
-    
+
     final path = _paths[pathIndex];
     _paths[pathIndex] = path.copyWith(
       modules: [...path.modules, module],
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Added module to path: $pathId');
+
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Added module to path: $pathId');
   }
 
   Future<ContentRecommendation> generateRecommendation({
@@ -112,17 +115,20 @@ class PersonalizedLearningService {
       status: RecommendationStatus.pending,
       createdAt: DateTime.now(),
     );
-    
+
     _recommendations.insert(0, recommendation);
     _totalRecommendations++;
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Generated recommendation: ${recommendation.title}');
+
+    if (kDebugMode)
+      debugPrint(
+          '[PersonalizedLearning] Generated recommendation: ${recommendation.title}');
     return recommendation;
   }
 
-  String _generateRecommendationTitle(SkillCategory category, DifficultyLevel difficulty) {
+  String _generateRecommendationTitle(
+      SkillCategory category, DifficultyLevel difficulty) {
     final titles = {
       SkillCategory.programming: {
         DifficultyLevel.beginner: 'Introduction to Programming Fundamentals',
@@ -165,23 +171,33 @@ class PersonalizedLearningService {
         DifficultyLevel.advanced: 'Mastering Creative Innovation',
       },
     };
-    
+
     return titles[category]?[difficulty] ?? 'Learning Path';
   }
 
-  String _generateRecommendationDescription(SkillCategory category, DifficultyLevel difficulty) {
+  String _generateRecommendationDescription(
+      SkillCategory category, DifficultyLevel difficulty) {
     final descriptions = {
-      SkillCategory.programming: 'Master the art of coding and software development',
-      SkillCategory.dataScience: 'Learn to extract insights from data and make informed decisions',
-      SkillCategory.design: 'Develop your visual and user experience design skills',
-      SkillCategory.business: 'Build essential business acumen and strategic thinking',
-      SkillCategory.marketing: 'Understand how to reach and engage your target audience',
-      SkillCategory.communication: 'Enhance your ability to express ideas clearly and persuasively',
-      SkillCategory.leadership: 'Develop the skills to inspire and guide others effectively',
-      SkillCategory.creativity: 'Cultivate innovative thinking and creative problem-solving',
+      SkillCategory.programming:
+          'Master the art of coding and software development',
+      SkillCategory.dataScience:
+          'Learn to extract insights from data and make informed decisions',
+      SkillCategory.design:
+          'Develop your visual and user experience design skills',
+      SkillCategory.business:
+          'Build essential business acumen and strategic thinking',
+      SkillCategory.marketing:
+          'Understand how to reach and engage your target audience',
+      SkillCategory.communication:
+          'Enhance your ability to express ideas clearly and persuasively',
+      SkillCategory.leadership:
+          'Develop the skills to inspire and guide others effectively',
+      SkillCategory.creativity:
+          'Cultivate innovative thinking and creative problem-solving',
     };
-    
-    return descriptions[category] ?? 'Expand your knowledge and skills in this area';
+
+    return descriptions[category] ??
+        'Expand your knowledge and skills in this area';
   }
 
   ContentType _selectContentType(SkillCategory category) {
@@ -195,13 +211,14 @@ class PersonalizedLearningService {
       SkillCategory.leadership: ContentType.mentoringSession,
       SkillCategory.creativity: ContentType.handsOnProject,
     };
-    
+
     return typeMap[category] ?? ContentType.interactiveCourse;
   }
 
-  List<String> _generateResources(SkillCategory category, DifficultyLevel difficulty) {
+  List<String> _generateResources(
+      SkillCategory category, DifficultyLevel difficulty) {
     final resources = <String>[];
-    
+
     switch (category) {
       case SkillCategory.programming:
         resources.addAll([
@@ -268,12 +285,12 @@ class PersonalizedLearningService {
         ]);
         break;
     }
-    
+
     if (difficulty == DifficultyLevel.advanced) {
       resources.add('Expert consultation');
       resources.add('Advanced certification');
     }
-    
+
     return resources;
   }
 
@@ -288,38 +305,40 @@ class PersonalizedLearningService {
     }
   }
 
-  double _calculateRelevanceScore(List<String> interests, List<String> completedTopics) {
+  double _calculateRelevanceScore(
+      List<String> interests, List<String> completedTopics) {
     double score = 5.0; // Base score
-    
+
     // Increase score based on interests alignment
     if (interests.length > 3) score += 2.0;
     if (interests.length > 5) score += 1.0;
-    
+
     // Decrease score if too many topics already completed
     if (completedTopics.length > 10) score -= 1.0;
     if (completedTopics.length > 20) score -= 1.0;
-    
+
     return score.clamp(1.0, 10.0);
   }
 
-  List<String> _generatePrerequisites(SkillCategory category, DifficultyLevel difficulty) {
+  List<String> _generatePrerequisites(
+      SkillCategory category, DifficultyLevel difficulty) {
     final prerequisites = <String>[];
-    
+
     if (difficulty != DifficultyLevel.beginner) {
       prerequisites.add('Basic understanding of $category concepts');
     }
-    
+
     if (difficulty == DifficultyLevel.advanced) {
       prerequisites.add('Intermediate level knowledge');
       prerequisites.add('Practical experience in related areas');
     }
-    
+
     return prerequisites;
   }
 
   List<String> _generateLearningOutcomes(SkillCategory category) {
     final outcomes = <String>[];
-    
+
     switch (category) {
       case SkillCategory.programming:
         outcomes.addAll([
@@ -378,7 +397,7 @@ class PersonalizedLearningService {
         ]);
         break;
     }
-    
+
     return outcomes;
   }
 
@@ -386,9 +405,10 @@ class PersonalizedLearningService {
     required String recommendationId,
     required String userId,
   }) async {
-    final recommendationIndex = _recommendations.indexWhere((r) => r.id == recommendationId);
+    final recommendationIndex =
+        _recommendations.indexWhere((r) => r.id == recommendationId);
     if (recommendationIndex == -1) return;
-    
+
     final session = LearningSession(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       recommendationId: recommendationId,
@@ -399,91 +419,101 @@ class PersonalizedLearningService {
       notes: '',
       completed: false,
     );
-    
+
     _sessions.insert(0, session);
     _totalSessions++;
-    
+
     // Update recommendation status
     final recommendation = _recommendations[recommendationIndex];
     _recommendations[recommendationIndex] = recommendation.copyWith(
       status: RecommendationStatus.inProgress,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Started learning session: $recommendationId');
+
+    if (kDebugMode)
+      debugPrint(
+          '[PersonalizedLearning] Started learning session: $recommendationId');
   }
 
-  Future<void> updateSessionProgress(String sessionId, int progress, String notes) async {
+  Future<void> updateSessionProgress(
+      String sessionId, int progress, String notes) async {
     final sessionIndex = _sessions.indexWhere((s) => s.id == sessionId);
     if (sessionIndex == -1) return;
-    
+
     final session = _sessions[sessionIndex];
     _sessions[sessionIndex] = session.copyWith(
       progress: progress,
       notes: notes,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Updated session progress: $sessionId');
+
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Updated session progress: $sessionId');
   }
 
   Future<void> completeSession(String sessionId) async {
     final sessionIndex = _sessions.indexWhere((s) => s.id == sessionId);
     if (sessionIndex == -1) return;
-    
+
     final session = _sessions[sessionIndex];
     _sessions[sessionIndex] = session.copyWith(
       endTime: DateTime.now(),
       completed: true,
     );
-    
+
     // Update recommendation status
-    final recommendationIndex = _recommendations.indexWhere((r) => r.id == session.recommendationId);
+    final recommendationIndex =
+        _recommendations.indexWhere((r) => r.id == session.recommendationId);
     if (recommendationIndex != -1) {
       final recommendation = _recommendations[recommendationIndex];
       _recommendations[recommendationIndex] = recommendation.copyWith(
         status: RecommendationStatus.completed,
       );
     }
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Completed session: $sessionId');
+
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Completed session: $sessionId');
   }
 
-  Future<void> addModuleToPathAndComplete(String pathId, String moduleId) async {
+  Future<void> addModuleToPathAndComplete(
+      String pathId, String moduleId) async {
     final pathIndex = _paths.indexWhere((p) => p.id == pathId);
     if (pathIndex == -1) return;
-    
+
     final path = _paths[pathIndex];
     final moduleIndex = path.modules.indexWhere((m) => m.id == moduleId);
     if (moduleIndex == -1) return;
-    
+
     final updatedModules = List<LearningModule>.from(path.modules);
-    updatedModules[moduleIndex] = updatedModules[moduleIndex].copyWith(completed: true);
-    
+    updatedModules[moduleIndex] =
+        updatedModules[moduleIndex].copyWith(completed: true);
+
     final completedModules = updatedModules.where((m) => m.completed).length;
     final progress = (completedModules / updatedModules.length * 100).round();
-    
+
     _paths[pathIndex] = path.copyWith(
       modules: updatedModules,
       progress: progress,
       currentModule: completedModules,
       status: progress >= 100 ? PathStatus.completed : PathStatus.inProgress,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[PersonalizedLearning] Completed module in path: $pathId');
+
+    if (kDebugMode)
+      debugPrint('[PersonalizedLearning] Completed module in path: $pathId');
   }
 
   List<LearningPath> getPathsByCategory(SkillCategory category) {
     return _paths.where((p) => p.category == category).toList();
   }
 
-  List<ContentRecommendation> getRecommendationsByCategory(SkillCategory category) {
+  List<ContentRecommendation> getRecommendationsByCategory(
+      SkillCategory category) {
     return _recommendations.where((r) => r.category == category).toList();
   }
 
@@ -493,27 +523,32 @@ class PersonalizedLearningService {
 
   String getLearningPathRecommendations(String userId) {
     final buffer = StringBuffer();
-    buffer.writeln('🎯 Personalized Learning Path Recommendations for User $userId:');
+    buffer.writeln(
+        '🎯 Personalized Learning Path Recommendations for User $userId:');
     buffer.writeln('');
-    
+
     final pendingRecommendations = _recommendations
-        .where((r) => r.userId == userId && r.status == RecommendationStatus.pending)
+        .where((r) =>
+            r.userId == userId && r.status == RecommendationStatus.pending)
         .toList();
-    
+
     if (pendingRecommendations.isEmpty) {
-      buffer.writeln('No pending recommendations. Generate new ones based on your interests!');
+      buffer.writeln(
+          'No pending recommendations. Generate new ones based on your interests!');
     } else {
       for (final recommendation in pendingRecommendations.take(5)) {
         buffer.writeln('📚 ${recommendation.title}');
         buffer.writeln('   Category: ${recommendation.category.label}');
         buffer.writeln('   Difficulty: ${recommendation.difficulty.label}');
-        buffer.writeln('   Estimated Time: ${recommendation.estimatedTime} minutes');
-        buffer.writeln('   Relevance Score: ${recommendation.relevanceScore.toStringAsFixed(1)}/10');
+        buffer.writeln(
+            '   Estimated Time: ${recommendation.estimatedTime} minutes');
+        buffer.writeln(
+            '   Relevance Score: ${recommendation.relevanceScore.toStringAsFixed(1)}/10');
         buffer.writeln('   Type: ${recommendation.contentType.label}');
         buffer.writeln('');
       }
     }
-    
+
     return buffer.toString();
   }
 
@@ -521,16 +556,16 @@ class PersonalizedLearningService {
     if (_paths.isEmpty && _recommendations.isEmpty) {
       return 'No learning paths or recommendations yet. Start your learning journey!';
     }
-    
-    final inProgressPaths = _paths.where((p) => p.status == PathStatus.inProgress).length;
-    final completedPaths = _paths.where((p) => p.status == PathStatus.completed).length;
+
+    final inProgressPaths =
+        _paths.where((p) => p.status == PathStatus.inProgress).length;
     final activeSessions = getActiveSessions().length;
-    
+
     final byCategory = <SkillCategory, int>{};
     for (final path in _paths) {
       byCategory[path.category] = (byCategory[path.category] ?? 0) + 1;
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🎓 Personalized Learning Insights:');
     buffer.writeln('• Total Learning Paths: $_totalPaths');
@@ -542,7 +577,7 @@ class PersonalizedLearningService {
     for (final entry in byCategory.entries) {
       buffer.writeln('  • ${entry.key.label}: ${entry.value}');
     }
-    
+
     return buffer.toString();
   }
 
@@ -551,7 +586,8 @@ class PersonalizedLearningService {
       final prefs = await SharedPreferences.getInstance();
       final data = {
         'paths': _paths.take(20).map((p) => p.toJson()).toList(),
-        'recommendations': _recommendations.take(50).map((r) => r.toJson()).toList(),
+        'recommendations':
+            _recommendations.take(50).map((r) => r.toJson()).toList(),
         'sessions': _sessions.take(50).map((s) => s.toJson()).toList(),
         'totalPaths': _totalPaths,
         'totalRecommendations': _totalRecommendations,
@@ -567,28 +603,23 @@ class PersonalizedLearningService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _paths.clear();
-        _paths.addAll(
-          (data['paths'] as List<dynamic>? ?? [])
-              .map((p) => LearningPath.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _paths.addAll((data['paths'] as List<dynamic>? ?? [])
+            .map((p) => LearningPath.fromJson(p as Map<String, dynamic>)));
+
         _recommendations.clear();
         _recommendations.addAll(
-          (data['recommendations'] as List<dynamic>? ?? [])
-              .map((r) => ContentRecommendation.fromJson(r as Map<String, dynamic>))
-        );
-        
+            (data['recommendations'] as List<dynamic>? ?? []).map((r) =>
+                ContentRecommendation.fromJson(r as Map<String, dynamic>)));
+
         _sessions.clear();
-        _sessions.addAll(
-          (data['sessions'] as List<dynamic>? ?? [])
-              .map((s) => LearningSession.fromJson(s as Map<String, dynamic>))
-        );
-        
+        _sessions.addAll((data['sessions'] as List<dynamic>? ?? [])
+            .map((s) => LearningSession.fromJson(s as Map<String, dynamic>)));
+
         _totalPaths = data['totalPaths'] as int? ?? 0;
         _totalRecommendations = data['totalRecommendations'] as int? ?? 0;
         _totalSessions = data['totalSessions'] as int? ?? 0;
@@ -654,47 +685,47 @@ class LearningPath {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'category': category.name,
-    'difficulty': difficulty.name,
-    'estimatedHours': estimatedHours,
-    'topics': topics,
-    'prerequisites': prerequisites,
-    'modules': modules.map((m) => m.toJson()).toList(),
-    'status': status.name,
-    'progress': progress,
-    'currentModule': currentModule,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'category': category.name,
+        'difficulty': difficulty.name,
+        'estimatedHours': estimatedHours,
+        'topics': topics,
+        'prerequisites': prerequisites,
+        'modules': modules.map((m) => m.toJson()).toList(),
+        'status': status.name,
+        'progress': progress,
+        'currentModule': currentModule,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory LearningPath.fromJson(Map<String, dynamic> json) => LearningPath(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    category: SkillCategory.values.firstWhere(
-      (e) => e.name == json['category'],
-      orElse: () => SkillCategory.communication,
-    ),
-    difficulty: DifficultyLevel.values.firstWhere(
-      (e) => e.name == json['difficulty'],
-      orElse: () => DifficultyLevel.beginner,
-    ),
-    estimatedHours: json['estimatedHours'],
-    topics: List<String>.from(json['topics'] ?? []),
-    prerequisites: List<String>.from(json['prerequisites'] ?? []),
-    modules: (json['modules'] as List<dynamic>? ?? [])
-        .map((m) => LearningModule.fromJson(m as Map<String, dynamic>))
-        .toList(),
-    status: PathStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => PathStatus.notStarted,
-    ),
-    progress: json['progress'] ?? 0,
-    currentModule: json['currentModule'] ?? 0,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        category: SkillCategory.values.firstWhere(
+          (e) => e.name == json['category'],
+          orElse: () => SkillCategory.communication,
+        ),
+        difficulty: DifficultyLevel.values.firstWhere(
+          (e) => e.name == json['difficulty'],
+          orElse: () => DifficultyLevel.beginner,
+        ),
+        estimatedHours: json['estimatedHours'],
+        topics: List<String>.from(json['topics'] ?? []),
+        prerequisites: List<String>.from(json['prerequisites'] ?? []),
+        modules: (json['modules'] as List<dynamic>? ?? [])
+            .map((m) => LearningModule.fromJson(m as Map<String, dynamic>))
+            .toList(),
+        status: PathStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => PathStatus.notStarted,
+        ),
+        progress: json['progress'] ?? 0,
+        currentModule: json['currentModule'] ?? 0,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class LearningModule {
@@ -731,24 +762,24 @@ class LearningModule {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'resources': resources,
-    'estimatedMinutes': estimatedMinutes,
-    'completed': completed,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'resources': resources,
+        'estimatedMinutes': estimatedMinutes,
+        'completed': completed,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory LearningModule.fromJson(Map<String, dynamic> json) => LearningModule(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    resources: List<String>.from(json['resources'] ?? []),
-    estimatedMinutes: json['estimatedMinutes'],
-    completed: json['completed'] ?? false,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        resources: List<String>.from(json['resources'] ?? []),
+        estimatedMinutes: json['estimatedMinutes'],
+        completed: json['completed'] ?? false,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class ContentRecommendation {
@@ -806,50 +837,51 @@ class ContentRecommendation {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'userId': userId,
-    'category': category.name,
-    'difficulty': difficulty.name,
-    'title': title,
-    'description': description,
-    'contentType': contentType.name,
-    'resources': resources,
-    'estimatedTime': estimatedTime,
-    'relevanceScore': relevanceScore,
-    'prerequisites': prerequisites,
-    'learningOutcomes': learningOutcomes,
-    'status': status.name,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'userId': userId,
+        'category': category.name,
+        'difficulty': difficulty.name,
+        'title': title,
+        'description': description,
+        'contentType': contentType.name,
+        'resources': resources,
+        'estimatedTime': estimatedTime,
+        'relevanceScore': relevanceScore,
+        'prerequisites': prerequisites,
+        'learningOutcomes': learningOutcomes,
+        'status': status.name,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
-  factory ContentRecommendation.fromJson(Map<String, dynamic> json) => ContentRecommendation(
-    id: json['id'],
-    userId: json['userId'],
-    category: SkillCategory.values.firstWhere(
-      (e) => e.name == json['category'],
-      orElse: () => SkillCategory.communication,
-    ),
-    difficulty: DifficultyLevel.values.firstWhere(
-      (e) => e.name == json['difficulty'],
-      orElse: () => DifficultyLevel.beginner,
-    ),
-    title: json['title'],
-    description: json['description'],
-    contentType: ContentType.values.firstWhere(
-      (e) => e.name == json['contentType'],
-      orElse: () => ContentType.interactiveCourse,
-    ),
-    resources: List<String>.from(json['resources'] ?? []),
-    estimatedTime: json['estimatedTime'],
-    relevanceScore: (json['relevanceScore'] as num).toDouble(),
-    prerequisites: List<String>.from(json['prerequisites'] ?? []),
-    learningOutcomes: List<String>.from(json['learningOutcomes'] ?? []),
-    status: RecommendationStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => RecommendationStatus.pending,
-    ),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+  factory ContentRecommendation.fromJson(Map<String, dynamic> json) =>
+      ContentRecommendation(
+        id: json['id'],
+        userId: json['userId'],
+        category: SkillCategory.values.firstWhere(
+          (e) => e.name == json['category'],
+          orElse: () => SkillCategory.communication,
+        ),
+        difficulty: DifficultyLevel.values.firstWhere(
+          (e) => e.name == json['difficulty'],
+          orElse: () => DifficultyLevel.beginner,
+        ),
+        title: json['title'],
+        description: json['description'],
+        contentType: ContentType.values.firstWhere(
+          (e) => e.name == json['contentType'],
+          orElse: () => ContentType.interactiveCourse,
+        ),
+        resources: List<String>.from(json['resources'] ?? []),
+        estimatedTime: json['estimatedTime'],
+        relevanceScore: (json['relevanceScore'] as num).toDouble(),
+        prerequisites: List<String>.from(json['prerequisites'] ?? []),
+        learningOutcomes: List<String>.from(json['learningOutcomes'] ?? []),
+        status: RecommendationStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => RecommendationStatus.pending,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class LearningSession {
@@ -892,26 +924,28 @@ class LearningSession {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'recommendationId': recommendationId,
-    'userId': userId,
-    'startTime': startTime.toIso8601String(),
-    'endTime': endTime?.toIso8601String(),
-    'progress': progress,
-    'notes': notes,
-    'completed': completed,
-  };
+        'id': id,
+        'recommendationId': recommendationId,
+        'userId': userId,
+        'startTime': startTime.toIso8601String(),
+        'endTime': endTime?.toIso8601String(),
+        'progress': progress,
+        'notes': notes,
+        'completed': completed,
+      };
 
-  factory LearningSession.fromJson(Map<String, dynamic> json) => LearningSession(
-    id: json['id'],
-    recommendationId: json['recommendationId'],
-    userId: json['userId'],
-    startTime: DateTime.parse(json['startTime']),
-    endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
-    progress: json['progress'],
-    notes: json['notes'] ?? '',
-    completed: json['completed'] ?? false,
-  );
+  factory LearningSession.fromJson(Map<String, dynamic> json) =>
+      LearningSession(
+        id: json['id'],
+        recommendationId: json['recommendationId'],
+        userId: json['userId'],
+        startTime: DateTime.parse(json['startTime']),
+        endTime:
+            json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
+        progress: json['progress'],
+        notes: json['notes'] ?? '',
+        completed: json['completed'] ?? false,
+      );
 }
 
 enum SkillCategory {
@@ -923,7 +957,7 @@ enum SkillCategory {
   communication('Communication'),
   leadership('Leadership'),
   creativity('Creativity');
-  
+
   final String label;
   const SkillCategory(this.label);
 }
@@ -932,7 +966,7 @@ enum DifficultyLevel {
   beginner('Beginner'),
   intermediate('Intermediate'),
   advanced('Advanced');
-  
+
   final String label;
   const DifficultyLevel(this.label);
 }
@@ -946,7 +980,7 @@ enum ContentType {
   caseStudy('Case Study'),
   workshop('Workshop'),
   mentoringSession('Mentoring Session');
-  
+
   final String label;
   const ContentType(this.label);
 }

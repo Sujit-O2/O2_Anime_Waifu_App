@@ -4,20 +4,20 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🔔 Smart Notification Bundling Service
-/// 
+///
 /// Groups proactive messages by urgency.
 /// "3 check-ins waiting" instead of spam.
 /// Swipe to reply directly from notification.
 class SmartNotificationBundlingService {
   SmartNotificationBundlingService._();
-  static final SmartNotificationBundlingService instance = SmartNotificationBundlingService._();
+  static final SmartNotificationBundlingService instance =
+      SmartNotificationBundlingService._();
 
   final List<PendingNotification> _pendingNotifications = [];
   Timer? _bundleTimer;
-  
+
   static const String _storageKey = 'notification_bundles_v1';
   static const Duration _bundleDelay = Duration(minutes: 5);
-  static const int _maxBundleSize = 10;
 
   Future<void> initialize() async {
     await _loadPending();
@@ -53,7 +53,8 @@ class SmartNotificationBundlingService {
       await _savePending();
     }
 
-    if (kDebugMode) debugPrint('[NotificationBundle] Queued: ${notification.title}');
+    if (kDebugMode)
+      debugPrint('[NotificationBundle] Queued: ${notification.title}');
   }
 
   /// Start bundle timer
@@ -68,7 +69,7 @@ class SmartNotificationBundlingService {
 
     // Group by type
     final bundles = <NotificationType, List<PendingNotification>>{};
-    
+
     for (final notification in _pendingNotifications) {
       bundles.putIfAbsent(notification.type, () => []).add(notification);
     }
@@ -98,7 +99,7 @@ class SmartNotificationBundlingService {
     if (kDebugMode) {
       debugPrint('[NotificationBundle] Sending: ${notification.title}');
     }
-    
+
     // TODO: Implement actual notification sending
     // await FlutterLocalNotificationsPlugin().show(...)
   }
@@ -110,7 +111,6 @@ class SmartNotificationBundlingService {
   ) async {
     final count = notifications.length;
     final title = _getBundleTitle(type, count);
-    final message = _getBundleMessage(type, notifications);
 
     if (kDebugMode) {
       debugPrint('[NotificationBundle] Sending bundle: $title ($count items)');
@@ -142,18 +142,19 @@ class SmartNotificationBundlingService {
     }
   }
 
-  String _getBundleMessage(NotificationType type, List<PendingNotification> notifications) {
+  String _getBundleMessage(
+      NotificationType type, List<PendingNotification> notifications) {
     if (notifications.length == 1) {
       return notifications.first.message;
     }
 
     final preview = notifications.take(2).map((n) => n.message).join(', ');
     final remaining = notifications.length - 2;
-    
+
     if (remaining > 0) {
       return '$preview, and $remaining more...';
     }
-    
+
     return preview;
   }
 
@@ -189,14 +190,15 @@ class SmartNotificationBundlingService {
 
     for (final notification in _pendingNotifications) {
       typeCounts[notification.type] = (typeCounts[notification.type] ?? 0) + 1;
-      priorityCounts[notification.priority] = (priorityCounts[notification.priority] ?? 0) + 1;
+      priorityCounts[notification.priority] =
+          (priorityCounts[notification.priority] ?? 0) + 1;
     }
 
     return {
       'total_pending': _pendingNotifications.length,
       'by_type': typeCounts.map((k, v) => MapEntry(k.name, v)),
       'by_priority': priorityCounts.map((k, v) => MapEntry(k.name, v)),
-      'oldest_pending': _pendingNotifications.isNotEmpty 
+      'oldest_pending': _pendingNotifications.isNotEmpty
           ? _pendingNotifications.last.timestamp.toIso8601String()
           : null,
     };
@@ -216,13 +218,12 @@ class SmartNotificationBundlingService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final jsonList = jsonDecode(jsonString) as List<dynamic>;
         _pendingNotifications.clear();
-        _pendingNotifications.addAll(
-          jsonList.map((json) => PendingNotification.fromJson(json as Map<String, dynamic>))
-        );
+        _pendingNotifications.addAll(jsonList.map((json) =>
+            PendingNotification.fromJson(json as Map<String, dynamic>)));
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[NotificationBundle] Load error: $e');
@@ -254,30 +255,31 @@ class PendingNotification {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'message': message,
-    'priority': priority.name,
-    'type': type.name,
-    'data': data,
-    'timestamp': timestamp.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'message': message,
+        'priority': priority.name,
+        'type': type.name,
+        'data': data,
+        'timestamp': timestamp.toIso8601String(),
+      };
 
-  factory PendingNotification.fromJson(Map<String, dynamic> json) => PendingNotification(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    message: json['message'] as String,
-    priority: NotificationPriority.values.firstWhere(
-      (e) => e.name == json['priority'],
-      orElse: () => NotificationPriority.normal,
-    ),
-    type: NotificationType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => NotificationType.general,
-    ),
-    data: json['data'] as Map<String, dynamic>?,
-    timestamp: DateTime.parse(json['timestamp'] as String),
-  );
+  factory PendingNotification.fromJson(Map<String, dynamic> json) =>
+      PendingNotification(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        message: json['message'] as String,
+        priority: NotificationPriority.values.firstWhere(
+          (e) => e.name == json['priority'],
+          orElse: () => NotificationPriority.normal,
+        ),
+        type: NotificationType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => NotificationType.general,
+        ),
+        data: json['data'] as Map<String, dynamic>?,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+      );
 }
 
 enum NotificationPriority {

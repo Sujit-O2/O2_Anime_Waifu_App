@@ -75,9 +75,7 @@ class PremiumChatBubble extends StatelessWidget {
                         width: 2,
                       )
                     : Border.all(
-                        color: isUser
-                            ? Colors.transparent
-                            : tokens.outline,
+                        color: isUser ? Colors.transparent : tokens.outline,
                       ),
                 boxShadow: [
                   BoxShadow(
@@ -207,8 +205,8 @@ class PremiumChatBubble extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       height: 200,
                       color: Colors.grey[800],
-                      child:
-                          const Icon(Icons.error_outline, color: Colors.white54),
+                      child: const Icon(Icons.error_outline,
+                          color: Colors.white54),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -301,7 +299,8 @@ class _PremiumTypingIndicatorState extends State<PremiumTypingIndicator>
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: tokens.textMuted.withValues(alpha: 0.3 + opacity * 0.7),
+                    color:
+                        tokens.textMuted.withValues(alpha: 0.3 + opacity * 0.7),
                   ),
                 );
               },
@@ -326,7 +325,6 @@ class QuickReplyChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final tokens = context.appTokens;
 
     if (replies.isEmpty) return const SizedBox.shrink();
 

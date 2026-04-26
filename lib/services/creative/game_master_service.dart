@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎮 Game Master Mode Service
-/// 
+///
 /// For tabletop RPGs - generate NPCs, plot twists, and world-building elements.
 class GameMasterService {
   GameMasterService._();
@@ -13,16 +13,16 @@ class GameMasterService {
   final List<NPC> _npcs = [];
   final List<PlotTwist> _plotTwists = [];
   final List<WorldElement> _worldElements = [];
-  
+
   int _totalCampaigns = 0;
   int _totalNPCs = 0;
-  
+
   static const String _storageKey = 'game_master_v1';
-  static const int _maxCampaigns = 50;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[GameMaster] Initialized with $_totalCampaigns campaigns');
+    if (kDebugMode)
+      debugPrint('[GameMaster] Initialized with $_totalCampaigns campaigns');
   }
 
   Future<RPGCampaign> createCampaign({
@@ -51,12 +51,12 @@ class GameMasterService {
       themes: [],
       createdAt: DateTime.now(),
     );
-    
+
     _campaigns.insert(0, campaign);
     _totalCampaigns++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Created campaign: $title');
     return campaign;
   }
@@ -84,10 +84,10 @@ class GameMasterService {
       dialogueStyle: _generateDialogueStyle(personality),
       createdAt: DateTime.now(),
     );
-    
+
     _npcs.insert(0, npc);
     _totalNPCs++;
-    
+
     // Add to campaign
     final campaignIndex = _campaigns.indexWhere((c) => c.id == campaignId);
     if (campaignIndex != -1) {
@@ -96,45 +96,49 @@ class GameMasterService {
         npcs: [...campaign.npcs, npc.id],
       );
     }
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Generated NPC: $name');
     return npc;
   }
 
   String _generateDialogueStyle(String personality) {
     final styles = <String>[];
-    
-    if (personality.toLowerCase().contains('friendly') || personality.toLowerCase().contains('warm')) {
+
+    if (personality.toLowerCase().contains('friendly') ||
+        personality.toLowerCase().contains('warm')) {
       styles.add('Uses welcoming language and exclamations');
       styles.add('Asks questions to engage others');
       styles.add('Shares personal anecdotes');
     }
-    
-    if (personality.toLowerCase().contains('serious') || personality.toLowerCase().contains('stoic')) {
+
+    if (personality.toLowerCase().contains('serious') ||
+        personality.toLowerCase().contains('stoic')) {
       styles.add('Speaks in measured, deliberate tones');
       styles.add('Prefers facts over emotions');
       styles.add('Uses formal language');
     }
-    
-    if (personality.toLowerCase().contains('chaotic') || personality.toLowerCase().contains('unpredictable')) {
+
+    if (personality.toLowerCase().contains('chaotic') ||
+        personality.toLowerCase().contains('unpredictable')) {
       styles.add('Talks in riddles or metaphors');
       styles.add('Changes topics suddenly');
       styles.add('Uses dramatic pauses');
     }
-    
-    if (personality.toLowerCase().contains('wise') || personality.toLowerCase().contains('sage')) {
+
+    if (personality.toLowerCase().contains('wise') ||
+        personality.toLowerCase().contains('sage')) {
       styles.add('Speaks in parables and analogies');
       styles.add('Offers cryptic advice');
       styles.add('References ancient wisdom');
     }
-    
+
     if (styles.isEmpty) {
       styles.add('Converses naturally with varied tone');
       styles.add('Adapts to conversation context');
     }
-    
+
     return styles.join('\n');
   }
 
@@ -157,9 +161,9 @@ class GameMasterService {
       revealed: false,
       createdAt: DateTime.now(),
     );
-    
+
     _plotTwists.insert(0, twist);
-    
+
     // Add to campaign
     final campaignIndex = _campaigns.indexWhere((c) => c.id == campaignId);
     if (campaignIndex != -1) {
@@ -168,9 +172,9 @@ class GameMasterService {
         plotTwists: [...campaign.plotTwists, twist.id],
       );
     }
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Generated plot twist: $title');
     return twist;
   }
@@ -196,9 +200,9 @@ class GameMasterService {
       discovered: false,
       createdAt: DateTime.now(),
     );
-    
+
     _worldElements.insert(0, element);
-    
+
     // Add to campaign
     final campaignIndex = _campaigns.indexWhere((c) => c.id == campaignId);
     if (campaignIndex != -1) {
@@ -207,17 +211,18 @@ class GameMasterService {
         worldElements: [...campaign.worldElements, element.id],
       );
     }
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Generated world element: $name');
     return element;
   }
 
-  Future<void> addSession(String campaignId, String title, String description) async {
+  Future<void> addSession(
+      String campaignId, String title, String description) async {
     final campaignIndex = _campaigns.indexWhere((c) => c.id == campaignId);
     if (campaignIndex == -1) return;
-    
+
     final session = CampaignSession(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
@@ -227,41 +232,42 @@ class GameMasterService {
       notes: '',
       events: [],
     );
-    
+
     final campaign = _campaigns[campaignIndex];
     _campaigns[campaignIndex] = campaign.copyWith(
       sessions: [...campaign.sessions, session.id],
       currentSession: campaign.sessions.length + 1,
       status: CampaignStatus.inProgress,
     );
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Added session: $title');
   }
 
   Future<void> revealPlotTwist(String twistId) async {
     final twistIndex = _plotTwists.indexWhere((t) => t.id == twistId);
     if (twistIndex == -1) return;
-    
+
     final twist = _plotTwists[twistIndex];
     _plotTwists[twistIndex] = twist.copyWith(revealed: true);
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[GameMaster] Revealed plot twist: $twistId');
   }
 
   Future<void> discoverWorldElement(String elementId) async {
     final elementIndex = _worldElements.indexWhere((e) => e.id == elementId);
     if (elementIndex == -1) return;
-    
+
     final element = _worldElements[elementIndex];
     _worldElements[elementIndex] = element.copyWith(discovered: true);
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[GameMaster] Discovered world element: $elementId');
+
+    if (kDebugMode)
+      debugPrint('[GameMaster] Discovered world element: $elementId');
   }
 
   String generateRandomEncounter({
@@ -269,7 +275,7 @@ class GameMasterService {
     required DifficultyLevel difficulty,
   }) {
     final encounters = <String>[];
-    
+
     switch (genre) {
       case RPGGenre.fantasy:
         encounters.addAll([
@@ -317,9 +323,10 @@ class GameMasterService {
         ]);
         break;
     }
-    
-    final baseEncounter = encounters[DateTime.now().millisecondsSinceEpoch % encounters.length];
-    
+
+    final baseEncounter =
+        encounters[DateTime.now().millisecondsSinceEpoch % encounters.length];
+
     switch (difficulty) {
       case DifficultyLevel.easy:
         return '🌟 Simple Encounter:\n$baseEncounter\n\nThe threat is manageable with careful planning.';
@@ -334,10 +341,10 @@ class GameMasterService {
 
   String generateNPCDialogue(NPC npc, String situation) {
     final dialogue = <String>[];
-    
+
     dialogue.add('"${npc.name} says, adapting their tone to the situation:"');
     dialogue.add('');
-    
+
     switch (situation.toLowerCase()) {
       case 'greeting':
         dialogue.add(_generateGreeting(npc));
@@ -357,17 +364,17 @@ class GameMasterService {
       default:
         dialogue.add(_generateGenericResponse(npc));
     }
-    
+
     dialogue.add('');
     dialogue.add('Dialogue Style:');
     dialogue.add(npc.dialogueStyle);
-    
+
     return dialogue.join('\n');
   }
 
   String _generateGreeting(NPC npc) {
     final greetings = <String>[];
-    
+
     if (npc.role == NPCRole.ally) {
       greetings.add('"It\'s good to see you again, friend!"');
       greetings.add('"I was hoping you\'d come by today."');
@@ -376,18 +383,19 @@ class GameMasterService {
       greetings.add('"I have just the thing you\'ve been searching for."');
     } else if (npc.role == NPCRole.villain) {
       greetings.add('"Ah, so you\'ve finally arrived. I expected you sooner."');
-      greetings.add('"We meet again, though not under the best circumstances."');
+      greetings
+          .add('"We meet again, though not under the best circumstances."');
     } else {
       greetings.add('"Greetings, traveler. What brings you to these parts?"');
       greetings.add('"It\'s not often we see strangers in these lands."');
     }
-    
+
     return greetings[DateTime.now().millisecondsSinceEpoch % greetings.length];
   }
 
   String _generateThreat(NPC npc) {
     final threats = <String>[];
-    
+
     if (npc.role == NPCRole.villain) {
       threats.add('"You dare challenge me? You\'ll regret this decision."');
       threats.add('"I\'ve been expecting someone foolish enough to try."');
@@ -396,48 +404,52 @@ class GameMasterService {
       threats.add('"You should reconsider before things get ugly."');
     } else {
       threats.add('"Please, let\'s not do this. There must be another way."');
-      threats.add('"I don\'t want to fight, but I will defend myself if I must."');
+      threats
+          .add('"I don\'t want to fight, but I will defend myself if I must."');
     }
-    
+
     return threats[DateTime.now().millisecondsSinceEpoch % threats.length];
   }
 
   String _generateRequest(NPC npc) {
     final requests = <String>[];
-    
+
     if (npc.role == NPCRole.questGiver) {
-      requests.add('"There\'s a task that needs doing, and I think you\'re the one for it."');
-      requests.add('"I have a proposition that could benefit us both greatly."');
+      requests.add(
+          '"There\'s a task that needs doing, and I think you\'re the one for it."');
+      requests
+          .add('"I have a proposition that could benefit us both greatly."');
     } else if (npc.role == NPCRole.informant) {
       requests.add('"I have information you need, but it comes at a price."');
       requests.add('"I know things, but sharing knowledge requires trust."');
     } else {
-      requests.add('"Could you help me with something? I\'m in a bit of a bind."');
+      requests
+          .add('"Could you help me with something? I\'m in a bit of a bind."');
       requests.add('"There\'s something I need, but I can\'t get it myself."');
     }
-    
+
     return requests[DateTime.now().millisecondsSinceEpoch % requests.length];
   }
 
   String _generateSecret(NPC npc) {
     final secrets = <String>[];
-    
+
     if (npc.secrets.isNotEmpty) {
       secrets.add('"Between us, ${npc.secrets.first}"');
     }
-    
+
     secrets.addAll([
       '"I shouldn\'t be telling you this, but..."',
       '"This stays between us, understood?"',
       '"I\'m taking a risk sharing this with you..."',
     ]);
-    
+
     return secrets[DateTime.now().millisecondsSinceEpoch % secrets.length];
   }
 
   String _generateFarewell(NPC npc) {
     final farewells = <String>[];
-    
+
     if (npc.role == NPCRole.ally) {
       farewells.add('"Stay safe out there, friend. We\'ll meet again."');
       farewells.add('"May fortune favor you until our paths cross again."');
@@ -448,18 +460,18 @@ class GameMasterService {
       farewells.add('"Safe travels, and may your journey be prosperous."');
       farewells.add('"Take care, and don\'t be a stranger."');
     }
-    
+
     return farewells[DateTime.now().millisecondsSinceEpoch % farewells.length];
   }
 
   String _generateGenericResponse(NPC npc) {
     final responses = <String>[];
-    
+
     responses.add('"That\'s an interesting point you raise."');
     responses.add('"I see what you mean, but have you considered..."');
     responses.add('"Let me think about that for a moment."');
     responses.add('"That reminds me of something that happened long ago..."');
-    
+
     return responses[DateTime.now().millisecondsSinceEpoch % responses.length];
   }
 
@@ -469,7 +481,7 @@ class GameMasterService {
     required int playerCount,
   }) {
     final ideas = <String>[];
-    
+
     switch (genre) {
       case RPGGenre.fantasy:
         ideas.addAll([
@@ -517,13 +529,17 @@ class GameMasterService {
         ]);
         break;
     }
-    
-    final difficultyMod = difficulty == DifficultyLevel.easy ? 'Beginner-Friendly' :
-                         difficulty == DifficultyLevel.medium ? 'Moderate Challenge' :
-                         difficulty == DifficultyLevel.hard ? 'Experienced Players' : 'Veterans Only';
-    
-    return '🎲 Campaign Ideas (${genre.name} - $difficultyMod, $playerCount players):\n' + 
-           ideas.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n');
+
+    final difficultyMod = difficulty == DifficultyLevel.easy
+        ? 'Beginner-Friendly'
+        : difficulty == DifficultyLevel.medium
+            ? 'Moderate Challenge'
+            : difficulty == DifficultyLevel.hard
+                ? 'Experienced Players'
+                : 'Veterans Only';
+
+    return '🎲 Campaign Ideas (${genre.name} - $difficultyMod, $playerCount players):\n' +
+        ideas.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n');
   }
 
   String getGMAdvice() {
@@ -539,7 +555,7 @@ class GameMasterService {
       '🎲 Remember that dice are tools, not dictators',
       '✨ Make failure interesting, not just frustrating',
     ];
-    
+
     return '🎮 Game Master Advice:\n' + advice.map((a) => '• $a').join('\n');
   }
 
@@ -547,15 +563,15 @@ class GameMasterService {
     if (_campaigns.isEmpty) {
       return 'No campaigns created yet. Start your first RPG adventure!';
     }
-    
-    final active = _campaigns.where((c) => c.status == CampaignStatus.inProgress).length;
-    const completed = 0; // Would calculate from completed campaigns
-    
+
+    final active =
+        _campaigns.where((c) => c.status == CampaignStatus.inProgress).length;
+
     final byGenre = <RPGGenre, int>{};
     for (final campaign in _campaigns) {
       byGenre[campaign.genre] = (byGenre[campaign.genre] ?? 0) + 1;
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🎲 Game Master Insights:');
     buffer.writeln('• Total Campaigns: $_totalCampaigns');
@@ -568,7 +584,7 @@ class GameMasterService {
     for (final entry in byGenre.entries) {
       buffer.writeln('  • ${entry.key.name}: ${entry.value}');
     }
-    
+
     return buffer.toString();
   }
 
@@ -579,7 +595,8 @@ class GameMasterService {
         'campaigns': _campaigns.take(20).map((c) => c.toJson()).toList(),
         'npcs': _npcs.take(100).map((n) => n.toJson()).toList(),
         'plotTwists': _plotTwists.take(50).map((p) => p.toJson()).toList(),
-        'worldElements': _worldElements.take(50).map((w) => w.toJson()).toList(),
+        'worldElements':
+            _worldElements.take(50).map((w) => w.toJson()).toList(),
         'totalCampaigns': _totalCampaigns,
         'totalNPCs': _totalNPCs,
       };
@@ -593,34 +610,26 @@ class GameMasterService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _campaigns.clear();
-        _campaigns.addAll(
-          (data['campaigns'] as List<dynamic>? ?? [])
-              .map((c) => RPGCampaign.fromJson(c as Map<String, dynamic>))
-        );
-        
+        _campaigns.addAll((data['campaigns'] as List<dynamic>? ?? [])
+            .map((c) => RPGCampaign.fromJson(c as Map<String, dynamic>)));
+
         _npcs.clear();
-        _npcs.addAll(
-          (data['npcs'] as List<dynamic>? ?? [])
-              .map((n) => NPC.fromJson(n as Map<String, dynamic>))
-        );
-        
+        _npcs.addAll((data['npcs'] as List<dynamic>? ?? [])
+            .map((n) => NPC.fromJson(n as Map<String, dynamic>)));
+
         _plotTwists.clear();
-        _plotTwists.addAll(
-          (data['plotTwists'] as List<dynamic>? ?? [])
-              .map((p) => PlotTwist.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _plotTwists.addAll((data['plotTwists'] as List<dynamic>? ?? [])
+            .map((p) => PlotTwist.fromJson(p as Map<String, dynamic>)));
+
         _worldElements.clear();
-        _worldElements.addAll(
-          (data['worldElements'] as List<dynamic>? ?? [])
-              .map((w) => WorldElement.fromJson(w as Map<String, dynamic>))
-        );
-        
+        _worldElements.addAll((data['worldElements'] as List<dynamic>? ?? [])
+            .map((w) => WorldElement.fromJson(w as Map<String, dynamic>)));
+
         _totalCampaigns = data['totalCampaigns'] as int? ?? 0;
         _totalNPCs = data['totalNPCs'] as int? ?? 0;
       }
@@ -698,51 +707,51 @@ class RPGCampaign {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'genre': genre.name,
-    'description': description,
-    'setting': setting,
-    'playerCount': playerCount,
-    'difficulty': difficulty.name,
-    'status': status.name,
-    'sessions': sessions,
-    'npcs': npcs,
-    'plotTwists': plotTwists,
-    'worldElements': worldElements,
-    'currentSession': currentSession,
-    'mainPlot': mainPlot,
-    'themes': themes,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'genre': genre.name,
+        'description': description,
+        'setting': setting,
+        'playerCount': playerCount,
+        'difficulty': difficulty.name,
+        'status': status.name,
+        'sessions': sessions,
+        'npcs': npcs,
+        'plotTwists': plotTwists,
+        'worldElements': worldElements,
+        'currentSession': currentSession,
+        'mainPlot': mainPlot,
+        'themes': themes,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory RPGCampaign.fromJson(Map<String, dynamic> json) => RPGCampaign(
-    id: json['id'],
-    title: json['title'],
-    genre: RPGGenre.values.firstWhere(
-      (e) => e.name == json['genre'],
-      orElse: () => RPGGenre.fantasy,
-    ),
-    description: json['description'],
-    setting: json['setting'],
-    playerCount: json['playerCount'],
-    difficulty: DifficultyLevel.values.firstWhere(
-      (e) => e.name == json['difficulty'],
-      orElse: () => DifficultyLevel.medium,
-    ),
-    status: CampaignStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => CampaignStatus.planning,
-    ),
-    sessions: List<String>.from(json['sessions'] ?? []),
-    npcs: List<String>.from(json['npcs'] ?? []),
-    plotTwists: List<String>.from(json['plotTwists'] ?? []),
-    worldElements: List<String>.from(json['worldElements'] ?? []),
-    currentSession: json['currentSession'] ?? 0,
-    mainPlot: json['mainPlot'] ?? '',
-    themes: List<String>.from(json['themes'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        genre: RPGGenre.values.firstWhere(
+          (e) => e.name == json['genre'],
+          orElse: () => RPGGenre.fantasy,
+        ),
+        description: json['description'],
+        setting: json['setting'],
+        playerCount: json['playerCount'],
+        difficulty: DifficultyLevel.values.firstWhere(
+          (e) => e.name == json['difficulty'],
+          orElse: () => DifficultyLevel.medium,
+        ),
+        status: CampaignStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => CampaignStatus.planning,
+        ),
+        sessions: List<String>.from(json['sessions'] ?? []),
+        npcs: List<String>.from(json['npcs'] ?? []),
+        plotTwists: List<String>.from(json['plotTwists'] ?? []),
+        worldElements: List<String>.from(json['worldElements'] ?? []),
+        currentSession: json['currentSession'] ?? 0,
+        mainPlot: json['mainPlot'] ?? '',
+        themes: List<String>.from(json['themes'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class NPC {
@@ -773,35 +782,35 @@ class NPC {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'campaignId': campaignId,
-    'name': name,
-    'role': role.name,
-    'description': description,
-    'personality': personality,
-    'motivations': motivations,
-    'secrets': secrets,
-    'relationships': relationships,
-    'dialogueStyle': dialogueStyle,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'campaignId': campaignId,
+        'name': name,
+        'role': role.name,
+        'description': description,
+        'personality': personality,
+        'motivations': motivations,
+        'secrets': secrets,
+        'relationships': relationships,
+        'dialogueStyle': dialogueStyle,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory NPC.fromJson(Map<String, dynamic> json) => NPC(
-    id: json['id'],
-    campaignId: json['campaignId'],
-    name: json['name'],
-    role: NPCRole.values.firstWhere(
-      (e) => e.name == json['role'],
-      orElse: () => NPCRole.neutral,
-    ),
-    description: json['description'],
-    personality: json['personality'],
-    motivations: List<String>.from(json['motivations'] ?? []),
-    secrets: List<String>.from(json['secrets'] ?? []),
-    relationships: json['relationships'],
-    dialogueStyle: json['dialogueStyle'] ?? '',
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        campaignId: json['campaignId'],
+        name: json['name'],
+        role: NPCRole.values.firstWhere(
+          (e) => e.name == json['role'],
+          orElse: () => NPCRole.neutral,
+        ),
+        description: json['description'],
+        personality: json['personality'],
+        motivations: List<String>.from(json['motivations'] ?? []),
+        secrets: List<String>.from(json['secrets'] ?? []),
+        relationships: json['relationships'],
+        dialogueStyle: json['dialogueStyle'] ?? '',
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class PlotTwist {
@@ -844,31 +853,31 @@ class PlotTwist {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'campaignId': campaignId,
-    'title': title,
-    'description': description,
-    'type': type.name,
-    'sessionHint': sessionHint,
-    'foreshadowing': foreshadowing,
-    'revealed': revealed,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'campaignId': campaignId,
+        'title': title,
+        'description': description,
+        'type': type.name,
+        'sessionHint': sessionHint,
+        'foreshadowing': foreshadowing,
+        'revealed': revealed,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory PlotTwist.fromJson(Map<String, dynamic> json) => PlotTwist(
-    id: json['id'],
-    campaignId: json['campaignId'],
-    title: json['title'],
-    description: json['description'],
-    type: TwistType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => TwistType.betrayal,
-    ),
-    sessionHint: json['sessionHint'],
-    foreshadowing: json['foreshadowing'] ?? '',
-    revealed: json['revealed'] ?? false,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        campaignId: json['campaignId'],
+        title: json['title'],
+        description: json['description'],
+        type: TwistType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => TwistType.betrayal,
+        ),
+        sessionHint: json['sessionHint'],
+        foreshadowing: json['foreshadowing'] ?? '',
+        revealed: json['revealed'] ?? false,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class WorldElement {
@@ -914,33 +923,33 @@ class WorldElement {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'campaignId': campaignId,
-    'name': name,
-    'type': type.name,
-    'description': description,
-    'significance': significance,
-    'locations': locations,
-    'lore': lore,
-    'discovered': discovered,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'campaignId': campaignId,
+        'name': name,
+        'type': type.name,
+        'description': description,
+        'significance': significance,
+        'locations': locations,
+        'lore': lore,
+        'discovered': discovered,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory WorldElement.fromJson(Map<String, dynamic> json) => WorldElement(
-    id: json['id'],
-    campaignId: json['campaignId'],
-    name: json['name'],
-    type: ElementType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => ElementType.location,
-    ),
-    description: json['description'],
-    significance: json['significance'] ?? '',
-    locations: List<String>.from(json['locations'] ?? []),
-    lore: List<String>.from(json['lore'] ?? []),
-    discovered: json['discovered'] ?? false,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        campaignId: json['campaignId'],
+        name: json['name'],
+        type: ElementType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => ElementType.location,
+        ),
+        description: json['description'],
+        significance: json['significance'] ?? '',
+        locations: List<String>.from(json['locations'] ?? []),
+        lore: List<String>.from(json['lore'] ?? []),
+        discovered: json['discovered'] ?? false,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class CampaignSession {
@@ -963,29 +972,35 @@ class CampaignSession {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'sessionNumber': sessionNumber,
-    'date': date.toIso8601String(),
-    'notes': notes,
-    'events': events,
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'sessionNumber': sessionNumber,
+        'date': date.toIso8601String(),
+        'notes': notes,
+        'events': events,
+      };
 
-  factory CampaignSession.fromJson(Map<String, dynamic> json) => CampaignSession(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    sessionNumber: json['sessionNumber'],
-    date: DateTime.parse(json['date']),
-    notes: json['notes'] ?? '',
-    events: List<String>.from(json['events'] ?? []),
-  );
+  factory CampaignSession.fromJson(Map<String, dynamic> json) =>
+      CampaignSession(
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        sessionNumber: json['sessionNumber'],
+        date: DateTime.parse(json['date']),
+        notes: json['notes'] ?? '',
+        events: List<String>.from(json['events'] ?? []),
+      );
 }
 
 enum RPGGenre { fantasy, scifi, horror, mystery, superhero }
+
 enum DifficultyLevel { easy, medium, hard, deadly }
+
 enum CampaignStatus { planning, inProgress, completed, onHold }
+
 enum NPCRole { ally, villain, neutral, merchant, questGiver, informant }
+
 enum TwistType { betrayal, revelation, complication, deusExMachina, redHerring }
+
 enum ElementType { location, artifact, creature, organization, legend }

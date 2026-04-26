@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🌍 Language Learning Partner Service
-/// 
+///
 /// Conversational practice with cultural context and corrections.
 class LanguageLearningService {
   LanguageLearningService._();
@@ -12,17 +12,17 @@ class LanguageLearningService {
   final List<LanguageCourse> _courses = [];
   final List<Conversation> _conversations = [];
   final List<VocabularySet> _vocabularySets = [];
-  
+
   int _totalCourses = 0;
   int _totalConversations = 0;
   int _totalWordsLearned = 0;
-  
+
   static const String _storageKey = 'language_learning_v1';
-  static const int _maxCourses = 20;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[LanguageLearning] Initialized with $_totalCourses courses');
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Initialized with $_totalCourses courses');
   }
 
   Future<LanguageCourse> createCourse({
@@ -48,12 +48,12 @@ class LanguageLearningService {
       conversationsCompleted: 0,
       createdAt: DateTime.now(),
     );
-    
+
     _courses.insert(0, course);
     _totalCourses++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[LanguageLearning] Created course: $title');
     return course;
   }
@@ -79,10 +79,10 @@ class LanguageLearningService {
       completed: false,
       createdAt: DateTime.now(),
     );
-    
+
     _conversations.insert(0, conversation);
     _totalConversations++;
-    
+
     // Update course
     final courseIndex = _courses.indexWhere((c) => c.id == courseId);
     if (courseIndex != -1) {
@@ -91,10 +91,11 @@ class LanguageLearningService {
         conversationsCompleted: course.conversationsCompleted + 1,
       );
     }
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Started conversation: $topic');
+
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Started conversation: $topic');
     return conversation;
   }
 
@@ -105,9 +106,10 @@ class LanguageLearningService {
     required String explanation,
     required CorrectionType type,
   }) async {
-    final conversationIndex = _conversations.indexWhere((c) => c.id == conversationId);
+    final conversationIndex =
+        _conversations.indexWhere((c) => c.id == conversationId);
     if (conversationIndex == -1) return;
-    
+
     final correction = Correction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       originalText: originalText,
@@ -116,15 +118,17 @@ class LanguageLearningService {
       type: type,
       createdAt: DateTime.now(),
     );
-    
+
     final conversation = _conversations[conversationIndex];
     _conversations[conversationIndex] = conversation.copyWith(
       corrections: [...conversation.corrections, correction],
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Added correction to conversation: $conversationId');
+
+    if (kDebugMode)
+      debugPrint(
+          '[LanguageLearning] Added correction to conversation: $conversationId');
   }
 
   Future<void> addCulturalNote({
@@ -132,24 +136,27 @@ class LanguageLearningService {
     required String note,
     required String context,
   }) async {
-    final conversationIndex = _conversations.indexWhere((c) => c.id == conversationId);
+    final conversationIndex =
+        _conversations.indexWhere((c) => c.id == conversationId);
     if (conversationIndex == -1) return;
-    
+
     final culturalNote = CulturalNote(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       note: note,
       context: context,
       createdAt: DateTime.now(),
     );
-    
+
     final conversation = _conversations[conversationIndex];
     _conversations[conversationIndex] = conversation.copyWith(
       culturalNotes: [...conversation.culturalNotes, culturalNote],
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Added cultural note to conversation: $conversationId');
+
+    if (kDebugMode)
+      debugPrint(
+          '[LanguageLearning] Added cultural note to conversation: $conversationId');
   }
 
   Future<VocabularySet> createVocabularySet({
@@ -167,9 +174,9 @@ class LanguageLearningService {
       masteredWords: 0,
       createdAt: DateTime.now(),
     );
-    
+
     _vocabularySets.insert(0, vocabularySet);
-    
+
     // Update course
     final courseIndex = _courses.indexWhere((c) => c.id == courseId);
     if (courseIndex != -1) {
@@ -179,17 +186,18 @@ class LanguageLearningService {
       );
       _totalWordsLearned += words.length;
     }
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Created vocabulary set: $title');
+
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Created vocabulary set: $title');
     return vocabularySet;
   }
 
   Future<void> markWordAsMastered(String vocabularySetId, String wordId) async {
     final setIndex = _vocabularySets.indexWhere((s) => s.id == vocabularySetId);
     if (setIndex == -1) return;
-    
+
     final vocabularySet = _vocabularySets[setIndex];
     final updatedWords = vocabularySet.words.map((w) {
       if (w.id == wordId) {
@@ -197,45 +205,51 @@ class LanguageLearningService {
       }
       return w;
     }).toList();
-    
+
     _vocabularySets[setIndex] = vocabularySet.copyWith(
       words: updatedWords,
       masteredWords: updatedWords.where((w) => w.mastered).length,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Marked word as mastered: $wordId');
+
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Marked word as mastered: $wordId');
   }
 
   Future<void> completeConversation(String conversationId, int rating) async {
-    final conversationIndex = _conversations.indexWhere((c) => c.id == conversationId);
+    final conversationIndex =
+        _conversations.indexWhere((c) => c.id == conversationId);
     if (conversationIndex == -1) return;
-    
+
     final conversation = _conversations[conversationIndex];
     _conversations[conversationIndex] = conversation.copyWith(
       completed: true,
       rating: rating,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Completed conversation: $conversationId');
+
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Completed conversation: $conversationId');
   }
 
   Future<void> updateCourseProgress(String courseId, int currentLesson) async {
     final courseIndex = _courses.indexWhere((c) => c.id == courseId);
     if (courseIndex == -1) return;
-    
+
     final course = _courses[courseIndex];
     _courses[courseIndex] = course.copyWith(
       currentLesson: currentLesson,
-      status: currentLesson >= course.totalLessons ? CourseStatus.completed : CourseStatus.inProgress,
+      status: currentLesson >= course.totalLessons
+          ? CourseStatus.completed
+          : CourseStatus.inProgress,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[LanguageLearning] Updated course progress: $courseId');
+
+    if (kDebugMode)
+      debugPrint('[LanguageLearning] Updated course progress: $courseId');
   }
 
   List<Conversation> getConversationsByCourse(String courseId) {
@@ -255,7 +269,7 @@ class LanguageLearningService {
     final corrections = _generateCorrections(userInput, language);
     final suggestions = _generateSuggestions(userInput, language, level);
     final culturalNotes = _generateCulturalNotes(topic, language);
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🗣️ Conversation Practice (${language.name})');
     buffer.writeln('Topic: $topic');
@@ -263,16 +277,17 @@ class LanguageLearningService {
     buffer.writeln('Your Input:');
     buffer.writeln(userInput);
     buffer.writeln('');
-    
+
     if (corrections.isNotEmpty) {
       buffer.writeln('📝 Corrections:');
       for (final correction in corrections) {
         buffer.writeln('• ${correction.explanation}');
-        buffer.writeln('  "${correction.originalText}" → "${correction.correctedText}"');
+        buffer.writeln(
+            '  "${correction.originalText}" → "${correction.correctedText}"');
       }
       buffer.writeln('');
     }
-    
+
     if (suggestions.isNotEmpty) {
       buffer.writeln('💡 Suggestions:');
       for (final suggestion in suggestions) {
@@ -280,20 +295,20 @@ class LanguageLearningService {
       }
       buffer.writeln('');
     }
-    
+
     if (culturalNotes.isNotEmpty) {
       buffer.writeln('🌍 Cultural Notes:');
       for (final note in culturalNotes) {
         buffer.writeln('• $note');
       }
     }
-    
+
     return buffer.toString();
   }
 
   List<Correction> _generateCorrections(String text, Language language) {
     final corrections = <Correction>[];
-    
+
     // Simplified correction logic
     if (language == Language.english) {
       if (text.contains(RegExp(r"\bhe don't\b", caseSensitive: false))) {
@@ -301,12 +316,13 @@ class LanguageLearningService {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           originalText: "he don't",
           correctedText: "he doesn't",
-          explanation: 'Third person singular requires "doesn\'t" instead of "don\'t"',
+          explanation:
+              'Third person singular requires "doesn\'t" instead of "don\'t"',
           type: CorrectionType.grammar,
           createdAt: DateTime.now(),
         ));
       }
-      
+
       if (text.contains(RegExp(r'\bi seen\b', caseSensitive: false))) {
         corrections.add(Correction(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -318,13 +334,14 @@ class LanguageLearningService {
         ));
       }
     }
-    
+
     return corrections;
   }
 
-  List<String> _generateSuggestions(String text, Language language, ProficiencyLevel level) {
+  List<String> _generateSuggestions(
+      String text, Language language, ProficiencyLevel level) {
     final suggestions = <String>[];
-    
+
     if (level == ProficiencyLevel.beginner) {
       suggestions.add('Try using simpler vocabulary');
       suggestions.add('Focus on basic sentence structure');
@@ -335,40 +352,48 @@ class LanguageLearningService {
       suggestions.add('Consider using more nuanced vocabulary');
       suggestions.add('Try incorporating cultural references');
     }
-    
+
     if (text.length < 20) {
       suggestions.add('Try expanding your response with more details');
     }
-    
+
     return suggestions;
   }
 
   List<String> _generateCulturalNotes(String topic, Language language) {
     final notes = <String>[];
-    
-    if (language == Language.japanese && topic.toLowerCase().contains('thank')) {
-      notes.add('In Japanese culture, expressing gratitude is very important and often more formal than in Western cultures');
+
+    if (language == Language.japanese &&
+        topic.toLowerCase().contains('thank')) {
+      notes.add(
+          'In Japanese culture, expressing gratitude is very important and often more formal than in Western cultures');
     }
-    
-    if (language == Language.spanish && topic.toLowerCase().contains('greeting')) {
-      notes.add('Spanish speakers often greet with kisses on the cheek in many countries');
+
+    if (language == Language.spanish &&
+        topic.toLowerCase().contains('greeting')) {
+      notes.add(
+          'Spanish speakers often greet with kisses on the cheek in many countries');
     }
-    
+
     if (language == Language.french && topic.toLowerCase().contains('meal')) {
-      notes.add('Meals in French culture are social events and can last for hours');
+      notes.add(
+          'Meals in French culture are social events and can last for hours');
     }
-    
+
     return notes;
   }
 
   String getLearningProgress(String courseId) {
     final course = _courses.firstWhere((c) => c.id == courseId);
-    final progress = (course.currentLesson / course.totalLessons * 100).toStringAsFixed(0);
-    
+    final progress =
+        (course.currentLesson / course.totalLessons * 100).toStringAsFixed(0);
+
     final vocabularySets = getVocabularySetsByCourse(courseId);
-    final totalWords = vocabularySets.fold<int>(0, (sum, set) => sum + set.words.length);
-    final masteredWords = vocabularySets.fold<int>(0, (sum, set) => sum + set.masteredWords);
-    
+    final totalWords =
+        vocabularySets.fold<int>(0, (sum, set) => sum + set.words.length);
+    final masteredWords =
+        vocabularySets.fold<int>(0, (sum, set) => sum + set.masteredWords);
+
     final buffer = StringBuffer();
     buffer.writeln('📚 Learning Progress for "${course.title}":');
     buffer.writeln('');
@@ -377,18 +402,19 @@ class LanguageLearningService {
     buffer.writeln('');
     buffer.writeln('Vocabulary: $masteredWords/$totalWords words mastered');
     if (totalWords > 0) {
-      final vocabProgress = (masteredWords / totalWords * 100).toStringAsFixed(0);
+      final vocabProgress =
+          (masteredWords / totalWords * 100).toStringAsFixed(0);
       buffer.writeln('Vocabulary Progress: $vocabProgress%');
     }
     buffer.writeln('');
     buffer.writeln('Conversations Completed: ${course.conversationsCompleted}');
-    
+
     return buffer.toString();
   }
 
   String getLanguageTips(Language language) {
     final tips = <String>[];
-    
+
     switch (language) {
       case Language.english:
         tips.addAll([
@@ -439,27 +465,28 @@ class LanguageLearningService {
         ]);
         break;
     }
-    
+
     tips.add('Practice speaking daily, even if just for a few minutes');
     tips.add('Don\'t be afraid to make mistakes - they\'re part of learning');
     tips.add('Find a language partner or tutor for conversation practice');
-    
-    return '💡 Learning Tips for ${language.name}:\n' + tips.map((t) => '• $t').join('\n');
+
+    return '💡 Learning Tips for ${language.name}:\n' +
+        tips.map((t) => '• $t').join('\n');
   }
 
   String getLanguageInsights() {
     if (_courses.isEmpty) {
       return 'No language courses started yet. Begin your language learning journey!';
     }
-    
-    final inProgress = _courses.where((c) => c.status == CourseStatus.inProgress).length;
-    const completed = 0; // Would calculate from completed courses
-    
+
+    final inProgress =
+        _courses.where((c) => c.status == CourseStatus.inProgress).length;
+
     final byLanguage = <Language, int>{};
     for (final course in _courses) {
       byLanguage[course.language] = (byLanguage[course.language] ?? 0) + 1;
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('🌍 Language Learning Insights:');
     buffer.writeln('• Total Courses: $_totalCourses');
@@ -471,7 +498,7 @@ class LanguageLearningService {
     for (final entry in byLanguage.entries) {
       buffer.writeln('  • ${entry.key.name}: ${entry.value}');
     }
-    
+
     return buffer.toString();
   }
 
@@ -480,8 +507,10 @@ class LanguageLearningService {
       final prefs = await SharedPreferences.getInstance();
       final data = {
         'courses': _courses.map((c) => c.toJson()).toList(),
-        'conversations': _conversations.take(100).map((c) => c.toJson()).toList(),
-        'vocabularySets': _vocabularySets.take(50).map((v) => v.toJson()).toList(),
+        'conversations':
+            _conversations.take(100).map((c) => c.toJson()).toList(),
+        'vocabularySets':
+            _vocabularySets.take(50).map((v) => v.toJson()).toList(),
         'totalCourses': _totalCourses,
         'totalConversations': _totalConversations,
         'totalWordsLearned': _totalWordsLearned,
@@ -496,28 +525,22 @@ class LanguageLearningService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _courses.clear();
-        _courses.addAll(
-          (data['courses'] as List<dynamic>)
-              .map((c) => LanguageCourse.fromJson(c as Map<String, dynamic>))
-        );
-        
+        _courses.addAll((data['courses'] as List<dynamic>)
+            .map((c) => LanguageCourse.fromJson(c as Map<String, dynamic>)));
+
         _conversations.clear();
-        _conversations.addAll(
-          (data['conversations'] as List<dynamic>? ?? [])
-              .map((c) => Conversation.fromJson(c as Map<String, dynamic>))
-        );
-        
+        _conversations.addAll((data['conversations'] as List<dynamic>? ?? [])
+            .map((c) => Conversation.fromJson(c as Map<String, dynamic>)));
+
         _vocabularySets.clear();
-        _vocabularySets.addAll(
-          (data['vocabularySets'] as List<dynamic>? ?? [])
-              .map((v) => VocabularySet.fromJson(v as Map<String, dynamic>))
-        );
-        
+        _vocabularySets.addAll((data['vocabularySets'] as List<dynamic>? ?? [])
+            .map((v) => VocabularySet.fromJson(v as Map<String, dynamic>)));
+
         _totalCourses = data['totalCourses'] as int;
         _totalConversations = data['totalConversations'] as int;
         _totalWordsLearned = data['totalWordsLearned'] as int;
@@ -577,51 +600,52 @@ class LanguageCourse {
       totalLessons: totalLessons,
       status: status ?? this.status,
       vocabularyLearned: vocabularyLearned ?? this.vocabularyLearned,
-      conversationsCompleted: conversationsCompleted ?? this.conversationsCompleted,
+      conversationsCompleted:
+          conversationsCompleted ?? this.conversationsCompleted,
       createdAt: createdAt,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'language': language.name,
-    'nativeLanguage': nativeLanguage,
-    'level': level.name,
-    'description': description,
-    'goals': goals,
-    'currentLesson': currentLesson,
-    'totalLessons': totalLessons,
-    'status': status.name,
-    'vocabularyLearned': vocabularyLearned,
-    'conversationsCompleted': conversationsCompleted,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'language': language.name,
+        'nativeLanguage': nativeLanguage,
+        'level': level.name,
+        'description': description,
+        'goals': goals,
+        'currentLesson': currentLesson,
+        'totalLessons': totalLessons,
+        'status': status.name,
+        'vocabularyLearned': vocabularyLearned,
+        'conversationsCompleted': conversationsCompleted,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory LanguageCourse.fromJson(Map<String, dynamic> json) => LanguageCourse(
-    id: json['id'],
-    title: json['title'],
-    language: Language.values.firstWhere(
-      (e) => e.name == json['language'],
-      orElse: () => Language.english,
-    ),
-    nativeLanguage: json['nativeLanguage'],
-    level: ProficiencyLevel.values.firstWhere(
-      (e) => e.name == json['level'],
-      orElse: () => ProficiencyLevel.beginner,
-    ),
-    description: json['description'],
-    goals: List<String>.from(json['goals'] ?? []),
-    currentLesson: json['currentLesson'],
-    totalLessons: json['totalLessons'],
-    status: CourseStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => CourseStatus.inProgress,
-    ),
-    vocabularyLearned: json['vocabularyLearned'],
-    conversationsCompleted: json['conversationsCompleted'],
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        language: Language.values.firstWhere(
+          (e) => e.name == json['language'],
+          orElse: () => Language.english,
+        ),
+        nativeLanguage: json['nativeLanguage'],
+        level: ProficiencyLevel.values.firstWhere(
+          (e) => e.name == json['level'],
+          orElse: () => ProficiencyLevel.beginner,
+        ),
+        description: json['description'],
+        goals: List<String>.from(json['goals'] ?? []),
+        currentLesson: json['currentLesson'],
+        totalLessons: json['totalLessons'],
+        status: CourseStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => CourseStatus.inProgress,
+        ),
+        vocabularyLearned: json['vocabularyLearned'],
+        conversationsCompleted: json['conversationsCompleted'],
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class Conversation {
@@ -677,41 +701,41 @@ class Conversation {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'courseId': courseId,
-    'topic': topic,
-    'userMessage': userMessage,
-    'aiResponse': aiResponse,
-    'difficulty': difficulty.name,
-    'corrections': corrections.map((c) => c.toJson()).toList(),
-    'suggestions': suggestions,
-    'culturalNotes': culturalNotes.map((n) => n.toJson()).toList(),
-    'rating': rating,
-    'completed': completed,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'courseId': courseId,
+        'topic': topic,
+        'userMessage': userMessage,
+        'aiResponse': aiResponse,
+        'difficulty': difficulty.name,
+        'corrections': corrections.map((c) => c.toJson()).toList(),
+        'suggestions': suggestions,
+        'culturalNotes': culturalNotes.map((n) => n.toJson()).toList(),
+        'rating': rating,
+        'completed': completed,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
-    id: json['id'],
-    courseId: json['courseId'],
-    topic: json['topic'],
-    userMessage: json['userMessage'],
-    aiResponse: json['aiResponse'],
-    difficulty: ConversationDifficulty.values.firstWhere(
-      (e) => e.name == json['difficulty'],
-      orElse: () => ConversationDifficulty.beginner,
-    ),
-    corrections: (json['corrections'] as List<dynamic>? ?? [])
-        .map((c) => Correction.fromJson(c as Map<String, dynamic>))
-        .toList(),
-    suggestions: List<String>.from(json['suggestions'] ?? []),
-    culturalNotes: (json['culturalNotes'] as List<dynamic>? ?? [])
-        .map((n) => CulturalNote.fromJson(n as Map<String, dynamic>))
-        .toList(),
-    rating: json['rating'] ?? 0,
-    completed: json['completed'] ?? false,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        courseId: json['courseId'],
+        topic: json['topic'],
+        userMessage: json['userMessage'],
+        aiResponse: json['aiResponse'],
+        difficulty: ConversationDifficulty.values.firstWhere(
+          (e) => e.name == json['difficulty'],
+          orElse: () => ConversationDifficulty.beginner,
+        ),
+        corrections: (json['corrections'] as List<dynamic>? ?? [])
+            .map((c) => Correction.fromJson(c as Map<String, dynamic>))
+            .toList(),
+        suggestions: List<String>.from(json['suggestions'] ?? []),
+        culturalNotes: (json['culturalNotes'] as List<dynamic>? ?? [])
+            .map((n) => CulturalNote.fromJson(n as Map<String, dynamic>))
+            .toList(),
+        rating: json['rating'] ?? 0,
+        completed: json['completed'] ?? false,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class Correction {
@@ -732,25 +756,25 @@ class Correction {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'originalText': originalText,
-    'correctedText': correctedText,
-    'explanation': explanation,
-    'type': type.name,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'originalText': originalText,
+        'correctedText': correctedText,
+        'explanation': explanation,
+        'type': type.name,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory Correction.fromJson(Map<String, dynamic> json) => Correction(
-    id: json['id'],
-    originalText: json['originalText'],
-    correctedText: json['correctedText'],
-    explanation: json['explanation'],
-    type: CorrectionType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => CorrectionType.grammar,
-    ),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        originalText: json['originalText'],
+        correctedText: json['correctedText'],
+        explanation: json['explanation'],
+        type: CorrectionType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => CorrectionType.grammar,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class CulturalNote {
@@ -767,18 +791,18 @@ class CulturalNote {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'note': note,
-    'context': context,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'note': note,
+        'context': context,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory CulturalNote.fromJson(Map<String, dynamic> json) => CulturalNote(
-    id: json['id'],
-    note: json['note'],
-    context: json['context'],
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        note: json['note'],
+        context: json['context'],
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class VocabularySet {
@@ -816,26 +840,26 @@ class VocabularySet {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'courseId': courseId,
-    'title': title,
-    'description': description,
-    'words': words.map((w) => w.toJson()).toList(),
-    'masteredWords': masteredWords,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'courseId': courseId,
+        'title': title,
+        'description': description,
+        'words': words.map((w) => w.toJson()).toList(),
+        'masteredWords': masteredWords,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory VocabularySet.fromJson(Map<String, dynamic> json) => VocabularySet(
-    id: json['id'],
-    courseId: json['courseId'],
-    title: json['title'],
-    description: json['description'],
-    words: (json['words'] as List<dynamic>)
-        .map((w) => VocabularyWord.fromJson(w as Map<String, dynamic>))
-        .toList(),
-    masteredWords: json['masteredWords'] ?? 0,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        courseId: json['courseId'],
+        title: json['title'],
+        description: json['description'],
+        words: (json['words'] as List<dynamic>)
+            .map((w) => VocabularyWord.fromJson(w as Map<String, dynamic>))
+            .toList(),
+        masteredWords: json['masteredWords'] ?? 0,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class VocabularyWord {
@@ -876,30 +900,36 @@ class VocabularyWord {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'word': word,
-    'translation': translation,
-    'pronunciation': pronunciation,
-    'example': example,
-    'partOfSpeech': partOfSpeech,
-    'mastered': mastered,
-    'masteredAt': masteredAt?.toIso8601String(),
-  };
+        'id': id,
+        'word': word,
+        'translation': translation,
+        'pronunciation': pronunciation,
+        'example': example,
+        'partOfSpeech': partOfSpeech,
+        'mastered': mastered,
+        'masteredAt': masteredAt?.toIso8601String(),
+      };
 
   factory VocabularyWord.fromJson(Map<String, dynamic> json) => VocabularyWord(
-    id: json['id'],
-    word: json['word'],
-    translation: json['translation'],
-    pronunciation: json['pronunciation'],
-    example: json['example'],
-    partOfSpeech: json['partOfSpeech'],
-    mastered: json['mastered'] ?? false,
-    masteredAt: json['masteredAt'] != null ? DateTime.parse(json['masteredAt']) : null,
-  );
+        id: json['id'],
+        word: json['word'],
+        translation: json['translation'],
+        pronunciation: json['pronunciation'],
+        example: json['example'],
+        partOfSpeech: json['partOfSpeech'],
+        mastered: json['mastered'] ?? false,
+        masteredAt: json['masteredAt'] != null
+            ? DateTime.parse(json['masteredAt'])
+            : null,
+      );
 }
 
 enum Language { english, spanish, french, german, japanese, chinese }
+
 enum ProficiencyLevel { beginner, intermediate, advanced }
+
 enum CourseStatus { planning, inProgress, completed, onHold }
+
 enum ConversationDifficulty { beginner, intermediate, advanced }
+
 enum CorrectionType { grammar, vocabulary, pronunciation, usage }

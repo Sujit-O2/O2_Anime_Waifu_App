@@ -3,25 +3,26 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 💕 Long-Distance Relationship Tools Service
-/// 
+///
 /// Shared activities, virtual date ideas, time zone coordination.
 class LongDistanceRelationshipService {
   LongDistanceRelationshipService._();
-  static final LongDistanceRelationshipService instance = LongDistanceRelationshipService._();
+  static final LongDistanceRelationshipService instance =
+      LongDistanceRelationshipService._();
 
   final List<VirtualDate> _virtualDates = [];
   final List<SharedActivity> _sharedActivities = [];
   final List<TimezoneCoordination> _timezoneCoords = [];
-  
+
   int _totalDates = 0;
   int _completedDates = 0;
-  
+
   static const String _storageKey = 'ldr_tools_v1';
-  static const int _maxDates = 200;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[LDRTools] Initialized with $_totalDates virtual dates');
+    if (kDebugMode)
+      debugPrint('[LDRTools] Initialized with $_totalDates virtual dates');
   }
 
   Future<VirtualDate> scheduleVirtualDate({
@@ -49,15 +50,15 @@ class LongDistanceRelationshipService {
       rating: 0,
       createdAt: DateTime.now(),
     );
-    
+
     _virtualDates.insert(0, date);
     _totalDates++;
-    
+
     // Create timezone coordination
     await _createTimezoneCoordination(date);
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[LDRTools] Scheduled virtual date: $title');
     return date;
   }
@@ -69,19 +70,22 @@ class LongDistanceRelationshipService {
       partner1Timezone: date.timezone1,
       partner2Timezone: date.timezone2,
       scheduledTime: date.scheduledTime,
-      partner1LocalTime: date.scheduledTime, // Simplified - would convert in real app
-      partner2LocalTime: date.scheduledTime, // Simplified - would convert in real app
+      partner1LocalTime:
+          date.scheduledTime, // Simplified - would convert in real app
+      partner2LocalTime:
+          date.scheduledTime, // Simplified - would convert in real app
       reminderSet: false,
       createdAt: DateTime.now(),
     );
-    
+
     _timezoneCoords.insert(0, coord);
   }
 
-  Future<void> completeVirtualDate(String dateId, int rating, String notes) async {
+  Future<void> completeVirtualDate(
+      String dateId, int rating, String notes) async {
     final dateIndex = _virtualDates.indexWhere((d) => d.id == dateId);
     if (dateIndex == -1) return;
-    
+
     final date = _virtualDates[dateIndex];
     _virtualDates[dateIndex] = date.copyWith(
       status: VirtualDateStatus.completed,
@@ -89,11 +93,11 @@ class LongDistanceRelationshipService {
       notes: notes,
       completedAt: DateTime.now(),
     );
-    
+
     _completedDates++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[LDRTools] Completed virtual date: $dateId');
   }
 
@@ -118,48 +122,52 @@ class LongDistanceRelationshipService {
       notes: '',
       createdAt: DateTime.now(),
     );
-    
+
     _sharedActivities.insert(0, activity);
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[LDRTools] Created shared activity: $title');
     return activity;
   }
 
   Future<void> updateActivityProgress(String activityId, int progress) async {
-    final activityIndex = _sharedActivities.indexWhere((a) => a.id == activityId);
+    final activityIndex =
+        _sharedActivities.indexWhere((a) => a.id == activityId);
     if (activityIndex == -1) return;
-    
+
     final activity = _sharedActivities[activityIndex];
     _sharedActivities[activityIndex] = activity.copyWith(
       progress: progress.clamp(0, 100),
-      status: progress >= 100 ? ActivityStatus.completed : ActivityStatus.active,
+      status:
+          progress >= 100 ? ActivityStatus.completed : ActivityStatus.active,
     );
-    
+
     await _saveData();
   }
 
   Future<void> addActivityNote(String activityId, String note) async {
-    final activityIndex = _sharedActivities.indexWhere((a) => a.id == activityId);
+    final activityIndex =
+        _sharedActivities.indexWhere((a) => a.id == activityId);
     if (activityIndex == -1) return;
-    
+
     final activity = _sharedActivities[activityIndex];
     _sharedActivities[activityIndex] = activity.copyWith(
       notes: activity.notes.isNotEmpty ? '${activity.notes}\n$note' : note,
     );
-    
+
     await _saveData();
   }
 
   List<VirtualDate> getUpcomingDates({int days = 30}) {
     final now = DateTime.now();
     final future = now.add(Duration(days: days));
-    return _virtualDates.where((d) => 
-      d.scheduledTime.isAfter(now) && 
-      d.scheduledTime.isBefore(future) &&
-      d.status == VirtualDateStatus.scheduled
-    ).toList();
+    return _virtualDates
+        .where((d) =>
+            d.scheduledTime.isAfter(now) &&
+            d.scheduledTime.isBefore(future) &&
+            d.status == VirtualDateStatus.scheduled)
+        .toList();
   }
 
   List<VirtualDate> getPastDates({int limit = 10}) {
@@ -174,11 +182,15 @@ class LongDistanceRelationshipService {
   }
 
   List<SharedActivity> getActiveActivities() {
-    return _sharedActivities.where((a) => a.status == ActivityStatus.active).toList();
+    return _sharedActivities
+        .where((a) => a.status == ActivityStatus.active)
+        .toList();
   }
 
   List<SharedActivity> getCompletedActivities() {
-    return _sharedActivities.where((a) => a.status == ActivityStatus.completed).toList();
+    return _sharedActivities
+        .where((a) => a.status == ActivityStatus.completed)
+        .toList();
   }
 
   String getVirtualDateIdeas() {
@@ -199,7 +211,7 @@ class LongDistanceRelationshipService {
       '🧩 Puzzle Time: Work on digital puzzles together',
       '🌟 Stargazing: Look at the night sky "together"',
     ];
-    
+
     return '💕 Virtual Date Ideas:\n' + ideas.join('\n');
   }
 
@@ -221,7 +233,7 @@ class LongDistanceRelationshipService {
       '🏆 Celebrate milestones together',
       '🤗 Send virtual hugs often',
     ];
-    
+
     return '💡 Long-Distance Relationship Tips:\n' + tips.join('\n');
   }
 
@@ -245,35 +257,39 @@ Partner 2: $timezone2
 • Time zone converter websites
 • Calendar apps with time zone support
 • Scheduling tools like Calendly
-'''.trim();
+'''
+        .trim();
   }
 
   String getLDRInsights() {
     if (_virtualDates.isEmpty) {
       return 'No virtual dates scheduled yet. Start planning special moments!';
     }
-    
+
     final upcoming = getUpcomingDates().length;
     final completed = getPastDates().length;
-    final avgRating = completed > 0 
-        ? getPastDates(limit: completed).fold<double>(0, (sum, d) => sum + d.rating) / completed
+    final avgRating = completed > 0
+        ? getPastDates(limit: completed)
+                .fold<double>(0, (sum, d) => sum + d.rating) /
+            completed
         : 0;
-    
+
     final byType = <VirtualDateType, int>{};
     for (final date in _virtualDates) {
       byType[date.type] = (byType[date.type] ?? 0) + 1;
     }
-    
+
     final activeActivities = getActiveActivities().length;
     const completedActivities = 0; // Would calculate from completed activities
-    
+
     final buffer = StringBuffer();
     buffer.writeln('💕 Long-Distance Relationship Insights:');
     buffer.writeln('• Virtual Dates Scheduled: $_totalDates');
     buffer.writeln('• Completed Dates: $completed');
     buffer.writeln('• Upcoming Dates: $upcoming');
     if (completed > 0) {
-      buffer.writeln('• Average Date Rating: ${avgRating.toStringAsFixed(1)}/5');
+      buffer
+          .writeln('• Average Date Rating: ${avgRating.toStringAsFixed(1)}/5');
     }
     buffer.writeln('• Active Shared Activities: $activeActivities');
     buffer.writeln('• Completed Activities: $completedActivities');
@@ -282,12 +298,13 @@ Partner 2: $timezone2
     for (final entry in byType.entries) {
       buffer.writeln('  • ${entry.key.label}: ${entry.value}');
     }
-    
+
     if (upcoming == 0) {
       buffer.writeln('');
-      buffer.writeln('💡 Schedule a virtual date to keep the connection strong!');
+      buffer
+          .writeln('💡 Schedule a virtual date to keep the connection strong!');
     }
-    
+
     return buffer.toString();
   }
 
@@ -296,8 +313,10 @@ Partner 2: $timezone2
       final prefs = await SharedPreferences.getInstance();
       final data = {
         'virtualDates': _virtualDates.take(50).map((d) => d.toJson()).toList(),
-        'sharedActivities': _sharedActivities.take(50).map((a) => a.toJson()).toList(),
-        'timezoneCoords': _timezoneCoords.take(50).map((c) => c.toJson()).toList(),
+        'sharedActivities':
+            _sharedActivities.take(50).map((a) => a.toJson()).toList(),
+        'timezoneCoords':
+            _timezoneCoords.take(50).map((c) => c.toJson()).toList(),
         'totalDates': _totalDates,
         'completedDates': _completedDates,
       };
@@ -311,30 +330,24 @@ Partner 2: $timezone2
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _virtualDates.clear();
-        _virtualDates.addAll(
-          (data['virtualDates'] as List<dynamic>)
-              .map((d) => VirtualDate.fromJson(d as Map<String, dynamic>))
-        );
-        
+        _virtualDates.addAll((data['virtualDates'] as List<dynamic>)
+            .map((d) => VirtualDate.fromJson(d as Map<String, dynamic>)));
+
         _sharedActivities.clear();
-        _sharedActivities.addAll(
-          (data['sharedActivities'] as List<dynamic>)
-              .map((a) => SharedActivity.fromJson(a as Map<String, dynamic>))
-        );
-        
+        _sharedActivities.addAll((data['sharedActivities'] as List<dynamic>)
+            .map((a) => SharedActivity.fromJson(a as Map<String, dynamic>)));
+
         _timezoneCoords.clear();
         if (data['timezoneCoords'] != null) {
-          _timezoneCoords.addAll(
-            (data['timezoneCoords'] as List<dynamic>)
-                .map((c) => TimezoneCoordination.fromJson(c as Map<String, dynamic>))
-          );
+          _timezoneCoords.addAll((data['timezoneCoords'] as List<dynamic>).map(
+              (c) => TimezoneCoordination.fromJson(c as Map<String, dynamic>)));
         }
-        
+
         _totalDates = data['totalDates'] as int;
         _completedDates = data['completedDates'] as int;
       }
@@ -402,44 +415,46 @@ class VirtualDate {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'partnerName': partnerName,
-    'scheduledTime': scheduledTime.toIso8601String(),
-    'timezone1': timezone1,
-    'timezone2': timezone2,
-    'type': type.name,
-    'activities': activities,
-    'platform': platform,
-    'status': status.name,
-    'notes': notes,
-    'rating': rating,
-    'completedAt': completedAt?.toIso8601String(),
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'partnerName': partnerName,
+        'scheduledTime': scheduledTime.toIso8601String(),
+        'timezone1': timezone1,
+        'timezone2': timezone2,
+        'type': type.name,
+        'activities': activities,
+        'platform': platform,
+        'status': status.name,
+        'notes': notes,
+        'rating': rating,
+        'completedAt': completedAt?.toIso8601String(),
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory VirtualDate.fromJson(Map<String, dynamic> json) => VirtualDate(
-    id: json['id'],
-    title: json['title'],
-    partnerName: json['partnerName'],
-    scheduledTime: DateTime.parse(json['scheduledTime']),
-    timezone1: json['timezone1'],
-    timezone2: json['timezone2'],
-    type: VirtualDateType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => VirtualDateType.videoChat,
-    ),
-    activities: List<String>.from(json['activities'] ?? []),
-    platform: json['platform'],
-    status: VirtualDateStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => VirtualDateStatus.scheduled,
-    ),
-    notes: json['notes'] ?? '',
-    rating: json['rating'] ?? 0,
-    completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt']) : null,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        partnerName: json['partnerName'],
+        scheduledTime: DateTime.parse(json['scheduledTime']),
+        timezone1: json['timezone1'],
+        timezone2: json['timezone2'],
+        type: VirtualDateType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => VirtualDateType.videoChat,
+        ),
+        activities: List<String>.from(json['activities'] ?? []),
+        platform: json['platform'],
+        status: VirtualDateStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => VirtualDateStatus.scheduled,
+        ),
+        notes: json['notes'] ?? '',
+        rating: json['rating'] ?? 0,
+        completedAt: json['completedAt'] != null
+            ? DateTime.parse(json['completedAt'])
+            : null,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class SharedActivity {
@@ -490,38 +505,38 @@ class SharedActivity {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'description': description,
-    'type': type.name,
-    'participants': participants,
-    'schedule': schedule,
-    'platform': platform,
-    'status': status.name,
-    'progress': progress,
-    'notes': notes,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'description': description,
+        'type': type.name,
+        'participants': participants,
+        'schedule': schedule,
+        'platform': platform,
+        'status': status.name,
+        'progress': progress,
+        'notes': notes,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory SharedActivity.fromJson(Map<String, dynamic> json) => SharedActivity(
-    id: json['id'],
-    title: json['title'],
-    description: json['description'],
-    type: ActivityType.values.firstWhere(
-      (e) => e.name == json['type'],
-      orElse: () => ActivityType.other,
-    ),
-    participants: List<String>.from(json['participants'] ?? []),
-    schedule: json['schedule'],
-    platform: json['platform'],
-    status: ActivityStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => ActivityStatus.active,
-    ),
-    progress: json['progress'] ?? 0,
-    notes: json['notes'] ?? '',
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        description: json['description'],
+        type: ActivityType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => ActivityType.other,
+        ),
+        participants: List<String>.from(json['participants'] ?? []),
+        schedule: json['schedule'],
+        platform: json['platform'],
+        status: ActivityStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => ActivityStatus.active,
+        ),
+        progress: json['progress'] ?? 0,
+        notes: json['notes'] ?? '',
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class TimezoneCoordination {
@@ -548,28 +563,29 @@ class TimezoneCoordination {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'dateId': dateId,
-    'partner1Timezone': partner1Timezone,
-    'partner2Timezone': partner2Timezone,
-    'scheduledTime': scheduledTime.toIso8601String(),
-    'partner1LocalTime': partner1LocalTime.toIso8601String(),
-    'partner2LocalTime': partner2LocalTime.toIso8601String(),
-    'reminderSet': reminderSet,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'dateId': dateId,
+        'partner1Timezone': partner1Timezone,
+        'partner2Timezone': partner2Timezone,
+        'scheduledTime': scheduledTime.toIso8601String(),
+        'partner1LocalTime': partner1LocalTime.toIso8601String(),
+        'partner2LocalTime': partner2LocalTime.toIso8601String(),
+        'reminderSet': reminderSet,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
-  factory TimezoneCoordination.fromJson(Map<String, dynamic> json) => TimezoneCoordination(
-    id: json['id'],
-    dateId: json['dateId'],
-    partner1Timezone: json['partner1Timezone'],
-    partner2Timezone: json['partner2Timezone'],
-    scheduledTime: DateTime.parse(json['scheduledTime']),
-    partner1LocalTime: DateTime.parse(json['partner1LocalTime']),
-    partner2LocalTime: DateTime.parse(json['partner2LocalTime']),
-    reminderSet: json['reminderSet'] ?? false,
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+  factory TimezoneCoordination.fromJson(Map<String, dynamic> json) =>
+      TimezoneCoordination(
+        id: json['id'],
+        dateId: json['dateId'],
+        partner1Timezone: json['partner1Timezone'],
+        partner2Timezone: json['partner2Timezone'],
+        scheduledTime: DateTime.parse(json['scheduledTime']),
+        partner1LocalTime: DateTime.parse(json['partner1LocalTime']),
+        partner2LocalTime: DateTime.parse(json['partner2LocalTime']),
+        reminderSet: json['reminderSet'] ?? false,
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 enum VirtualDateType {
@@ -589,7 +605,7 @@ enum VirtualDateType {
   workout('Workout Together'),
   puzzle('Puzzle Time'),
   stargazing('Stargazing');
-  
+
   final String label;
   const VirtualDateType(this.label);
 }
@@ -606,7 +622,7 @@ enum ActivityType {
   cooking('Cooking'),
   meditation('Meditation'),
   other('Other');
-  
+
   final String label;
   const ActivityType(this.label);
 }

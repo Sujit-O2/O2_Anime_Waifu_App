@@ -17,8 +17,6 @@ class PremiumDialogs {
     String cancelText = 'Cancel',
     bool isDestructive = false,
   }) {
-    final theme = Theme.of(context);
-
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -357,9 +355,8 @@ class PremiumDialogs {
                     return PremiumListTile(
                       leadingIcon: action.icon,
                       title: action.label,
-                      iconColor: action.isDestructive
-                          ? theme.colorScheme.error
-                          : null,
+                      iconColor:
+                          action.isDestructive ? theme.colorScheme.error : null,
                       onTap: () => Navigator.pop(context, action.value),
                     );
                   }),

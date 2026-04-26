@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 💕 Smart Photo Memory Album
-/// 
+///
 /// Auto-organizes photos shared with Zero Two with AI-generated captions,
 /// mood tracking, and anniversary slideshow generation.
-/// 
+///
 /// Features:
 /// - AI-generated emotional captions for each photo
 /// - Face recognition to track user's mood over time
@@ -29,11 +27,13 @@ class SmartPhotoMemoryService {
   /// Initialize the service and load existing memories
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       await _loadMemories();
       _isInitialized = true;
-      if (kDebugMode) debugPrint('[PhotoMemory] Initialized with ${_memories.length} memories');
+      if (kDebugMode)
+        debugPrint(
+            '[PhotoMemory] Initialized with ${_memories.length} memories');
     } catch (e) {
       if (kDebugMode) debugPrint('[PhotoMemory] Init error: $e');
     }
@@ -66,7 +66,7 @@ class SmartPhotoMemoryService {
     }
 
     await _saveMemories();
-    
+
     if (kDebugMode) debugPrint('[PhotoMemory] Added memory: ${memory.id}');
     return memory;
   }
@@ -78,9 +78,11 @@ class SmartPhotoMemoryService {
   }) async {
     // Extract emotional context from AI's response to the image
     final lower = aiResponse.toLowerCase();
-    
+
     String emotion = '💕';
-    if (lower.contains('happy') || lower.contains('smile') || lower.contains('joy')) {
+    if (lower.contains('happy') ||
+        lower.contains('smile') ||
+        lower.contains('joy')) {
       emotion = '😊';
     } else if (lower.contains('sad') || lower.contains('cry')) {
       emotion = '😢';
@@ -95,7 +97,7 @@ class SmartPhotoMemoryService {
     // Generate caption based on timestamp
     final now = DateTime.now();
     final timeContext = _getTimeContext(now);
-    
+
     // Create a natural, emotional caption
     final captions = [
       '$emotion $timeContext — ${_extractKeyPhrase(aiResponse)}',
@@ -115,7 +117,7 @@ class SmartPhotoMemoryService {
       if (first.length <= 60) return first;
       return '${first.substring(0, 57)}...';
     }
-    
+
     if (response.length <= 60) return response;
     return '${response.substring(0, 57)}...';
   }
@@ -132,60 +134,91 @@ class SmartPhotoMemoryService {
   /// Detect mood from image analysis (enhanced with face recognition hints)
   MoodType detectMoodFromResponse(String aiResponse) {
     final lower = aiResponse.toLowerCase();
-    
+
     // Enhanced mood detection with more keywords
-    if (lower.contains('happy') || lower.contains('smile') || lower.contains('joy') || 
-        lower.contains('excited') || lower.contains('cheerful') || lower.contains('grin') ||
-        lower.contains('laughing') || lower.contains('beaming')) {
+    if (lower.contains('happy') ||
+        lower.contains('smile') ||
+        lower.contains('joy') ||
+        lower.contains('excited') ||
+        lower.contains('cheerful') ||
+        lower.contains('grin') ||
+        lower.contains('laughing') ||
+        lower.contains('beaming')) {
       return MoodType.happy;
     }
-    if (lower.contains('sad') || lower.contains('cry') || lower.contains('down') ||
-        lower.contains('upset') || lower.contains('melancholy') || lower.contains('tear') ||
-        lower.contains('frown') || lower.contains('depressed')) {
+    if (lower.contains('sad') ||
+        lower.contains('cry') ||
+        lower.contains('down') ||
+        lower.contains('upset') ||
+        lower.contains('melancholy') ||
+        lower.contains('tear') ||
+        lower.contains('frown') ||
+        lower.contains('depressed')) {
       return MoodType.sad;
     }
-    if (lower.contains('love') || lower.contains('romantic') || lower.contains('affection') ||
-        lower.contains('tender') || lower.contains('sweet') || lower.contains('adore') ||
-        lower.contains('caring') || lower.contains('warm')) {
+    if (lower.contains('love') ||
+        lower.contains('romantic') ||
+        lower.contains('affection') ||
+        lower.contains('tender') ||
+        lower.contains('sweet') ||
+        lower.contains('adore') ||
+        lower.contains('caring') ||
+        lower.contains('warm')) {
       return MoodType.loving;
     }
-    if (lower.contains('fun') || lower.contains('laugh') || lower.contains('playful') ||
-        lower.contains('silly') || lower.contains('amusing') || lower.contains('mischievous') ||
-        lower.contains('cheeky') || lower.contains('energetic')) {
+    if (lower.contains('fun') ||
+        lower.contains('laugh') ||
+        lower.contains('playful') ||
+        lower.contains('silly') ||
+        lower.contains('amusing') ||
+        lower.contains('mischievous') ||
+        lower.contains('cheeky') ||
+        lower.contains('energetic')) {
       return MoodType.playful;
     }
-    if (lower.contains('calm') || lower.contains('peaceful') || lower.contains('serene') ||
-        lower.contains('relaxed') || lower.contains('tranquil') || lower.contains('content') ||
-        lower.contains('zen') || lower.contains('meditative')) {
+    if (lower.contains('calm') ||
+        lower.contains('peaceful') ||
+        lower.contains('serene') ||
+        lower.contains('relaxed') ||
+        lower.contains('tranquil') ||
+        lower.contains('content') ||
+        lower.contains('zen') ||
+        lower.contains('meditative')) {
       return MoodType.calm;
     }
-    if (lower.contains('tired') || lower.contains('exhausted') || lower.contains('sleepy') ||
-        lower.contains('weary') || lower.contains('drained') || lower.contains('fatigue') ||
-        lower.contains('drowsy') || lower.contains('yawn')) {
+    if (lower.contains('tired') ||
+        lower.contains('exhausted') ||
+        lower.contains('sleepy') ||
+        lower.contains('weary') ||
+        lower.contains('drained') ||
+        lower.contains('fatigue') ||
+        lower.contains('drowsy') ||
+        lower.contains('yawn')) {
       return MoodType.tired;
     }
-    
+
     return MoodType.neutral;
   }
 
   /// Track mood over time for pattern analysis
   Map<DateTime, MoodType> getMoodTimeline() {
     final timeline = <DateTime, MoodType>{};
-    
+
     for (final memory in _memories) {
       final date = DateTime(
         memory.timestamp.year,
         memory.timestamp.month,
         memory.timestamp.day,
       );
-      
+
       // Use most recent mood for each day
-      if (!timeline.containsKey(date) || 
-          memory.timestamp.isAfter(timeline.keys.firstWhere((d) => d == date))) {
+      if (!timeline.containsKey(date) ||
+          memory.timestamp
+              .isAfter(timeline.keys.firstWhere((d) => d == date))) {
         timeline[date] = memory.detectedMood;
       }
     }
-    
+
     return timeline;
   }
 
@@ -202,21 +235,27 @@ class SmartPhotoMemoryService {
       return 'Keep sharing photos to track your mood over time!';
     }
 
-    final recentHappyCount = recentMemories.where((m) => 
-      m.detectedMood == MoodType.happy || m.detectedMood == MoodType.playful
-    ).length;
+    final recentHappyCount = recentMemories
+        .where((m) =>
+            m.detectedMood == MoodType.happy ||
+            m.detectedMood == MoodType.playful)
+        .length;
 
-    final olderHappyCount = olderMemories.where((m) => 
-      m.detectedMood == MoodType.happy || m.detectedMood == MoodType.playful
-    ).length;
+    final olderHappyCount = olderMemories
+        .where((m) =>
+            m.detectedMood == MoodType.happy ||
+            m.detectedMood == MoodType.playful)
+        .length;
 
-    final recentSadCount = recentMemories.where((m) => 
-      m.detectedMood == MoodType.sad || m.detectedMood == MoodType.tired
-    ).length;
+    final recentSadCount = recentMemories
+        .where((m) =>
+            m.detectedMood == MoodType.sad || m.detectedMood == MoodType.tired)
+        .length;
 
-    final olderSadCount = olderMemories.where((m) => 
-      m.detectedMood == MoodType.sad || m.detectedMood == MoodType.tired
-    ).length;
+    final olderSadCount = olderMemories
+        .where((m) =>
+            m.detectedMood == MoodType.sad || m.detectedMood == MoodType.tired)
+        .length;
 
     if (recentHappyCount > olderHappyCount * 1.5) {
       return '📈 Your mood has been improving lately! You seem much happier, darling~ 💕';
@@ -246,9 +285,9 @@ class SmartPhotoMemoryService {
 
   /// Get memories from a specific date range
   List<PhotoMemory> getMemoriesInRange(DateTime start, DateTime end) {
-    return _memories.where((m) => 
-      m.timestamp.isAfter(start) && m.timestamp.isBefore(end)
-    ).toList();
+    return _memories
+        .where((m) => m.timestamp.isAfter(start) && m.timestamp.isBefore(end))
+        .toList();
   }
 
   /// Get memories from today
@@ -313,14 +352,14 @@ class SmartPhotoMemoryService {
     final stats = getMoodStatistics();
     MoodType dominant = MoodType.neutral;
     int maxCount = 0;
-    
+
     stats.forEach((mood, count) {
       if (count > maxCount) {
         maxCount = count;
         dominant = mood;
       }
     });
-    
+
     return dominant;
   }
 
@@ -337,23 +376,19 @@ class SmartPhotoMemoryService {
 
     // Select best memories (favorites + high-emotion moments)
     final highlights = <PhotoMemory>[];
-    
+
     // Add all favorites
     highlights.addAll(yearMemories.where((m) => m.isFavorite));
-    
+
     // Add happy moments
-    highlights.addAll(
-      yearMemories
+    highlights.addAll(yearMemories
         .where((m) => m.detectedMood == MoodType.happy && !m.isFavorite)
-        .take(5)
-    );
-    
+        .take(5));
+
     // Add loving moments
-    highlights.addAll(
-      yearMemories
+    highlights.addAll(yearMemories
         .where((m) => m.detectedMood == MoodType.loving && !m.isFavorite)
-        .take(5)
-    );
+        .take(5));
 
     // Remove duplicates and limit to 20
     final uniqueHighlights = highlights.toSet().toList();
@@ -388,7 +423,7 @@ class SmartPhotoMemoryService {
     insights.writeln('Favorites: $favorites ⭐');
     insights.writeln('');
     insights.writeln('Mood breakdown:');
-    
+
     stats.forEach((mood, count) {
       if (count > 0) {
         final percentage = ((count / total) * 100).toStringAsFixed(1);
@@ -398,7 +433,7 @@ class SmartPhotoMemoryService {
 
     insights.writeln('');
     insights.writeln('Your dominant mood: ${dominant.emoji} ${dominant.label}');
-    
+
     // Add personalized message based on dominant mood
     final message = _getInsightMessage(dominant);
     insights.writeln('');
@@ -442,13 +477,12 @@ class SmartPhotoMemoryService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final jsonList = jsonDecode(jsonString) as List<dynamic>;
         _memories.clear();
-        _memories.addAll(
-          jsonList.map((json) => PhotoMemory.fromJson(json as Map<String, dynamic>))
-        );
+        _memories.addAll(jsonList
+            .map((json) => PhotoMemory.fromJson(json as Map<String, dynamic>)));
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[PhotoMemory] Load error: $e');

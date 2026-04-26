@@ -132,9 +132,8 @@ class PremiumButton extends StatelessWidget {
             ? Colors.transparent
             : theme.colorScheme.primary;
 
-    final foregroundColor = isSecondary
-        ? theme.colorScheme.onSurface
-        : Colors.white;
+    final foregroundColor =
+        isSecondary ? theme.colorScheme.onSurface : Colors.white;
 
     return SizedBox(
       width: width,
@@ -147,7 +146,8 @@ class PremiumButton extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
-            padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: padding ??
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             decoration: BoxDecoration(
               gradient: isSecondary
                   ? null
@@ -272,7 +272,8 @@ class PremiumTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: tokens.panelElevated,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: tokens.outline),
@@ -697,9 +698,6 @@ class StreakBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tokens = context.appTokens;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(

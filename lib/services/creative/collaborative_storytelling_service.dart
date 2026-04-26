@@ -3,25 +3,26 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 📖 Collaborative Storytelling Service
-/// 
+///
 /// Co-write stories, novels, or scripts with the AI.
 class CollaborativeStorytellingService {
   CollaborativeStorytellingService._();
-  static final CollaborativeStorytellingService instance = CollaborativeStorytellingService._();
+  static final CollaborativeStorytellingService instance =
+      CollaborativeStorytellingService._();
 
   final List<StoryProject> _projects = [];
   final List<StoryChapter> _chapters = [];
-  
+
   int _totalProjects = 0;
   int _totalChapters = 0;
   int _totalWords = 0;
-  
+
   static const String _storageKey = 'collaborative_storytelling_v1';
-  static const int _maxProjects = 50;
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[Storytelling] Initialized with $_totalProjects projects');
+    if (kDebugMode)
+      debugPrint('[Storytelling] Initialized with $_totalProjects projects');
   }
 
   Future<StoryProject> createStoryProject({
@@ -49,12 +50,12 @@ class CollaborativeStorytellingService {
       themes: [],
       createdAt: DateTime.now(),
     );
-    
+
     _projects.insert(0, project);
     _totalProjects++;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[Storytelling] Created project: $title');
     return project;
   }
@@ -82,11 +83,11 @@ class CollaborativeStorytellingService {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    
+
     _chapters.insert(0, chapter);
     _totalChapters++;
     _totalWords += chapter.wordCount;
-    
+
     // Update project
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex != -1) {
@@ -97,9 +98,9 @@ class CollaborativeStorytellingService {
         status: StoryStatus.inProgress,
       );
     }
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[Storytelling] Created chapter: $title');
     return chapter;
   }
@@ -112,11 +113,11 @@ class CollaborativeStorytellingService {
   }) async {
     final chapterIndex = _chapters.indexWhere((c) => c.id == chapterId);
     if (chapterIndex == -1) return;
-    
+
     final chapter = _chapters[chapterIndex];
     final newWordCount = content.split(' ').length;
     final wordCountDiff = newWordCount - chapter.wordCount;
-    
+
     _chapters[chapterIndex] = chapter.copyWith(
       content: content,
       summary: summary,
@@ -124,11 +125,11 @@ class CollaborativeStorytellingService {
       status: status ?? chapter.status,
       updatedAt: DateTime.now(),
     );
-    
+
     _totalWords += wordCountDiff;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[Storytelling] Updated chapter: $chapterId');
   }
 
@@ -142,7 +143,7 @@ class CollaborativeStorytellingService {
   }) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final character = StoryCharacter(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
@@ -152,14 +153,14 @@ class CollaborativeStorytellingService {
       backstory: backstory ?? [],
       createdAt: DateTime.now(),
     );
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(
       characters: [...project.characters, character],
     );
-    
+
     await _saveData();
-    
+
     if (kDebugMode) debugPrint('[Storytelling] Added character: $name');
   }
 
@@ -171,29 +172,32 @@ class CollaborativeStorytellingService {
   }) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(
       worldBuilding: worldBuilding ?? project.worldBuilding,
       plotOutline: plotOutline ?? project.plotOutline,
       themes: themes ?? project.themes,
     );
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[Storytelling] Updated project outline: $projectId');
+
+    if (kDebugMode)
+      debugPrint('[Storytelling] Updated project outline: $projectId');
   }
 
   Future<void> updateProjectStatus(String projectId, StoryStatus status) async {
     final projectIndex = _projects.indexWhere((p) => p.id == projectId);
     if (projectIndex == -1) return;
-    
+
     final project = _projects[projectIndex];
     _projects[projectIndex] = project.copyWith(status: status);
-    
+
     await _saveData();
-    
-    if (kDebugMode) debugPrint('[Storytelling] Updated project status: $projectId -> $status');
+
+    if (kDebugMode)
+      debugPrint(
+          '[Storytelling] Updated project status: $projectId -> $status');
   }
 
   List<StoryChapter> getChaptersByProject(String projectId) {
@@ -212,31 +216,40 @@ class CollaborativeStorytellingService {
   String getStorySuggestions(String projectId) {
     final project = _projects.firstWhere((p) => p.id == projectId);
     final chapters = getChaptersByProject(projectId);
-    
+
     final suggestions = <String>[];
-    
+
     if (chapters.isEmpty) {
-      suggestions.add('Start with an engaging opening scene that introduces your protagonist');
-      suggestions.add('Establish the setting and initial conflict within the first chapter');
-      suggestions.add('Introduce a supporting character who will play a key role later');
+      suggestions.add(
+          'Start with an engaging opening scene that introduces your protagonist');
+      suggestions.add(
+          'Establish the setting and initial conflict within the first chapter');
+      suggestions.add(
+          'Introduce a supporting character who will play a key role later');
     } else if (chapters.length < project.targetChapters ~/ 2) {
-      suggestions.add('Develop the rising action - introduce complications and obstacles');
-      suggestions.add('Deepen character relationships and reveal their motivations');
-      suggestions.add('Add a plot twist that changes the direction of the story');
+      suggestions.add(
+          'Develop the rising action - introduce complications and obstacles');
+      suggestions
+          .add('Deepen character relationships and reveal their motivations');
+      suggestions
+          .add('Add a plot twist that changes the direction of the story');
     } else {
       suggestions.add('Build toward the climax - increase tension and stakes');
       suggestions.add('Resolve major plot threads and character arcs');
-      suggestions.add('Craft a satisfying conclusion that ties everything together');
+      suggestions
+          .add('Craft a satisfying conclusion that ties everything together');
     }
-    
+
     // Genre-specific suggestions
     switch (project.genre.toLowerCase()) {
       case 'fantasy':
-        suggestions.add('Expand your world-building with unique magical systems');
+        suggestions
+            .add('Expand your world-building with unique magical systems');
         suggestions.add('Introduce mythical creatures or legendary artifacts');
         break;
       case 'mystery':
-        suggestions.add('Plant subtle clues that will make sense in retrospect');
+        suggestions
+            .add('Plant subtle clues that will make sense in retrospect');
         suggestions.add('Add red herrings to keep readers guessing');
         break;
       case 'romance':
@@ -244,17 +257,20 @@ class CollaborativeStorytellingService {
         suggestions.add('Develop emotional intimacy between characters');
         break;
       case 'sci-fi':
-        suggestions.add('Explore the implications of your technology on society');
-        suggestions.add('Introduce ethical dilemmas related to scientific advancement');
+        suggestions
+            .add('Explore the implications of your technology on society');
+        suggestions.add(
+            'Introduce ethical dilemmas related to scientific advancement');
         break;
     }
-    
-    return '📝 Story Suggestions for "${project.title}":\n' + suggestions.map((s) => '• $s').join('\n');
+
+    return '📝 Story Suggestions for "${project.title}":\n' +
+        suggestions.map((s) => '• $s').join('\n');
   }
 
   String getWritingPrompts(String genre) {
     final prompts = <String>[];
-    
+
     switch (genre.toLowerCase()) {
       case 'fantasy':
         prompts.addAll([
@@ -298,19 +314,25 @@ class CollaborativeStorytellingService {
           'Two strangers meet and realize they have more in common than they could have imagined',
         ]);
     }
-    
-    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n' + prompts.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n');
+
+    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n' +
+        prompts
+            .asMap()
+            .entries
+            .map((e) => '${e.key + 1}. ${e.value}')
+            .join('\n');
   }
 
   String getStoryInsights() {
     if (_projects.isEmpty) {
       return 'No story projects started yet. Begin your creative journey!';
     }
-    
-    final inProgress = _projects.where((p) => p.status == StoryStatus.inProgress).length;
-    final completed = _projects.where((p) => p.status == StoryStatus.completed).length;
-    const avgWordsPerChapter = 2500;
-    
+
+    final inProgress =
+        _projects.where((p) => p.status == StoryStatus.inProgress).length;
+    final completed =
+        _projects.where((p) => p.status == StoryStatus.completed).length;
+
     final buffer = StringBuffer();
     buffer.writeln('📖 Storytelling Insights:');
     buffer.writeln('• Total Projects: $_totalProjects');
@@ -318,19 +340,20 @@ class CollaborativeStorytellingService {
     buffer.writeln('• Completed: $completed');
     buffer.writeln('• Total Chapters: $_totalChapters');
     buffer.writeln('• Total Words: $_totalWords');
-    
+
     if (_totalChapters > 0) {
       final avgWords = _totalWords ~/ _totalChapters;
       buffer.writeln('• Average Words per Chapter: $avgWords');
-      buffer.writeln('• Estimated Pages: ${(_totalWords / 250).toStringAsFixed(0)}');
+      buffer.writeln(
+          '• Estimated Pages: ${(_totalWords / 250).toStringAsFixed(0)}');
     }
-    
+
     // Genre breakdown
     final byGenre = <String, int>{};
     for (final project in _projects) {
       byGenre[project.genre] = (byGenre[project.genre] ?? 0) + 1;
     }
-    
+
     if (byGenre.isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('Projects by Genre:');
@@ -338,7 +361,7 @@ class CollaborativeStorytellingService {
         buffer.writeln('  • ${entry.key}: ${entry.value}');
       }
     }
-    
+
     return buffer.toString();
   }
 
@@ -362,22 +385,18 @@ class CollaborativeStorytellingService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
-        
+
         _projects.clear();
-        _projects.addAll(
-          (data['projects'] as List<dynamic>)
-              .map((p) => StoryProject.fromJson(p as Map<String, dynamic>))
-        );
-        
+        _projects.addAll((data['projects'] as List<dynamic>)
+            .map((p) => StoryProject.fromJson(p as Map<String, dynamic>)));
+
         _chapters.clear();
-        _chapters.addAll(
-          (data['chapters'] as List<dynamic>)
-              .map((c) => StoryChapter.fromJson(c as Map<String, dynamic>))
-        );
-        
+        _chapters.addAll((data['chapters'] as List<dynamic>)
+            .map((c) => StoryChapter.fromJson(c as Map<String, dynamic>)));
+
         _totalProjects = data['totalProjects'] as int;
         _totalChapters = data['totalChapters'] as int;
         _totalWords = data['totalWords'] as int;
@@ -452,48 +471,48 @@ class StoryProject {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'genre': genre,
-    'description': description,
-    'format': format.name,
-    'targetChapters': targetChapters,
-    'targetWordCount': targetWordCount,
-    'currentChapter': currentChapter,
-    'status': status.name,
-    'chapters': chapters,
-    'characters': characters.map((c) => c.toJson()).toList(),
-    'worldBuilding': worldBuilding,
-    'plotOutline': plotOutline,
-    'themes': themes,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'title': title,
+        'genre': genre,
+        'description': description,
+        'format': format.name,
+        'targetChapters': targetChapters,
+        'targetWordCount': targetWordCount,
+        'currentChapter': currentChapter,
+        'status': status.name,
+        'chapters': chapters,
+        'characters': characters.map((c) => c.toJson()).toList(),
+        'worldBuilding': worldBuilding,
+        'plotOutline': plotOutline,
+        'themes': themes,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory StoryProject.fromJson(Map<String, dynamic> json) => StoryProject(
-    id: json['id'],
-    title: json['title'],
-    genre: json['genre'],
-    description: json['description'],
-    format: StoryFormat.values.firstWhere(
-      (e) => e.name == json['format'],
-      orElse: () => StoryFormat.novel,
-    ),
-    targetChapters: json['targetChapters'],
-    targetWordCount: json['targetWordCount'],
-    currentChapter: json['currentChapter'],
-    status: StoryStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => StoryStatus.planning,
-    ),
-    chapters: List<String>.from(json['chapters'] ?? []),
-    characters: (json['characters'] as List<dynamic>? ?? [])
-        .map((c) => StoryCharacter.fromJson(c as Map<String, dynamic>))
-        .toList(),
-    worldBuilding: json['worldBuilding'] ?? '',
-    plotOutline: json['plotOutline'] ?? '',
-    themes: List<String>.from(json['themes'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        title: json['title'],
+        genre: json['genre'],
+        description: json['description'],
+        format: StoryFormat.values.firstWhere(
+          (e) => e.name == json['format'],
+          orElse: () => StoryFormat.novel,
+        ),
+        targetChapters: json['targetChapters'],
+        targetWordCount: json['targetWordCount'],
+        currentChapter: json['currentChapter'],
+        status: StoryStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => StoryStatus.planning,
+        ),
+        chapters: List<String>.from(json['chapters'] ?? []),
+        characters: (json['characters'] as List<dynamic>? ?? [])
+            .map((c) => StoryCharacter.fromJson(c as Map<String, dynamic>))
+            .toList(),
+        worldBuilding: json['worldBuilding'] ?? '',
+        plotOutline: json['plotOutline'] ?? '',
+        themes: List<String>.from(json['themes'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class StoryChapter {
@@ -549,37 +568,37 @@ class StoryChapter {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'projectId': projectId,
-    'title': title,
-    'content': content,
-    'chapterNumber': chapterNumber,
-    'summary': summary,
-    'characters': characters,
-    'themes': themes,
-    'wordCount': wordCount,
-    'status': status.name,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+        'id': id,
+        'projectId': projectId,
+        'title': title,
+        'content': content,
+        'chapterNumber': chapterNumber,
+        'summary': summary,
+        'characters': characters,
+        'themes': themes,
+        'wordCount': wordCount,
+        'status': status.name,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
 
   factory StoryChapter.fromJson(Map<String, dynamic> json) => StoryChapter(
-    id: json['id'],
-    projectId: json['projectId'],
-    title: json['title'],
-    content: json['content'],
-    chapterNumber: json['chapterNumber'],
-    summary: json['summary'],
-    characters: List<String>.from(json['characters'] ?? []),
-    themes: List<String>.from(json['themes'] ?? []),
-    wordCount: json['wordCount'],
-    status: ChapterStatus.values.firstWhere(
-      (e) => e.name == json['status'],
-      orElse: () => ChapterStatus.draft,
-    ),
-    createdAt: DateTime.parse(json['createdAt']),
-    updatedAt: DateTime.parse(json['updatedAt']),
-  );
+        id: json['id'],
+        projectId: json['projectId'],
+        title: json['title'],
+        content: json['content'],
+        chapterNumber: json['chapterNumber'],
+        summary: json['summary'],
+        characters: List<String>.from(json['characters'] ?? []),
+        themes: List<String>.from(json['themes'] ?? []),
+        wordCount: json['wordCount'],
+        status: ChapterStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => ChapterStatus.draft,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+      );
 }
 
 class StoryCharacter {
@@ -602,26 +621,28 @@ class StoryCharacter {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'description': description,
-    'role': role,
-    'traits': traits,
-    'backstory': backstory,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'description': description,
+        'role': role,
+        'traits': traits,
+        'backstory': backstory,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory StoryCharacter.fromJson(Map<String, dynamic> json) => StoryCharacter(
-    id: json['id'],
-    name: json['name'],
-    description: json['description'],
-    role: json['role'],
-    traits: List<String>.from(json['traits'] ?? []),
-    backstory: List<String>.from(json['backstory'] ?? []),
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        name: json['name'],
+        description: json['description'],
+        role: json['role'],
+        traits: List<String>.from(json['traits'] ?? []),
+        backstory: List<String>.from(json['backstory'] ?? []),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 enum StoryFormat { novel, shortStory, screenplay, comic, interactive }
+
 enum StoryStatus { planning, inProgress, completed, onHold }
+
 enum ChapterStatus { draft, revised, finalized, published }
