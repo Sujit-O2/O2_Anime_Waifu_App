@@ -36,8 +36,8 @@ class _HydrationNutritionPageState extends State<HydrationNutritionPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
-              child: const Padding(
+            const Card(
+              child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text('Nutrition tips: Eat balanced meals...'),
               ),

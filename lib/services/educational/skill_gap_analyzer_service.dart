@@ -276,12 +276,11 @@ class SkillGapAnalyzerService {
       recommendations.add(recommendation);
     }
 
-    return '💡 Personalized Recommendations:\n' +
-        recommendations
+    return '💡 Personalized Recommendations:\n${recommendations
             .asMap()
             .entries
             .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n');
+            .join('\n')}';
   }
 
   String _generateRecommendationForGap(SkillGap gap) {

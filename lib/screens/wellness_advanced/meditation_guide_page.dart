@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/wellness/meditation_guide_service.dart';
 
 class MeditationGuidePage extends StatefulWidget {
   const MeditationGuidePage({super.key});
@@ -20,8 +19,8 @@ class _MeditationGuidePageState extends State<MeditationGuidePage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
-              child: const ListTile(
+            const Card(
+              child: ListTile(
                 title: Text('Current Session'),
                 subtitle: Text('No active session'),
                 trailing: Icon(Icons.self_improvement),

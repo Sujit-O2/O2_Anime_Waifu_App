@@ -232,7 +232,7 @@ Widget hubAccordion(
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             )
           ],
         ),
@@ -339,7 +339,7 @@ Widget drawerPulseStat({
              BoxShadow(
                color: Colors.black.withValues(alpha: 0.05),
                blurRadius: 4,
-               offset: Offset(0, 2),
+               offset: const Offset(0, 2),
              )
            ],
          ),

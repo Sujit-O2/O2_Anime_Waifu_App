@@ -30,16 +30,16 @@ class _EmotionMemoryTimelinePageState extends State<EmotionMemoryTimelinePage> {
           children: [
             Card(
               color: Colors.purple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Emotional timeline data"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Emotional timeline data'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Emotional insights: Positive trend"),
+                padding: EdgeInsets.all(16),
+                child: Text('Emotional insights: Positive trend'),
               ),
             ),
           ],

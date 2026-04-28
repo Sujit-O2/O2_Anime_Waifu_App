@@ -30,16 +30,16 @@ class _LanguageLearningPageState extends State<LanguageLearningPage> {
           children: [
             Card(
               color: Colors.purple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Learning progress: 65%"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Learning progress: 65%'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Daily lesson: Practice vocabulary..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Daily lesson: Practice vocabulary...'),
               ),
             ),
           ],

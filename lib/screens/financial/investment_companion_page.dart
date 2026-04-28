@@ -36,10 +36,10 @@ class _InvestmentCompanionPageState extends State<InvestmentCompanionPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Investment tips: Diversify your portfolio..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Investment tips: Diversify your portfolio...'),
               ),
             ),
           ],

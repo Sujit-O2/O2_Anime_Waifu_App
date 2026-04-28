@@ -30,16 +30,16 @@ class _EnhancedDreamJournalPageState extends State<EnhancedDreamJournalPage> {
           children: [
             Card(
               color: Colors.indigo.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Dream analysis: Patterns detected"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Dream analysis: Patterns detected'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Dream patterns: Recurring themes"),
+                padding: EdgeInsets.all(16),
+                child: Text('Dream patterns: Recurring themes'),
               ),
             ),
           ],

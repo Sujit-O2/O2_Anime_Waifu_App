@@ -31,7 +31,7 @@ class CloudSyncService {
     bool includeSettings = true,
   }) async {
     if (_isSyncing) {
-      return SyncResult(success: false, message: 'Sync in progress', itemsSynced: 0);
+      return const SyncResult(success: false, message: 'Sync in progress', itemsSynced: 0);
     }
 
     _isSyncing = true;
@@ -92,21 +92,6 @@ class CloudSyncService {
     return base64Encode(encrypted);
   }
 
-  String _decrypt(String encryptedData) {
-    if (_encryptionKey == null) return encryptedData;
-    try {
-      final key = _encryptionKey!;
-      final encrypted = base64Decode(encryptedData);
-      final keyBytes = utf8.encode(key);
-      final decrypted = <int>[];
-      for (int i = 0; i < encrypted.length; i++) {
-        decrypted.add(encrypted[i] ^ keyBytes[i % keyBytes.length]);
-      }
-      return utf8.decode(decrypted);
-    } catch (e) {
-      return encryptedData;
-    }
-  }
 
   Future<void> _uploadToCloud(String key, String data) async {
     final prefs = await SharedPreferences.getInstance();

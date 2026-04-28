@@ -28,11 +28,11 @@ class _EmotionalAiPageState extends State<EmotionalAiPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: ListTile(
-                title: const Text('Emotional Intelligence'),
-                subtitle: const LinearProgressIndicator(value: 0.75),
-                trailing: const Text('75%'),
+                title: Text('Emotional Intelligence'),
+                subtitle: LinearProgressIndicator(value: 0.75),
+                trailing: Text('75%'),
               ),
             ),
             const SizedBox(height: 16),

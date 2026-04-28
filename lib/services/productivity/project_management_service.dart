@@ -205,7 +205,7 @@ class ProjectManagementService {
 
   String getProjectInsights() {
     if (_projects.isEmpty) {
-      return "Create your first project to get started!";
+      return 'Create your first project to get started!';
     }
 
     final activeProjects =

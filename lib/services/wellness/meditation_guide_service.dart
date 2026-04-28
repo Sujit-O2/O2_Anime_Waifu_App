@@ -72,13 +72,13 @@ class MeditationGuideService {
 
   String getMeditationInsights() {
     if (_meditationHistory.isEmpty) {
-      return "Start meditating to get personalized insights!";
+      return 'Start meditating to get personalized insights!';
     }
 
     final completedSessions =
         _meditationHistory.where((s) => s.completed).toList();
     if (completedSessions.isEmpty) {
-      return "Complete some meditation sessions to get insights.";
+      return 'Complete some meditation sessions to get insights.';
     }
 
     final recentSessions = completedSessions.take(5).toList();
@@ -108,12 +108,12 @@ class MeditationGuideService {
 
   String getMeditationRecommendation() {
     if (_meditationHistory.isEmpty)
-      return "Start with a 5-minute breathing meditation to begin.";
+      return 'Start with a 5-minute breathing meditation to begin.';
 
     final completedSessions =
         _meditationHistory.where((s) => s.completed).toList();
     if (completedSessions.isEmpty)
-      return "Complete a session first to get recommendations.";
+      return 'Complete a session first to get recommendations.';
 
     final lastSession = completedSessions.first;
     final recommendations = <String>[];

@@ -369,7 +369,7 @@ class _ComprehensiveFeaturesHubState extends State<ComprehensiveFeaturesHub> {
           // ── Feature Grid ────────────────────────────────────────────────
           Expanded(
             child: _filteredFeatures.isEmpty
-                ? PremiumEmptyState(
+                ? const PremiumEmptyState(
                     icon: Icons.search_off_rounded,
                     title: 'No features found',
                     subtitle: 'Try a different search or category',

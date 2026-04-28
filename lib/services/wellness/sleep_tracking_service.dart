@@ -88,7 +88,7 @@ class SleepTrackingService {
 
   String getSleepInsights() {
     if (_sleepHistory.isEmpty) {
-      return "Start tracking your sleep to get personalized insights!";
+      return 'Start tracking your sleep to get personalized insights!';
     }
 
     final recentSessions = _sleepHistory.take(7).toList();
@@ -112,7 +112,7 @@ class SleepTrackingService {
   }
 
   String getSleepRecommendation() {
-    if (_sleepHistory.isEmpty) return "Track your sleep first to get personalized recommendations.";
+    if (_sleepHistory.isEmpty) return 'Track your sleep first to get personalized recommendations.';
     
     final lastSession = _sleepHistory.first;
     final recommendations = <String>[];

@@ -30,16 +30,16 @@ class _PersonalizedLearningPageState extends State<PersonalizedLearningPage> {
           children: [
             Card(
               color: Colors.indigo.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Learning path: Beginner to Advanced"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Learning path: Beginner to Advanced'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Recommendations: Focus on fundamentals..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Recommendations: Focus on fundamentals...'),
               ),
             ),
           ],

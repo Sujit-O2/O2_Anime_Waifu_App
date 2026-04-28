@@ -30,16 +30,16 @@ class _SkillGapAnalyzerPageState extends State<SkillGapAnalyzerPage> {
           children: [
             Card(
               color: Colors.teal.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Skill analysis: Strengths and areas for growth"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Skill analysis: Strengths and areas for growth'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Improvement plan: Practice daily..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Improvement plan: Practice daily...'),
               ),
             ),
           ],

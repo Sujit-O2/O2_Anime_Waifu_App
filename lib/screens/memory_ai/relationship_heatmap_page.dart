@@ -30,16 +30,16 @@ class _RelationshipHeatmapPageState extends State<RelationshipHeatmapPage> {
           children: [
             Card(
               color: Colors.pink.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: const Text("Heatmap data visualization"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Heatmap data visualization'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Interaction insights: Most active on weekends"),
+                padding: EdgeInsets.all(16),
+                child: Text('Interaction insights: Most active on weekends'),
               ),
             ),
           ],

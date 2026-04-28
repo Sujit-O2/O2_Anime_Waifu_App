@@ -30,16 +30,16 @@ class _VoiceCloneTrainingPageState extends State<VoiceCloneTrainingPage> {
           children: [
             Card(
               color: Colors.deepPurple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Training status: Ready to train"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Training status: Ready to train'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Instructions: Upload 5-10 voice samples"),
+                padding: EdgeInsets.all(16),
+                child: Text('Instructions: Upload 5-10 voice samples'),
               ),
             ),
           ],

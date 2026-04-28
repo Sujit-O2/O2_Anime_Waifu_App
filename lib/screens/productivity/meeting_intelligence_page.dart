@@ -13,8 +13,8 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _participantsController = TextEditingController();
-  DateTime _startTime = DateTime.now();
-  DateTime _endTime = DateTime.now().add(const Duration(hours: 1));
+  final DateTime _startTime = DateTime.now();
+  final DateTime _endTime = DateTime.now().add(const Duration(hours: 1));
   MeetingType _type = MeetingType.teamSync;
 
   @override

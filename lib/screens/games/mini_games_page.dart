@@ -430,7 +430,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                   children: <Widget>[
                                     Row(
                                       children: [
-                                        Icon(Icons.auto_awesome_rounded,
+                                        const Icon(Icons.auto_awesome_rounded,
                                             color: Colors.pinkAccent, size: 16),
                                         const SizedBox(width: 8),
                                         Text(
@@ -494,7 +494,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    Icon(
+                                    const Icon(
                                       Icons.videogame_asset_rounded,
                                       color: Colors.pinkAccent,
                                       size: 24,
@@ -527,7 +527,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        WaifuCommentary(mood: 'motivated'),
+                        const WaifuCommentary(mood: 'motivated'),
                         const SizedBox(height: 20),
 
                         // Premium stats grid
@@ -947,15 +947,12 @@ class _GameCard extends StatefulWidget {
 class _GameCardState extends State<_GameCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _ac;
-  late Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
     _ac = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 150));
-    _scale = Tween(begin: 1.0, end: 0.95)
-        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutQuad));
   }
 
   @override
@@ -1048,7 +1045,7 @@ class _GameCardState extends State<_GameCard>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
+                            gradient: const LinearGradient(
                               colors: [Colors.amber, Colors.orangeAccent],
                             ),
                             borderRadius: BorderRadius.circular(12),

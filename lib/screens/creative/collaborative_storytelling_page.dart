@@ -30,16 +30,16 @@ class _CollaborativeStorytellingPageState extends State<CollaborativeStorytellin
           children: [
             Card(
               color: Colors.deepPurple.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Current story in progress..."),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Current story in progress...'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Story prompt: Create an engaging narrative..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Story prompt: Create an engaging narrative...'),
               ),
             ),
           ],

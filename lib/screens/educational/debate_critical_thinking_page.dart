@@ -30,16 +30,16 @@ class _DebateCriticalThinkingPageState extends State<DebateCriticalThinkingPage>
           children: [
             Card(
               color: Colors.red.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Debate topic: Technology and society"),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Debate topic: Technology and society'),
               ),
             ),
             const SizedBox(height: 16),
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text("Argumentation tips: Use evidence and logic..."),
+                padding: EdgeInsets.all(16),
+                child: Text('Argumentation tips: Use evidence and logic...'),
               ),
             ),
           ],

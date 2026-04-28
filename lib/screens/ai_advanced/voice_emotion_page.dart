@@ -15,32 +15,32 @@ class _VoiceEmotionPageState extends State<VoiceEmotionPage> {
         title: const Text('🎤 Voice Emotion'),
         backgroundColor: Colors.red.shade700,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            const Card(
+            Card(
               child: ListTile(
                 title: Text('Detection Accuracy'),
                 subtitle: Text('95%'),
                 trailing: Icon(Icons.mic),
               ),
             ),
-            const SizedBox(height: 16),
-            const Card(
+            SizedBox(height: 16),
+            Card(
               child: ListTile(
                 title: Text('Current Emotion'),
                 subtitle: Text('Happy'),
                 trailing: Icon(Icons.sentiment_satisfied),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Voice Metrics',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),

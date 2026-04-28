@@ -179,14 +179,14 @@ class PremiumDrawer extends StatelessWidget {
                     child: Image.network(
                       userAvatarUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
+                      errorBuilder: (_, __, ___) => const Icon(
                         Icons.person_rounded,
                         size: 28,
                         color: Colors.white,
                       ),
                     ),
                   )
-                : Icon(
+                : const Icon(
                     Icons.person_rounded,
                     size: 28,
                     color: Colors.white,
