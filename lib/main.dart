@@ -166,48 +166,50 @@ Future<void> main() async {
   }
   _disableRuntimeLogs();
 
-  // MEGA POWERFUL ORCHESTRATOR - Initialize all services
-  final orchestrator = MegaPowerfulServicesOrchestrator();
-  try {
-    await orchestrator.initializeAll();
-  } catch (e) {
-    if (kDebugMode) debugPrint('Orchestrator initialization failed: $e');
-  }
+  // ⚡ PERFORMANCE: Load env + theme FIRST (fast, needed for UI)
+  await _loadEnvSafely();
+  await _restoreThemePreferences();
 
-  // ✅ QUICK WIN #1: Log app launch for performance monitoring
-  try {
-    await PerformanceMonitoringService.logAppLaunch();
-  } catch (e) {
-    if (kDebugMode) debugPrint('Error logging app launch: $e');
-  }
+  // ⚡ PERFORMANCE: Run app immediately — don't block on heavy services
+  runApp(const AppProviders(child: GestureControlOverlay(child: VoiceAiApp())));
 
-  await runZonedGuarded(() async {
-    await _loadEnvSafely();
-    await _restoreThemePreferences();
-
-    runApp(
-        const AppProviders(child: GestureControlOverlay(child: VoiceAiApp())));
-    unawaited(_bootstrapPlatformServices());
-  }, (error, stack) {
-    // ignore: avoid_print
-    if (kDebugMode) debugPrint('[ZoneError] $error');
+  // 🔄 DEFERRED: Bootstrap everything else after first frame renders
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(_bootstrapAllServices());
   });
 }
 
-void _disableRuntimeLogs() {
-  // NOTE: Debug print suppression removed - keeping for proper logging
-  // Previously disabled: debugPrint = (String? _, {int? wrapWidth}) {};
-  // Log Flutter errors instead of silently swallowing them
-  FlutterError.onError = (details) {
-    // ignore: avoid_print
-    if (kDebugMode) debugPrint('[FlutterError] ${details.exceptionAsString()}');
-  };
-  // Log platform errors instead of silently swallowing them
-  PlatformDispatcher.instance.onError = (error, stack) {
-    // ignore: avoid_print
-    if (kDebugMode) debugPrint('[PlatformError] $error');
-    return true; // Mark as handled to prevent crash
-  };
+Future<void> _bootstrapAllServices() async {
+  _registerLazyPlatformServices();
+  await LazyServiceLoader.initCritical(
+      const ['workmanager', 'smartNotification']);
+  unawaited(proactive_worker.ensureProactiveBackgroundHealthy());
+  unawaited(_runDailyStorageMaintenance());
+
+  unawaited(
+    HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote())
+        .catchError((Object e, StackTrace st) {
+      if (kDebugMode) debugPrint('Quote widget bootstrap failed: $e\n$st');
+    }),
+  );
+  unawaited(
+    _refreshAllWidgets().catchError((Object e, StackTrace st) {
+      if (kDebugMode) debugPrint('Widget bootstrap failed: $e\n$st');
+    }),
+  );
+
+  // Heavy orchestrator — fully deferred, never blocks UI
+  unawaited(() async {
+    try {
+      await PerformanceMonitoringService.logAppLaunch();
+    } catch (_) {}
+    try {
+      final orchestrator = MegaPowerfulServicesOrchestrator();
+      await orchestrator.initializeAll();
+    } catch (e) {
+      if (kDebugMode) debugPrint('Orchestrator init failed: $e');
+    }
+  }());
 }
 
 Future<void> _loadEnvSafely() async {
@@ -251,30 +253,14 @@ Future<void> _restoreThemePreferences() async {
   }
 }
 
-Future<void> _bootstrapPlatformServices() async {
-  _registerLazyPlatformServices();
-  await LazyServiceLoader.initCritical(
-      const ['workmanager', 'smartNotification']);
-  unawaited(proactive_worker.ensureProactiveBackgroundHealthy());
-  unawaited(_runDailyStorageMaintenance());
-
-  // --- Orphan Integration: Smart Notification Service ---
-  unawaited(
-    HomeWidgetService.updateQuoteWidget(QuoteService.getDailyQuote())
-        .catchError(
-      (Object e, StackTrace st) {
-        if (kDebugMode) debugPrint('Quote widget bootstrap failed: $e\n$st');
-      },
-    ),
-  );
-  // Push ALL widget data (weather, streak, affection, quote)
-  unawaited(
-    _refreshAllWidgets().catchError(
-      (Object e, StackTrace st) {
-        if (kDebugMode) debugPrint('Widget bootstrap failed: $e\n$st');
-      },
-    ),
-  );
+void _disableRuntimeLogs() {
+  FlutterError.onError = (details) {
+    if (kDebugMode) debugPrint('[FlutterError] ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) debugPrint('[PlatformError] $error');
+    return true;
+  };
 }
 
 Future<void> _runDailyStorageMaintenance() async {
@@ -295,11 +281,11 @@ Future<void> _runDailyStorageMaintenance() async {
     await prefs.setInt(lastRunKey, now);
     await prefs.setString(lastResultKey, 'ok');
   } catch (e, st) {
-    if (kDebugMode) {
-      debugPrint('Daily storage maintenance failed: $e\n$st');
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(lastResultKey, 'error: $e');
+    if (kDebugMode) debugPrint('Daily storage maintenance failed: $e\n$st');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(lastResultKey, 'error: $e');
+    } catch (_) {}
   }
 }
 

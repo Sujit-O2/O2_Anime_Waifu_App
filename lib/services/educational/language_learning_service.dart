@@ -501,6 +501,20 @@ class LanguageLearningService {
     return buffer.toString();
   }
 
+  List<LanguageCourse> getCourses() => List.unmodifiable(_courses);
+
+  List<Conversation> getConversations({String? courseId}) {
+    if (courseId == null) return List.unmodifiable(_conversations);
+    return List.unmodifiable(
+        _conversations.where((c) => c.courseId == courseId));
+  }
+
+  List<VocabularySet> getVocabularySets({String? courseId}) {
+    if (courseId == null) return List.unmodifiable(_vocabularySets);
+    return List.unmodifiable(
+        _vocabularySets.where((set) => set.courseId == courseId));
+  }
+
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();

@@ -276,11 +276,7 @@ class SkillGapAnalyzerService {
       recommendations.add(recommendation);
     }
 
-    return '💡 Personalized Recommendations:\n${recommendations
-            .asMap()
-            .entries
-            .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n')}';
+    return '💡 Personalized Recommendations:\n${recommendations.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n')}';
   }
 
   String _generateRecommendationForGap(SkillGap gap) {
@@ -359,6 +355,12 @@ class SkillGapAnalyzerService {
 
     return buffer.toString();
   }
+
+  List<SkillAssessment> getAssessments() => List.unmodifiable(_assessments);
+
+  List<SkillGap> getSkillGaps() => List.unmodifiable(_skillGaps);
+
+  List<LearningGoal> getGoals() => List.unmodifiable(_goals);
 
   Future<void> _saveData() async {
     try {

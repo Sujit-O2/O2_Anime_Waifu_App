@@ -358,6 +358,19 @@ class InvestmentCompanionService {
     return _concepts.where((c) => c.difficulty == difficulty).toList();
   }
 
+  List<Portfolio> getPortfolios() => List.unmodifiable(_portfolios);
+
+  List<Investment> getInvestments({String? portfolioId}) {
+    if (portfolioId == null) return List.unmodifiable(_investments);
+    return List.unmodifiable(
+      _investments.where((investment) => investment.portfolioId == portfolioId),
+    );
+  }
+
+  List<MarketWatch> getWatchlist() => List.unmodifiable(_marketWatches);
+
+  List<FinancialConcept> getConcepts() => List.unmodifiable(_concepts);
+
   String getInvestmentRecommendations() {
     final recommendations = <String>[];
 

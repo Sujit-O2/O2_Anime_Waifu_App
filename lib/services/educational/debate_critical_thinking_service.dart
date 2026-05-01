@@ -367,6 +367,14 @@ class DebateCriticalThinkingService {
     return buffer.toString();
   }
 
+  List<DebateTopic> getTopics() => List.unmodifiable(_topics);
+
+  List<Argument> getArguments({String? topicId}) {
+    if (topicId == null) return List.unmodifiable(_arguments);
+    return List.unmodifiable(
+        _arguments.where((argument) => argument.topicId == topicId));
+  }
+
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();

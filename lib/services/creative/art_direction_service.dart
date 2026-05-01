@@ -439,6 +439,12 @@ class ArtDirectionService {
     return buffer.toString();
   }
 
+  List<DesignProject> getProjects() => List.unmodifiable(_projects);
+
+  List<ColorPalette> getPalettes() => List.unmodifiable(_palettes);
+
+  List<VisualConcept> getConcepts() => List.unmodifiable(_concepts);
+
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();

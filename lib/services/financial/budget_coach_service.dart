@@ -201,6 +201,8 @@ class BudgetCoachService {
     return _transactions.take(limit).toList();
   }
 
+  List<Category> getCategories() => List.unmodifiable(_categories);
+
   double getCategorySpending(String category,
       {DateTime? startDate, DateTime? endDate}) {
     var filteredTransactions = _transactions.where(

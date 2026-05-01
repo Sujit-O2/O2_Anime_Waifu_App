@@ -581,6 +581,13 @@ class PersonalizedLearningService {
     return buffer.toString();
   }
 
+  List<LearningPath> getPaths() => List.unmodifiable(_paths);
+
+  List<ContentRecommendation> getRecommendations() =>
+      List.unmodifiable(_recommendations);
+
+  List<LearningSession> getSessions() => List.unmodifiable(_sessions);
+
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();

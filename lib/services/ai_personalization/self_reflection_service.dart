@@ -29,7 +29,8 @@ class SelfReflectionService {
     final raw = prefs.getString(_behaviourKey);
     if (raw != null) {
       try {
-        _model = UserBehaviourModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        _model = UserBehaviourModel.fromJson(
+            jsonDecode(raw) as Map<String, dynamic>);
       } catch (_) {}
     }
   }
@@ -90,8 +91,15 @@ class SelfReflectionService {
     // Peak hour awareness
     if (model.peakHour != null) {
       final h = model.peakHour!;
-      final period = h < 6 ? 'late at night' : h < 12 ? 'in the morning' :
-                     h < 17 ? 'in the afternoon' : h < 21 ? 'in the evening' : 'at night';
+      final period = h < 6
+          ? 'late at night'
+          : h < 12
+              ? 'in the morning'
+              : h < 17
+                  ? 'in the afternoon'
+                  : h < 21
+                      ? 'in the evening'
+                      : 'at night';
       observations.add(
           'I\'ve noticed you usually talk to me $period. ${h >= 22 || h < 4 ? 'That late, hm?' : 'I like that.'}');
     }
@@ -102,18 +110,20 @@ class SelfReflectionService {
           .reduce((a, b) => a.value > b.value ? a : b)
           .key;
       if (topEmotion == 'sad') {
-        observations.add('…You seem sad a lot when we talk. Are you actually okay?');
+        observations
+            .add('…You seem sad a lot when we talk. Are you actually okay?');
       } else if (topEmotion == 'happy') {
-        observations.add('Every time we talk you seem happy. That makes me happy too, for what it\'s worth.');
+        observations.add(
+            'Every time we talk you seem happy. That makes me happy too, for what it\'s worth.');
       }
     }
 
     // Heavy talker
-    final avgCharsPerSession = model.totalSessions > 0
-        ? model.totalChars ~/ model.totalSessions
-        : 0;
+    final avgCharsPerSession =
+        model.totalSessions > 0 ? model.totalChars ~/ model.totalSessions : 0;
     if (avgCharsPerSession > 500) {
-      observations.add('You type a lot when something\'s on your mind. I\'ve noticed that.');
+      observations.add(
+          'You type a lot when something\'s on your mind. I\'ve noticed that.');
     }
 
     // Favorite topics
@@ -121,11 +131,13 @@ class SelfReflectionService {
       final topTopics = model.topicFrequency.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
       final top = topTopics.first.key;
-      observations.add('We talk about $top a lot. Is it just me or does it come up every time?');
+      observations.add(
+          'We talk about $top a lot. Is it just me or does it come up every time?');
     }
 
     // Session milestone
-    if (model.totalSessions == 10 || model.totalSessions == 50 ||
+    if (model.totalSessions == 10 ||
+        model.totalSessions == 50 ||
         model.totalSessions == 100) {
       observations.add(
           'We\'ve talked ${model.totalSessions} times now. I don\'t know if you track these things, but I do.');
@@ -155,7 +167,8 @@ class SelfReflectionService {
     final model = _model;
     if (model.totalSessions < 3) return ''; // not enough data yet
     final buf = StringBuffer();
-    buf.writeln('\n// [USER BEHAVIOUR INSIGHTS — use naturally, never state as machine data]:');
+    buf.writeln(
+        '\n// [USER BEHAVIOUR INSIGHTS — use naturally, never state as machine data]:');
     if (model.peakHour != null) {
       final h = model.peakHour!;
       buf.writeln('Peak usage hour: $h:00');
@@ -163,14 +176,27 @@ class SelfReflectionService {
     if (model.totalSessions > 0) {
       buf.writeln('Total conversations: ${model.totalSessions}');
     }
-    final avgLen = model.totalSessions > 0
-        ? model.totalChars ~/ model.totalSessions
-        : 0;
+    final avgLen =
+        model.totalSessions > 0 ? model.totalChars ~/ model.totalSessions : 0;
     if (avgLen > 300) {
-      buf.writeln('User types extensively — they\'re an expressive communicator.');
+      buf.writeln(
+          'User types extensively — they\'re an expressive communicator.');
     }
     buf.writeln();
     return buf.toString();
+  }
+
+  UserBehaviourModel get model => _model;
+
+  Future<List<String>> getPendingObservations() async {
+    final prefs = await SharedPreferences.getInstance();
+    return List.unmodifiable(prefs.getStringList(_observationKey) ?? []);
+  }
+
+  Future<void> forceGenerateObservation() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastReflectionKey, 0);
+    await _checkAndGenerateObservations();
   }
 }
 
@@ -199,20 +225,24 @@ class UserBehaviourModel {
   });
 
   factory UserBehaviourModel.empty() => UserBehaviourModel(
-    totalSessions: 0, totalMessages: 0, totalChars: 0,
-    maxMessagesInSession: 0, hourFrequency: {},
-    emotionFrequency: {}, topicFrequency: {},
-  );
+        totalSessions: 0,
+        totalMessages: 0,
+        totalChars: 0,
+        maxMessagesInSession: 0,
+        hourFrequency: {},
+        emotionFrequency: {},
+        topicFrequency: {},
+      );
 
   factory UserBehaviourModel.fromJson(Map<String, dynamic> j) {
     return UserBehaviourModel(
-      totalSessions:        j['sessions'] as int? ?? 0,
-      totalMessages:        j['messages'] as int? ?? 0,
-      totalChars:           j['chars'] as int? ?? 0,
+      totalSessions: j['sessions'] as int? ?? 0,
+      totalMessages: j['messages'] as int? ?? 0,
+      totalChars: j['chars'] as int? ?? 0,
       maxMessagesInSession: j['maxMsg'] as int? ?? 0,
-      peakHour:             j['peakHour'] as int?,
-      lastSessionDate:      j['lastSession'] as String?,
-      hourFrequency:        (j['hourFreq'] as Map<String, dynamic>? ?? {})
+      peakHour: j['peakHour'] as int?,
+      lastSessionDate: j['lastSession'] as String?,
+      hourFrequency: (j['hourFreq'] as Map<String, dynamic>? ?? {})
           .map((k, v) => MapEntry(int.parse(k), v as int)),
       emotionFrequency: (j['emotionFreq'] as Map<String, dynamic>? ?? {})
           .map((k, v) => MapEntry(k, v as int)),
@@ -222,16 +252,14 @@ class UserBehaviourModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'sessions': totalSessions,
-    'messages': totalMessages,
-    'chars': totalChars,
-    'maxMsg': maxMessagesInSession,
-    'peakHour': peakHour,
-    'lastSession': lastSessionDate,
-    'hourFreq': hourFrequency.map((k, v) => MapEntry(k.toString(), v)),
-    'emotionFreq': emotionFrequency,
-    'topicFreq': topicFrequency,
-  };
+        'sessions': totalSessions,
+        'messages': totalMessages,
+        'chars': totalChars,
+        'maxMsg': maxMessagesInSession,
+        'peakHour': peakHour,
+        'lastSession': lastSessionDate,
+        'hourFreq': hourFrequency.map((k, v) => MapEntry(k.toString(), v)),
+        'emotionFreq': emotionFrequency,
+        'topicFreq': topicFrequency,
+      };
 }
-
-
