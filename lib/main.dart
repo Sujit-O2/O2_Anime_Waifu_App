@@ -4227,6 +4227,20 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
           hasMic &&
           _wakeWordEnabledByUser,
     );
+
+    // Auto-enable WorkManager fallback if we have an API key and proactive is on
+    if (apiKey.isNotEmpty && _proactiveEnabled) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('true_background_proactive_enabled', true);
+        await proactive_worker.configureProactiveBackgroundTask(
+          enabled: true,
+          interval: Duration(seconds: _proactiveIntervalSeconds.clamp(900, 86400)),
+        );
+      } catch (e) {
+        if (kDebugMode) debugPrint('WorkManager auto-enable failed: $e');
+      }
+    }
   }
 
   Future<void> _grantFullAccessForBackgroundWake() async {
@@ -5143,26 +5157,26 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                     ? 'SYSTEM READY'
                     : _apiKeyStatus.toUpperCase();
     final avatarCore = Container(
-      width: 64,
-      height: 64,
-      padding: const EdgeInsets.all(2.5),
+      width: 80,
+      height: 80,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: tokens.outlineStrong,
-          width: 1.5,
+        gradient: LinearGradient(
+          colors: [primary, const Color(0xFF00D1FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.35),
-            blurRadius: 18,
-            spreadRadius: 2,
+            color: primary.withValues(alpha: 0.5),
+            blurRadius: 24,
+            spreadRadius: 3,
           ),
           BoxShadow(
-            color: primary.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: -1,
+            color: const Color(0xFF00D1FF).withValues(alpha: 0.2),
+            blurRadius: 40,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -5172,17 +5186,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             assetPath: _chatImageAsset,
             customPath: _effectiveChatCustomPath,
           ),
-          width: 60,
-          height: 60,
+          width: 74,
+          height: 74,
           fit: BoxFit.cover,
           errorBuilder: (c, e, s) => Container(
-            width: 60,
-            height: 60,
+            width: 74,
+            height: 74,
             color: tokens.panelMuted,
-            child: Icon(
-              Icons.person,
-              color: tokens.textSoft,
-            ),
+            child: Icon(Icons.person, color: tokens.textSoft, size: 36),
           ),
         ),
       ),
@@ -5221,21 +5232,49 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 children: [
                   Row(
                     children: [
-                      Text(
-                        statusText,
-                        style: GoogleFonts.outfit(
-                          color: tokens.textMuted,
-                          fontSize: 10,
-                          letterSpacing: 1.3,
-                          fontWeight: FontWeight.w700,
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [primary, const Color(0xFF00D1FF)],
+                        ).createShader(bounds),
+                        child: Text(
+                          'Zero Two',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: (_isSpeaking || _speechService.listening)
+                              ? Colors.greenAccent
+                              : _wakeWordService.isRunning
+                                  ? Colors.cyanAccent
+                                  : Colors.grey.shade600,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isSpeaking || _speechService.listening)
+                                  ? Colors.greenAccent.withValues(alpha: 0.7)
+                                  : _wakeWordService.isRunning
+                                      ? Colors.cyanAccent.withValues(alpha: 0.7)
+                                      : Colors.transparent,
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
                       if (_wakeEffectVisible) ...[
-                        const SizedBox(width: 8),
-                        Icon(Icons.flash_on, color: primary, size: 12),
-                        const SizedBox(width: 3),
+                        const SizedBox(width: 6),
+                        Icon(Icons.flash_on, color: primary, size: 11),
                         Text(
-                          'WAKE ACTIVE',
+                          'WAKE',
                           style: GoogleFonts.outfit(
                             color: primary,
                             fontSize: 9,
@@ -5245,6 +5284,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                         ),
                       ],
                     ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    statusText,
+                    style: GoogleFonts.outfit(
+                      color: tokens.textMuted,
+                      fontSize: 9.5,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Wrap(
@@ -6927,19 +6976,80 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
   }
 
-  /// Triggers the floating assistant overlay popup (like Google Assistant). (like Google Assistant).
+  /// Triggers the floating assistant overlay popup (like Google Assistant).
   Future<void> _launchAssistantOverlay() async {
     try {
+      // Check permission first before attempting to show
+      if (Platform.isAndroid) {
+        final canOverlay = await _assistantModeService.canDrawOverlays();
+        if (!canOverlay) {
+          // Show a clear dialog explaining why the permission is needed
+          if (!mounted) return;
+          final granted = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color(0xFF1A0B2E),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.layers_rounded, color: Color(0xFFFF4081)),
+                  SizedBox(width: 10),
+                  Text('Overlay Permission',
+                      style: TextStyle(color: Colors.white, fontSize: 18)),
+                ],
+              ),
+              content: const Text(
+                'Zero Two needs "Display over other apps" permission to show the assistant popup while you use other apps.\n\nTap "Allow" to open Settings and enable it.',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Not Now',
+                      style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF4081),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Allow',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          );
+          if (granted != true) {
+            // User declined — fall back to in-app mic
+            if (mounted) unawaited(_toggleManualMic());
+            return;
+          }
+          await _assistantModeService.requestOverlayPermission();
+          // Give user time to grant in Settings, then re-check
+          await Future.delayed(const Duration(seconds: 1));
+          final nowGranted = await _assistantModeService.canDrawOverlays();
+          if (!nowGranted) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Permission not granted yet. Enable "Display over other apps" in Settings, then try again.'),
+                  duration: Duration(seconds: 4),
+                ),
+              );
+              unawaited(_toggleManualMic());
+            }
+            return;
+          }
+        }
+      }
+
       final opened = await _assistantModeService.showAssistantOverlay();
       if (opened) return;
-
-      if (Platform.isAndroid &&
-          !await _assistantModeService.canDrawOverlays()) {
-        await _assistantModeService.requestOverlayPermission();
-        // After requesting permission, try to show the overlay again
-        final openedAfterPermission = await _assistantModeService.showAssistantOverlay();
-        if (openedAfterPermission) return;
-      }
 
       // Fallback: if native overlay is unavailable, start manual mic session.
       if (mounted) unawaited(_toggleManualMic());

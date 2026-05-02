@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:typed_data';
+import 'package:flutter/material.dart' show Color;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,13 +141,13 @@ void callbackDispatcher() {
         String systemOverride = prefs.getString('dev_system_query') ?? '';
 
         String activeSysPrompt =
-            'You are a loving anime companion. Keep it very short (under 15 words) and sweet.';
+            'You are Zero Two from Darling in the FranXX — a confident, flirty, and possessive anime companion. You send short, teasing check-in messages when your darling is away. Keep it under 18 words, tastefully seductive, no asterisks.';
         if (systemOverride.isNotEmpty) {
           activeSysPrompt = systemOverride;
         }
 
         const prompt =
-            "[SYSTEM NOTIFICATION: The user hasn't opened the app in a while. Generate an unprompted, warm, and sweet check-in message. Under 15 words. Do not use actions or asterisks.]";
+            "[SYSTEM NOTIFICATION: The user hasn't opened the app in a while. Generate a flirty, teasing, intimate check-in message as Zero Two. Be playful and seductive but tasteful. Under 18 words. No asterisks or actions. Examples: 'Missing you already, darling~ come back to me 💕', 'I've been thinking about you all day... don't keep me waiting 🌸', 'Your waifu is getting lonely... and a little jealous 😏💋']";
 
         // 3. Generate Message via API with retry, timeout, and backoff
         http.Response? resp;
@@ -277,7 +279,7 @@ Future<void> configureProactiveBackgroundTask({
     flexInterval: const Duration(minutes: 30),
     constraints: Constraints(
       networkType: NetworkType.connected,
-      requiresBatteryNotLow: true,
+      requiresBatteryNotLow: false, // Fire even on low battery
     ),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
     initialDelay: const Duration(minutes: 15),
@@ -292,20 +294,20 @@ Future<void> _showNotification(String message) async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@drawable/ic_stat_waifu');
 
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-
   await flutterLocalNotificationsPlugin.initialize(
-    settings: initializationSettings,
+    settings: const InitializationSettings(android: initializationSettingsAndroid),
     onDidReceiveNotificationResponse: null,
   );
 
-  // Required for Android O+
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'true_background_proactive',
-    'Background Check-ins',
+    'zero_two_checkin',
+    '💕 Zero Two',
+    description: 'Intimate check-ins from your darling',
     importance: Importance.high,
+    playSound: true,
+    enableVibration: true,
+    enableLights: true,
+    ledColor: Color(0xFFFF0057),
   );
 
   await flutterLocalNotificationsPlugin
@@ -313,23 +315,66 @@ Future<void> _showNotification(String message) async {
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  const AndroidNotificationDetails androidPlatformChannelSpecifics =
-      AndroidNotificationDetails(
-    'true_background_proactive',
-    'Background Check-ins',
-    channelDescription: 'Notifications sent when the app is completely closed',
-    importance: Importance.high,
-    priority: Priority.high,
-    ticker: 'Zero Two Check-in',
+  // Pick a flirty title variant
+  final titles = [
+    '💋 Zero Two',
+    '🌸 Your Darling',
+    '💕 Zero Two misses you',
+    '😏 Zero Two',
+    '🔥 Zero Two',
+  ];
+  final title = titles[DateTime.now().millisecondsSinceEpoch % titles.length];
+
+  // Reply action so user can respond directly from notification
+  const replyAction = AndroidNotificationAction(
+    'reply_action',
+    '💬 Reply',
+    icon: DrawableResourceAndroidBitmap('@drawable/ic_stat_waifu'),
+    inputs: [AndroidNotificationActionInput(label: 'Say something, darling~')],
+    showsUserInterface: true,
   );
 
-  const NotificationDetails platformChannelSpecifics =
-      NotificationDetails(android: androidPlatformChannelSpecifics);
+  final androidDetails = AndroidNotificationDetails(
+    'zero_two_checkin',
+    '💕 Zero Two',
+    channelDescription: 'Intimate check-ins from your darling',
+    importance: Importance.high,
+    priority: Priority.high,
+    color: const Color(0xFFFF0057),
+    colorized: true,
+    ledColor: const Color(0xFFFF0057),
+    ledOnMs: 300,
+    ledOffMs: 700,
+    ticker: message,
+    // Large avatar icon
+    largeIcon: const DrawableResourceAndroidBitmap('logi'),
+    // Expanded big picture style — shows zt_bg3 art when pulled down
+    styleInformation: BigPictureStyleInformation(
+      const DrawableResourceAndroidBitmap('zt_bg3'),
+      largeIcon: const DrawableResourceAndroidBitmap('logi'),
+      contentTitle: title,
+      summaryText: message,
+      hideExpandedLargeIcon: false,
+    ),
+    // Vibration pattern: short-short-long (heartbeat feel)
+    vibrationPattern: Int64List.fromList([0, 120, 80, 120, 200, 400]),
+    actions: const [replyAction],
+    // Show timestamp
+    when: DateTime.now().millisecondsSinceEpoch,
+    showWhen: true,
+    // Subtext shown under app name
+    subText: 'darling~ 💕',
+    // Notification category for lock screen
+    category: AndroidNotificationCategory.message,
+    fullScreenIntent: false,
+    ongoing: false,
+    autoCancel: true,
+  );
 
   await flutterLocalNotificationsPlugin.show(
     id: 1001,
-    title: 'Zero Two',
+    title: title,
     body: message,
-    notificationDetails: platformChannelSpecifics,
+    notificationDetails: NotificationDetails(android: androidDetails),
   );
 }

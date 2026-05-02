@@ -34,10 +34,10 @@ class PremiumChatBubble extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        isUser ? 60 : 16,
-        4,
-        isUser ? 16 : 60,
-        4,
+        isUser ? 56 : 12,
+        3,
+        isUser ? 12 : 56,
+        3,
       ),
       child: Column(
         crossAxisAlignment:
@@ -49,19 +49,13 @@ class PremiumChatBubble extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 gradient: isUser
-                    ? LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withValues(alpha: 0.85),
-                        ],
+                    ? const LinearGradient(
+                        colors: [Color(0xFFFF4081), Color(0xFF7C4DFF)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
                     : LinearGradient(
-                        colors: [
-                          tokens.panelElevated,
-                          tokens.panel,
-                        ],
+                        colors: [tokens.panelElevated, tokens.panel],
                       ),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
@@ -70,22 +64,34 @@ class PremiumChatBubble extends StatelessWidget {
                   bottomRight: Radius.circular(isUser ? 4 : 20),
                 ),
                 border: isSelected
-                    ? Border.all(
-                        color: theme.colorScheme.primary,
-                        width: 2,
-                      )
-                    : Border.all(
-                        color: isUser ? Colors.transparent : tokens.outline,
-                      ),
+                    ? Border.all(color: theme.colorScheme.primary, width: 2)
+                    : isUser
+                        ? null
+                        : Border(
+                            left: BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 3,
+                            ),
+                            top: BorderSide(color: tokens.outline, width: 0.5),
+                            right: BorderSide(color: tokens.outline, width: 0.5),
+                            bottom: BorderSide(color: tokens.outline, width: 0.5),
+                          ),
                 boxShadow: [
                   BoxShadow(
                     color: isUser
-                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                        : tokens.shadowColor,
-                    blurRadius: 12,
+                        ? const Color(0xFFFF4081).withValues(alpha: 0.35)
+                        : theme.colorScheme.primary.withValues(alpha: 0.12),
+                    blurRadius: isUser ? 16 : 10,
                     offset: const Offset(0, 4),
-                    spreadRadius: -4,
+                    spreadRadius: isUser ? -2 : -3,
                   ),
+                  if (!isUser)
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(-2, 0),
+                      spreadRadius: 0,
+                    ),
                 ],
               ),
               child: ClipRRect(

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 /// Enhanced Email Service with multiple provider support
@@ -42,9 +43,14 @@ class EnhancedEmailService {
     required String subject,
     required String body,
     required String senderName,
-    String senderEmail = 'noreply@zerotwo.app',
+    String senderEmail = '',
     bool useHtmlTemplate = true,
   }) async {
+    final effectiveSender = senderEmail.isNotEmpty
+        ? senderEmail
+        : (dotenv.env['SENDER_EMAIL']?.trim().isNotEmpty == true
+            ? dotenv.env['SENDER_EMAIL']!.trim()
+            : 'zerozerotwoxsujit@gmail.com');
     if (toEmail.trim().isEmpty || !_isValidEmail(toEmail)) {
       return EmailResult(
         success: false,
@@ -77,9 +83,9 @@ class EnhancedEmailService {
 
     // Try providers in order: Brevo → Mailgun → SendGrid
     final providers = [
-      if (_brevoApiKey.isNotEmpty) () => _sendViaBrevo(toEmail, subject, body, senderName, senderEmail, htmlContent),
-      if (_mailgunKey.isNotEmpty) () => _sendViaMailgun(toEmail, subject, body, senderName, senderEmail, htmlContent),
-      if (_sendgridKey.isNotEmpty) () => _sendViaSendGrid(toEmail, subject, body, senderName, senderEmail, htmlContent),
+      if (_brevoApiKey.isNotEmpty) () => _sendViaBrevo(toEmail, subject, body, senderName, effectiveSender, htmlContent),
+      if (_mailgunKey.isNotEmpty) () => _sendViaMailgun(toEmail, subject, body, senderName, effectiveSender, htmlContent),
+      if (_sendgridKey.isNotEmpty) () => _sendViaSendGrid(toEmail, subject, body, senderName, effectiveSender, htmlContent),
     ];
 
     if (providers.isEmpty) {

@@ -370,7 +370,7 @@ class _StaticBackgroundLayer extends StatelessWidget {
                             bgUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (c, e, s) => Image.asset(
-                              'assets/zero_two_dance.gif',
+                              'assets/gif/background_of_about_section_blurry.gif',
                               fit: BoxFit.cover,
                             ),
                           ),

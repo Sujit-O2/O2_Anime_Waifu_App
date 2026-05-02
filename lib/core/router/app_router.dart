@@ -49,7 +49,6 @@ import 'package:anime_waifu/screens/media/anime_recommender_page.dart';
 import 'package:anime_waifu/screens/media/anime_watch_party_page.dart';
 import 'package:anime_waifu/screens/media/downloads_page.dart';
 import 'package:anime_waifu/screens/media/episode_alerts_page.dart';
-import 'package:anime_waifu/screens/media/gif_viewer_page.dart';
 import 'package:anime_waifu/screens/media/hianime_webview_page.dart';
 import 'package:anime_waifu/screens/media/manga_reader_page.dart';
 import 'package:anime_waifu/screens/media/manga_section_page.dart';
@@ -424,7 +423,6 @@ class AppRouter {
   static const String memoryVault = '/memory-vault';
   static const String hianime = '/hianime';
   static const String mangaReader = '/manga-reader';
-  static const String gifViewer = '/gif-viewer';
   static const String giftIntelligence = '/gift-intelligence';
   static const String conflictResolution = '/conflict-resolution';
   static const String longDistanceRelationship = '/long-distance-relationship';
@@ -656,7 +654,6 @@ class AppRouter {
         memoryVault: (_) => const MemoryVaultPage(),
         AppRouter.hianime: (_) =>
             const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
-        AppRouter.gifViewer: (_) => const GifViewerPage(),
         AppRouter.mangaReader: (context) {
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, dynamic>?;

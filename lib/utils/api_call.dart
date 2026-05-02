@@ -428,7 +428,9 @@ class ApiService {
             body: jsonEncode({
               'sender': {
                 'name': 'Zero Two',
-                'email': Defaults.defaultSenderEmail
+                'email': dotenv.env['SENDER_EMAIL']?.trim().isNotEmpty == true
+                    ? dotenv.env['SENDER_EMAIL']!.trim()
+                    : Defaults.defaultSenderEmail,
               },
               'to': [
                 {'email': normalizedMail}

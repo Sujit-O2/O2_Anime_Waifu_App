@@ -268,9 +268,19 @@ class _ProfileHeader extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Row(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/gif/sidebar_top.gif',
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: Row(
             children: [
               // Avatar with glow ring
               _AvatarWidget(
@@ -312,6 +322,8 @@ class _ProfileHeader extends StatelessWidget {
               ),
             ],
           ),
+        ),
+          ],
         ),
       ),
     );

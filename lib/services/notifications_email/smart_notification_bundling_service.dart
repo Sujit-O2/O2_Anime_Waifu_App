@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🔔 Smart Notification Bundling Service
@@ -15,9 +17,30 @@ class SmartNotificationBundlingService {
 
   final List<PendingNotification> _pendingNotifications = [];
   Timer? _bundleTimer;
+  final _plugin = FlutterLocalNotificationsPlugin();
+  bool _pluginInitialized = false;
 
   static const String _storageKey = 'notification_bundles_v1';
   static const Duration _bundleDelay = Duration(minutes: 5);
+  static const _channelId = 'zero_two_bundles';
+  static const _channelName = 'Zero Two Notifications';
+
+  Future<void> _ensureInitialized() async {
+    if (_pluginInitialized) return;
+    const android = AndroidInitializationSettings('@drawable/ic_stat_waifu');
+    await _plugin.initialize(
+      settings: const InitializationSettings(android: android),
+    );
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(const AndroidNotificationChannel(
+          _channelId,
+          _channelName,
+          importance: Importance.high,
+        ));
+    _pluginInitialized = true;
+  }
 
   Future<void> initialize() async {
     await _loadPending();
@@ -95,13 +118,41 @@ class SmartNotificationBundlingService {
 
   /// Send a single notification
   Future<void> _sendNotification(PendingNotification notification) async {
-    // In production, this would use flutter_local_notifications
     if (kDebugMode) {
       debugPrint('[NotificationBundle] Sending: ${notification.title}');
     }
-
-    // TODO: Implement actual notification sending
-    // await FlutterLocalNotificationsPlugin().show(...)
+    try {
+      await _ensureInitialized();
+      final details = NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          importance: Importance.high,
+          priority: Priority.high,
+          color: const Color(0xFFFF0057),
+          ledColor: const Color(0xFFFF0057),
+          ledOnMs: 500,
+          ledOffMs: 500,
+          largeIcon: const DrawableResourceAndroidBitmap('logi'),
+          styleInformation: BigPictureStyleInformation(
+            const DrawableResourceAndroidBitmap('zt_bg3'),
+            largeIcon: const DrawableResourceAndroidBitmap('logi'),
+            contentTitle: '💕 Zero Two',
+            summaryText: notification.message,
+            hideExpandedLargeIcon: false,
+          ),
+        ),
+      );
+      await _plugin.show(
+        id: notification.id.hashCode,
+        title: notification.title,
+        body: notification.message,
+        notificationDetails: details,
+        payload: jsonEncode(notification.toJson()),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[NotificationBundle] Send error: $e');
+    }
   }
 
   /// Send a bundled notification
@@ -111,18 +162,43 @@ class SmartNotificationBundlingService {
   ) async {
     final count = notifications.length;
     final title = _getBundleTitle(type, count);
+    final body = notifications.map((n) => n.message).take(3).join(' • ');
 
     if (kDebugMode) {
       debugPrint('[NotificationBundle] Sending bundle: $title ($count items)');
     }
-
-    // TODO: Implement actual bundled notification
-    // await FlutterLocalNotificationsPlugin().show(
-    //   id: type.hashCode,
-    //   title: title,
-    //   body: message,
-    //   payload: jsonEncode(notifications.map((n) => n.toJson()).toList()),
-    // )
+    try {
+      await _ensureInitialized();
+      final details = NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          importance: Importance.high,
+          priority: Priority.high,
+          color: const Color(0xFFFF0057),
+          ledColor: const Color(0xFFFF0057),
+          ledOnMs: 500,
+          ledOffMs: 500,
+          largeIcon: const DrawableResourceAndroidBitmap('logi'),
+          styleInformation: BigPictureStyleInformation(
+            const DrawableResourceAndroidBitmap('zt_bg3'),
+            largeIcon: const DrawableResourceAndroidBitmap('logi'),
+            contentTitle: '💕 Zero Two',
+            summaryText: body,
+            hideExpandedLargeIcon: false,
+          ),
+        ),
+      );
+      await _plugin.show(
+        id: type.hashCode,
+        title: title,
+        body: body,
+        notificationDetails: details,
+        payload: jsonEncode(notifications.map((n) => n.toJson()).toList()),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[NotificationBundle] Bundle send error: $e');
+    }
   }
 
   String _getBundleTitle(NotificationType type, int count) {
