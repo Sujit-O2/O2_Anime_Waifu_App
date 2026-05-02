@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// PREMIUM CHAT INPUT BAR — v9.0.2
@@ -171,6 +172,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
   Widget build(BuildContext context) {
     final accent = widget.accentColor ?? const Color(0xFFFF0057);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -178,54 +180,98 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
         // Smart reply chips & Surprise Me
         if (_showChips) _buildChips(accent),
         // Main input row
-        Container(
-          margin: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          margin: const EdgeInsets.fromLTRB(10, 6, 10, 10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            color: theme.colorScheme.surface.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(30),
+            color: isDark
+                ? theme.colorScheme.surface.withOpacity(0.92)
+                : theme.colorScheme.surface.withOpacity(0.98),
             border: Border.all(
               color: widget.isListening
-                  ? accent
-                  : theme.colorScheme.outline.withOpacity(0.3),
+                  ? accent.withOpacity(0.6)
+                  : theme.colorScheme.outline.withOpacity(0.25),
               width: widget.isListening ? 1.5 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: accent.withOpacity(widget.isListening ? 0.2 : 0.05),
-                blurRadius: widget.isListening ? 16 : 8,
-                spreadRadius: -2,
+                color: widget.isListening
+                    ? accent.withOpacity(0.15)
+                    : accent.withOpacity(0.06),
+                blurRadius: widget.isListening ? 20 : 12,
+                spreadRadius: -3,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
+                blurRadius: 16,
+                spreadRadius: -4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               // Image Picker Button
               if (widget.onImagePick != null)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6, left: 4),
+                  padding: const EdgeInsets.only(bottom: 8, left: 4, top: 8),
                   child: Stack(
                     children: [
-                      IconButton(
-                        onPressed: widget.onImagePick,
-                        icon: Icon(
-                          widget.hasImage ? Icons.image : Icons.image_outlined,
-                          color: widget.hasImage ? accent : theme.colorScheme.onSurface.withOpacity(0.6),
-                          size: 22,
+                      Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            widget.onImagePick!();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Icon(
+                              widget.hasImage
+                                  ? Icons.image
+                                  : Icons.add_photo_alternate_outlined,
+                              color: widget.hasImage
+                                  ? accent
+                                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                              size: 22,
+                            ),
+                          ),
                         ),
                       ),
                       if (widget.hasImage)
                         Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: accent,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: theme.colorScheme.surface, width: 1.5),
+                          right: 6,
+                          top: 6,
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.elasticOut,
+                            builder: (context, value, _) => Transform.scale(
+                              scale: value,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: accent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: theme.colorScheme.surface,
+                                      width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: accent.withOpacity(0.4),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -241,7 +287,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
               const SizedBox(width: 4),
               // Mic / Send button
               _buildActionButton(accent),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
             ],
           ),
         ),
@@ -256,19 +302,30 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
       maxLines: 5,
       minLines: 1,
       textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 15, height: 1.4),
+      style: GoogleFonts.outfit(
+        fontSize: 15,
+        height: 1.5,
+        color: theme.colorScheme.onSurface,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: widget.accentColor ?? theme.colorScheme.primary,
+      cursorWidth: 2,
+      cursorRadius: const Radius.circular(4),
       decoration: InputDecoration(
         hintText: widget.isThinking
             ? 'Zero Two is thinking...'
             : 'Message Zero Two...',
-        hintStyle: TextStyle(
-          color: theme.colorScheme.onSurface.withOpacity(0.4),
-          fontSize: 14,
+        hintStyle: GoogleFonts.outfit(
+          color: theme.colorScheme.onSurface.withOpacity(0.35),
+          fontSize: 14.5,
           fontStyle: widget.isThinking ? FontStyle.italic : FontStyle.normal,
+          fontWeight: FontWeight.w400,
         ),
         border: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        enabledBorder: InputBorder.none,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),
     );
   }

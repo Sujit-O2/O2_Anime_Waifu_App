@@ -4889,124 +4889,207 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
             drawer: _buildNavDrawer(themeMode),
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: Builder(
-                builder: (ctx) => Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: tokens.glassGradient,
-                      color: tokens.panel.withValues(alpha: 0.90),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: tokens.outlineStrong),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.menu_rounded,
-                          color: theme.colorScheme.onSurface),
-                      onPressed: () => Scaffold.of(ctx).openDrawer(),
-                      tooltip: 'Menu',
-                    ),
-                  ),
-                ),
-              ),
-              title: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _onTitleTap,
-                onLongPress: _openDevConfigSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: tokens.glassGradient,
-                    color: tokens.panel.withValues(alpha: 0.84),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: tokens.outlineStrong),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                        blurRadius: 18,
-                        spreadRadius: -10,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'ZERO TWO',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.8,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-              titleSpacing: 0,
-              centerTitle: true,
-              actions: [
-                // 🔥 Streak Badge — only show when streak >= 2
-                if (AffectionService.instance.streakDays >= 2)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
-                    child: StreakBadge(
-                      streak: AffectionService.instance.streakDays,
-                    ),
-                  ),
-                const SizedBox(width: 4),
-                // 🔔 Notification bell — top right (ENHANCED)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: tokens.glassGradient,
-                      color: tokens.panel.withValues(alpha: 0.90),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: tokens.outlineStrong),
-                    ),
-                    child: IconButton(
-                      icon: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Icon(Icons.notifications_rounded,
-                              color: _hasUnreadNotifs ? theme.colorScheme.primary : theme.colorScheme.onSurface, 
-                              size: 22),
-                          if (_navIndex != 1 && _hasUnreadNotifs)
-                            Positioned(
-                              top: -4,
-                              right: -4,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.redAccent.withValues(alpha: 0.6),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      tooltip: 'Notifications',
-                      onPressed: () => setState(() {
-                        _navIndex = 1;
-                        _hasUnreadNotifs = false;
-                      }),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-              ],
-            ),
+             appBar: AppBar(
+               backgroundColor: Colors.transparent,
+               elevation: 0,
+               leadingWidth: 64,
+               leading: Builder(
+                 builder: (ctx) => Padding(
+                   padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+                   child: AnimatedContainer(
+                     duration: const Duration(milliseconds: 250),
+                     decoration: BoxDecoration(
+                       gradient: tokens.glassGradient,
+                       color: tokens.panel.withValues(alpha: 0.92),
+                       borderRadius: BorderRadius.circular(16),
+                       border: Border.all(color: tokens.outlineStrong, width: 1.2),
+                       boxShadow: [
+                         BoxShadow(
+                           color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                           blurRadius: 12,
+                           offset: const Offset(0, 2),
+                         ),
+                       ],
+                     ),
+                     child: Material(
+                       color: Colors.transparent,
+                       borderRadius: BorderRadius.circular(16),
+                       child: InkWell(
+                         borderRadius: BorderRadius.circular(16),
+                         onTap: () {
+                           HapticFeedback.selectionClick();
+                           Scaffold.of(ctx).openDrawer();
+                         },
+                         child: Icon(Icons.menu_rounded,
+                             color: theme.colorScheme.onSurface, size: 22),
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+               title: GestureDetector(
+                 behavior: HitTestBehavior.translucent,
+                 onTap: () {
+                   HapticFeedback.selectionClick();
+                   _onTitleTap();
+                 },
+                 onLongPress: _openDevConfigSheet,
+                 child: AnimatedContainer(
+                   duration: const Duration(milliseconds: 300),
+                   curve: Curves.easeOutCubic,
+                   padding: const EdgeInsets.symmetric(
+                       horizontal: 20, vertical: 10),
+                   decoration: BoxDecoration(
+                     gradient: LinearGradient(
+                       begin: Alignment.topLeft,
+                       end: Alignment.bottomRight,
+                       colors: [
+                         tokens.panel.withValues(alpha: 0.90),
+                         tokens.panelElevated.withValues(alpha: 0.85),
+                       ],
+                     ),
+                     borderRadius: BorderRadius.circular(999),
+                     border: Border.all(
+                         color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                         width: 1.2),
+                     boxShadow: [
+                       BoxShadow(
+                         color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                         blurRadius: 20,
+                         spreadRadius: -6,
+                       ),
+                     ],
+                   ),
+                   child: Row(
+                     mainAxisSize: MainAxisSize.min,
+                     children: [
+                       Icon(Icons.favorite_rounded,
+                           size: 16,
+                           color: theme.colorScheme.primary.withValues(alpha: 0.8)),
+                       const SizedBox(width: 8),
+                       Text(
+                         'ZERO TWO',
+                         style: GoogleFonts.outfit(
+                           fontWeight: FontWeight.w900,
+                           letterSpacing: 2.0,
+                           color: theme.colorScheme.onSurface,
+                           fontSize: 15,
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+               titleSpacing: 8,
+               centerTitle: true,
+               actions: [
+                 // 🔥 Streak Badge — only show when streak >= 2
+                 if (AffectionService.instance.streakDays >= 2)
+                   Padding(
+                     padding: const EdgeInsets.only(top: 8, bottom: 8),
+                     child: StreakBadge(
+                       streak: AffectionService.instance.streakDays,
+                     ),
+                   ),
+                 const SizedBox(width: 2),
+                 // 🔔 Notification bell — top right (ENHANCED)
+                 Padding(
+                   padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                   child: AnimatedContainer(
+                     duration: const Duration(milliseconds: 250),
+                     decoration: BoxDecoration(
+                       gradient: tokens.glassGradient,
+                       color: tokens.panel.withValues(alpha: 0.92),
+                       borderRadius: BorderRadius.circular(16),
+                       border: Border.all(
+                           color: _hasUnreadNotifs
+                               ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                               : tokens.outlineStrong,
+                           width: 1.2),
+                       boxShadow: _hasUnreadNotifs
+                           ? [
+                               BoxShadow(
+                                 color: theme.colorScheme.primary
+                                     .withValues(alpha: 0.2),
+                                 blurRadius: 16,
+                                 spreadRadius: -4,
+                               ),
+                             ]
+                           : [],
+                     ),
+                     child: Material(
+                       color: Colors.transparent,
+                       borderRadius: BorderRadius.circular(16),
+                       child: InkWell(
+                         borderRadius: BorderRadius.circular(16),
+                         onTap: () {
+                           HapticFeedback.selectionClick();
+                           setState(() {
+                             _navIndex = 1;
+                             _hasUnreadNotifs = false;
+                           });
+                         },
+                         child: Padding(
+                           padding: const EdgeInsets.all(8),
+                           child: Stack(
+                             clipBehavior: Clip.none,
+                             children: [
+                               AnimatedSwitcher(
+                                 duration: const Duration(milliseconds: 300),
+                                 child: Icon(
+                                   _hasUnreadNotifs
+                                       ? Icons.notifications_active_rounded
+                                       : Icons.notifications_outlined,
+                                   key: ValueKey(_hasUnreadNotifs),
+                                   color: _hasUnreadNotifs
+                                       ? theme.colorScheme.primary
+                                       : theme.colorScheme.onSurface,
+                                   size: 22,
+                                 ),
+                               ),
+                               if (_navIndex != 1 && _hasUnreadNotifs)
+                                 Positioned(
+                                   top: -3,
+                                   right: -3,
+                                   child: TweenAnimationBuilder<double>(
+                                     tween: Tween(begin: 0.0, end: 1.0),
+                                     duration: const Duration(milliseconds: 400),
+                                     curve: Curves.elasticOut,
+                                     builder: (context, value, child) =>
+                                         Transform.scale(
+                                       scale: value,
+                                       child: Container(
+                                         width: 10,
+                                         height: 10,
+                                         decoration: BoxDecoration(
+                                           color: Colors.redAccent,
+                                           shape: BoxShape.circle,
+                                           border: Border.all(
+                                             color: theme.scaffoldBackgroundColor,
+                                             width: 1.5,
+                                           ),
+                                           boxShadow: [
+                                             BoxShadow(
+                                               color: Colors.redAccent
+                                                   .withValues(alpha: 0.6),
+                                               blurRadius: 8,
+                                               spreadRadius: 1,
+                                             ),
+                                           ],
+                                         ),
+                                       ),
+                                     ),
+                                   ),
+                                 ),
+                             ],
+                           ),
+                         ),
+                       ),
+                     ),
+                   ),
+                 ),
+               ],
+             ),
             body: Stack(
               children: [
                 finalDecorativeBackground(themeMode),
@@ -5142,8 +5225,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final theme = Theme.of(context);
     final tokens = context.appTokens;
     final primary = theme.colorScheme.primary;
-    // SafeArea now wraps the column, so no extra topInset needed here
-    const topInset = 12.0;
+    const topInset = 14.0;
     final statusText = _isSpeaking
         ? 'DECODING SPEECH...'
         : _speechService.listening
@@ -5154,8 +5236,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                     ? 'SYSTEM READY'
                     : _apiKeyStatus.toUpperCase();
     final avatarCore = Container(
-      width: 80,
-      height: 80,
+      width: 78,
+      height: 78,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -5166,14 +5248,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.5),
-            blurRadius: 24,
-            spreadRadius: 3,
+            color: primary.withValues(alpha: 0.45),
+            blurRadius: 28,
+            spreadRadius: 2,
           ),
           BoxShadow(
-            color: const Color(0xFF00D1FF).withValues(alpha: 0.2),
-            blurRadius: 40,
-            spreadRadius: 1,
+            color: const Color(0xFF00D1FF).withValues(alpha: 0.18),
+            blurRadius: 44,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -5183,14 +5265,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             assetPath: _chatImageAsset,
             customPath: _effectiveChatCustomPath,
           ),
-          width: 74,
-          height: 74,
+          width: 72,
+          height: 72,
           fit: BoxFit.cover,
           errorBuilder: (c, e, s) => Container(
-            width: 74,
-            height: 74,
+            width: 72,
+            height: 72,
             color: tokens.panelMuted,
-            child: Icon(Icons.person, color: tokens.textSoft, size: 36),
+            child: Icon(Icons.person, color: tokens.textSoft, size: 34),
           ),
         ),
       ),
@@ -5207,26 +5289,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             : avatarCore);
     final avatarWidget = avatarWithPulse;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, topInset, 14, 2),
-      child: GlassCard(
-        margin: EdgeInsets.zero,
-        padding: const EdgeInsets.all(14),
-        glow: _speechService.listening || _isSpeaking,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _onLogoTap,
-              child: avatarWidget,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 10 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, topInset, 14, 4),
+        child: GlassCard(
+          margin: EdgeInsets.zero,
+          padding: const EdgeInsets.all(14),
+          glow: _speechService.listening || _isSpeaking,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  _onLogoTap();
+                },
+                child: avatarWidget,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   Row(
                     children: [
                       ShaderMask(
@@ -5421,13 +5516,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                     ],
+                   ),
+                 ],
+               ),
+             ),
+           ],
+         ),
+       ),
       ),
     );
   }
@@ -5438,47 +5534,63 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     required Color accent,
   }) {
     final tokens = context.appTokens;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        gradient: active
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  accent.withValues(alpha: 0.28),
-                  accent.withValues(alpha: 0.12),
-                ],
-              )
-            : null,
-        color: active ? null : tokens.panelMuted.withValues(alpha: 0.72),
-        border: Border.all(
-          color: active ? accent.withValues(alpha: 0.8) : tokens.outline,
-          width: 1,
-        ),
-        boxShadow: active
-            ? [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.25),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.outfit(
-          color: active ? Colors.white : tokens.textMuted,
-          fontSize: 9,
-          letterSpacing: 1.2,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: active ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) {
+        final isActive = value > 0.5;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: isActive
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accent.withValues(alpha: 0.28),
+                      accent.withValues(alpha: 0.12),
+                    ],
+                  )
+                : null,
+            color: isActive ? null : tokens.panelMuted.withValues(alpha: 0.72),
+            border: Border.all(
+              color: Color.lerp(
+                tokens.outline,
+                accent.withValues(alpha: 0.8),
+                value,
+              )!,
+              width: 1,
+            ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.25 * value),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              color: Color.lerp(
+                tokens.textMuted,
+                accent,
+                value,
+              ),
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -5496,69 +5608,85 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
         child: Column(
           children: [
             // ── Search bar ────────────────────────────────────
             if (_isChatSearchActive)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: tokens.glassGradient,
-                    color: tokens.panel.withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: _chatSearchQuery.isNotEmpty
-                          ? theme.colorScheme.primary.withValues(alpha: 0.35)
-                          : tokens.outlineStrong,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: tokens.shadowColor,
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                        spreadRadius: -14,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) => Transform.translate(
+                  offset: Offset(0, -8 * (1 - value)),
+                  child: Opacity(opacity: value, child: child),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: tokens.glassGradient,
+                      color: tokens.panel.withValues(alpha: 0.94),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _chatSearchQuery.isNotEmpty
+                            ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                            : tokens.outlineStrong,
+                        width: 1.2,
                       ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _chatSearchController,
-                    autofocus: true,
-                    style: GoogleFonts.outfit(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 14,
+                      boxShadow: [
+                        BoxShadow(
+                          color: tokens.shadowColor,
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                          spreadRadius: -12,
+                        ),
+                      ],
                     ),
-                    cursorColor: theme.colorScheme.primary,
-                    onChanged: (q) {
-                      _searchDebounce?.cancel();
-                      _searchDebounce = Timer(
-                        const Duration(milliseconds: 180),
-                        () => setState(() => _chatSearchQuery = q),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search messages...',
-                      hintStyle: GoogleFonts.outfit(
-                        color: tokens.textSoft,
-                        fontSize: 13,
+                    child: TextField(
+                      controller: _chatSearchController,
+                      autofocus: true,
+                      style: GoogleFonts.outfit(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
-                      prefixIcon: Icon(Icons.search,
-                          color: tokens.textSoft, size: 18),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.close,
+                      cursorColor: theme.colorScheme.primary,
+                      cursorWidth: 2,
+                      cursorRadius: const Radius.circular(4),
+                      onChanged: (q) {
+                        _searchDebounce?.cancel();
+                        _searchDebounce = Timer(
+                          const Duration(milliseconds: 180),
+                          () => setState(() => _chatSearchQuery = q),
+                        );
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search messages...',
+                        hintStyle: GoogleFonts.outfit(
+                          color: tokens.textSoft,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        prefixIcon: Icon(Icons.search,
                             color: tokens.textSoft, size: 18),
-                        onPressed: () {
-                          setState(() {
-                            _isChatSearchActive = false;
-                            _chatSearchQuery = '';
-                            _chatSearchController.clear();
-                          });
-                        },
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.close,
+                              color: tokens.textSoft, size: 18),
+                          onPressed: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _isChatSearchActive = false;
+                              _chatSearchQuery = '';
+                              _chatSearchController.clear();
+                            });
+                          },
+                        ),
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 12),
                     ),
                   ),
                 ),
@@ -5630,48 +5758,75 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           addAutomaticKeepAlives: true,
                           addRepaintBoundaries: true,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 12),
+                              horizontal: 4, vertical: 10),
                           itemCount:
                               visibleMessages.length + (collapseOld ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (collapseOld && index == 0) {
-                              return GestureDetector(
-                                onTap: () => _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeOut,
+                              return TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, value, child) =>
+                                    Transform.translate(
+                                  offset: Offset(0, 8 * (1 - value)),
+                                  child: Opacity(
+                                      opacity: value, child: child),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Center(
-                                    child: AnimatedContainer(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    _scrollController.animateTo(
+                                      0,
                                       duration:
-                                          const Duration(milliseconds: 250),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 7),
-                                      decoration: BoxDecoration(
-                                        color: tokens.panelMuted
-                                            .withValues(alpha: 0.88),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                            color: tokens.outlineStrong),
-                                      ),
-                                      child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                                Icons.keyboard_arrow_up_rounded,
-                                                color: tokens.textMuted,
-                                                size: 14),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '↑  $hiddenCount older messages',
-                                              style: GoogleFonts.outfit(
-                                                  color: tokens.textMuted,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w500),
+                                          const Duration(milliseconds: 400),
+                                      curve: Curves.easeOut,
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10),
+                                    child: Center(
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                            milliseconds: 250),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: tokens.panelMuted
+                                              .withValues(alpha: 0.9),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          border: Border.all(
+                                              color:
+                                                  tokens.outlineStrong),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: tokens.shadowColor,
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
                                             ),
-                                          ]),
+                                          ],
+                                        ),
+                                        child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                  Icons
+                                                      .keyboard_arrow_up_rounded,
+                                                  color: tokens.textMuted,
+                                                  size: 14),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '↑  $hiddenCount older messages',
+                                                style: GoogleFonts.outfit(
+                                                    color: tokens.textMuted,
+                                                    fontSize: 11,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                            ]),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -5679,8 +5834,19 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                             }
                             final msgIndex = collapseOld ? index - 1 : index;
                             final msg = visibleMessages[msgIndex];
-                            return RepaintBoundary(
-                              child: _buildBubble(context, msg, isGhost: false),
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: Duration(
+                                  milliseconds: 280 + (msgIndex * 30).clamp(0, 300)),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, value, child) =>
+                                  Transform.translate(
+                                offset: Offset(0, 12 * (1 - value)),
+                                child: Opacity(opacity: value, child: child),
+                              ),
+                              child: RepaintBoundary(
+                                child: _buildBubble(context, msg, isGhost: false),
+                              ),
                             );
                           },
                         );
@@ -6809,38 +6975,56 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         if ((d.primaryVelocity ?? 0) < -400) _launchAssistantOverlay();
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Image preview strip (kept from original)
             if (_selectedImage != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 12, right: 12, bottom: 6),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.file(_selectedImage!, width: 68, height: 68, fit: BoxFit.cover),
-                      ),
-                      Positioned(
-                        top: -6, right: -6,
-                        child: GestureDetector(
-                          onTap: _removeSelectedImage,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              shape: BoxShape.circle,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) => Transform.scale(
+                  scale: value,
+                  child: child,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 14, right: 14, bottom: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_selectedImage!, width: 72, height: 72, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          top: -8, right: -8,
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _removeSelectedImage();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(Icons.close, size: 14, color: theme.colorScheme.onSurface),
                             ),
-                            child: Icon(Icons.close, size: 13, color: theme.colorScheme.onSurface),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
