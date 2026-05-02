@@ -93,7 +93,7 @@ class _LifeAdvicePageState extends State<LifeAdvicePage>
       if (!mounted) return;
       setState(() => _advice = 'A moment of silence for wisdom~ Try again, Darling!');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

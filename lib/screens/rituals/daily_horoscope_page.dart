@@ -91,7 +91,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage>
       if (!mounted) return;
       setState(() => _horoscope = 'The stars are shy today, Darling~ Try again!');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

@@ -162,7 +162,6 @@ import 'package:anime_waifu/screens/wellness/sleep_mode_page.dart';
 import 'package:anime_waifu/screens/wellness/study_timer_page.dart';
 import 'package:anime_waifu/screens/wellness/wellness_reminders_page.dart';
 // ── Media Gallery ──
-import 'package:anime_waifu/screens/media/gif_viewer_page.dart';
 import 'package:anime_waifu/screens/utilities/image_pack_page.dart';
 import 'package:anime_waifu/screens/utilities/anime_sticker_sheet.dart';
 
@@ -1135,9 +1134,9 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
           color: Colors.deepPurpleAccent,
           items: [
             _HubItem(
-                label: 'GIF Viewer',
-                icon: Icons.gif_rounded,
-                builder: (_) => const GifViewerPage()),
+                label: 'Sticker Pack',
+                icon: Icons.auto_awesome_rounded,
+                builder: (_) => const AnimeStickerSheet()),
             _HubItem(
                 label: 'Image Packs',
                 icon: Icons.photo_library_rounded,

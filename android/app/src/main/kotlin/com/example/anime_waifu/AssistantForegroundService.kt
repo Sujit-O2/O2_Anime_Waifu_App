@@ -569,20 +569,31 @@ class AssistantForegroundService : Service() {
 
     private fun buildNotification(): Notification {
         val pendingIntent = buildLaunchPendingIntent(0)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg)
+        val largeBitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Zero Two Assistant")
-            .setContentText("Watching over you in background")
-            .setSubText("Background service")
+            .setContentTitle("✨ Zero Two — Always With You")
+            .setContentText("Your darling is watching over you~ 💗")
+            .setSubText("O2-WAIFU Active")
             .setSmallIcon(R.drawable.ic_stat_waifu)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setLargeIcon(largeBitmap)
+            .setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
+                    .setBigContentTitle("✨ Zero Two is here~")
+                    .setSummaryText("Tap to chat with your darling 💗")
+            )
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .setColor(0xFFFF5252.toInt())
+            .setColor(0xFFFF4081.toInt())
+            .setColorized(true)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
     }
     private fun getNextDelayMs(): Long {
@@ -679,15 +690,17 @@ class AssistantForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(random.nextInt())
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg2)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("Zero Two misses you~")
+            .setContentTitle("💗 Zero Two misses you~")
             .setContentText(content)
             .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("Zero Two says:")
-                    .bigText(content)
-                    .setSummaryText("Tap to chat with Zero Two")
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
+                    .setBigContentTitle("💗 Zero Two says:")
+                    .setSummaryText(content)
             )
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)
@@ -703,7 +716,7 @@ class AssistantForegroundService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.sym_action_chat,
-                "Reply",
+                "💬 Reply",
                 pendingIntent
             )
             .addAction(
@@ -750,6 +763,7 @@ class AssistantForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(WAKE_EVENT_NOTIFICATION_ID)
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg3)
         val wakeChannel = if (wakePrompt) {
             WAKE_VIBRATE_CHANNEL_ID
         } else {
@@ -760,10 +774,11 @@ class AssistantForegroundService : Service() {
             .setContentTitle("🎤 Zero Two is listening~")
             .setContentText(content)
             .setStyle(
-                NotificationCompat.BigTextStyle()
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
                     .setBigContentTitle("🎤 Zero Two heard you~")
-                    .bigText(content)
-                    .setSummaryText("Tap to open O2-WAIFU")
+                    .setSummaryText(content)
             )
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)

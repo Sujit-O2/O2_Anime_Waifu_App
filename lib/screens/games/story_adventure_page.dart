@@ -157,7 +157,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
         });
       });
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -194,7 +194,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
         });
       });
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

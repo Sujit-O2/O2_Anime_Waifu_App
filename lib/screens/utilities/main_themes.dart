@@ -5,6 +5,7 @@ import 'package:anime_waifu/core/providers/theme_provider.dart';
 import 'package:anime_waifu/main.dart' show themeNotifier;
 import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -57,7 +58,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _customThemeService.initialize();
+    unawaited(_customThemeService.initialize());
   }
 
   @override

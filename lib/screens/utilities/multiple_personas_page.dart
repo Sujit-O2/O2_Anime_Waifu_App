@@ -139,7 +139,7 @@ class _MultiplePersonasPageState extends State<MultiplePersonasPage> {
       if (!mounted) return;
       setState(() => _preview = p.sampleLine);
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

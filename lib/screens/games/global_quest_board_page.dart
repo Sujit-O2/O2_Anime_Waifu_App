@@ -55,7 +55,7 @@ class _GlobalQuestBoardPageState extends State<GlobalQuestBoardPage> {
       });
     } catch (e) {
       if (kDebugMode) debugPrint('GlobalQuest load error: $e');
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
       if (mounted) {
         _snack(
             'Failed to load quests: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e}');

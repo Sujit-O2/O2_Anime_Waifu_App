@@ -65,5 +65,18 @@ enum AvatarExpression {
     }
   }
 
-  String get assetPath => 'assets/avatars/zerotwo_$name.png';
+  String get assetPath {
+    switch (this) {
+      case AvatarExpression.loving:
+      case AvatarExpression.happy:
+      case AvatarExpression.excited:
+        return 'assets/img/z2s.jpg';
+      case AvatarExpression.sad:
+      case AvatarExpression.worried:
+      case AvatarExpression.sleepy:
+        return 'assets/img/bll.jpg';
+      default:
+        return 'assets/img/front.png';
+    }
+  }
 }

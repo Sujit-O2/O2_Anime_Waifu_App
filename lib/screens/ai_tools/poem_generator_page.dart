@@ -74,10 +74,10 @@ class _PoemGeneratorPageState extends State<PoemGeneratorPage> with SingleTicker
       setState(() => _poem = reply.trim());
       AffectionService.instance.addPoints(3);
     } catch (e) {
-      setState(() =>
+      if (mounted) setState(() =>
           _poem = 'Sorry Darling, inspiration fled for a moment~ Try again!');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

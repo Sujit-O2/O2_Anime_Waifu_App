@@ -53,16 +53,26 @@ class RelationshipHeatmapService {
           intensity: 0.0,
         );
 
+    final previousHourMessages = hourActivity.messageCount;
     hourActivity.messageCount += messageCount;
     hourActivity.durationSeconds += durationSeconds;
-    hourActivity.intensity = (hourActivity.intensity + emotionalIntensity) / 2;
+    hourActivity.intensity = _weightedAverage(
+      currentAverage: hourActivity.intensity,
+      currentWeight: previousHourMessages,
+      nextValue: emotionalIntensity,
+      nextWeight: messageCount,
+    );
 
+    final previousDayMessages = dayActivity.totalMessages;
     dayActivity.hourlyActivity[hourKey] = hourActivity;
+    dayActivity.averageIntensity = _weightedAverage(
+      currentAverage: dayActivity.averageIntensity,
+      currentWeight: previousDayMessages,
+      nextValue: emotionalIntensity,
+      nextWeight: messageCount,
+    );
     dayActivity.totalMessages += messageCount;
     dayActivity.totalDuration += durationSeconds;
-    dayActivity.averageIntensity =
-        (dayActivity.averageIntensity + emotionalIntensity) / 2;
-
     _activityMap[dateKey] = dayActivity;
 
     // Record session
@@ -97,8 +107,11 @@ class RelationshipHeatmapService {
       final activity = _activityMap[dateKey];
 
       if (activity != null) {
-        // Normalize intensity (0-1 scale)
-        final intensity = (activity.totalMessages / 50.0).clamp(0.0, 1.0);
+        final messageScore = (activity.totalMessages / 50.0).clamp(0.0, 1.0);
+        final durationScore = (activity.totalDuration / 3600.0).clamp(0.0, 1.0);
+        final intensity = (messageScore * 0.55) +
+            (durationScore * 0.2) +
+            (activity.averageIntensity.clamp(0.0, 1.0) * 0.25);
         heatmap[date] = intensity;
       } else {
         heatmap[date] = 0.0;
@@ -135,6 +148,80 @@ class RelationshipHeatmapService {
     if (total == 0) return {};
 
     return weeklyCount.map((day, count) => MapEntry(day, count / total));
+  }
+
+  /// Recent sessions for dashboards and AI context.
+  List<ConversationSession> getRecentSessions({int limit = 10}) {
+    return List.unmodifiable(_sessions.take(limit));
+  }
+
+  /// Daily activity for a date, if one has been recorded.
+  DayActivity? getDayActivity(DateTime date) {
+    return _activityMap[_getDateKey(date)];
+  }
+
+  /// Longest current daily streak with at least one interaction.
+  int getCurrentStreakDays() {
+    var streak = 0;
+    var cursor = DateTime.now();
+    while (_activityMap.containsKey(_getDateKey(cursor))) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
+  /// Action-focused relationship recommendations.
+  List<RelationshipAction> getRecommendedActions() {
+    final actions = <RelationshipAction>[];
+    final predictions = predictSupportNeeds();
+
+    for (final prediction in predictions) {
+      actions.add(RelationshipAction(
+        title: prediction.suggestedAction,
+        detail: prediction.message,
+        priority: prediction.confidence,
+      ));
+    }
+
+    final stats = getStatistics();
+    if ((stats['total_sessions'] as int? ?? 0) == 0) {
+      actions.add(const RelationshipAction(
+        title: 'Start tracking naturally',
+        detail:
+            'Chat for a bit, then this page will turn patterns into care cues.',
+        priority: 0.4,
+      ));
+    } else {
+      final peakHour =
+          stats['most_active_hour'] as String? ?? 'your usual time';
+      actions.add(RelationshipAction(
+        title: 'Protect the best chat window',
+        detail: 'Your strongest connection window is around $peakHour.',
+        priority: 0.55,
+      ));
+    }
+
+    actions.sort((a, b) => b.priority.compareTo(a.priority));
+    return actions.take(4).toList();
+  }
+
+  /// Compact brief that other services can feed into prompts.
+  Map<String, dynamic> getAIContextBrief() {
+    final stats = getStatistics();
+    return {
+      'relationship_heatmap': {
+        'sessions': stats['total_sessions'],
+        'messages': stats['total_messages'],
+        'minutes_together': stats['total_duration_minutes'],
+        'average_intensity': stats['average_intensity'],
+        'current_streak_days': getCurrentStreakDays(),
+        'most_active_day': stats['most_active_day'],
+        'most_active_hour': stats['most_active_hour'],
+        'recommended_actions':
+            getRecommendedActions().map((action) => action.toJson()).toList(),
+      },
+    };
   }
 
   /// Get peak conversation times
@@ -299,6 +386,19 @@ class RelationshipHeatmapService {
     }
 
     return buffer.toString();
+  }
+
+  double _weightedAverage({
+    required double currentAverage,
+    required int currentWeight,
+    required double nextValue,
+    required int nextWeight,
+  }) {
+    final totalWeight = currentWeight + nextWeight;
+    if (totalWeight <= 0) return nextValue.clamp(0.0, 1.0);
+    return (((currentAverage * currentWeight) + (nextValue * nextWeight)) /
+            totalWeight)
+        .clamp(0.0, 1.0);
   }
 
   String _getMostActiveDay() {
@@ -512,4 +612,22 @@ enum SupportType {
   highStress,
   unusualTiming,
   patternBreak,
+}
+
+class RelationshipAction {
+  final String title;
+  final String detail;
+  final double priority;
+
+  const RelationshipAction({
+    required this.title,
+    required this.detail,
+    required this.priority,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'detail': detail,
+        'priority': priority,
+      };
 }

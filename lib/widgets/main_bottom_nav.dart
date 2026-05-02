@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -53,47 +54,57 @@ class MainBottomNav extends StatelessWidget {
             16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Container(
-            height: 68,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: tokens.glassGradient,
-              color: tokens.panel.withValues(alpha: 0.96),
-              border: Border.all(
-                color: tokens.outline,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: 68,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    tokens.panel.withValues(alpha: 0.75),
+                    tokens.panelElevated.withValues(alpha: 0.65),
+                  ],
+                ),
+                border: Border.all(
+                  color: accentColor.withValues(alpha: 0.18),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.15),
+                    blurRadius: 24,
+                    offset: const Offset(0, -2),
+                    spreadRadius: -8,
+                  ),
+                  BoxShadow(
+                    color: tokens.shadowColor,
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                    spreadRadius: -14,
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: accentColor.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, -1),
-                  spreadRadius: -10,
-                ),
-                BoxShadow(
-                  color: tokens.shadowColor,
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                  spreadRadius: -14,
-                ),
-              ],
-            ),
-            child: Row(
-              children: List.generate(
-                  _items.length,
-                  (i) => Expanded(
-                        child: _NavButton(
-                          item: _items[i],
-                          isSelected: selectedIndex == i,
-                          accentColor: accentColor,
-                          disableAnimations: disableAnimations,
-                          onTap: () {
-                            if (selectedIndex != i) {
-                              HapticFeedback.selectionClick();
-                            }
-                            onTap(i);
-                          },
-                        ),
-                      )),
+              child: Row(
+                children: List.generate(
+                    _items.length,
+                    (i) => Expanded(
+                          child: _NavButton(
+                            item: _items[i],
+                            isSelected: selectedIndex == i,
+                            accentColor: accentColor,
+                            disableAnimations: disableAnimations,
+                            onTap: () {
+                              if (selectedIndex != i) {
+                                HapticFeedback.selectionClick();
+                              }
+                              onTap(i);
+                            },
+                          ),
+                        )),
+              ),
             ),
           ),
         ),
@@ -215,8 +226,8 @@ class _NavButtonState extends State<_NavButton>
                         gradient: widget.isSelected
                             ? LinearGradient(
                                 colors: [
-                                  widget.accentColor.withValues(alpha: 0.25),
-                                  widget.accentColor.withValues(alpha: 0.08),
+                                  widget.accentColor.withValues(alpha: 0.35),
+                                  widget.accentColor.withValues(alpha: 0.12),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -226,7 +237,7 @@ class _NavButtonState extends State<_NavButton>
                             ? [
                                 BoxShadow(
                                   color: widget.accentColor
-                                      .withValues(alpha: 0.3 * _glow.value),
+                                      .withValues(alpha: 0.5 * _glow.value),
                                   blurRadius: 20,
                                   spreadRadius: -2,
                                 ),

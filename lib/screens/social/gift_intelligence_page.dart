@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/social/gift_intelligence_service.dart';
 
@@ -20,7 +21,7 @@ class _GiftIntelligencePageState extends State<GiftIntelligencePage> {
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

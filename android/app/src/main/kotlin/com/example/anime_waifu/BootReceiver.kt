@@ -25,15 +25,27 @@ class BootReceiver : BroadcastReceiver() {
             "FlutterSharedPreferences",
             Context.MODE_PRIVATE
         )
+        val assistantPrefs = context.getSharedPreferences("assistant_prefs", Context.MODE_PRIVATE)
+
         val assistantEnabled = flutterPrefs.getBoolean("flutter.assistant_mode_enabled", true)
         val proactiveEnabled = flutterPrefs.getBoolean("flutter.proactive_enabled", true)
         val wakeWordEnabled = flutterPrefs.getBoolean("flutter.wake_word_enabled", true)
         val trueBgProactiveEnabled =
             flutterPrefs.getBoolean("flutter.true_background_proactive_enabled", false)
-        if ((!assistantEnabled || (!proactiveEnabled && !wakeWordEnabled)) && !trueBgProactiveEnabled) {
+
+        // Also check if we have a saved API key — if yes, the user has set up the service
+        val hasApiKey = !assistantPrefs.getString("api_key", null).isNullOrBlank()
+
+        // Start if: assistant is enabled AND (proactive OR wake is on) OR trueBg is on
+        // Also start if we have a saved config (user set it up before) to ensure continuity
+        val shouldStart = (assistantEnabled && (proactiveEnabled || wakeWordEnabled)) ||
+            trueBgProactiveEnabled ||
+            (hasApiKey && assistantEnabled)
+
+        if (!shouldStart) {
             Log.d(
                 TAG,
-                "Skipping boot start: assistant=$assistantEnabled proactive=$proactiveEnabled wake=$wakeWordEnabled trueBg=$trueBgProactiveEnabled"
+                "Skipping boot start: assistant=$assistantEnabled proactive=$proactiveEnabled wake=$wakeWordEnabled trueBg=$trueBgProactiveEnabled hasApiKey=$hasApiKey"
             )
             return
         }

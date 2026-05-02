@@ -107,17 +107,17 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
               borderRadius: BorderRadius.circular(12),
               color: _isOffline
                   ? const Color(0xCC2D1B1B)
-                  : const Color(0xCC1B2D1B),
+                  : const Color(0xCC2D1020),
               border: Border.all(
                 color: _isOffline
                     ? Colors.redAccent.withValues(alpha: 0.4)
-                    : Colors.greenAccent.withValues(alpha: 0.4),
+                    : Colors.pinkAccent.withValues(alpha: 0.5),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (_isOffline ? Colors.redAccent : Colors.greenAccent)
-                      .withValues(alpha: 0.15),
-                  blurRadius: 12,
+                  color: (_isOffline ? Colors.redAccent : Colors.pinkAccent)
+                      .withValues(alpha: 0.2),
+                  blurRadius: 16,
                   spreadRadius: 0,
                 ),
               ],
@@ -128,7 +128,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
                   _isOffline
                       ? Icons.wifi_off_rounded
                       : Icons.wifi_rounded,
-                  color: _isOffline ? Colors.redAccent : Colors.greenAccent,
+                  color: _isOffline ? Colors.redAccent : Colors.pinkAccent,
                   size: 18,
                 ),
                 const SizedBox(width: 10),

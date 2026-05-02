@@ -25,15 +25,24 @@ class MeditationGuideService {
       debugPrint('[MeditationGuide] Initialized with $_totalSessions sessions');
   }
 
-  Future<void> startMeditationSession({
+  Future<MeditationSession> startMeditationSession({
     required String type,
     required int durationMinutes,
     required String difficulty,
   }) async {
-    // Session initialization - biofeedback monitoring would happen here
+    final session = MeditationSession(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      startTime: DateTime.now(),
+      type: type,
+      durationMinutes: durationMinutes,
+      difficulty: difficulty,
+    );
+    _meditationHistory.insert(0, session);
+    await _saveData();
     if (kDebugMode)
       debugPrint(
           '[MeditationGuide] Started $type meditation for $durationMinutes minutes');
+    return session;
   }
 
   Future<void> endMeditationSession({
@@ -162,6 +171,22 @@ class MeditationGuideService {
       'Stress Relief Meditation',
     ];
   }
+
+  List<MeditationSession> getSessions({int limit = 10}) {
+    return List.unmodifiable(_meditationHistory.take(limit));
+  }
+
+  MeditationSession? getActiveSession() {
+    try {
+      return _meditationHistory.firstWhere((session) => !session.completed);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int get totalMinutesMeditated => _totalMinutesMeditated;
+
+  int get totalSessions => _totalSessions;
 
   Future<void> _saveData() async {
     try {

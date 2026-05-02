@@ -176,7 +176,7 @@ class Defaults {
   static const String defaultEmail =
       'sujitswain077@gmail.com'; // Replace hardcoded email
   static const String defaultSenderEmail =
-      'zerozerotwoxsujit@gmail.com'; // Replace hardcoded sender
+      'zerozerotwoxsujit@gmail.com'; // Fallback — overridden by SENDER_EMAIL in .env
   static const String defaultCity = 'Bhubaneswar';
   static const String defaultPersona = 'Default';
   static const String defaultVoiceModel = 'arabic';

@@ -107,7 +107,7 @@ class _DreamModePageState extends State<DreamModePage>
       AffectionService.instance.addPoints(3);
       _saveDreams();
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _dreams.insert(0, {
           'dream':
               'I dreamed we were flying together through a sky of cherry blossoms... '

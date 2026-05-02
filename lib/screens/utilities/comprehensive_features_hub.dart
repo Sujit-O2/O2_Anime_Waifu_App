@@ -119,7 +119,6 @@ class _ComprehensiveFeaturesHubState extends State<ComprehensiveFeaturesHub> {
     _Feature('Anime Watch Party', Icons.group_rounded, AppRouter.animeWatchParty, 'Media'),
     _Feature('Downloads', Icons.download_rounded, AppRouter.downloads, 'Media'),
     _Feature('Episode Alerts', Icons.notifications_active_rounded, AppRouter.episodeAlerts, 'Media'),
-    _Feature('GIF Viewer', Icons.gif_rounded, AppRouter.gifViewer, 'Media'),
     _Feature('HiAnime', Icons.play_circle_rounded, AppRouter.hianime, 'Media'),
     _Feature('Manga Section', Icons.menu_book_rounded, AppRouter.mangaSection, 'Media'),
     _Feature('Music Player', Icons.music_note_rounded, AppRouter.musicPlayer, 'Media'),

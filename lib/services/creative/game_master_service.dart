@@ -587,6 +587,14 @@ class GameMasterService {
     return buffer.toString();
   }
 
+  List<RPGCampaign> getCampaigns() => List.unmodifiable(_campaigns);
+
+  List<NPC> getNpcs({String? campaignId}) {
+    if (campaignId == null) return List.unmodifiable(_npcs);
+    return List.unmodifiable(
+        _npcs.where((npc) => npc.campaignId == campaignId));
+  }
+
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();

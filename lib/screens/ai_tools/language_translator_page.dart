@@ -152,7 +152,7 @@ class _LanguageTranslatorPageState extends State<LanguageTranslatorPage>
           _fadeCtrl.forward();
         }
       } catch (_) {
-        setState(() => _error = 'Network error. Please check your connection~');
+        if (mounted) setState(() => _error = 'Network error. Please check your connection~');
       }
     }
     if (mounted) setState(() => _loading = false);
