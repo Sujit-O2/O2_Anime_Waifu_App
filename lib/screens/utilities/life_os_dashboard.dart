@@ -109,23 +109,28 @@ class _LifeOsDashboardState extends State<LifeOsDashboard>
     _loadData();
 
     // Wire proactive engine → show card when message fires
-    ProactiveEngineService.instance.onMessage = (msg, trigger) async {
-      if (!mounted) return;
-      // Persist so it survives hot reload/restart
-      final p = await SharedPreferences.getInstance();
-      await p.setString('pe_card_msg', msg);
-      await p.setInt('pe_card_trigger', trigger.index);
-      if (!mounted) return;
-      setState(() {
-        _proactiveMsg     = msg;
-        _proactiveTrigger = trigger;
-      });
-    };
+    _removeProactiveListener = ProactiveEngineService.instance.addListener(
+      (msg, trigger) async {
+        if (!mounted) return;
+        // Persist so it survives hot reload/restart
+        final p = await SharedPreferences.getInstance();
+        await p.setString('pe_card_msg', msg);
+        await p.setInt('pe_card_trigger', trigger.index);
+        if (!mounted) return;
+        setState(() {
+          _proactiveMsg     = msg;
+          _proactiveTrigger = trigger;
+        });
+      },
+    );
     ProactiveEngineService.instance.start();
   }
 
+  void Function()? _removeProactiveListener;
+
   @override
   void dispose() {
+    _removeProactiveListener?.call();
     _breathCtrl.dispose();
     _entryCtrl.dispose();
     _taskCtrl.dispose();

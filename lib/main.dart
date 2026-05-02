@@ -1662,13 +1662,13 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   /// Wire ProactiveEngineService so its messages appear in the chat.
   void _initProactiveEngine() {
-    ProactiveEngineService.instance.onMessage = (msg, trigger) {
+    ProactiveEngineService.instance.addListener((msg, trigger) {
       if (!mounted || _isDisposed) return;
       _appendMessage(ChatMessage(role: 'assistant', content: msg));
       _scrollToBottom();
       unawaited(_speakAssistantText(msg));
       if (kDebugMode) debugPrint('[ProactiveEngine] $trigger → $msg');
-    };
+    });
   }
 
   Future<void> _sendProactiveBackgroundNotification() async {
