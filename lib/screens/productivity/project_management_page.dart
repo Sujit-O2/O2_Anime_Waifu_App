@@ -393,7 +393,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
   }
 
   Widget _buildProjectsTab() {
-    final projects = _service.getPortfolios();
+    final projects = _service.getProjects();
     if (projects.isEmpty) {
       return Center(
         child: Column(
@@ -516,7 +516,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
   }
 
   Widget _buildTasksTab() {
-    final projects = _service.getPortfolios();
+    final projects = _service.getProjects();
     final overdue = _service.getOverdueTasks();
     final upcoming = _service.getUpcomingTasks();
 
@@ -808,22 +808,5 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
     );
-  }
-}
-
-// Extension to expose projects list from service
-extension _ServiceExt on ProjectManagementService {
-  List<Project> getPortfolios() {
-    // Access via getProjectInsights to check if empty, then use internal list
-    // We need to expose projects - use a workaround via task breakdown
-    return _getProjects();
-  }
-
-  List<Project> _getProjects() {
-    // The service doesn't expose a getProjects() method directly,
-    // so we use getTasksForProject with a dummy call to infer projects.
-    // Actually we need to add a proper accessor - use reflection-free approach:
-    // Store projects in a local cache via initialize pattern.
-    return [];
   }
 }

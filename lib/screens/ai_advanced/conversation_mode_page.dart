@@ -158,7 +158,7 @@ class _ConversationModePageState extends State<ConversationModePage> {
                         Text(mode.label, style: GoogleFonts.outfit(color: isActive ? color : theme.colorScheme.onSurface, fontWeight: FontWeight.w700, fontSize: 15)),
                       ]),
                       const SizedBox(height: 2),
-                      Text(_service.getModeDescription(), style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11)),
+                      Text(_service.getModeDescriptionFor(mode), style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 11)),
                     ])),
                     if (isActive)
                       Container(

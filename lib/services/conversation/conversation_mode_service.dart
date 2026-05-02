@@ -57,6 +57,23 @@ class ConversationModeService {
     }
   }
 
+  String getModeDescriptionFor(ConversationMode mode) {
+    switch (mode) {
+      case ConversationMode.romantic:
+        return 'Loving and affectionate girlfriend mode 💕';
+      case ConversationMode.professional:
+        return 'Professional assistant mode 💼';
+      case ConversationMode.playful:
+        return 'Fun and teasing mode 😄';
+      case ConversationMode.therapist:
+        return 'Supportive counselor mode 🤗';
+      case ConversationMode.mentor:
+        return 'Wise mentor mode 🎓';
+      case ConversationMode.friend:
+        return 'Best friend mode 👯';
+    }
+  }
+
   void Function(ConversationMode)? onModeChanged;
 
   void dispose() => _modeTimer?.cancel();
