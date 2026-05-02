@@ -14,12 +14,12 @@ class ConversationModeService {
   void setMode(ConversationMode mode, {Duration? duration}) {
     _currentMode = mode;
     onModeChanged?.call(mode);
-    
+
     if (duration != null) {
       _modeTimer?.cancel();
       _modeTimer = Timer(duration, () => setMode(ConversationMode.romantic));
     }
-    
+
     if (kDebugMode) debugPrint('[ConversationMode] Mode: ${mode.label}');
   }
 
@@ -80,27 +80,44 @@ class ConversationModeService {
 }
 
 enum ConversationMode {
-  romantic, professional, playful, therapist, mentor, friend;
+  romantic,
+  professional,
+  playful,
+  therapist,
+  mentor,
+  friend;
 
   String get label {
     switch (this) {
-      case ConversationMode.romantic: return 'Romantic';
-      case ConversationMode.professional: return 'Professional';
-      case ConversationMode.playful: return 'Playful';
-      case ConversationMode.therapist: return 'Therapist';
-      case ConversationMode.mentor: return 'Mentor';
-      case ConversationMode.friend: return 'Friend';
+      case ConversationMode.romantic:
+        return 'Romantic';
+      case ConversationMode.professional:
+        return 'Professional';
+      case ConversationMode.playful:
+        return 'Playful';
+      case ConversationMode.therapist:
+        return 'Therapist';
+      case ConversationMode.mentor:
+        return 'Mentor';
+      case ConversationMode.friend:
+        return 'Friend';
     }
   }
 
   String get emoji {
     switch (this) {
-      case ConversationMode.romantic: return '💕';
-      case ConversationMode.professional: return '💼';
-      case ConversationMode.playful: return '😄';
-      case ConversationMode.therapist: return '🤗';
-      case ConversationMode.mentor: return '🎓';
-      case ConversationMode.friend: return '👯';
+      case ConversationMode.romantic:
+        return '💕';
+      case ConversationMode.professional:
+        return '💼';
+      case ConversationMode.playful:
+        return '😄';
+      case ConversationMode.therapist:
+        return '🤗';
+      case ConversationMode.mentor:
+        return '🎓';
+      case ConversationMode.friend:
+        return '👯';
     }
   }
 }

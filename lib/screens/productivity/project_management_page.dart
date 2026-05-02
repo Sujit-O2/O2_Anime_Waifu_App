@@ -89,8 +89,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             style: GoogleFonts.outfit(color: Colors.white)),
         backgroundColor: _accent,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
     }
   }
@@ -139,8 +138,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
     }
   }
 
-  Color _pColor(ProjectPriority p) =>
-      _priorityColors[p] ?? Colors.cyanAccent;
+  Color _pColor(ProjectPriority p) => _priorityColors[p] ?? Colors.cyanAccent;
   String _pEmoji(ProjectPriority p) => _priorityEmojis[p] ?? '⚪';
 
   String _daysUntil(DateTime dt) {
@@ -209,8 +207,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
         ),
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: _accent))
+          ? const Center(child: CircularProgressIndicator(color: _accent))
           : TabBarView(
               controller: _tabs,
               children: [
@@ -235,18 +232,13 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: _accent.withValues(alpha: 0.3)),
           ),
-          child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-            const Icon(Icons.insights_rounded,
-                color: _accent, size: 18),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Icon(Icons.insights_rounded, color: _accent, size: 18),
             const SizedBox(width: 10),
             Expanded(
               child: Text(_service.getProjectInsights(),
                   style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      height: 1.4)),
+                      color: Colors.white70, fontSize: 13, height: 1.4)),
             ),
           ]),
         ),
@@ -260,9 +252,8 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white12),
           ),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('New Project',
                 style: GoogleFonts.outfit(
                     color: Colors.white,
@@ -278,8 +269,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
 
             // Priority
             Text('Priority',
-                style: GoogleFonts.outfit(
-                    color: Colors.white54, fontSize: 12)),
+                style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
             const SizedBox(height: 8),
             Row(
               children: ProjectPriority.values.map((p) {
@@ -301,19 +291,16 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                             : Colors.white.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: sel
-                                ? c.withValues(alpha: 0.5)
-                                : Colors.white12,
+                            color:
+                                sel ? c.withValues(alpha: 0.5) : Colors.white12,
                             width: sel ? 1.5 : 1),
                       ),
                       child: Column(children: [
-                        Text(_pEmoji(p),
-                            style: const TextStyle(fontSize: 16)),
+                        Text(_pEmoji(p), style: const TextStyle(fontSize: 16)),
                         const SizedBox(height: 2),
                         Text(p.name,
                             style: GoogleFonts.outfit(
-                                color: sel ? c : Colors.white38,
-                                fontSize: 9)),
+                                color: sel ? c : Colors.white38, fontSize: 9)),
                       ]),
                     ),
                   ),
@@ -330,8 +317,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                 decoration: BoxDecoration(
                   color: activeColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: activeColor.withValues(alpha: 0.3)),
+                  border: Border.all(color: activeColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(children: [
                   Icon(Icons.calendar_today_rounded,
@@ -341,21 +327,20 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text('Deadline',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white38, fontSize: 10)),
-                      Text(
-                        '${_deadline.day}/${_deadline.month}/${_deadline.year}  •  ${_daysUntil(_deadline)}',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13),
-                      ),
-                    ]),
+                          Text('Deadline',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white38, fontSize: 10)),
+                          Text(
+                            '${_deadline.day}/${_deadline.month}/${_deadline.year}  •  ${_daysUntil(_deadline)}',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13),
+                          ),
+                        ]),
                   ),
                   Icon(Icons.edit_rounded,
-                      color: activeColor.withValues(alpha: 0.5),
-                      size: 16),
+                      color: activeColor.withValues(alpha: 0.5), size: 16),
                 ]),
               ),
             ),
@@ -372,8 +357,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.add_rounded, size: 18),
-                label: Text(
-                    _creating ? 'Creating...' : 'Create Project',
+                label: Text(_creating ? 'Creating...' : 'Create Project',
                     style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w700, fontSize: 15)),
                 style: ElevatedButton.styleFrom(
@@ -408,8 +392,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                     fontSize: 16)),
             const SizedBox(height: 8),
             Text('Create your first project in the New tab',
-                style: GoogleFonts.outfit(
-                    color: Colors.white38, fontSize: 13)),
+                style: GoogleFonts.outfit(color: Colors.white38, fontSize: 13)),
           ],
         ),
       );
@@ -426,8 +409,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: c.withValues(alpha: 0.2)),
+              border: Border.all(color: c.withValues(alpha: 0.2)),
             ),
             child: Column(children: [
               Padding(
@@ -435,77 +417,74 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Row(children: [
-                    Text(_pEmoji(p.priority),
-                        style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(p.title,
-                          style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14)),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: sc.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(p.status.name,
-                          style: GoogleFonts.outfit(
-                              color: sc, fontSize: 10)),
-                    ),
-                  ]),
-                  const SizedBox(height: 6),
-                  Text(p.description,
-                      style: GoogleFonts.outfit(
-                          color: Colors.white54,
-                          fontSize: 12,
-                          height: 1.4),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 10),
-                  // Progress bar
-                  Row(children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: p.progress.clamp(0.0, 1.0),
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.08),
-                          valueColor: AlwaysStoppedAnimation(c),
-                          minHeight: 6,
+                      Row(children: [
+                        Text(_pEmoji(p.priority),
+                            style: const TextStyle(fontSize: 16)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(p.title,
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14)),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                        '${(p.progress * 100).toStringAsFixed(0)}%',
-                        style: GoogleFonts.outfit(
-                            color: c,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12)),
-                  ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    const Icon(Icons.calendar_today_rounded,
-                        color: Colors.white38, size: 12),
-                    const SizedBox(width: 4),
-                    Text(_daysUntil(p.deadline),
-                        style: GoogleFonts.outfit(
-                            color: Colors.white38, fontSize: 11)),
-                    const Spacer(),
-                    const Icon(Icons.task_alt_rounded,
-                        color: Colors.white38, size: 12),
-                    const SizedBox(width: 4),
-                    Text('${tasks.length} tasks',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white38, fontSize: 11)),
-                  ]),
-                ]),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: sc.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(p.status.name,
+                              style:
+                                  GoogleFonts.outfit(color: sc, fontSize: 10)),
+                        ),
+                      ]),
+                      const SizedBox(height: 6),
+                      Text(p.description,
+                          style: GoogleFonts.outfit(
+                              color: Colors.white54, fontSize: 12, height: 1.4),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 10),
+                      // Progress bar
+                      Row(children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: p.progress.clamp(0.0, 1.0),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.08),
+                              valueColor: AlwaysStoppedAnimation(c),
+                              minHeight: 6,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text('${(p.progress * 100).toStringAsFixed(0)}%',
+                            style: GoogleFonts.outfit(
+                                color: c,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12)),
+                      ]),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        const Icon(Icons.calendar_today_rounded,
+                            color: Colors.white38, size: 12),
+                        const SizedBox(width: 4),
+                        Text(_daysUntil(p.deadline),
+                            style: GoogleFonts.outfit(
+                                color: Colors.white38, fontSize: 11)),
+                        const Spacer(),
+                        const Icon(Icons.task_alt_rounded,
+                            color: Colors.white38, size: 12),
+                        const SizedBox(width: 4),
+                        Text('${tasks.length} tasks',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white38, fontSize: 11)),
+                      ]),
+                    ]),
               ),
             ]),
           );
@@ -532,9 +511,8 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white12),
             ),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Add Task',
                   style: GoogleFonts.outfit(
                       color: Colors.white,
@@ -548,8 +526,8 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -558,8 +536,8 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                         style: GoogleFonts.outfit(
                             color: Colors.white30, fontSize: 13)),
                     dropdownColor: const Color(0xFF1A1B2E),
-                    style: GoogleFonts.outfit(
-                        color: Colors.white, fontSize: 13),
+                    style:
+                        GoogleFonts.outfit(color: Colors.white, fontSize: 13),
                     icon: const Icon(Icons.expand_more_rounded,
                         color: Colors.white38),
                     isExpanded: true,
@@ -569,8 +547,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                               child: Text(p.title),
                             ))
                         .toList(),
-                    onChanged: (v) =>
-                        setState(() => _selectedProjectId = v),
+                    onChanged: (v) => setState(() => _selectedProjectId = v),
                   ),
                 ),
               ),
@@ -578,8 +555,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
               _field(_taskTitleCtrl, 'Task Title *',
                   Icons.check_circle_outline_rounded),
               const SizedBox(height: 10),
-              _field(_taskDescCtrl, 'Description',
-                  Icons.description_rounded,
+              _field(_taskDescCtrl, 'Description', Icons.description_rounded,
                   maxLines: 2),
               const SizedBox(height: 10),
 
@@ -603,8 +579,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         margin: const EdgeInsets.only(right: 6),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           color: sel
                               ? c.withValues(alpha: 0.15)
@@ -639,12 +614,10 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                   decoration: BoxDecoration(
                     color: _accent.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: _accent.withValues(alpha: 0.3)),
+                    border: Border.all(color: _accent.withValues(alpha: 0.3)),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.event_rounded,
-                        color: _accent, size: 16),
+                    const Icon(Icons.event_rounded, color: _accent, size: 16),
                     const SizedBox(width: 8),
                     Text(
                       'Due: ${_taskDue.day}/${_taskDue.month}/${_taskDue.year}  •  ${_daysUntil(_taskDue)}',
@@ -662,8 +635,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                   onPressed: _createTask,
                   icon: const Icon(Icons.add_rounded, size: 18),
                   label: Text('Add Task',
-                      style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w700)),
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _accent,
                     foregroundColor: Colors.black,
@@ -700,20 +672,18 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.06)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
             ),
             child: Column(children: [
               const Text('✅', style: TextStyle(fontSize: 36)),
               const SizedBox(height: 12),
               Text('All caught up!',
                   style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600)),
+                      color: Colors.white70, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Text('No overdue or upcoming tasks',
-                  style: GoogleFonts.outfit(
-                      color: Colors.white38, fontSize: 12)),
+                  style:
+                      GoogleFonts.outfit(color: Colors.white38, fontSize: 12)),
             ]),
           ),
         const SizedBox(height: 32),
@@ -742,17 +712,15 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(t.title,
                 style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 13)),
             Text(_daysUntil(t.dueDate),
-                style: GoogleFonts.outfit(
-                    color: accentColor, fontSize: 11)),
+                style: GoogleFonts.outfit(color: accentColor, fontSize: 11)),
           ]),
         ),
         Container(
@@ -785,11 +753,9 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
       style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle:
-            GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
-        prefixIcon: maxLines == 1
-            ? Icon(icon, color: Colors.white38, size: 18)
-            : null,
+        hintStyle: GoogleFonts.outfit(color: Colors.white30, fontSize: 12),
+        prefixIcon:
+            maxLines == 1 ? Icon(icon, color: Colors.white38, size: 18) : null,
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.04),
         border: OutlineInputBorder(
@@ -797,12 +763,11 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
             borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.08))),
+            borderSide:
+                BorderSide(color: Colors.white.withValues(alpha: 0.08))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:
-                BorderSide(color: _accent.withValues(alpha: 0.5))),
+            borderSide: BorderSide(color: _accent.withValues(alpha: 0.5))),
         isDense: true,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
