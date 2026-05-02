@@ -97,7 +97,7 @@ class _SmartScannerPageState extends State<SmartScannerPage> {
       });
       _save();
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _scanning = false;
         _extractedText = 'Error scanning: $e';
       });

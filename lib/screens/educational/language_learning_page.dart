@@ -1,4 +1,5 @@
 import 'package:anime_waifu/services/educational/language_learning_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';

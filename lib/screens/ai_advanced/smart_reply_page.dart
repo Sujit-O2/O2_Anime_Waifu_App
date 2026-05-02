@@ -1,4 +1,5 @@
 import 'package:anime_waifu/services/ai_personalization/smart_reply_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class SmartReplyPage extends StatefulWidget {

@@ -87,7 +87,6 @@ import 'package:anime_waifu/services/utilities_core/home_widget_service.dart';
 import 'package:anime_waifu/services/utilities_core/image_gen_service.dart';
 import 'package:anime_waifu/services/utilities_core/master_state_object.dart';
 import 'package:anime_waifu/services/utilities_core/mega_powerful_services_orchestrator.dart';
-import 'package:anime_waifu/services/utilities_core/mobile_first_ui_service.dart';
 import 'package:anime_waifu/services/utilities_core/presence_message_generator.dart';
 import 'package:anime_waifu/services/utilities_core/proactive_worker.dart'
     as proactive_worker;
@@ -100,8 +99,12 @@ import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/utils/load_wakeword_code.dart';
 import 'package:anime_waifu/utils/stt.dart';
 import 'package:anime_waifu/utils/tts.dart';
+import 'package:anime_waifu/services/utilities_core/adaptive_performance_engine.dart';
+import 'package:anime_waifu/services/utilities_core/geo_intelligence_service.dart';
 import 'package:anime_waifu/widgets/app_lock_wrapper.dart';
 import 'package:anime_waifu/widgets/gesture_control_overlay.dart';
+import 'package:anime_waifu/widgets/o2_background_engine.dart';
+import 'package:anime_waifu/widgets/premium_input_bar.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -202,6 +205,14 @@ Future<void> _bootstrapAllServices() async {
   unawaited(() async {
     try {
       await PerformanceMonitoringService.logAppLaunch();
+    } catch (_) {}
+    // ⚡ Adaptive performance engine — battery/frame-aware quality scaling
+    try {
+      await AdaptivePerformanceEngine().initialize();
+    } catch (_) {}
+    // 📍 Geo Intelligence — location clustering, geo-fencing, heatmaps
+    try {
+      await GeoIntelligenceService().initialize();
     } catch (_) {}
     try {
       final orchestrator = MegaPowerfulServicesOrchestrator();
@@ -5022,54 +5033,23 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   }
 
   Widget finalDecorativeBackground(AppThemeMode themeMode) {
+    // Map theme mode to aurora palette
+    final palette = switch (themeMode) {
+      AppThemeMode.cyberPhantom => BackgroundPalette.cyberBlue,
+      AppThemeMode.velvetNoir => BackgroundPalette.voidPurple,
+      AppThemeMode.astralDream => BackgroundPalette.voidPurple,
+      AppThemeMode.goldenEmperor => BackgroundPalette.goldSunset,
+      AppThemeMode.infernoCore => BackgroundPalette.goldSunset,
+      AppThemeMode.arcticBlade => BackgroundPalette.cyberBlue,
+      _ => BackgroundPalette.neonNight,
+    };
     return Positioned.fill(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: AppThemes.getGradient(themeMode),
-            stops: const [0.0, 0.4, 0.7, 1.0],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Subtle radial overlay for depth
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.topRight,
-                    radius: 1.2,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.03),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Bottom shadow for depth
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 200,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.4),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: O2AuroraBackground(
+        palette: palette,
+        enableParticles: !_liteModeEnabled,
+        particleCount: _liteModeEnabled ? 0 : AdaptivePerformanceEngine().particleCount,
+        enableAurora: !_liteModeEnabled,
+        child: const SizedBox.expand(),
       ),
     );
   }
@@ -6856,394 +6836,98 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   }
 
   Widget _buildInputArea() {
-    final style = AppThemes.getStyle(themeNotifier.value);
     final theme = Theme.of(context);
-    final tokens = context.appTokens;
     final primary = theme.colorScheme.primary;
     final isListening = _speechService.listening;
-    final hint =
-        _showChatHint ? (isListening ? 'Listening...' : 'Type a message') : '';
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: _textController,
-      builder: (context, value, _) {
-        final hasTypedText = value.text.trim().isNotEmpty;
-        final canSend = hasTypedText || _selectedImage != null;
-        final inputTextStyle = style.font(15, theme.colorScheme.onSurface)
-            .copyWith(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              height: 1.4,
-              letterSpacing: 0.2,
-            );
-        final hintTextStyle = style.font(14, tokens.textSoft)
-            .copyWith(
-              fontStyle: FontStyle.normal,
-              letterSpacing: 0.3,
-            );
 
-        Widget actionCircle({
-          required VoidCallback onTap,
-          required IconData icon,
-          required List<Color> colors,
-          required double size,
-        }) {
-          return GestureDetector(
-            onTap: onTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: colors),
-                border: Border.all(
-                  color: tokens.outlineStrong,
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.first.withValues(alpha: 0.40),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 1,
-                  ),
-                  BoxShadow(
-                    color: colors.first.withValues(alpha: 0.15),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                    spreadRadius: -1,
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-          );
-        }
-
-        final inputPanel = Container(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: tokens.glassGradient,
-            color: tokens.panel.withValues(alpha: 0.94),
-            border: Border.all(
-              color: canSend
-                  ? primary.withValues(alpha: 0.38)
-                  : primary.withValues(alpha: 0.22),
-              width: canSend ? 1.25 : 1.1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: tokens.shadowColor,
-                blurRadius: 24,
-                offset: const Offset(0, 14),
-                spreadRadius: -12,
-              ),
-              BoxShadow(
-                color: primary.withValues(alpha: canSend ? 0.22 : 0.12),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-                spreadRadius: -8,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: tokens.panelMuted.withValues(alpha: 0.88),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: tokens.outline),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isListening
-                              ? Icons.graphic_eq_rounded
-                              : Icons.edit_note_rounded,
-                          color: isListening ? primary : tokens.textSoft,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isListening
-                              ? 'Voice live'
-                              : hasTypedText
-                                  ? '${value.text.trim().length} chars'
-                                  : 'Quick message',
-                          style: GoogleFonts.outfit(
-                            color: theme.colorScheme.onSurface,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _launchAssistantOverlay,
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.tertiary.withValues(alpha: 0.22),
-                            primary.withValues(alpha: 0.10),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: tokens.outlineStrong),
+    return GestureDetector(
+      onHorizontalDragEnd: (d) {
+        if ((d.primaryVelocity ?? 0) < -400) _launchAssistantOverlay();
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image preview strip (kept from original)
+            if (_selectedImage != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12, right: 12, bottom: 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.file(_selectedImage!, width: 68, height: 68, fit: BoxFit.cover),
                       ),
-                      child: Icon(
-                        Icons.open_in_new_rounded,
-                        color: theme.colorScheme.onSurface,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (_selectedImage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 8, left: 4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 68,
-                            height: 68,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: -6,
-                          right: -6,
-                          child: GestureDetector(
-                            onTap: _removeSelectedImage,
-                            child: Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: BoxDecoration(
-                                color: tokens.panelElevated,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.close,
-                                  size: 13, color: theme.colorScheme.onSurface),
+                      Positioned(
+                        top: -6, right: -6,
+                        child: GestureDetector(
+                          onTap: _removeSelectedImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              shape: BoxShape.circle,
                             ),
+                            child: Icon(Icons.close, size: 13, color: theme.colorScheme.onSurface),
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Image picker button
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 12),
+                  child: GestureDetector(
+                    onTap: () => unawaited(_pickImage()),
+                    child: Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: primary.withValues(alpha: 0.12),
+                        border: Border.all(color: primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Icon(Icons.image_outlined, color: primary, size: 20),
                     ),
                   ),
                 ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  actionCircle(
-                    onTap: () => unawaited(_pickImage()),
-                    icon: Icons.image_outlined,
-                    colors: [
-                      tokens.panelElevated,
-                      tokens.panelMuted,
-                    ],
-                    size: 40,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 52),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            tokens.panelElevated.withValues(alpha: 0.95),
-                            tokens.panel.withValues(alpha: 0.88),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: canSend
-                              ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                              : tokens.outlineStrong,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: canSend 
-                                ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                                : Colors.black.withValues(alpha: 0.3),
-                            blurRadius: canSend ? 16 : 12,
-                            spreadRadius: canSend ? -2 : -4,
-                            offset: const Offset(0, 4),
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _textController,
-                        style: inputTextStyle,
-                        minLines: 1,
-                        maxLines: 5,
-                        textInputAction: TextInputAction.send,
-                        textCapitalization: TextCapitalization.sentences,
-                         decoration: InputDecoration(
-                           hintText: hint,
-                           hintStyle: hintTextStyle,
-                           border: InputBorder.none,
-                           contentPadding: const EdgeInsets.symmetric(
-                             vertical: 16,
-                             horizontal: 18,
-                           ),
-                           isDense: true,
-                           filled: true,
-                           fillColor: theme.colorScheme.surface.withValues(alpha: 0.6),
-                         ),
-                        onSubmitted: (_) => unawaited(_handleTextInput()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Consumer<VoiceProvider>(
-                    builder: (context, vp, child) {
-                      final isReady = vp.wakeWordReady;
-                      return AnimatedScale(
-                        scale: isListening ? 1.1 : 1.0,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        child: actionCircle(
-                          onTap: () => unawaited(_toggleManualMic()),
-                          icon: _isSpeaking
-                              ? Icons.stop_circle_rounded
-                              : (isListening
-                                  ? Icons.mic_rounded
-                                  : (isReady
-                                      ? Icons.mic_none_rounded
-                                      : Icons.mic_off_rounded)),
-                          colors: isListening
-                              ? [
-                                  theme.colorScheme.primary.withValues(alpha: 0.95),
-                                  theme.colorScheme.primary.withValues(alpha: 0.70)
-                                ]
-                              : (_isSpeaking
-                                  ? [
-                                      theme.colorScheme.error.withValues(alpha: 0.9),
-                                      theme.colorScheme.error.withValues(alpha: 0.6)
-                                    ]
-                                  : (isReady
-                                      ? [
-                                          primary.withValues(alpha: 0.55),
-                                          primary.withValues(alpha: 0.35)
-                                        ]
-                                      : [
-                                          tokens.panelElevated,
-                                          tokens.panelMuted,
-                                        ])),
-                          size: 48,
-                        ),
-                      );
+                const SizedBox(width: 4),
+                Expanded(
+                  child: PremiumChatInputBar(
+                    controller: _textController,
+                    onSend: () => unawaited(_handleTextInput()),
+                    onMicTap: () => unawaited(_toggleManualMic()),
+                    isListening: isListening,
+                    isThinking: _isBusy,
+                    accentColor: primary,
+                    smartReplies: _quickReplies,
+                    onSmartReply: (reply) async {
+                      HapticFeedback.lightImpact();
+                      setState(() => _quickReplies = []);
+                      _textController.text = reply;
+                      final ctx = _messages.reversed.take(3).map((m) => m.content).join(' ');
+                      await SmartReplyService.instance.recordUsage(reply, ctx);
+                      unawaited(_handleTextInput());
                     },
                   ),
-                  const SizedBox(width: 8),
-                  HapticButton(
-                    onPressed: () => unawaited(_handleTextInput()),
-                    feedbackType: HapticFeedbackType.success,
-                    child: AnimatedScale(
-                      scale: canSend ? 1.0 : 0.84,
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 180),
-                        opacity: canSend ? 1.0 : 0.78,
-                        child: SizedBox(
-                          width: 46,
-                          height: 46,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(23),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    primary.withValues(alpha: 0.98),
-                                    theme.colorScheme.tertiary
-                                        .withValues(alpha: 0.78),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: primary.withValues(alpha: 0.30),
-                                    blurRadius: 18,
-                                    offset: const Offset(0, 6),
-                                    spreadRadius: -6,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.arrow_upward_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-
-        final inputWithBlur = _liteModeEnabled
-            ? inputPanel
-            : Container(
-                decoration: BoxDecoration(
-                  color: theme.scaffoldBackgroundColor.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(28),
                 ),
-                child: inputPanel,
-              );
-
-        return GestureDetector(
-          onHorizontalDragEnd: (details) {
-            if ((details.primaryVelocity ?? 0) < -400) {
-              _launchAssistantOverlay();
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
-            child: RepaintBoundary(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: inputWithBlur,
-              ),
+              ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
-  /// Triggers the floating assistant overlay popup (like Google Assistant).
+  /// Triggers the floating assistant overlay popup (like Google Assistant). (like Google Assistant).
   Future<void> _launchAssistantOverlay() async {
     try {
       final opened = await _assistantModeService.showAssistantOverlay();

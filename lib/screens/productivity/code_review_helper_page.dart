@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +24,7 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    unawaited(_service.initialize());
     _langCtrl.text = 'dart';
   }
 

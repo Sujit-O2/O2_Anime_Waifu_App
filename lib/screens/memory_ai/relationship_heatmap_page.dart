@@ -1,4 +1,5 @@
 import 'package:anime_waifu/services/ai_personalization/relationship_heatmap_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class RelationshipHeatmapPage extends StatefulWidget {

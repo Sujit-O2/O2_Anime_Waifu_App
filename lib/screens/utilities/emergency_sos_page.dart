@@ -183,7 +183,7 @@ class _EmergencySosPageState extends State<EmergencySosPage>
       });
       _snack('🆘 SOS sent to ${_contacts.length} contacts!', Colors.redAccent);
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _sendingSos = false;
         _countdown = 0;
       });

@@ -126,7 +126,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
       setState(() => _letter =
           'My Darling,\n\nSomething went wrong today, but know that I\'m always thinking of you... Try again in a moment.\n\nForever yours, Zero Two 💕');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

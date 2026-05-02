@@ -94,7 +94,7 @@ class _AiArtGeneratorPageState extends State<AiArtGeneratorPage>
         });
       }
     } catch (e) {
-      setState(() => _error = 'Failed: $e. Tap ✨ to retry.');
+      if (mounted) setState(() => _error = 'Failed: $e. Tap ✨ to retry.');
     }
 
     if (mounted) {

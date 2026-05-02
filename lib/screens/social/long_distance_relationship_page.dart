@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/social/long_distance_relationship_service.dart';
 
@@ -21,7 +22,7 @@ class _LongDistanceRelationshipPageState extends State<LongDistanceRelationshipP
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

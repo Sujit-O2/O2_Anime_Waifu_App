@@ -1,11 +1,13 @@
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/wellness/meditation_guide_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MeditationGuidePage extends StatefulWidget {
   const MeditationGuidePage({super.key});
-
   @override
   State<MeditationGuidePage> createState() => _MeditationGuidePageState();
 }
@@ -19,21 +21,12 @@ class _MeditationGuidePageState extends State<MeditationGuidePage> {
   bool _loading = true;
 
   static const _typeEmojis = {
-    'Breathing': '🌬️',
+    'Breathing Awareness': '🌬️',
     'Body Scan': '🧘',
     'Visualization': '🌅',
     'Loving Kindness': '💕',
     'Mindfulness': '🍃',
     'Sleep': '🌙',
-  };
-
-  static const _typeColors = {
-    'Breathing': Color(0xFF4FC3F7),
-    'Body Scan': Color(0xFF81C784),
-    'Visualization': Color(0xFFFFB74D),
-    'Loving Kindness': Color(0xFFFF80AB),
-    'Mindfulness': Color(0xFF80CBC4),
-    'Sleep': Color(0xFF9575CD),
   };
 
   @override
@@ -49,384 +42,261 @@ class _MeditationGuidePageState extends State<MeditationGuidePage> {
 
   Future<void> _start() async {
     HapticFeedback.mediumImpact();
-    await _service.startMeditationSession(
-      type: _type,
-      durationMinutes: _duration.round(),
-      difficulty: 'beginner',
-    );
+    await _service.startMeditationSession(type: _type, durationMinutes: _duration.round(), difficulty: 'beginner');
     if (mounted) setState(() {});
   }
 
   Future<void> _complete(MeditationSession session) async {
     HapticFeedback.heavyImpact();
-    await _service.endMeditationSession(
-      sessionId: session.id,
-      focusScore: _focus,
-      calmScore: _calm,
-      notes: 'Completed from guide page',
-    );
+    await _service.endMeditationSession(sessionId: session.id, focusScore: _focus, calmScore: _calm, notes: 'Completed');
     if (mounted) {
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Session complete! 🧘 Great work.',
-              style: GoogleFonts.outfit(color: Colors.white)),
-          backgroundColor: Colors.teal.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      showSuccessSnackbar(context, 'Session complete! 🧘 Great work.');
     }
   }
 
-  Color _typeColor(String t) => _typeColors[t] ?? Colors.tealAccent;
-  String _typeEmoji(String t) => _typeEmojis[t] ?? '🧘';
+  String _emoji(String t) => _typeEmojis[t] ?? '🧘';
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    final primary = theme.colorScheme.primary;
     final active = _service.getActiveSession();
     final sessions = _service.getSessions();
     final types = _service.getAvailableMeditationTypes();
-    final activeColor = _typeColor(_type);
+    final completedCount = sessions.where((s) => s.completed).length;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0B14),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 18),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('🧘 Guided Meditation',
-            style: GoogleFonts.outfit(
-                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Colors.tealAccent))
+    return FeaturePageV2(
+      title: 'GUIDED MEDITATION',
+      subtitle: '$completedCount sessions completed',
+      onBack: () => Navigator.pop(context),
+      content: _loading
+          ? const PremiumLoadingState(label: 'Loading meditation guide…', icon: Icons.self_improvement_rounded)
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
-                // Active session card
+                // ── Active session ─────────────────────────────────────────
                 if (active != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.tealAccent.withValues(alpha: 0.15),
-                          Colors.tealAccent.withValues(alpha: 0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: Colors.tealAccent.withValues(alpha: 0.4)),
-                    ),
-                    child: Column(children: [
-                      Text(_typeEmoji(active.type),
-                          style: const TextStyle(fontSize: 40)),
-                      const SizedBox(height: 8),
-                      Text('${active.type} — ${active.durationMinutes} min',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18)),
-                      const SizedBox(height: 4),
-                      Text('Session in progress...',
-                          style: GoogleFonts.outfit(
-                              color: Colors.tealAccent, fontSize: 13)),
-                      const SizedBox(height: 16),
-                      Row(children: [
-                        Expanded(child: Column(children: [
-                          Text('Focus: ${(_focus * 100).round()}%',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.white60, fontSize: 12)),
-                          Slider(
-                            value: _focus,
-                            onChanged: (v) => setState(() => _focus = v),
-                            activeColor: Colors.lightBlueAccent,
-                            inactiveColor: Colors.white12,
-                          ),
-                        ])),
-                        Expanded(child: Column(children: [
-                          Text('Calm: ${(_calm * 100).round()}%',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.white60, fontSize: 12)),
-                          Slider(
-                            value: _calm,
-                            onChanged: (v) => setState(() => _calm = v),
-                            activeColor: Colors.tealAccent,
-                            inactiveColor: Colors.white12,
-                          ),
-                        ])),
-                      ]),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () => _complete(active),
-                          icon: const Icon(Icons.check_rounded, size: 18),
-                          label: Text('Complete Session',
-                              style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.w700)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.tealAccent,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                  AnimatedEntry(
+                    index: 0,
+                    child: GlassCard(
+                      margin: EdgeInsets.zero,
+                      glow: true,
+                      child: Column(children: [
+                        Text(_emoji(active.type), style: const TextStyle(fontSize: 44)),
+                        const SizedBox(height: 8),
+                        Text('${active.type} — ${active.durationMinutes} min', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w800, fontSize: 18)),
+                        const SizedBox(height: 4),
+                        Text('Session in progress…', style: GoogleFonts.outfit(color: primary, fontSize: 13)),
+                        const SizedBox(height: 16),
+                        Row(children: [
+                          Expanded(child: Column(children: [
+                            Text('Focus ${(_focus * 100).round()}%', style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12)),
+                            Slider(value: _focus, onChanged: (v) => setState(() => _focus = v)),
+                          ])),
+                          Expanded(child: Column(children: [
+                            Text('Calm ${(_calm * 100).round()}%', style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12)),
+                            Slider(value: _calm, onChanged: (v) => setState(() => _calm = v)),
+                          ])),
+                        ]),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () => _complete(active),
+                            icon: const Icon(Icons.check_rounded, size: 18),
+                            label: Text('Complete Session', style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
                           ),
                         ),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // ── Hero card ──────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 1,
+                  child: GlassCard(
+                    margin: EdgeInsets.zero,
+                    glow: active == null,
+                    child: Row(children: [
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('Mindfulness centre', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 12, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        Text(active != null ? 'Session active' : 'Choose your session', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        Text(_service.getMeditationRecommendation(), style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12, height: 1.35), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ])),
+                      const SizedBox(width: 16),
+                      ProgressRing(
+                        progress: completedCount / 10,
+                        foreground: primary,
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.self_improvement_rounded, size: 26),
+                          const SizedBox(height: 4),
+                          Text('$completedCount', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w800)),
+                          Text('Done', style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 10)),
+                        ]),
                       ),
                     ]),
                   ),
-                  const SizedBox(height: 16),
-                ],
+                ),
+                const SizedBox(height: 12),
 
-                // Insights
-                _infoCard(Icons.insights_rounded, 'Insights',
-                    _service.getMeditationInsights(), Colors.tealAccent),
-                const SizedBox(height: 10),
-                _infoCard(Icons.tips_and_updates_rounded, 'Recommendation',
-                    _service.getMeditationRecommendation(), Colors.lightBlueAccent),
+                // ── Stats ─────────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 2,
+                  child: Row(children: [
+                    Expanded(child: StatCard(title: 'Sessions', value: '${sessions.length}', icon: Icons.history_rounded, color: primary)),
+                    Expanded(child: StatCard(title: 'Completed', value: '$completedCount', icon: Icons.check_circle_rounded, color: Colors.lightGreenAccent)),
+                    Expanded(child: StatCard(title: 'Duration', value: '${_duration.round()}m', icon: Icons.timer_rounded, color: Colors.amberAccent)),
+                  ]),
+                ),
+                const SizedBox(height: 12),
+
+                // ── Waifu commentary ───────────────────────────────────────
+                AnimatedEntry(index: 3, child: WaifuCommentary(mood: completedCount > 3 ? 'achievement' : 'relaxed')),
                 const SizedBox(height: 16),
 
-                // Type selector
-                Text('Session Type',
-                    style: GoogleFonts.outfit(
-                        color: Colors.white54,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        letterSpacing: 1)),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 80,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: types.length,
-                    itemBuilder: (_, i) {
-                      final t = types[i];
-                      final sel = _type == t;
-                      final c = _typeColor(t);
-                      return GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _type = t);
+                // ── Insights ──────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 4,
+                  child: GlassCard(
+                    margin: EdgeInsets.zero,
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Icon(Icons.insights_rounded, color: primary, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(_service.getMeditationInsights(), style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 13, height: 1.4))),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Type selector ──────────────────────────────────────────
+                AnimatedEntry(
+                  index: 5,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('SESSION TYPE', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 80,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: types.length,
+                        itemBuilder: (_, i) {
+                          final t = types[i];
+                          final sel = _type == t;
+                          return GestureDetector(
+                            onTap: () { HapticFeedback.selectionClick(); setState(() => _type = t); },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: sel ? primary.withValues(alpha: 0.15) : tokens.panelMuted,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: sel ? primary.withValues(alpha: 0.5) : tokens.outline, width: sel ? 1.5 : 1),
+                              ),
+                              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Text(_emoji(t), style: const TextStyle(fontSize: 22)),
+                                const SizedBox(height: 4),
+                                Text(t.split(' ').first, style: GoogleFonts.outfit(color: sel ? primary : tokens.textMuted, fontSize: 10, fontWeight: sel ? FontWeight.w700 : FontWeight.normal)),
+                              ]),
+                            ),
+                          );
                         },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          margin: const EdgeInsets.only(right: 10),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: sel
-                                ? c.withValues(alpha: 0.15)
-                                : Colors.white.withValues(alpha: 0.04),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: sel ? c.withValues(alpha: 0.5) : Colors.white12,
-                                width: sel ? 1.5 : 1),
-                          ),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                            Text(_typeEmoji(t),
-                                style: const TextStyle(fontSize: 22)),
-                            const SizedBox(height: 4),
-                            Text(t,
-                                style: GoogleFonts.outfit(
-                                    color: sel ? c : Colors.white54,
-                                    fontSize: 10,
-                                    fontWeight: sel
-                                        ? FontWeight.w700
-                                        : FontWeight.normal)),
-                          ]),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Duration
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Text('Duration: ${_duration.round()} min',
-                            style: GoogleFonts.outfit(
-                                color: Colors.white, fontWeight: FontWeight.w600)),
-                        const Spacer(),
-                        Text(
-                          _duration <= 5
-                              ? 'Quick'
-                              : _duration <= 15
-                                  ? 'Standard'
-                                  : 'Deep',
-                          style: GoogleFonts.outfit(
-                              color: activeColor, fontSize: 12),
-                        ),
-                      ]),
-                      Slider(
-                        value: _duration,
-                        min: 3,
-                        max: 30,
-                        divisions: 27,
-                        label: '${_duration.round()} min',
-                        activeColor: activeColor,
-                        inactiveColor: Colors.white12,
-                        onChanged: (v) => setState(() => _duration = v),
                       ),
-                      // Quick duration chips
-                      Row(children: [3, 5, 10, 15, 20, 30].map((m) {
-                        final sel = _duration.round() == m;
-                        return GestureDetector(
-                          onTap: () => setState(() => _duration = m.toDouble()),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            margin: const EdgeInsets.only(right: 6),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: sel
-                                  ? activeColor.withValues(alpha: 0.2)
-                                  : Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: sel
-                                      ? activeColor.withValues(alpha: 0.5)
-                                      : Colors.white12),
-                            ),
-                            child: Text('${m}m',
-                                style: GoogleFonts.outfit(
-                                    color: sel ? activeColor : Colors.white38,
-                                    fontSize: 11)),
-                          ),
-                        );
-                      }).toList()),
-                    ],
-                  ),
+                    ),
+                  ]),
                 ),
                 const SizedBox(height: 16),
 
-                // Start button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: active != null ? null : _start,
-                    icon: const Icon(Icons.self_improvement_rounded, size: 20),
-                    label: Text(
-                      active != null
-                          ? 'Session Active'
-                          : 'Start $_type Session',
-                      style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w700, fontSize: 15),
+                // ── Duration ──────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 6,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('DURATION', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                    const SizedBox(height: 10),
+                    GlassCard(
+                      margin: EdgeInsets.zero,
+                      child: Column(children: [
+                        Row(children: [
+                          Text('${_duration.round()} minutes', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
+                          const Spacer(),
+                          Text(_duration <= 5 ? 'Quick' : _duration <= 15 ? 'Standard' : 'Deep', style: GoogleFonts.outfit(color: primary, fontSize: 12)),
+                        ]),
+                        Slider(value: _duration, min: 3, max: 30, divisions: 27, label: '${_duration.round()} min', onChanged: (v) => setState(() => _duration = v)),
+                        Row(children: [3, 5, 10, 15, 20, 30].map((m) {
+                          final sel = _duration.round() == m;
+                          return Expanded(child: GestureDetector(
+                            onTap: () => setState(() => _duration = m.toDouble()),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              margin: const EdgeInsets.only(right: 4),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                color: sel ? primary.withValues(alpha: 0.15) : tokens.panelMuted,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: sel ? primary.withValues(alpha: 0.4) : tokens.outline),
+                              ),
+                              child: Center(child: Text('${m}m', style: GoogleFonts.outfit(color: sel ? primary : tokens.textMuted, fontSize: 10, fontWeight: sel ? FontWeight.w700 : FontWeight.normal))),
+                            ),
+                          ));
+                        }).toList()),
+                      ]),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: activeColor,
-                      foregroundColor: Colors.black,
-                      disabledBackgroundColor: Colors.white12,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Start button ───────────────────────────────────────────
+                AnimatedEntry(
+                  index: 7,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: active != null ? null : _start,
+                      icon: const Icon(Icons.self_improvement_rounded, size: 20),
+                      label: Text(active != null ? 'Session Active' : 'Start ${_type.split(' ').first} Session', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 15)),
+                      style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
 
-                // History
+                // ── History ───────────────────────────────────────────────
                 if (sessions.isNotEmpty) ...[
-                  Text('Session History',
-                      style: GoogleFonts.outfit(
-                          color: Colors.white54,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          letterSpacing: 1)),
-                  const SizedBox(height: 10),
-                  ...sessions.take(6).map((s) {
-                    final c = _typeColor(s.type);
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.07)),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: c.withValues(alpha: 0.12),
-                          ),
-                          child: Center(
-                            child: Text(_typeEmoji(s.type),
-                                style: const TextStyle(fontSize: 18)),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                            Text('${s.type} • ${s.durationMinutes} min',
-                                style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13)),
-                            Text(
-                              s.completed ? 'Completed ✓' : 'In progress...',
-                              style: GoogleFonts.outfit(
-                                  color: s.completed
-                                      ? Colors.greenAccent
-                                      : Colors.amberAccent,
-                                  fontSize: 11),
+                  const SizedBox(height: 20),
+                  AnimatedEntry(
+                    index: 8,
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('SESSION HISTORY', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                      const SizedBox(height: 10),
+                      ...sessions.take(5).toList().asMap().entries.map((entry) => AnimatedEntry(
+                        index: 9 + entry.key,
+                        child: GlassCard(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(14),
+                          child: Row(children: [
+                            Container(
+                              width: 40, height: 40,
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: primary.withValues(alpha: 0.1)),
+                              child: Center(child: Text(_emoji(entry.value.type), style: const TextStyle(fontSize: 18))),
                             ),
+                            const SizedBox(width: 12),
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('${entry.value.type} • ${entry.value.durationMinutes} min', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600, fontSize: 13)),
+                              Text(entry.value.completed ? 'Completed ✓' : 'In progress…', style: GoogleFonts.outfit(color: entry.value.completed ? Colors.lightGreenAccent : Colors.amberAccent, fontSize: 11)),
+                            ])),
+                            if (entry.value.completed) const Icon(Icons.check_circle_rounded, color: Colors.lightGreenAccent, size: 18),
                           ]),
                         ),
-                        if (s.completed)
-                          const Icon(Icons.check_circle_rounded,
-                              color: Colors.greenAccent, size: 18),
-                      ]),
-                    );
-                  }),
+                      )),
+                    ]),
+                  ),
                 ],
-                const SizedBox(height: 32),
               ],
             ),
-    );
-  }
-
-  Widget _infoCard(IconData icon, String title, String body, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 8),
-          Text(title,
-              style: GoogleFonts.outfit(
-                  color: color, fontWeight: FontWeight.w700, fontSize: 13)),
-        ]),
-        const SizedBox(height: 8),
-        Text(body,
-            style: GoogleFonts.outfit(
-                color: Colors.white70, fontSize: 13, height: 1.4)),
-      ]),
     );
   }
 }

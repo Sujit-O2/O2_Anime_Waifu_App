@@ -83,7 +83,7 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
       setState(() =>
           _deletionStatus = '❌ Error: ${e.toString().substring(0, 50)}...');
     } finally {
-      setState(() => _isDeleting = false);
+      if (mounted) setState(() => _isDeleting = false);
     }
   }
 
@@ -108,7 +108,7 @@ class _FirebaseCleanupPanelState extends State<FirebaseCleanupPanel>
       if (!mounted) return;
       setState(() => _deletionStatus = null);
     } catch (e) {
-      setState(() => _deletionStatus = '❌ Export failed: $e');
+      if (mounted) setState(() => _deletionStatus = '❌ Export failed: $e');
     }
   }
 

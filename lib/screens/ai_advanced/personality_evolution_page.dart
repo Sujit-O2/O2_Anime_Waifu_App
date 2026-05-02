@@ -1,14 +1,15 @@
+import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/ai_personalization/personality_evolution_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:anime_waifu/config/app_themes.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PersonalityEvolutionPage extends StatefulWidget {
   const PersonalityEvolutionPage({super.key});
-
   @override
-  State<PersonalityEvolutionPage> createState() =>
-      _PersonalityEvolutionPageState();
+  State<PersonalityEvolutionPage> createState() => _PersonalityEvolutionPageState();
 }
 
 class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
@@ -16,7 +17,7 @@ class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
   bool _loading = true;
   Map<PersonalityTrait, double> _traits = {};
   String _description = '';
-  String _systemModifier = '';
+  String _modifier = '';
 
   @override
   void initState() {
@@ -30,16 +31,16 @@ class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
       setState(() {
         _traits = _service.getAllTraits();
         _description = _service.getPersonalityDescription();
-        _systemModifier = _service.getSystemPromptModifier();
+        _modifier = _service.getSystemPromptModifier();
         _loading = false;
       });
     }
   }
 
-  Future<void> _simulateInteraction(InteractionType type) async {
+  Future<void> _record(InteractionType type) async {
     HapticFeedback.mediumImpact();
     await _service.recordInteraction(
-      userMessage: 'Simulated interaction for testing',
+      userMessage: 'Simulated interaction',
       aiResponse: 'Response recorded',
       type: type,
       emotionalIntensity: 0.7,
@@ -48,308 +49,182 @@ class _PersonalityEvolutionPageState extends State<PersonalityEvolutionPage> {
       setState(() {
         _traits = _service.getAllTraits();
         _description = _service.getPersonalityDescription();
-        _systemModifier = _service.getSystemPromptModifier();
+        _modifier = _service.getSystemPromptModifier();
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Recorded ${type.name} interaction'),
-          backgroundColor: Colors.purple.shade700,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showSuccessSnackbar(context, '${type.name} interaction recorded');
     }
   }
 
-  Color _traitColor(double value) {
-    if (value > 0.7) return Colors.pinkAccent;
-    if (value > 0.5) return Colors.purpleAccent;
-    if (value > 0.3) return Colors.blueAccent;
-    return Colors.white38;
-  }
-
-  String _evolutionStage() {
-    final avg = _traits.values.fold(0.0, (a, b) => a + b) /
-        (_traits.isEmpty ? 1 : _traits.length);
+  String _stage() {
+    final avg = _traits.isEmpty ? 0.0 : _traits.values.fold(0.0, (a, b) => a + b) / _traits.length;
     if (avg > 0.75) return '🌟 Fully Evolved';
     if (avg > 0.6) return '💫 Advanced';
     if (avg > 0.45) return '🌱 Developing';
     return '🌀 Awakening';
   }
 
+  double _avgTrait() => _traits.isEmpty ? 0 : _traits.values.fold(0.0, (a, b) => a + b) / _traits.length;
+
+  // Extract the insight line from description
+  String _insight() {
+    final lines = _description.split('\n').where((l) => l.trim().isNotEmpty).toList();
+    return lines.lastWhere((l) => l.contains('~') || l.contains('💕') || l.contains('💖'), orElse: () => lines.isNotEmpty ? lines.last : '');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0B14),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.white60, size: 18),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('🧬 Personality Evolution',
-            style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 18)),
-      ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.purpleAccent))
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    final primary = theme.colorScheme.primary;
+    final sorted = _traits.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    return FeaturePageV2(
+      title: 'PERSONALITY EVOLUTION',
+      subtitle: _stage(),
+      onBack: () => Navigator.pop(context),
+      content: _loading
+          ? const PremiumLoadingState(label: 'Loading personality data…', icon: Icons.auto_awesome_rounded)
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
-                // Stage card
-                _buildStageCard(),
-                const SizedBox(height: 16),
-                // Traits
-                _buildTraitsCard(),
-                const SizedBox(height: 16),
-                // Insights
-                if (_description.isNotEmpty) _buildInsightsCard(),
-                const SizedBox(height: 16),
-                // Active modifiers
-                if (_systemModifier.isNotEmpty) _buildModifierCard(),
-                const SizedBox(height: 16),
-                // Simulate interactions
-                _buildSimulateCard(),
-                const SizedBox(height: 32),
-              ],
-            ),
-    );
-  }
+                // ── Hero ──────────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 0,
+                  child: GlassCard(
+                    margin: EdgeInsets.zero,
+                    glow: true,
+                    child: Row(children: [
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('Evolution stage', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 12, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        Text(_stage(), style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 8),
+                        Text(
+                          _insight().isNotEmpty ? _insight() : 'Personality evolves with every interaction you have.',
+                          style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12, height: 1.35),
+                        ),
+                      ])),
+                      const SizedBox(width: 16),
+                      ProgressRing(
+                        progress: _avgTrait(),
+                        foreground: primary,
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          const Text('🧬', style: TextStyle(fontSize: 26)),
+                          const SizedBox(height: 4),
+                          Text('${(_avgTrait() * 100).toStringAsFixed(0)}%', style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w800)),
+                          Text('Overall', style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 10)),
+                        ]),
+                      ),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-  Widget _buildStageCard() {
-    final avg = _traits.values.fold(0.0, (a, b) => a + b) /
-        (_traits.isEmpty ? 1 : _traits.length);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.purple.withValues(alpha: 0.2),
-            Colors.pinkAccent.withValues(alpha: 0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.purple.withValues(alpha: 0.4)),
-      ),
-      child: Row(children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                Colors.purple.withValues(alpha: 0.4),
-                Colors.pinkAccent.withValues(alpha: 0.3),
-              ],
-            ),
-            border:
-                Border.all(color: Colors.purpleAccent.withValues(alpha: 0.5)),
-          ),
-          child: const Center(
-            child: Text('🧬', style: TextStyle(fontSize: 30)),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_evolutionStage(),
-                style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18)),
-            const SizedBox(height: 4),
-            Text('Overall evolution: ${(avg * 100).toStringAsFixed(0)}%',
-                style: GoogleFonts.outfit(color: Colors.white60, fontSize: 13)),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: avg.clamp(0.0, 1.0),
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                valueColor: const AlwaysStoppedAnimation(Colors.purpleAccent),
-                minHeight: 6,
-              ),
-            ),
-          ]),
-        ),
-      ]),
-    );
-  }
+                // ── Stats ─────────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 1,
+                  child: Row(children: [
+                    Expanded(child: StatCard(title: 'Top Trait', value: sorted.isNotEmpty ? sorted.first.key.label : '--', icon: Icons.star_rounded, color: Colors.amberAccent)),
+                    Expanded(child: StatCard(title: 'Avg Level', value: '${(_avgTrait() * 100).toStringAsFixed(0)}%', icon: Icons.trending_up_rounded, color: primary)),
+                    Expanded(child: StatCard(title: 'Traits', value: '${_traits.length}', icon: Icons.psychology_rounded, color: Colors.purpleAccent)),
+                  ]),
+                ),
+                const SizedBox(height: 16),
 
-  Widget _buildTraitsCard() {
-    final sorted = _traits.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Personality Traits',
-              style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15)),
-          const SizedBox(height: 12),
-          ...sorted.map((e) {
-            final color = _traitColor(e.value);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(children: [
-                Text(e.key.emoji, style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 10),
-                SizedBox(
-                    width: 110,
-                    child: Text(e.key.label,
-                        style: GoogleFonts.outfit(
-                            color: Colors.white70, fontSize: 13))),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: e.value.clamp(0.0, 1.0),
-                      backgroundColor: Colors.white.withValues(alpha: 0.07),
-                      valueColor: AlwaysStoppedAnimation(color),
-                      minHeight: 8,
+                // ── Traits ────────────────────────────────────────────────
+                AnimatedEntry(
+                  index: 2,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('PERSONALITY TRAITS', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                    const SizedBox(height: 10),
+                    GlassCard(
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: sorted.toList().asMap().entries.map((entry) {
+                          final trait = entry.value.key;
+                          final val = entry.value.value;
+                          final color = val > 0.7 ? primary : val > 0.5 ? Colors.purpleAccent : tokens.textMuted;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(children: [
+                              Text(trait.emoji, style: const TextStyle(fontSize: 20)),
+                              const SizedBox(width: 10),
+                              SizedBox(width: 100, child: Text(trait.label, style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12))),
+                              Expanded(
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0, end: val.clamp(0.0, 1.0)),
+                                  duration: Duration(milliseconds: 500 + entry.key * 60),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (_, v, __) => ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(value: v, backgroundColor: tokens.outline, valueColor: AlwaysStoppedAnimation(color), minHeight: 8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text('${(val * 100).toStringAsFixed(0)}%', style: GoogleFonts.outfit(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+                            ]),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
+                  ]),
                 ),
-                const SizedBox(width: 8),
-                Text('${(e.value * 100).toStringAsFixed(0)}%',
-                    style: GoogleFonts.outfit(color: color, fontSize: 12)),
-              ]),
-            );
-          }),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildInsightsCard() {
-    // Extract just the insights line from the description
-    final lines =
-        _description.split('\n').where((l) => l.trim().isNotEmpty).toList();
-    final insight = lines.lastWhere(
-        (l) => l.contains('~') || l.contains('💕') || l.contains('💖'),
-        orElse: () => lines.isNotEmpty ? lines.last : '');
-    if (insight.isEmpty) return const SizedBox();
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.pinkAccent.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('💕', style: TextStyle(fontSize: 22)),
-          const SizedBox(width: 12),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Zero Two\'s Reflection',
-                  style: GoogleFonts.outfit(
-                      color: Colors.pinkAccent,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13)),
-              const SizedBox(height: 4),
-              Text(insight,
-                  style: GoogleFonts.outfit(
-                      color: Colors.white, fontSize: 14, height: 1.4)),
-            ]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModifierCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.purpleAccent.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const Icon(Icons.auto_awesome_rounded,
-                color: Colors.purpleAccent, size: 18),
-            const SizedBox(width: 8),
-            Text('Active Personality Modifiers',
-                style: GoogleFonts.outfit(
-                    color: Colors.purpleAccent,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13)),
-          ]),
-          const SizedBox(height: 8),
-          Text(_systemModifier,
-              style: GoogleFonts.outfit(
-                  color: Colors.white70, fontSize: 13, height: 1.4)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimulateCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Record Interaction',
-              style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15)),
-          const SizedBox(height: 4),
-          Text('Personality evolves based on how you interact.',
-              style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: InteractionType.values.map((type) {
-              return GestureDetector(
-                onTap: () => _simulateInteraction(type),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border:
-                        Border.all(color: Colors.purple.withValues(alpha: 0.3)),
+                // ── Active modifier ───────────────────────────────────────
+                if (_modifier.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  AnimatedEntry(
+                    index: 3,
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('ACTIVE MODIFIERS', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                      const SizedBox(height: 10),
+                      GlassCard(
+                        margin: EdgeInsets.zero,
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Icon(Icons.auto_awesome_rounded, color: primary, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(_modifier, style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 13, height: 1.4))),
+                        ]),
+                      ),
+                    ]),
                   ),
-                  child: Text(type.name,
-                      style: GoogleFonts.outfit(
-                          color: Colors.purpleAccent, fontSize: 12)),
+                ],
+
+                // ── Record interaction ─────────────────────────────────────
+                const SizedBox(height: 16),
+                AnimatedEntry(
+                  index: 4,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('RECORD INTERACTION', style: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                    const SizedBox(height: 10),
+                    GlassCard(
+                      margin: EdgeInsets.zero,
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('Personality evolves based on how you interact. Tap a type to record one.', style: GoogleFonts.outfit(color: tokens.textMuted, fontSize: 12, height: 1.4)),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: InteractionType.values.map((t) => GestureDetector(
+                            onTap: () => _record(t),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: primary.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(t.name, style: GoogleFonts.outfit(color: primary, fontSize: 12, fontWeight: FontWeight.w600)),
+                            ),
+                          )).toList(),
+                        ),
+                      ]),
+                    ),
+                  ]),
                 ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,7 +34,7 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

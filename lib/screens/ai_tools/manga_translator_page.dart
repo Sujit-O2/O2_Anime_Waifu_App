@@ -32,7 +32,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
         setState(() { _image = File(picked.path); _translation = null; _error = null; });
       }
     } catch (e) {
-      setState(() => _error = 'Failed to pick image: $e');
+      if (mounted) setState(() => _error = 'Failed to pick image: $e');
     }
   }
 
@@ -102,7 +102,7 @@ class _MangaTranslatorPageState extends State<MangaTranslatorPage> {
         setState(() => _error = body['error']?['message'] ?? 'Error ${resp.statusCode}');
       }
     } catch (e) {
-      setState(() => _error = 'Translation failed: $e');
+      if (mounted) setState(() => _error = 'Translation failed: $e');
     }
 
     setState(() => _translating = false);
