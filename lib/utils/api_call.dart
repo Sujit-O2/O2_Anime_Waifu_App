@@ -254,7 +254,7 @@ class ApiService {
             return content;
           }
           final extBody = content.substring(bodyStart + 5).trim();
-          return sendMail(mail, extBody, extSub);
+          return await sendMail(mail, extBody, extSub);
         }
 
         if (lastUserMsg.isNotEmpty) {

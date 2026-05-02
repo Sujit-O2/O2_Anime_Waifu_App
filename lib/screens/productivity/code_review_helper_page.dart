@@ -110,29 +110,30 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
         children: [
           // Input section
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
               Row(children: [
-                const Text('🔍', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 8),
+                const Icon(Icons.code_rounded, color: _accent, size: 20),
+                const SizedBox(width: 10),
                 Text('Analyze Code',
                     style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
-                        fontSize: 15)),
+                        fontSize: 16)),
               ]),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               // Language chips
               Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: ['dart', 'python', 'javascript', 'typescript']
                     .map((lang) {
                   final sel = _langCtrl.text.toLowerCase() == lang;
@@ -142,23 +143,24 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                       setState(() => _langCtrl.text = lang);
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
+                      duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: sel
-                            ? _accent.withValues(alpha: 0.2)
+                            ? _accent.withValues(alpha: 0.15)
                             : Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color: sel
-                                ? _accent.withValues(alpha: 0.6)
-                                : Colors.white12),
+                                ? _accent.withValues(alpha: 0.5)
+                                : Colors.white12,
+                            width: sel ? 1.5 : 1),
                       ),
-                      child: Text(lang,
+                      child: Text(lang.toUpperCase(),
                           style: GoogleFonts.outfit(
                               color: sel ? _accent : Colors.white54,
-                              fontSize: 12,
+                              fontSize: 10,
                               fontWeight: sel
                                   ? FontWeight.w700
                                   : FontWeight.normal)),
@@ -166,7 +168,7 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               // Custom language field
               TextField(
@@ -174,70 +176,84 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                 style: GoogleFonts.outfit(color: Colors.white, fontSize: 13),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Language (dart, python, js...)',
+                  hintText: 'Language (e.g. swift, go...)',
                   hintStyle: GoogleFonts.outfit(
                       color: Colors.white30, fontSize: 12),
-                  prefixIcon: const Icon(Icons.code_rounded,
+                  prefixIcon: const Icon(Icons.translate_rounded,
                       color: Colors.white38, size: 18),
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.04),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none),
-                  isDense: true,
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                          color: _accent.withValues(alpha: 0.5))),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                      horizontal: 16, vertical: 14),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               // Code input
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF0D1117),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                       color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   controller: _codeCtrl,
-                  maxLines: 12,
+                  maxLines: 10,
                   style: GoogleFonts.sourceCodePro(
                       color: Colors.greenAccent.shade100,
-                      fontSize: 12,
+                      fontSize: 13,
                       height: 1.5),
                   decoration: InputDecoration(
                     hintText: '// Paste your code here...',
                     hintStyle: GoogleFonts.sourceCodePro(
-                        color: Colors.white24, fontSize: 12),
+                        color: Colors.white24, fontSize: 13),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(14),
+                    contentPadding: const EdgeInsets.all(16),
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
+              // Analyze Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _analyzing ? null : _analyze,
-                  icon: _analyzing
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.search_rounded, size: 18),
-                  label: Text(
-                      _analyzing ? 'Analyzing...' : 'Analyze Code',
-                      style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF6D00), Color(0xFFBF360C)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                          color: _accent.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4))
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _analyzing ? null : _analyze,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                        _analyzing ? 'ANALYZING...' : 'ANALYZE CODE',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 1.2)),
                   ),
                 ),
               ),
@@ -246,11 +262,11 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
 
           // Results
           if (_result != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Summary card
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -258,7 +274,7 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                     _accent.withValues(alpha: 0.04),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: _accent.withValues(alpha: 0.35)),
               ),
               child: Column(
@@ -266,48 +282,48 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                   children: [
                 Row(children: [
                   const Icon(Icons.summarize_rounded,
-                      color: _accent, size: 16),
-                  const SizedBox(width: 8),
+                      color: _accent, size: 18),
+                  const SizedBox(width: 10),
                   Text('Review Summary',
                       style: GoogleFonts.outfit(
                           color: _accent,
                           fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                          fontSize: 14)),
                 ]),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
                 // Metrics row
                 Row(children: [
                   _metricChip(
                       'Lines',
                       '${_result!.review.linesOfCode}',
                       Colors.cyanAccent),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   _metricChip(
                       'Complexity',
                       _result!.review.complexity.toStringAsFixed(0),
                       Colors.purpleAccent),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   _metricChip(
                       'Score',
                       '${_result!.review.maintainability.toStringAsFixed(0)}/100',
                       Colors.greenAccent),
                 ]),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
                 Text(_result!.summary,
                     style: GoogleFonts.outfit(
                         color: Colors.white70,
-                        fontSize: 12,
+                        fontSize: 13,
                         height: 1.5)),
               ]),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
             // Recommendations
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.amberAccent.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                     color: Colors.amberAccent.withValues(alpha: 0.25)),
               ),
@@ -316,24 +332,24 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
                   children: [
                 Row(children: [
                   const Icon(Icons.tips_and_updates_rounded,
-                      color: Colors.amberAccent, size: 16),
-                  const SizedBox(width: 8),
+                      color: Colors.amberAccent, size: 18),
+                  const SizedBox(width: 10),
                   Text('Recommendations',
                       style: GoogleFonts.outfit(
                           color: Colors.amberAccent,
                           fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                          fontSize: 14)),
                 ]),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(_result!.recommendations,
                     style: GoogleFonts.outfit(
                         color: Colors.white70,
-                        fontSize: 12,
+                        fontSize: 13,
                         height: 1.5)),
               ]),
-            ),
+             ),
 
-            // Issues list
+             // Issues list
             if (_result!.review.issues.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text('Issues Found (${_result!.review.issues.length})',

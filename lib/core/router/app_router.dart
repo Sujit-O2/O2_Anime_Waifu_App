@@ -40,6 +40,40 @@ import 'package:anime_waifu/screens/games/waifu_tier_list_page.dart';
 import 'package:anime_waifu/screens/games/word_association_page.dart';
 import 'package:anime_waifu/screens/games/word_puzzle_page.dart';
 import 'package:anime_waifu/screens/games/would_you_rather_page.dart';
+import 'package:anime_waifu/screens/games/orbital_strike_page.dart';
+import 'package:anime_waifu/screens/games/battle_cry_page.dart';
+import 'package:anime_waifu/screens/games/guardian_summon_page.dart';
+import 'package:anime_waifu/screens/games/time_freeze_page.dart';
+import 'package:anime_waifu/screens/games/phantom_echo_page.dart';
+import 'package:anime_waifu/screens/games/quantum_leap_page.dart';
+import 'package:anime_waifu/screens/games/berserker_fury_page.dart';
+import 'package:anime_waifu/screens/games/null_zone_page.dart';
+import 'package:anime_waifu/screens/games/mass_resurgence_page.dart';
+import 'package:anime_waifu/screens/games/final_judgment_page.dart';
+import 'package:anime_waifu/screens/games/ultimates_hub_page.dart';
+import 'package:anime_waifu/screens/utilities/digital_twin_page.dart';
+import 'package:anime_waifu/screens/utilities/thought_to_text_page.dart';
+import 'package:anime_waifu/screens/utilities/future_simulation_page.dart';
+import 'package:anime_waifu/screens/utilities/live_screen_intelligence_page.dart';
+import 'package:anime_waifu/screens/utilities/personality_evolution_v2_page.dart';
+import 'package:anime_waifu/screens/utilities/cognitive_load_detector_page.dart';
+import 'package:anime_waifu/screens/utilities/auto_workflow_builder_page.dart';
+import 'package:anime_waifu/screens/utilities/life_pattern_analyzer_page.dart';
+import 'package:anime_waifu/screens/utilities/multi_agent_brain_page.dart';
+import 'package:anime_waifu/screens/utilities/reality_overlay_page.dart';
+import 'package:anime_waifu/screens/utilities/auto_life_manager_page.dart';
+import 'package:anime_waifu/screens/utilities/life_os_dashboard.dart';
+import 'package:anime_waifu/screens/utilities/smart_onboarding.dart';
+import 'package:anime_waifu/screens/smart_features/document_scanner_page.dart';
+import 'package:anime_waifu/screens/smart_features/expense_analyzer_page.dart';
+import 'package:anime_waifu/screens/smart_features/focus_mode_coach_page.dart';
+import 'package:anime_waifu/screens/smart_features/inbox_copilot_page.dart';
+import 'package:anime_waifu/screens/smart_features/knowledge_search_page.dart';
+import 'package:anime_waifu/screens/smart_features/life_timeline_page.dart';
+import 'package:anime_waifu/screens/smart_features/decision_helper_page.dart';
+import 'package:anime_waifu/screens/smart_features/smart_daily_briefing_page.dart';
+import 'package:anime_waifu/screens/smart_features/smart_study_page.dart';
+import 'package:anime_waifu/screens/smart_features/voice_automation_page.dart';
 // animated_splash_screen.dart requires args — use MaterialPageRoute
 import 'package:anime_waifu/screens/media/anime_calendar_page.dart';
 // anime_embed_player_page.dart requires constructor args — use MaterialPageRoute
@@ -467,6 +501,42 @@ class AppRouter {
   static const String selfReflection = '/self-reflection';
   static const String contactsLookup = '/contacts-lookup';
   static const String socialFeatures = '/social-features';
+  static const String ultimatesHub = '/ultimates-hub';
+  static const String orbitalStrike = '/orbital-strike';
+  static const String battleCry = '/battle-cry';
+  static const String guardianSummon = '/guardian-summon';
+  static const String timeFreeze = '/time-freeze';
+  static const String phantomEcho = '/phantom-echo';
+  static const String quantumLeap = '/quantum-leap';
+  static const String berserkerFury = '/berserker-fury';
+  static const String nullZone = '/null-zone';
+  static const String massResurgence = '/mass-resurgence';
+  static const String finalJudgment = '/final-judgment';
+  static const String digitalTwin = '/digital-twin';
+  static const String thoughtToText = '/thought-to-text';
+  static const String futureSimulation = '/future-simulation';
+  static const String liveScreenIntelligence = '/live-screen-intelligence';
+  static const String personalityEvolutionV2 = '/personality-evolution-v2';
+  static const String cognitiveLoadDetector = '/cognitive-load-detector';
+  static const String autoWorkflowBuilder = '/auto-workflow-builder';
+  static const String lifePatternAnalyzer = '/life-pattern-analyzer';
+  static const String multiAgentBrain = '/multi-agent-brain';
+  static const String realityOverlay = '/reality-overlay';
+  static const String autoLifeManager = '/auto-life-manager';
+  static const String lifeOs = '/life-os';
+  static const String onboarding = '/onboarding';
+
+  // ── Smart Features Routes ──────────────────────────────────────────────
+  static const String smartDailyBriefing = '/smart-daily-briefing';
+  static const String inboxCopilot = '/inbox-copilot';
+  static const String voiceAutomation = '/voice-automation';
+  static const String documentScanner = '/document-scanner';
+  static const String knowledgeSearch = '/knowledge-search';
+  static const String focusModeCoach = '/focus-mode-coach';
+  static const String expenseAnalyzer = '/expense-analyzer';
+  static const String lifeTimeline = '/life-timeline';
+  static const String decisionHelper = '/decision-helper';
+  static const String smartStudy = '/smart-study';
 
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
@@ -715,6 +785,42 @@ class AppRouter {
         AppRouter.selfReflection: (_) => const SelfReflectionPage(),
         AppRouter.contactsLookup: (_) => const ContactsLookupPage(),
         AppRouter.socialFeatures: (_) => const SocialFeaturesPage(),
+        AppRouter.ultimatesHub: (_) => const UltimatesHubPage(),
+        AppRouter.orbitalStrike: (_) => const OrbitalStrikePage(),
+        AppRouter.battleCry: (_) => const BattleCryPage(),
+        AppRouter.guardianSummon: (_) => const GuardianSummonPage(),
+        AppRouter.timeFreeze: (_) => const TimeFreezePage(),
+        AppRouter.phantomEcho: (_) => const PhantomEchoPage(),
+        AppRouter.quantumLeap: (_) => const QuantumLeapPage(),
+        AppRouter.berserkerFury: (_) => const BerserkerFuryPage(),
+        AppRouter.nullZone: (_) => const NullZonePage(),
+        AppRouter.massResurgence: (_) => const MassResurgencePage(),
+        AppRouter.finalJudgment: (_) => const FinalJudgmentPage(),
+        AppRouter.digitalTwin: (_) => const DigitalTwinPage(),
+        AppRouter.thoughtToText: (_) => const ThoughtToTextPage(),
+        AppRouter.futureSimulation: (_) => const FutureSimulationPage(),
+        AppRouter.liveScreenIntelligence: (_) => const LiveScreenIntelligencePage(),
+        AppRouter.personalityEvolutionV2: (_) => const PersonalityEvolutionV2Page(),
+        AppRouter.cognitiveLoadDetector: (_) => const CognitiveLoadDetectorPage(),
+        AppRouter.autoWorkflowBuilder: (_) => const AutoWorkflowBuilderPage(),
+        AppRouter.lifePatternAnalyzer: (_) => const LifePatternAnalyzerPage(),
+        AppRouter.multiAgentBrain: (_) => const MultiAgentBrainPage(),
+        AppRouter.realityOverlay: (_) => const RealityOverlayPage(),
+        AppRouter.autoLifeManager: (_) => const AutoLifeManagerPage(),
+        AppRouter.lifeOs: (_) => const LifeOsDashboard(),
+        AppRouter.onboarding: (_) => const SmartOnboarding(),
+
+        // ── Smart Features Routes ──────────────────────────────────────
+        AppRouter.smartDailyBriefing: (_) => const SmartDailyBriefingPage(),
+        AppRouter.inboxCopilot: (_) => const InboxCopilotPage(),
+        AppRouter.voiceAutomation: (_) => const VoiceAutomationPage(),
+        AppRouter.documentScanner: (_) => const DocumentScannerPage(),
+        AppRouter.knowledgeSearch: (_) => const KnowledgeSearchPage(),
+        AppRouter.focusModeCoach: (_) => const FocusModeCoachPage(),
+        AppRouter.expenseAnalyzer: (_) => const ExpenseAnalyzerPage(),
+        AppRouter.lifeTimeline: (_) => const LifeTimelinePage(),
+        AppRouter.decisionHelper: (_) => const DecisionHelperPage(),
+        AppRouter.smartStudy: (_) => const SmartStudyPage(),
       };
 
   /// Premium page transition that makes navigation feel smooth and modern.

@@ -19,6 +19,9 @@ class PremiumChatInputBar extends StatefulWidget {
   final FocusNode? focusNode;
   final VoidCallback onSend;
   final VoidCallback onMicTap;
+  final VoidCallback? onImagePick;
+  final VoidCallback? onSurpriseMe;
+  final bool hasImage;
   final bool isListening;
   final bool isThinking;
   final List<String> smartReplies;
@@ -31,6 +34,9 @@ class PremiumChatInputBar extends StatefulWidget {
     this.focusNode,
     required this.onSend,
     required this.onMicTap,
+    this.onImagePick,
+    this.onSurpriseMe,
+    this.hasImage = false,
     this.isListening = false,
     this.isThinking = false,
     this.smartReplies = const [],
@@ -82,7 +88,8 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 
     widget.controller.addListener(_onTextChanged);
 
-    if (widget.smartReplies.isNotEmpty) {
+    // Show chips if we have replies OR a surprise me callback
+    if (widget.smartReplies.isNotEmpty || widget.onSurpriseMe != null) {
       _showChips = true;
       _chipCtrl.forward();
     }
@@ -125,12 +132,16 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
       });
     }
 
-    if (widget.smartReplies != old.smartReplies &&
-        widget.smartReplies.isNotEmpty) {
+    final hasReplies = widget.smartReplies.isNotEmpty || widget.onSurpriseMe != null;
+    final hadReplies = old.smartReplies.isNotEmpty || old.onSurpriseMe != null;
+
+    if (hasReplies && !hadReplies) {
       _showChips = true;
       _chipCtrl.forward(from: 0);
-    } else if (widget.smartReplies.isEmpty) {
+    } else if (!hasReplies && hadReplies) {
       _chipCtrl.reverse().then((_) => setState(() => _showChips = false));
+    } else if (widget.smartReplies != old.smartReplies && hasReplies) {
+      _chipCtrl.forward(from: 0);
     }
   }
 
@@ -164,7 +175,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Smart reply chips
+        // Smart reply chips & Surprise Me
         if (_showChips) _buildChips(accent),
         // Main input row
         Container(
@@ -190,6 +201,37 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const SizedBox(width: 4),
+              // Image Picker Button
+              if (widget.onImagePick != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6, left: 4),
+                  child: Stack(
+                    children: [
+                      IconButton(
+                        onPressed: widget.onImagePick,
+                        icon: Icon(
+                          widget.hasImage ? Icons.image : Icons.image_outlined,
+                          color: widget.hasImage ? accent : theme.colorScheme.onSurface.withOpacity(0.6),
+                          size: 22,
+                        ),
+                      ),
+                      if (widget.hasImage)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: theme.colorScheme.surface, width: 1.5),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               // Waveform / text field
               Expanded(
                 child: widget.isListening
@@ -341,39 +383,103 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
       child: FadeTransition(
         opacity: _chipSlide,
         child: SizedBox(
-          height: 40,
-          child: ListView.separated(
+          height: 44,
+          child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: widget.smartReplies.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) {
-              final reply = widget.smartReplies[i];
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  widget.onSmartReply?.call(reply);
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: accent.withOpacity(0.5), width: 1),
-                    color: accent.withOpacity(0.08),
-                  ),
-                  child: Text(
-                    reply,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: accent,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            children: [
+              if (widget.onSurpriseMe != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _SurpriseChip(onPressed: widget.onSurpriseMe!),
                 ),
-              );
-            },
+              ...widget.smartReplies.map((reply) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        widget.onSmartReply?.call(reply);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            colors: [accent.withOpacity(0.2), accent.withOpacity(0.05)],
+                          ),
+                          border: Border.all(color: accent.withOpacity(0.4), width: 1),
+                        ),
+                        child: Text(
+                          reply,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SurpriseChip extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _SurpriseChip({required this.onPressed});
+
+  @override
+  State<_SurpriseChip> createState() => _SurpriseChipState();
+}
+
+class _SurpriseChipState extends State<_SurpriseChip> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
+    _glow = Tween<double>(begin: 0.3, end: 0.8).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const p1 = Color(0xFFBB52FF);
+    const p2 = Color(0xFFFF4FA8);
+    return GestureDetector(
+      onTap: widget.onPressed,
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (context, child) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(colors: [p1, p2]),
+            boxShadow: [
+              BoxShadow(color: p1.withOpacity(_glow.value * 0.4), blurRadius: 10, spreadRadius: 1),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 14),
+              SizedBox(width: 6),
+              Text(
+                'Surprise Me',
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+            ],
           ),
         ),
       ),

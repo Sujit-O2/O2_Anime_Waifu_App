@@ -88,6 +88,7 @@ import 'package:anime_waifu/services/utilities_core/image_gen_service.dart';
 import 'package:anime_waifu/services/utilities_core/master_state_object.dart';
 import 'package:anime_waifu/services/utilities_core/mega_powerful_services_orchestrator.dart';
 import 'package:anime_waifu/services/utilities_core/presence_message_generator.dart';
+import 'package:anime_waifu/services/utilities_core/proactive_engine_service.dart';
 import 'package:anime_waifu/services/utilities_core/proactive_worker.dart'
     as proactive_worker;
 
@@ -127,6 +128,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:anime_waifu/utils/lazy_service_loader.dart';
+import 'package:anime_waifu/screens/utilities/smart_onboarding.dart';
+import 'package:anime_waifu/screens/utilities/life_os_dashboard.dart';
 
 import 'screens/utilities/quests_page.dart';
 import 'screens/wellness/mood_tracker_page.dart';
@@ -502,8 +505,23 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
                   );
                 }
                 if (snapshot.hasData) {
-                  return AppLockWrapper(
-                      key: appLockKey, child: const ChatHomePage());
+                  return FutureBuilder<bool>(
+                    future: SmartOnboarding.isCompleted(),
+                    builder: (context, onboardSnap) {
+                      if (onboardSnap.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Scaffold(
+                          body: Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.pinkAccent)),
+                        );
+                      }
+                      final done = onboardSnap.data ?? false;
+                      if (!done) return const SmartOnboarding();
+                      return AppLockWrapper(
+                          key: appLockKey, child: const LifeOsDashboard());
+                    },
+                  );
                 }
                 return const LoginScreen();
               },
@@ -593,7 +611,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   final _particleKey = GlobalKey<ParticleOverlayState>();
   String get _currentMoodLabel => _cp.currentMoodLabel;
   set _currentMoodLabel(String v) => _cp.currentMoodLabel = v;
-  String get _currentStickerEmotion => _cp.currentStickerEmotion;
+  // getter removed — was unused
 
   static const _surpriseActivities = [
     '🎮 Let\'s play Rock Paper Scissors!',
@@ -1102,6 +1120,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     unawaited(_loadPersonaAndSmartSettings());
     _scheduleStartupTasks();
     _startIdleTimer();
+    _initProactiveEngine();
     _startProactiveTimer();
 
     // Check if we were woken up by WaifuAlarmService
@@ -1622,32 +1641,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (!mounted || _isDisposed) return;
 
     try {
-      // Dart-side proactive generation (Check-in) ONLY if on OTHER screens.
-      if (_proactiveEnabled &&
-          _isInForeground &&
-          _navIndex != 0 && // Only if NOT on chat screen
-          !_isBusy) {
+      // Proactive check fires regardless of which screen is active.
+      // ProactiveEngineService handles its own cooldown/gap logic.
+      if (_proactiveEnabled && _isInForeground && !_isBusy) {
         if (kDebugMode) {
-          debugPrint(
-              'In-app Check-in (Other screen). Generating notification...');
+          debugPrint('[Proactive] Tick — checking ProactiveEngineService...');
         }
-
-        // ── Phase 2: Try mood-aware ProactiveAI message first ──
-        final proactiveMsg =
-            await ProactiveAIService.instance.generateProactiveMessage(
-          personaName:
-              _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona,
-          currentMood: PersonalityEngine.instance.mood,
-        );
-        if (proactiveMsg != null) {
-          await ProactiveAIService.instance.recordProactiveSent();
-          _appendMessage(
-              ChatMessage(role: 'assistant', content: proactiveMsg.text));
-          _scrollToBottom();
-          unawaited(_speakAssistantText(proactiveMsg.text));
-        } else {
-          await _sendProactiveBackgroundNotification();
-        }
+        // Delegate to the advanced engine; it calls onMessage if a message
+        // should fire. The onMessage callback is wired in _initProactiveEngine.
+        await ProactiveEngineService.instance.checkNow();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Proactive tick error: $e');
@@ -1656,6 +1658,17 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         _proactiveMessageTimer = Timer(_nextProactiveDelay, _proactiveTick);
       }
     }
+  }
+
+  /// Wire ProactiveEngineService so its messages appear in the chat.
+  void _initProactiveEngine() {
+    ProactiveEngineService.instance.onMessage = (msg, trigger) {
+      if (!mounted || _isDisposed) return;
+      _appendMessage(ChatMessage(role: 'assistant', content: msg));
+      _scrollToBottom();
+      unawaited(_speakAssistantText(msg));
+      if (kDebugMode) debugPrint('[ProactiveEngine] $trigger → $msg');
+    };
   }
 
   Future<void> _sendProactiveBackgroundNotification() async {
@@ -3434,6 +3447,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       imagePath: image?.path,
     ));
 
+    // Record chat time for proactive idle detection
+    unawaited(ProactiveEngineService.instance.recordUserChat());
+
     _scrollToBottom();
 
     // Logic delegated to LLM via system prompt "Action: SELFIE" rule.
@@ -4863,6 +4879,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               if (mounted) {
                 setState(() => _navIndex = 0);
               }
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
             } else {
               SystemNavigator.pop();
             }
@@ -4938,33 +4956,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                 // 🔔 Notification bell — top right (ENHANCED)
                 Padding(
                   padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                  child: Container(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.25),
-                          theme.colorScheme.primary.withValues(alpha: 0.08),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: tokens.glassGradient,
+                      color: tokens.panel.withValues(alpha: 0.90),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      border: Border.all(color: tokens.outlineStrong),
                     ),
                     child: IconButton(
                       icon: Stack(
@@ -5703,88 +5700,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   context,
                   ChatMessage(role: 'user', content: _currentVoiceText),
                   isGhost: true,
-                ),
-              ),
-            // ── Smart Quick Reply Chips (hidden when keyboard open) ───────────
-            if (_quickReplies.isNotEmpty &&
-                !_isBusy &&
-                MediaQuery.viewInsetsOf(context).bottom == 0)
-              Padding(
-                padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: SingleChildScrollView(
-                    key:
-                        ValueKey(_quickReplies.join() + _currentStickerEmotion),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        // ── Surprise Me button (first chip slot) ──────────────
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: SurpriseMeButton(onPressed: _fireSurpriseMe),
-                        ),
-                        ..._quickReplies.map((chip) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () async {
-                                HapticFeedback.lightImpact();
-                                final selectedReply = chip;
-                                setState(() => _quickReplies = []);
-                                _textController.text = chip;
-                                
-                                // Record usage for learning
-                                final context = _messages.reversed
-                                    .take(3)
-                                    .map((m) => m.content)
-                                    .join(' ');
-                                await SmartReplyService.instance.recordUsage(
-                                  selectedReply,
-                                  context,
-                                );
-                                
-                                unawaited(_handleTextInput());
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.pinkAccent.withValues(alpha: 0.22),
-                                      Colors.pinkAccent.withValues(alpha: 0.08),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                      color: Colors.pinkAccent
-                                          .withValues(alpha: 0.5)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.pinkAccent
-                                          .withValues(alpha: 0.18),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: Text(chip,
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500)),
-                              ),
-                            ),
-                          );
-                        }),
-                      ], // close outer children list
-                    ),
-                  ),
                 ),
               ),
             // Music bar only shows when keyboard is closed
@@ -6929,46 +6844,25 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   ),
                 ),
               ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Image picker button
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 12),
-                  child: GestureDetector(
-                    onTap: () => unawaited(_pickImage()),
-                    child: Container(
-                      width: 40, height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: primary.withValues(alpha: 0.12),
-                        border: Border.all(color: primary.withValues(alpha: 0.3)),
-                      ),
-                      child: Icon(Icons.image_outlined, color: primary, size: 20),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: PremiumChatInputBar(
-                    controller: _textController,
-                    onSend: () => unawaited(_handleTextInput()),
-                    onMicTap: () => unawaited(_toggleManualMic()),
-                    isListening: isListening,
-                    isThinking: _isBusy,
-                    accentColor: primary,
-                    smartReplies: _quickReplies,
-                    onSmartReply: (reply) async {
-                      HapticFeedback.lightImpact();
-                      setState(() => _quickReplies = []);
-                      _textController.text = reply;
-                      final ctx = _messages.reversed.take(3).map((m) => m.content).join(' ');
-                      await SmartReplyService.instance.recordUsage(reply, ctx);
-                      unawaited(_handleTextInput());
-                    },
-                  ),
-                ),
-              ],
+            PremiumChatInputBar(
+              controller: _textController,
+              onSend: () => unawaited(_handleTextInput()),
+              onMicTap: () => unawaited(_toggleManualMic()),
+              onImagePick: () => unawaited(_pickImage()),
+              onSurpriseMe: _fireSurpriseMe,
+              hasImage: _selectedImage != null,
+              isListening: isListening,
+              isThinking: _isBusy,
+              accentColor: primary,
+              smartReplies: _quickReplies,
+              onSmartReply: (reply) async {
+                HapticFeedback.lightImpact();
+                setState(() => _quickReplies = []);
+                _textController.text = reply;
+                final ctx = _messages.reversed.take(3).map((m) => m.content).join(' ');
+                await SmartReplyService.instance.recordUsage(reply, ctx);
+                unawaited(_handleTextInput());
+              },
             ),
           ],
         ),

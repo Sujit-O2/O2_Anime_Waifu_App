@@ -730,13 +730,6 @@ class AssistantForegroundService : Service() {
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
-        // Never show popup/notification when the app is open and in foreground
-        if (isAppInForeground()) {
-            // App is visible — just update the persistent notification silently
-            updateNotification(content)
-            return
-        }
-
         val wakePrompt = isWakePrompt(content)
         val shouldPulse = if (wakePrompt) {
             pulse && isSoundOnWakeEnabled()
@@ -744,14 +737,20 @@ class AssistantForegroundService : Service() {
             pulse
         }
         val popupEnabled = isWakePopupEnabled()
-        val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
-        if (shouldShowPopup) {
+        // Always show overlay if popup is enabled — even when app is in foreground
+        if (popupEnabled) {
             AssistantOverlayController.show(
                 applicationContext,
                 status = "Zero Two",
                 transcript = content,
                 autoHideMs = 300_000L
             )
+        }
+
+        // Skip notification when app is in foreground (overlay handles it)
+        if (isAppInForeground()) {
+            updateNotification(content)
+            return
         }
 
         val popupVisible = AssistantOverlayController.isShowing()

@@ -192,18 +192,33 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
                 fontSize: 18)),
-        bottom: TabBar(
-          controller: _tabs,
-          indicatorColor: _accent,
-          labelColor: _accent,
-          unselectedLabelColor: Colors.white38,
-          labelStyle:
-              GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'New'),
-            Tab(text: 'Projects'),
-            Tab(text: 'Tasks'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: TabBar(
+              controller: _tabs,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: _accent.withValues(alpha: 0.2),
+                border: Border.all(color: _accent.withValues(alpha: 0.4)),
+              ),
+              labelColor: _accent,
+              unselectedLabelColor: Colors.white38,
+              labelStyle:
+                  GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
+              tabs: const [
+                Tab(text: 'New'),
+                Tab(text: 'Projects'),
+                Tab(text: 'Tasks'),
+              ],
+            ),
+          ),
         ),
       ),
       body: _loading
@@ -226,15 +241,18 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
       children: [
         // Insights
         Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _accent.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(colors: [
+              _accent.withValues(alpha: 0.1),
+              Colors.transparent,
+            ]),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: _accent.withValues(alpha: 0.3)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Icon(Icons.insights_rounded, color: _accent, size: 18),
-            const SizedBox(width: 10),
+            const Icon(Icons.insights_rounded, color: _accent, size: 20),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(_service.getProjectInsights(),
                   style: GoogleFonts.outfit(
@@ -246,26 +264,26 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
 
         // Form
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white12),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('New Project',
+            Text('Create Project',
                 style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 15)),
-            const SizedBox(height: 14),
+                    fontSize: 16)),
+            const SizedBox(height: 16),
 
             _field(_titleCtrl, 'Project Title *', Icons.folder_rounded),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             _field(_descCtrl, 'Description', Icons.description_rounded,
                 maxLines: 3),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Priority
             Text('Priority',
@@ -282,52 +300,54 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                       setState(() => _priority = p);
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
+                      duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: sel
                             ? c.withValues(alpha: 0.15)
                             : Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color:
                                 sel ? c.withValues(alpha: 0.5) : Colors.white12,
-                            width: sel ? 1.5 : 1),
+                            width: 1.5),
                       ),
                       child: Column(children: [
-                        Text(_pEmoji(p), style: const TextStyle(fontSize: 16)),
-                        const SizedBox(height: 2),
-                        Text(p.name,
+                        Text(_pEmoji(p), style: const TextStyle(fontSize: 18)),
+                        const SizedBox(height: 4),
+                        Text(p.name.toUpperCase(),
                             style: GoogleFonts.outfit(
-                                color: sel ? c : Colors.white38, fontSize: 9)),
+                                color: sel ? c : Colors.white38,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700)),
                       ]),
                     ),
                   ),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Deadline
             GestureDetector(
               onTap: () => _pickDate(true),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: activeColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: activeColor.withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: activeColor.withValues(alpha: 0.4)),
                 ),
                 child: Row(children: [
                   Icon(Icons.calendar_today_rounded,
-                      color: activeColor, size: 18),
-                  const SizedBox(width: 10),
+                      color: activeColor, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Deadline',
+                          Text('Target Deadline',
                               style: GoogleFonts.outfit(
                                   color: Colors.white38, fontSize: 10)),
                           Text(
@@ -335,37 +355,48 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
                             style: GoogleFonts.outfit(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 13),
+                                fontSize: 14),
                           ),
                         ]),
                   ),
                   Icon(Icons.edit_rounded,
-                      color: activeColor.withValues(alpha: 0.5), size: 16),
+                      color: activeColor.withValues(alpha: 0.6), size: 18),
                 ]),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
+            // Submit Button
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _creating ? null : _createProject,
-                icon: _creating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.add_rounded, size: 18),
-                label: Text(_creating ? 'Creating...' : 'Create Project',
-                    style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w700, fontSize: 15)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accent,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00BCD4), Color(0xFF008BA3)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                        color: _accent.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4))
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _creating ? null : _createProject,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(_creating ? 'CREATING...' : 'CREATE PROJECT',
+                      style: GoogleFonts.outfit(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          letterSpacing: 1.2)),
                 ),
               ),
             ),

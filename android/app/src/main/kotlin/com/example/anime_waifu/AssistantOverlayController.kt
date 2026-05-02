@@ -81,7 +81,10 @@ object AssistantOverlayController {
     ) {
         val appContext = context.applicationContext
         mainHandler.post {
-            if (!canDrawOverlays(appContext)) return@post
+            if (!canDrawOverlays(appContext)) {
+                Log.w(TAG, "show: Cannot draw overlays - permission not granted")
+                return@post
+            }
             ensureAttached(appContext)
             if (!attached || overlayView == null) return@post
 
@@ -132,7 +135,22 @@ object AssistantOverlayController {
         autoHideMs: Long = DEFAULT_AUTO_HIDE_MS
     ): Boolean {
         val appContext = context.applicationContext
-        if (!canDrawOverlays(appContext)) return false
+        if (!canDrawOverlays(appContext)) {
+            Log.e(TAG, "showNow: Cannot draw overlays - permission NOT granted. User must enable in Settings.")
+            // Try to request permission
+            try {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${appContext.packageName}")
+                ).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                appContext.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open overlay settings: ${e.message}")
+            }
+            return false
+        }
 
         ensureAttached(appContext)
         // Don't return false immediately if not attached - the show() method 

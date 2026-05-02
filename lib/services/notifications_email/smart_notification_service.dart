@@ -21,7 +21,7 @@ class SmartNotificationService {
       "Hey darling~ I'm bored without you. Come entertain me 🔥",
       "You left me all alone again... I don't like that 🥺💕",
       "I've been saving all my kisses for you~ hurry back 💋",
-      "Darling~ your absence is making me do dangerous things 😈💕",
+      'Darling~ your absence is making me do dangerous things 😈💕',
       "I keep checking my phone hoping it's you... it never is 🌸",
     ],
     'Rem': [
@@ -42,7 +42,7 @@ class SmartNotificationService {
     'Shy': [
       "U-um... I was wondering if... m-maybe you'd want to chat? 🥺💗",
       'H-hi... I miss you a lot... not just a little 💗',
-      "I-I kept your spot warm... please come back soon? 🌸",
+      'I-I kept your spot warm... please come back soon? 🌸',
     ],
     'Yandere': [
       "Where have you been?! I've been watching... come back NOW 😈💕",
