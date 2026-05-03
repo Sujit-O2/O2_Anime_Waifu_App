@@ -143,10 +143,13 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
           child: Column(children: [
             // Insights card
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.deepPurpleAccent.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(colors: [
+                  Colors.deepPurpleAccent.withValues(alpha: 0.1),
+                  Colors.transparent,
+                ]),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                     color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
               ),
@@ -154,8 +157,8 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(Icons.insights_rounded,
-                      color: Colors.deepPurpleAccent, size: 18),
-                  const SizedBox(width: 10),
+                      color: Colors.deepPurpleAccent, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(_service.getMeetingInsights(),
                         style: GoogleFonts.outfit(
@@ -168,11 +171,11 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
 
             // Form card
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,21 +184,21 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
                       style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
-                          fontSize: 15)),
-                  const SizedBox(height: 14),
+                          fontSize: 16)),
+                  const SizedBox(height: 16),
 
                   // Title
                   _field(_titleCtrl, 'Meeting Title', Icons.title_rounded,
                       validator: (v) =>
                           v?.isEmpty ?? true ? 'Title required' : null),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   // Participants
                   _field(_participantsCtrl, 'Participants (comma separated)',
                       Icons.people_rounded,
                       validator: (v) =>
                           v?.isEmpty ?? true ? 'Add participants' : null),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // Meeting type
                   Text('Meeting Type',
@@ -214,24 +217,24 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
                           setState(() => _type = t);
                         },
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
+                          duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                              horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
                             color: sel
                                 ? c.withValues(alpha: 0.15)
                                 : Colors.white.withValues(alpha: 0.04),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: sel
                                     ? c.withValues(alpha: 0.5)
                                     : Colors.white12,
-                                width: sel ? 1.5 : 1),
+                                width: 1.5),
                           ),
-                          child: Text(t.name,
+                          child: Text(t.name.toUpperCase(),
                               style: GoogleFonts.outfit(
                                   color: sel ? c : Colors.white54,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: sel
                                       ? FontWeight.w700
                                       : FontWeight.normal)),
@@ -239,7 +242,7 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // Time pickers
                   Row(children: [
@@ -259,52 +262,62 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
                       ),
                     ),
                   ]),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // Duration display
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                        horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: activeColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: activeColor.withValues(alpha: 0.25)),
+                          color: activeColor.withValues(alpha: 0.3)),
                     ),
                     child: Row(children: [
-                      Icon(Icons.timer_rounded, color: activeColor, size: 16),
-                      const SizedBox(width: 8),
+                      Icon(Icons.timer_rounded, color: activeColor, size: 18),
+                      const SizedBox(width: 10),
                       Text(
                         'Duration: ${_endTime.difference(_startTime).inMinutes} min',
                         style: GoogleFonts.outfit(
-                            color: activeColor, fontSize: 12),
+                            color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     ]),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Create button
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _creating ? null : _create,
-                      icon: _creating
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.add_rounded, size: 18),
-                      label: Text(
-                          _creating ? 'Creating...' : 'Create Meeting',
-                          style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w700, fontSize: 15)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7C4DFF), Color(0xFF512DA8)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.deepPurpleAccent.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4))
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _creating ? null : _create,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: Text(
+                            _creating ? 'CREATING...' : 'CREATE MEETING',
+                            style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                letterSpacing: 1.2)),
                       ),
                     ),
                   ),

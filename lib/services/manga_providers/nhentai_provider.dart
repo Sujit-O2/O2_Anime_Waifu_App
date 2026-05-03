@@ -36,14 +36,14 @@ class NhentaiProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     try {
       // Popular/trending via main sorted endpoint
       final uri = Uri.parse('$_base/galleries/search').replace(queryParameters: {
         'query': '',
         'sort': 'popular-week',
         'per_page': limit.toString(),
-        'page': '1',
+        'page': ((offset ~/ limit) + 1).toString(),
       });
       final resp = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 15));
       if (resp.statusCode != 200) return _fallbackPopular();
@@ -71,12 +71,12 @@ class NhentaiProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     try {
       final uri = Uri.parse('$_base/galleries/search').replace(queryParameters: {
         'query': tagId,
         'per_page': limit.toString(),
-        'page': '1',
+        'page': ((offset ~/ limit) + 1).toString(),
       });
       final resp = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 15));
       if (resp.statusCode != 200) return [];

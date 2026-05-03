@@ -345,19 +345,16 @@ class GameSoundsService {
     }
   }
 
-  /// Internal: Try to play audio asset with fallback (.wav then .mp3)
+  /// Internal: Try to play audio asset with fallback (.mp3 then .wav)
   Future<void> _tryPlay(String name) async {
     if (!_soundEnabled) return;
     try {
-      // First try .wav extension
-      await _player.play(AssetSource('sounds/$name.wav'));
+      await _player.play(AssetSource('sounds/$name.mp3'));
     } catch (e1) {
       try {
-        // Fallback to .mp3 extension
-        await _player.play(AssetSource('sounds/$name.mp3'));
+        await _player.play(AssetSource('sounds/$name.wav'));
       } catch (e2) {
-        if (kDebugMode) debugPrint('[GameSounds] Failed to play $name (.wav and .mp3): $e2');
-        // Silently fail — haptic feedback already provided
+        if (kDebugMode) debugPrint('[GameSounds] Failed to play $name: $e2');
       }
     }
   }

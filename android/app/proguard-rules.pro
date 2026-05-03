@@ -21,3 +21,20 @@
 -keepclasseswithmembernames class * {
     native <methods>;
 }
+
+# ── Firebase ──────────────────────────────────────────────────────────────────
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# ── Gson (used by many plugins) ───────────────────────────────────────────────
+-keepattributes Signature
+-keepattributes *Annotation*
+-dontwarn sun.misc.**
+-keep class com.google.gson.** { *; }
+
+# ── mobile_scanner / barcode ──────────────────────────────────────────────────
+-keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**
+
+# ── Kotlin coroutines ─────────────────────────────────────────────────────────
+-dontwarn kotlinx.coroutines.**

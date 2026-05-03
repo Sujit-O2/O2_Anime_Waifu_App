@@ -232,6 +232,19 @@ class AssistantForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val forceBackgroundWake = intent?.getBooleanExtra("FORCE_BACKGROUND_WAKE", false) ?: false
         val action = intent?.action
+        if (action == "ACTION_SHOW_OVERLAY") {
+            Log.d("AssistantFGS", "ACTION_SHOW_OVERLAY received, isRunning=$isRunning")
+            if (!isRunning) { ensureForegroundStarted(); isRunning = true }
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                AssistantOverlayController.showNow(
+                    this@AssistantForegroundService,
+                    status = "Zero Two",
+                    transcript = "How can I help?",
+                    autoHideMs = 300_000L
+                )
+            }
+            return START_STICKY
+        }
         if (action == "SET_PROACTIVE_MODE") {
             // Ensure service is promoted and marked running even when this action
             // is the first entry-point (e.g. process/service recreation).
@@ -308,8 +321,7 @@ class AssistantForegroundService : Service() {
                     showWakeAlert("Type a command to continue.", pulse = true)
                     return START_STICKY
                 }
-                // Typed popup input should stay text-only (no TTS playback).
-                handleVoiceCommand(overlayText, speakReply = false)
+                handleVoiceCommand(overlayText, speakReply = true)
                 return START_STICKY
             }
 
@@ -730,13 +742,6 @@ class AssistantForegroundService : Service() {
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
-        // Never show popup/notification when the app is open and in foreground
-        if (isAppInForeground()) {
-            // App is visible — just update the persistent notification silently
-            updateNotification(content)
-            return
-        }
-
         val wakePrompt = isWakePrompt(content)
         val shouldPulse = if (wakePrompt) {
             pulse && isSoundOnWakeEnabled()
@@ -744,14 +749,20 @@ class AssistantForegroundService : Service() {
             pulse
         }
         val popupEnabled = isWakePopupEnabled()
-        val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
-        if (shouldShowPopup) {
+        // Always show overlay if popup is enabled — even when app is in foreground
+        if (popupEnabled) {
             AssistantOverlayController.show(
                 applicationContext,
                 status = "Zero Two",
                 transcript = content,
                 autoHideMs = 300_000L
             )
+        }
+
+        // Skip notification when app is in foreground (overlay handles it)
+        if (isAppInForeground()) {
+            updateNotification(content)
+            return
         }
 
         val popupVisible = AssistantOverlayController.isShowing()

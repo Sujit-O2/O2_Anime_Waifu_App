@@ -37,11 +37,9 @@ import 'package:anime_waifu/screens/utilities/commands_page.dart';
 import 'package:anime_waifu/screens/utilities/features_hub_page.dart';
 import 'package:anime_waifu/screens/utilities/gacha_page.dart';
 import 'package:anime_waifu/screens/utilities/image_pack_page.dart';
-import 'package:anime_waifu/screens/utilities/login_screen.dart';
 import 'package:anime_waifu/screens/utilities/main_themes.dart';
 // Additional screen imports for part files
 import 'package:anime_waifu/screens/utilities/music_player_page.dart';
-import 'package:anime_waifu/screens/utilities/secret_notes_page.dart';
 import 'package:anime_waifu/screens/utilities/stats_habits_page.dart';
 import 'package:anime_waifu/screens/utilities/theme_accent_page.dart';
 import 'package:anime_waifu/screens/utilities/waifu_voice_call_screen.dart';
@@ -88,6 +86,7 @@ import 'package:anime_waifu/services/utilities_core/image_gen_service.dart';
 import 'package:anime_waifu/services/utilities_core/master_state_object.dart';
 import 'package:anime_waifu/services/utilities_core/mega_powerful_services_orchestrator.dart';
 import 'package:anime_waifu/services/utilities_core/presence_message_generator.dart';
+import 'package:anime_waifu/services/utilities_core/proactive_engine_service.dart';
 import 'package:anime_waifu/services/utilities_core/proactive_worker.dart'
     as proactive_worker;
 
@@ -103,6 +102,7 @@ import 'package:anime_waifu/services/utilities_core/adaptive_performance_engine.
 import 'package:anime_waifu/services/utilities_core/geo_intelligence_service.dart';
 import 'package:anime_waifu/widgets/app_lock_wrapper.dart';
 import 'package:anime_waifu/widgets/gesture_control_overlay.dart';
+import 'package:anime_waifu/widgets/main_bottom_nav.dart';
 import 'package:anime_waifu/widgets/o2_background_engine.dart';
 import 'package:anime_waifu/widgets/premium_input_bar.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
@@ -126,10 +126,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:anime_waifu/screens/utilities/login_screen.dart';
 import 'package:anime_waifu/utils/lazy_service_loader.dart';
 
-import 'screens/utilities/quests_page.dart';
-import 'screens/wellness/mood_tracker_page.dart';
 import 'widgets/liveliness_widgets.dart';
 
 part 'screens/utilities/about_page.dart';
@@ -483,35 +482,54 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
             darkTheme: AppThemes.getDarkTheme(themeProv.mode),
             routes: AppRouter.routes,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            home: StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 300),
-                    builder: (context, opacity, child) => Opacity(
-                      opacity: opacity,
-                      child: child,
-                    ),
-                    child: const Scaffold(
-                      body: Center(
-                          child: CircularProgressIndicator(
-                              color: Colors.pinkAccent)),
-                    ),
-                  );
-                }
-                if (snapshot.hasData) {
-                  return AppLockWrapper(
-                      key: appLockKey, child: const ChatHomePage());
-                }
-                return const LoginScreen();
-              },
-            ),
+            home: _FirstLaunchGate(child: AppLockWrapper(key: appLockKey, child: const ChatHomePage())),
           ),
         );
       },
     );
+  }
+}
+
+/// Shows LoginScreen on first launch only. After login/skip, sets a flag so
+/// subsequent launches go straight to the app.
+class _FirstLaunchGate extends StatefulWidget {
+  final Widget child;
+  const _FirstLaunchGate({required this.child});
+  @override
+  State<_FirstLaunchGate> createState() => _FirstLaunchGateState();
+}
+
+class _FirstLaunchGateState extends State<_FirstLaunchGate> {
+  static const _key = 'has_launched_before';
+  bool? _hasLaunched;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (!mounted) return;
+      setState(() => _hasLaunched = p.getBool(_key) ?? false);
+    });
+  }
+
+  void _onLoginDone() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_key, true);
+    if (!mounted) return;
+    setState(() => _hasLaunched = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasLaunched == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.pinkAccent)),
+      );
+    }
+    if (!_hasLaunched!) {
+      return LoginScreen(onDone: _onLoginDone);
+    }
+    return widget.child;
   }
 }
 
@@ -593,7 +611,7 @@ class _ChatHomePageState extends State<ChatHomePage>
   final _particleKey = GlobalKey<ParticleOverlayState>();
   String get _currentMoodLabel => _cp.currentMoodLabel;
   set _currentMoodLabel(String v) => _cp.currentMoodLabel = v;
-  String get _currentStickerEmotion => _cp.currentStickerEmotion;
+  // getter removed — was unused
 
   static const _surpriseActivities = [
     '🎮 Let\'s play Rock Paper Scissors!',
@@ -1058,6 +1076,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         setState(() => _showOpeningOverlay = false);
       }
     });
+    // Safety: force-hide after 3s regardless of animation state
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _showOpeningOverlay) {
+        setState(() => _showOpeningOverlay = false);
+      }
+    });
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -1102,6 +1126,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     unawaited(_loadPersonaAndSmartSettings());
     _scheduleStartupTasks();
     _startIdleTimer();
+    _initProactiveEngine();
     _startProactiveTimer();
 
     // Check if we were woken up by WaifuAlarmService
@@ -1622,32 +1647,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (!mounted || _isDisposed) return;
 
     try {
-      // Dart-side proactive generation (Check-in) ONLY if on OTHER screens.
-      if (_proactiveEnabled &&
-          _isInForeground &&
-          _navIndex != 0 && // Only if NOT on chat screen
-          !_isBusy) {
+      // Proactive check fires regardless of which screen is active.
+      // ProactiveEngineService handles its own cooldown/gap logic.
+      if (_proactiveEnabled && _isInForeground && !_isBusy) {
         if (kDebugMode) {
-          debugPrint(
-              'In-app Check-in (Other screen). Generating notification...');
+          debugPrint('[Proactive] Tick — checking ProactiveEngineService...');
         }
-
-        // ── Phase 2: Try mood-aware ProactiveAI message first ──
-        final proactiveMsg =
-            await ProactiveAIService.instance.generateProactiveMessage(
-          personaName:
-              _selectedPersona == 'Default' ? 'Zero Two' : _selectedPersona,
-          currentMood: PersonalityEngine.instance.mood,
-        );
-        if (proactiveMsg != null) {
-          await ProactiveAIService.instance.recordProactiveSent();
-          _appendMessage(
-              ChatMessage(role: 'assistant', content: proactiveMsg.text));
-          _scrollToBottom();
-          unawaited(_speakAssistantText(proactiveMsg.text));
-        } else {
-          await _sendProactiveBackgroundNotification();
-        }
+        // Delegate to the advanced engine; it calls onMessage if a message
+        // should fire. The onMessage callback is wired in _initProactiveEngine.
+        await ProactiveEngineService.instance.checkNow();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Proactive tick error: $e');
@@ -1656,6 +1664,17 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         _proactiveMessageTimer = Timer(_nextProactiveDelay, _proactiveTick);
       }
     }
+  }
+
+  /// Wire ProactiveEngineService so its messages appear in the chat.
+  void _initProactiveEngine() {
+    ProactiveEngineService.instance.addListener((msg, trigger) {
+      if (!mounted || _isDisposed) return;
+      _appendMessage(ChatMessage(role: 'assistant', content: msg));
+      _scrollToBottom();
+      unawaited(_speakAssistantText(msg));
+      if (kDebugMode) debugPrint('[ProactiveEngine] $trigger → $msg');
+    });
   }
 
   Future<void> _sendProactiveBackgroundNotification() async {
@@ -2364,6 +2383,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _backgroundTransitionTimer?.cancel();
 
     if (state == AppLifecycleState.resumed) {
+      // Ensure content is always visible when returning from background
+      if (mounted && _showOpeningOverlay) {
+        setState(() => _showOpeningOverlay = false);
+      }
       _suspendWakeWord = false;
       if (_assistantModeEnabled) {
         // Hand-off: stop native wake first, then restore Flutter wake.
@@ -2649,7 +2672,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (useSmartVerification) {
         final audioData = _wakeWordService.getRecentAudio();
         if (audioData.isNotEmpty) {
-          if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+          if (Platform.isAndroid && _wakePopupEnabled) {
             await _assistantModeService.showOverlay(
               status: 'Verifying...',
               transcript: 'Checking wake word...',
@@ -2658,7 +2681,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
           final isValid = await _verifyWakeWordWithGroq(audioData);
           if (!isValid) {
-            if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+            if (Platform.isAndroid && _wakePopupEnabled) {
               await _assistantModeService.hideOverlay();
             }
             return; // False alarm rejected by STT!
@@ -2679,17 +2702,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         }
       } catch (_) {}
 
-      // Don't show overlay when user is already on the chat screen, UNLESS the app is backgrounded.
+      // Show overlay on wake word regardless of which screen is active
       bool isBackground = _appLifecycleState != AppLifecycleState.resumed;
-      if (Platform.isAndroid &&
-          _wakePopupEnabled &&
-          (_navIndex != 0 || isBackground)) {
+      if (Platform.isAndroid && _wakePopupEnabled) {
         await _assistantModeService.showOverlay(
           status: 'Wake word detected',
           transcript: wakeName.isNotEmpty ? wakeName : 'Speak your command',
         );
       } else if (isBackground) {
-        // If they disabled the popup but are in the background, force the app to the front so they can interact.
         await _assistantModeService.bringToFront();
       }
 
@@ -3433,6 +3453,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       content: text,
       imagePath: image?.path,
     ));
+
+    // Record chat time for proactive idle detection
+    unawaited(ProactiveEngineService.instance.recordUserChat());
 
     _scrollToBottom();
 
@@ -4863,153 +4886,223 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               if (mounted) {
                 setState(() => _navIndex = 0);
               }
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
             } else {
               SystemNavigator.pop();
             }
           },
-          child: Scaffold(
+           child: Scaffold(
+            extendBody: false,
             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
             drawer: _buildNavDrawer(themeMode),
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: Builder(
-                builder: (ctx) => Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: tokens.glassGradient,
-                      color: tokens.panel.withValues(alpha: 0.90),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: tokens.outlineStrong),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.menu_rounded,
-                          color: theme.colorScheme.onSurface),
-                      onPressed: () => Scaffold.of(ctx).openDrawer(),
-                      tooltip: 'Menu',
-                    ),
-                  ),
-                ),
-              ),
-              title: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _onTitleTap,
-                onLongPress: _openDevConfigSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: tokens.glassGradient,
-                    color: tokens.panel.withValues(alpha: 0.84),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: tokens.outlineStrong),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                        blurRadius: 18,
-                        spreadRadius: -10,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'ZERO TWO',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.8,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ),
-              titleSpacing: 0,
-              centerTitle: true,
-              actions: [
-                // 🔥 Streak Badge — only show when streak >= 2
-                if (AffectionService.instance.streakDays >= 2)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
-                    child: StreakBadge(
-                      streak: AffectionService.instance.streakDays,
-                    ),
-                  ),
-                const SizedBox(width: 4),
-                // 🔔 Notification bell — top right (ENHANCED)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.25),
-                          theme.colorScheme.primary.withValues(alpha: 0.08),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Icon(Icons.notifications_rounded,
-                              color: _hasUnreadNotifs ? theme.colorScheme.primary : theme.colorScheme.onSurface, 
-                              size: 22),
-                          if (_navIndex != 1 && _hasUnreadNotifs)
-                            Positioned(
-                              top: -4,
-                              right: -4,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.redAccent.withValues(alpha: 0.6),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      tooltip: 'Notifications',
-                      onPressed: () => setState(() {
-                        _navIndex = 1;
-                        _hasUnreadNotifs = false;
-                      }),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-              ],
+            bottomNavigationBar: (_navIndex == 0 || _navIndex > 4) ? null : MainBottomNav(
+              currentIndex: _navIndex.clamp(0, 4),
+              onTap: (i) => setState(() => _navIndex = i),
+              accentColor: theme.colorScheme.primary,
             ),
+             appBar: AppBar(
+               backgroundColor: Colors.transparent,
+               elevation: 0,
+               leadingWidth: 64,
+               leading: Builder(
+                 builder: (ctx) => Padding(
+                   padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+                   child: AnimatedContainer(
+                     duration: const Duration(milliseconds: 250),
+                     decoration: BoxDecoration(
+                       gradient: tokens.glassGradient,
+                       color: tokens.panel.withValues(alpha: 0.92),
+                       borderRadius: BorderRadius.circular(16),
+                       border: Border.all(color: tokens.outlineStrong, width: 1.2),
+                       boxShadow: [
+                         BoxShadow(
+                           color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                           blurRadius: 12,
+                           offset: const Offset(0, 2),
+                         ),
+                       ],
+                     ),
+                     child: Material(
+                       color: Colors.transparent,
+                       borderRadius: BorderRadius.circular(16),
+                       child: InkWell(
+                         borderRadius: BorderRadius.circular(16),
+                         onTap: () {
+                           HapticFeedback.selectionClick();
+                           Scaffold.of(ctx).openDrawer();
+                         },
+                         child: Icon(Icons.menu_rounded,
+                             color: theme.colorScheme.onSurface, size: 22),
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+               title: GestureDetector(
+                 behavior: HitTestBehavior.translucent,
+                 onTap: () {
+                   HapticFeedback.selectionClick();
+                   _onTitleTap();
+                 },
+                 onLongPress: _openDevConfigSheet,
+                 child: AnimatedContainer(
+                   duration: const Duration(milliseconds: 300),
+                   curve: Curves.easeOutCubic,
+                   padding: const EdgeInsets.symmetric(
+                       horizontal: 20, vertical: 10),
+                   decoration: BoxDecoration(
+                     gradient: LinearGradient(
+                       begin: Alignment.topLeft,
+                       end: Alignment.bottomRight,
+                       colors: [
+                         tokens.panel.withValues(alpha: 0.90),
+                         tokens.panelElevated.withValues(alpha: 0.85),
+                       ],
+                     ),
+                     borderRadius: BorderRadius.circular(999),
+                     border: Border.all(
+                         color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                         width: 1.2),
+                     boxShadow: [
+                       BoxShadow(
+                         color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                         blurRadius: 20,
+                         spreadRadius: -6,
+                       ),
+                     ],
+                   ),
+                   child: Row(
+                     mainAxisSize: MainAxisSize.min,
+                     children: [
+                       Icon(Icons.favorite_rounded,
+                           size: 16,
+                           color: theme.colorScheme.primary.withValues(alpha: 0.8)),
+                       const SizedBox(width: 8),
+                       Text(
+                         'ZERO TWO',
+                         style: GoogleFonts.outfit(
+                           fontWeight: FontWeight.w900,
+                           letterSpacing: 2.0,
+                           color: theme.colorScheme.onSurface,
+                           fontSize: 15,
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+               titleSpacing: 8,
+               centerTitle: true,
+               actions: [
+                 // 🔥 Streak Badge — only show when streak >= 2
+                 if (AffectionService.instance.streakDays >= 2)
+                   Padding(
+                     padding: const EdgeInsets.only(top: 8, bottom: 8),
+                     child: StreakBadge(
+                       streak: AffectionService.instance.streakDays,
+                     ),
+                   ),
+                 const SizedBox(width: 2),
+                 // 🔔 Notification bell — top right (ENHANCED)
+                 Padding(
+                   padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                   child: AnimatedContainer(
+                     duration: const Duration(milliseconds: 250),
+                     decoration: BoxDecoration(
+                       gradient: tokens.glassGradient,
+                       color: tokens.panel.withValues(alpha: 0.92),
+                       borderRadius: BorderRadius.circular(16),
+                       border: Border.all(
+                           color: _hasUnreadNotifs
+                               ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                               : tokens.outlineStrong,
+                           width: 1.2),
+                       boxShadow: _hasUnreadNotifs
+                           ? [
+                               BoxShadow(
+                                 color: theme.colorScheme.primary
+                                     .withValues(alpha: 0.2),
+                                 blurRadius: 16,
+                                 spreadRadius: -4,
+                               ),
+                             ]
+                           : [],
+                     ),
+                     child: Material(
+                       color: Colors.transparent,
+                       borderRadius: BorderRadius.circular(16),
+                       child: InkWell(
+                         borderRadius: BorderRadius.circular(16),
+                         onTap: () {
+                           HapticFeedback.selectionClick();
+                           setState(() {
+                             _navIndex = 1;
+                             _hasUnreadNotifs = false;
+                           });
+                         },
+                         child: Padding(
+                           padding: const EdgeInsets.all(8),
+                           child: Stack(
+                             clipBehavior: Clip.none,
+                             children: [
+                               AnimatedSwitcher(
+                                 duration: const Duration(milliseconds: 300),
+                                 child: Icon(
+                                   _hasUnreadNotifs
+                                       ? Icons.notifications_active_rounded
+                                       : Icons.notifications_outlined,
+                                   key: ValueKey(_hasUnreadNotifs),
+                                   color: _hasUnreadNotifs
+                                       ? theme.colorScheme.primary
+                                       : theme.colorScheme.onSurface,
+                                   size: 22,
+                                 ),
+                               ),
+                               if (_navIndex != 1 && _hasUnreadNotifs)
+                                 Positioned(
+                                   top: -3,
+                                   right: -3,
+                                   child: TweenAnimationBuilder<double>(
+                                     tween: Tween(begin: 0.0, end: 1.0),
+                                     duration: const Duration(milliseconds: 400),
+                                     curve: Curves.elasticOut,
+                                     builder: (context, value, child) =>
+                                         Transform.scale(
+                                       scale: value,
+                                       child: Container(
+                                         width: 10,
+                                         height: 10,
+                                         decoration: BoxDecoration(
+                                           color: Colors.redAccent,
+                                           shape: BoxShape.circle,
+                                           border: Border.all(
+                                             color: theme.scaffoldBackgroundColor,
+                                             width: 1.5,
+                                           ),
+                                           boxShadow: [
+                                             BoxShadow(
+                                               color: Colors.redAccent
+                                                   .withValues(alpha: 0.6),
+                                               blurRadius: 8,
+                                               spreadRadius: 1,
+                                             ),
+                                           ],
+                                         ),
+                                       ),
+                                     ),
+                                   ),
+                                 ),
+                             ],
+                           ),
+                         ),
+                       ),
+                     ),
+                   ),
+                 ),
+               ],
+             ),
             body: Stack(
               children: [
                 finalDecorativeBackground(themeMode),
@@ -5145,8 +5238,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final theme = Theme.of(context);
     final tokens = context.appTokens;
     final primary = theme.colorScheme.primary;
-    // SafeArea now wraps the column, so no extra topInset needed here
-    const topInset = 12.0;
+    const topInset = 14.0;
     final statusText = _isSpeaking
         ? 'DECODING SPEECH...'
         : _speechService.listening
@@ -5157,8 +5249,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                     ? 'SYSTEM READY'
                     : _apiKeyStatus.toUpperCase();
     final avatarCore = Container(
-      width: 80,
-      height: 80,
+      width: 78,
+      height: 78,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -5169,14 +5261,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ),
         boxShadow: [
           BoxShadow(
-            color: primary.withValues(alpha: 0.5),
-            blurRadius: 24,
-            spreadRadius: 3,
+            color: primary.withValues(alpha: 0.45),
+            blurRadius: 28,
+            spreadRadius: 2,
           ),
           BoxShadow(
-            color: const Color(0xFF00D1FF).withValues(alpha: 0.2),
-            blurRadius: 40,
-            spreadRadius: 1,
+            color: const Color(0xFF00D1FF).withValues(alpha: 0.18),
+            blurRadius: 44,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -5186,14 +5278,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             assetPath: _chatImageAsset,
             customPath: _effectiveChatCustomPath,
           ),
-          width: 74,
-          height: 74,
+          width: 72,
+          height: 72,
           fit: BoxFit.cover,
           errorBuilder: (c, e, s) => Container(
-            width: 74,
-            height: 74,
+            width: 72,
+            height: 72,
             color: tokens.panelMuted,
-            child: Icon(Icons.person, color: tokens.textSoft, size: 36),
+            child: Icon(Icons.person, color: tokens.textSoft, size: 34),
           ),
         ),
       ),
@@ -5210,26 +5302,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             : avatarCore);
     final avatarWidget = avatarWithPulse;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, topInset, 14, 2),
-      child: GlassCard(
-        margin: EdgeInsets.zero,
-        padding: const EdgeInsets.all(14),
-        glow: _speechService.listening || _isSpeaking,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _onLogoTap,
-              child: avatarWidget,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 10 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, topInset, 14, 4),
+        child: GlassCard(
+          margin: EdgeInsets.zero,
+          padding: const EdgeInsets.all(14),
+          glow: _speechService.listening || _isSpeaking,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  _onLogoTap();
+                },
+                child: avatarWidget,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   Row(
                     children: [
                       ShaderMask(
@@ -5424,13 +5529,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                     ],
+                   ),
+                 ],
+               ),
+             ),
+           ],
+         ),
+       ),
       ),
     );
   }
@@ -5441,47 +5547,63 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     required Color accent,
   }) {
     final tokens = context.appTokens;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        gradient: active
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  accent.withValues(alpha: 0.28),
-                  accent.withValues(alpha: 0.12),
-                ],
-              )
-            : null,
-        color: active ? null : tokens.panelMuted.withValues(alpha: 0.72),
-        border: Border.all(
-          color: active ? accent.withValues(alpha: 0.8) : tokens.outline,
-          width: 1,
-        ),
-        boxShadow: active
-            ? [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.25),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.outfit(
-          color: active ? Colors.white : tokens.textMuted,
-          fontSize: 9,
-          letterSpacing: 1.2,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: active ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) {
+        final isActive = value > 0.5;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: isActive
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accent.withValues(alpha: 0.28),
+                      accent.withValues(alpha: 0.12),
+                    ],
+                  )
+                : null,
+            color: isActive ? null : tokens.panelMuted.withValues(alpha: 0.72),
+            border: Border.all(
+              color: Color.lerp(
+                tokens.outline,
+                accent.withValues(alpha: 0.8),
+                value,
+              )!,
+              width: 1,
+            ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.25 * value),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              color: Color.lerp(
+                tokens.textMuted,
+                accent,
+                value,
+              ),
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -5499,69 +5621,85 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
         child: Column(
           children: [
             // ── Search bar ────────────────────────────────────
             if (_isChatSearchActive)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: tokens.glassGradient,
-                    color: tokens.panel.withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: _chatSearchQuery.isNotEmpty
-                          ? theme.colorScheme.primary.withValues(alpha: 0.35)
-                          : tokens.outlineStrong,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: tokens.shadowColor,
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                        spreadRadius: -14,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) => Transform.translate(
+                  offset: Offset(0, -8 * (1 - value)),
+                  child: Opacity(opacity: value, child: child),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: tokens.glassGradient,
+                      color: tokens.panel.withValues(alpha: 0.94),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _chatSearchQuery.isNotEmpty
+                            ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                            : tokens.outlineStrong,
+                        width: 1.2,
                       ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _chatSearchController,
-                    autofocus: true,
-                    style: GoogleFonts.outfit(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 14,
+                      boxShadow: [
+                        BoxShadow(
+                          color: tokens.shadowColor,
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                          spreadRadius: -12,
+                        ),
+                      ],
                     ),
-                    cursorColor: theme.colorScheme.primary,
-                    onChanged: (q) {
-                      _searchDebounce?.cancel();
-                      _searchDebounce = Timer(
-                        const Duration(milliseconds: 180),
-                        () => setState(() => _chatSearchQuery = q),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search messages...',
-                      hintStyle: GoogleFonts.outfit(
-                        color: tokens.textSoft,
-                        fontSize: 13,
+                    child: TextField(
+                      controller: _chatSearchController,
+                      autofocus: true,
+                      style: GoogleFonts.outfit(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
-                      prefixIcon: Icon(Icons.search,
-                          color: tokens.textSoft, size: 18),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.close,
+                      cursorColor: theme.colorScheme.primary,
+                      cursorWidth: 2,
+                      cursorRadius: const Radius.circular(4),
+                      onChanged: (q) {
+                        _searchDebounce?.cancel();
+                        _searchDebounce = Timer(
+                          const Duration(milliseconds: 180),
+                          () => setState(() => _chatSearchQuery = q),
+                        );
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search messages...',
+                        hintStyle: GoogleFonts.outfit(
+                          color: tokens.textSoft,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        prefixIcon: Icon(Icons.search,
                             color: tokens.textSoft, size: 18),
-                        onPressed: () {
-                          setState(() {
-                            _isChatSearchActive = false;
-                            _chatSearchQuery = '';
-                            _chatSearchController.clear();
-                          });
-                        },
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.close,
+                              color: tokens.textSoft, size: 18),
+                          onPressed: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _isChatSearchActive = false;
+                              _chatSearchQuery = '';
+                              _chatSearchController.clear();
+                            });
+                          },
+                        ),
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 12),
                     ),
                   ),
                 ),
@@ -5629,52 +5767,79 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                               _isChatSearchActive ? null : _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(
                               parent: BouncingScrollPhysics()),
-                          cacheExtent: 420,
-                          addAutomaticKeepAlives: true,
+                          cacheExtent: 1200,
+                          addAutomaticKeepAlives: false,
                           addRepaintBoundaries: true,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 12),
+                              horizontal: 4, vertical: 10),
                           itemCount:
                               visibleMessages.length + (collapseOld ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (collapseOld && index == 0) {
-                              return GestureDetector(
-                                onTap: () => _scrollController.animateTo(
-                                  0,
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeOut,
+                              return TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, value, child) =>
+                                    Transform.translate(
+                                  offset: Offset(0, 8 * (1 - value)),
+                                  child: Opacity(
+                                      opacity: value, child: child),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Center(
-                                    child: AnimatedContainer(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    _scrollController.animateTo(
+                                      0,
                                       duration:
-                                          const Duration(milliseconds: 250),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 7),
-                                      decoration: BoxDecoration(
-                                        color: tokens.panelMuted
-                                            .withValues(alpha: 0.88),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                            color: tokens.outlineStrong),
-                                      ),
-                                      child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                                Icons.keyboard_arrow_up_rounded,
-                                                color: tokens.textMuted,
-                                                size: 14),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '↑  $hiddenCount older messages',
-                                              style: GoogleFonts.outfit(
-                                                  color: tokens.textMuted,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w500),
+                                          const Duration(milliseconds: 400),
+                                      curve: Curves.easeOut,
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 10),
+                                    child: Center(
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                            milliseconds: 250),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: tokens.panelMuted
+                                              .withValues(alpha: 0.9),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          border: Border.all(
+                                              color:
+                                                  tokens.outlineStrong),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: tokens.shadowColor,
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
                                             ),
-                                          ]),
+                                          ],
+                                        ),
+                                        child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                  Icons
+                                                      .keyboard_arrow_up_rounded,
+                                                  color: tokens.textMuted,
+                                                  size: 14),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '↑  $hiddenCount older messages',
+                                                style: GoogleFonts.outfit(
+                                                    color: tokens.textMuted,
+                                                    fontSize: 11,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                            ]),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -5682,8 +5847,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                             }
                             final msgIndex = collapseOld ? index - 1 : index;
                             final msg = visibleMessages[msgIndex];
-                            return RepaintBoundary(
+                            final isNewest = msgIndex == visibleMessages.length - 1;
+                            final bubble = RepaintBoundary(
                               child: _buildBubble(context, msg, isGhost: false),
+                            );
+                            if (!isNewest) return bubble;
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 280),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, value, child) =>
+                                  Transform.translate(
+                                offset: Offset(0, 12 * (1 - value)),
+                                child: Opacity(opacity: value, child: child),
+                              ),
+                              child: bubble,
                             );
                           },
                         );
@@ -5703,88 +5881,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   context,
                   ChatMessage(role: 'user', content: _currentVoiceText),
                   isGhost: true,
-                ),
-              ),
-            // ── Smart Quick Reply Chips (hidden when keyboard open) ───────────
-            if (_quickReplies.isNotEmpty &&
-                !_isBusy &&
-                MediaQuery.viewInsetsOf(context).bottom == 0)
-              Padding(
-                padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: SingleChildScrollView(
-                    key:
-                        ValueKey(_quickReplies.join() + _currentStickerEmotion),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        // ── Surprise Me button (first chip slot) ──────────────
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: SurpriseMeButton(onPressed: _fireSurpriseMe),
-                        ),
-                        ..._quickReplies.map((chip) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () async {
-                                HapticFeedback.lightImpact();
-                                final selectedReply = chip;
-                                setState(() => _quickReplies = []);
-                                _textController.text = chip;
-                                
-                                // Record usage for learning
-                                final context = _messages.reversed
-                                    .take(3)
-                                    .map((m) => m.content)
-                                    .join(' ');
-                                await SmartReplyService.instance.recordUsage(
-                                  selectedReply,
-                                  context,
-                                );
-                                
-                                unawaited(_handleTextInput());
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.pinkAccent.withValues(alpha: 0.22),
-                                      Colors.pinkAccent.withValues(alpha: 0.08),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                      color: Colors.pinkAccent
-                                          .withValues(alpha: 0.5)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.pinkAccent
-                                          .withValues(alpha: 0.18),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: Text(chip,
-                                    style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500)),
-                              ),
-                            ),
-                          );
-                        }),
-                      ], // close outer children list
-                    ),
-                  ),
                 ),
               ),
             // Music bar only shows when keyboard is closed
@@ -6888,87 +6984,87 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     final isListening = _speechService.listening;
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarPadding = MediaQuery.paddingOf(context).bottom;
 
     return GestureDetector(
       onHorizontalDragEnd: (d) {
         if ((d.primaryVelocity ?? 0) < -400) _launchAssistantOverlay();
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+        padding: EdgeInsets.fromLTRB(8, 0, 8, keyboardHeight > 0 ? 8 : (navBarPadding > 0 ? navBarPadding : 12)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Image preview strip (kept from original)
             if (_selectedImage != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 12, right: 12, bottom: 6),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.file(_selectedImage!, width: 68, height: 68, fit: BoxFit.cover),
-                      ),
-                      Positioned(
-                        top: -6, right: -6,
-                        child: GestureDetector(
-                          onTap: _removeSelectedImage,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              shape: BoxShape.circle,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) => Transform.scale(
+                  scale: value,
+                  child: child,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 14, right: 14, bottom: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_selectedImage!, width: 72, height: 72, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          top: -8, right: -8,
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _removeSelectedImage();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(Icons.close, size: 14, color: theme.colorScheme.onSurface),
                             ),
-                            child: Icon(Icons.close, size: 13, color: theme.colorScheme.onSurface),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Image picker button
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 12),
-                  child: GestureDetector(
-                    onTap: () => unawaited(_pickImage()),
-                    child: Container(
-                      width: 40, height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: primary.withValues(alpha: 0.12),
-                        border: Border.all(color: primary.withValues(alpha: 0.3)),
-                      ),
-                      child: Icon(Icons.image_outlined, color: primary, size: 20),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: PremiumChatInputBar(
-                    controller: _textController,
-                    onSend: () => unawaited(_handleTextInput()),
-                    onMicTap: () => unawaited(_toggleManualMic()),
-                    isListening: isListening,
-                    isThinking: _isBusy,
-                    accentColor: primary,
-                    smartReplies: _quickReplies,
-                    onSmartReply: (reply) async {
-                      HapticFeedback.lightImpact();
-                      setState(() => _quickReplies = []);
-                      _textController.text = reply;
-                      final ctx = _messages.reversed.take(3).map((m) => m.content).join(' ');
-                      await SmartReplyService.instance.recordUsage(reply, ctx);
-                      unawaited(_handleTextInput());
-                    },
-                  ),
-                ),
-              ],
+              ),
+            PremiumChatInputBar(
+              controller: _textController,
+              onSend: () => unawaited(_handleTextInput()),
+              onMicTap: () => unawaited(_toggleManualMic()),
+              onImagePick: () => unawaited(_pickImage()),
+              onSurpriseMe: _fireSurpriseMe,
+              onAssistantOverlay: () => unawaited(_launchAssistantOverlay()),
+              hasImage: _selectedImage != null,
+              isListening: isListening,
+              isThinking: _isBusy,
+              accentColor: primary,
+              smartReplies: _quickReplies,
+              onSmartReply: (reply) async {
+                HapticFeedback.lightImpact();
+                setState(() => _quickReplies = []);
+                _textController.text = reply;
+                final ctx = _messages.reversed.take(3).map((m) => m.content).join(' ');
+                await SmartReplyService.instance.recordUsage(reply, ctx);
+                unawaited(_handleTextInput());
+              },
             ),
           ],
         ),
@@ -7322,44 +7418,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             opacity: _contentFade,
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  _buildAvatarArea(),
-                  _buildChatList(),
-                  _buildInputArea(),
-                ],
+              child: Padding(
+                padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom > 0 ? 0 : 0),
+                child: Column(
+                  children: [
+                    _buildAvatarArea(),
+                    _buildChatList(),
+                    _buildInputArea(),
+                  ],
+                ),
               ),
             ),
           ),
         );
 
       case 1:
-        return _buildNotificationsPage();
+        return RepaintBoundary(child: _buildNotificationsPage());
       case 2:
-        return FeaturesHubPage(
-          onBack: () => setState(() => _navIndex = 0),
-          onOpenCloudinary: () => setState(() => _navIndex = 12),
+        return RepaintBoundary(
+          child: FeaturesHubPage(
+            onBack: () => setState(() => _navIndex = 0),
+            onOpenCloudinary: () => setState(() => _navIndex = 0),
+          ),
         );
       case 3:
-        return _buildSettingsPage();
+        return RepaintBoundary(child: _buildSettingsPage());
       case 4:
-        return const ThemesPage();
+        return const RepaintBoundary(child: ThemesPage());
       case 5:
-        return _buildDevConfigPage();
+        return RepaintBoundary(child: _buildDevConfigPage());
       case 6:
-        return _buildDebugPage();
+        return RepaintBoundary(child: _buildDebugPage());
       case 7:
-        return _buildAboutPage();
-      case 8:
-        return const GachaPage();
-      case 9:
-        return const MoodTrackerPage();
-      case 10:
-        return const SecretNotesPage();
-      case 11:
-        return const QuestsPage();
-      case 12:
-        return _buildComingSoonPage();
+        return RepaintBoundary(child: _buildAboutPage());
       default:
         return const SizedBox.shrink();
     }

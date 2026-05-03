@@ -25,6 +25,7 @@ enum AnimeWebSource {
   marin,
   crunchyroll,
   wcostream,
+  animotvslash,
   hanime,
   hentaiHaven,
   nhentai,
@@ -589,6 +590,12 @@ _WebSourceMeta _metaFor(AnimeWebSource source) {
         accent: Colors.lightGreenAccent,
         isAdult: false,
       ),
+    AnimeWebSource.animotvslash => const _WebSourceMeta(
+        title: 'AnimoTV Slash',
+        subtitle: 'Fast anime streaming with clean UI',
+        accent: Color(0xFF00E5FF),
+        isAdult: false,
+      ),
     AnimeWebSource.hanime => const _WebSourceMeta(
         title: 'Hanime',
         subtitle: 'Adult web source',
@@ -664,6 +671,8 @@ String _resolveInitialUrl(AnimeWebSource source, String? animeTitle) {
       AnimeWebSource.crunchyroll =>
         'https://www.crunchyroll.com/search?q=$query',
       AnimeWebSource.wcostream => 'https://www.wcostream.tv/search',
+      AnimeWebSource.animotvslash =>
+        'https://animotvslash.org/?s=$query',
       AnimeWebSource.hanime => 'https://hanime.tv/search?q=$query',
       AnimeWebSource.hentaiHaven => 'https://hentaihaven.xxx/?s=$query',
       AnimeWebSource.nhentai => 'https://nhentai.net/search/?q=$query',
@@ -695,6 +704,7 @@ String _resolveInitialUrl(AnimeWebSource source, String? animeTitle) {
     AnimeWebSource.marin => 'https://marin.moe',
     AnimeWebSource.crunchyroll => 'https://www.crunchyroll.com',
     AnimeWebSource.wcostream => 'https://www.wcostream.tv',
+    AnimeWebSource.animotvslash => 'https://animotvslash.org/',
     AnimeWebSource.hanime => 'https://hanime.tv',
     AnimeWebSource.hentaiHaven => 'https://hentaihaven.xxx/',
     AnimeWebSource.nhentai => 'https://nhentai.net',

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 PREMIUM UI KIT — v9.0.2
+/// O2 PREMIUM UI KIT — v10.0.2
 /// Ultra-premium glassmorphism, neon glow, shimmer, depth effects
 /// All widgets are RepaintBoundary-wrapped and GPU-friendly.
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -67,7 +67,7 @@ class NeumorphicCard extends StatelessWidget {
                 BoxShadow(
                     color: light, blurRadius: 16, offset: const Offset(-6, -6)),
                 BoxShadow(
-                    color: glow.withOpacity(0.18),
+                    color: glow.withValues(alpha: 0.18),
                     blurRadius: 24,
                     spreadRadius: -4),
               ],
@@ -148,18 +148,18 @@ class _NeonGlowBorderState extends State<NeonGlowBorder>
         borderRadius: BorderRadius.circular(widget.radius),
         boxShadow: [
           BoxShadow(
-            color: widget.color.withOpacity(0.6 * intensity),
+            color: widget.color.withValues(alpha: 0.6 * intensity),
             blurRadius: 12 * intensity,
             spreadRadius: 1,
           ),
           BoxShadow(
-            color: widget.color.withOpacity(0.3 * intensity),
+            color: widget.color.withValues(alpha: 0.3 * intensity),
             blurRadius: 24 * intensity,
             spreadRadius: -2,
           ),
         ],
         border: Border.all(
-          color: widget.color.withOpacity(0.5 + 0.5 * intensity),
+          color: widget.color.withValues(alpha: 0.5 + 0.5 * intensity),
           width: widget.strokeWidth,
         ),
       ),
@@ -305,7 +305,7 @@ class _PulseRingState extends State<PulseRing> with TickerProviderStateMixin {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: widget.color.withOpacity(_opacities[i].value),
+                      color: widget.color.withValues(alpha: _opacities[i].value),
                       width: 2,
                     ),
                   ),
@@ -377,19 +377,19 @@ class _FloatingActionChipState extends State<FloatingActionChip>
             borderRadius: BorderRadius.circular(30),
             gradient: LinearGradient(
               colors: widget.active
-                  ? [widget.color, widget.color.withOpacity(0.7)]
+                  ? [widget.color, widget.color.withValues(alpha: 0.7)]
                   : [
-                      widget.color.withOpacity(0.15),
-                      widget.color.withOpacity(0.08)
+                      widget.color.withValues(alpha: 0.15),
+                      widget.color.withValues(alpha: 0.08)
                     ],
             ),
             border: Border.all(
-              color: widget.color.withOpacity(widget.active ? 0.8 : 0.4),
+              color: widget.color.withValues(alpha: widget.active ? 0.8 : 0.4),
             ),
             boxShadow: widget.active
                 ? [
                     BoxShadow(
-                        color: widget.color.withOpacity(0.4),
+                        color: widget.color.withValues(alpha: 0.4),
                         blurRadius: 12,
                         spreadRadius: -2)
                   ]
@@ -531,13 +531,13 @@ class _NeonTextState extends State<NeonText>
         color: widget.glowColor,
         shadows: [
           Shadow(
-              color: widget.glowColor.withOpacity(0.9 * intensity),
+              color: widget.glowColor.withValues(alpha: 0.9 * intensity),
               blurRadius: 8 * intensity),
           Shadow(
-              color: widget.glowColor.withOpacity(0.5 * intensity),
+              color: widget.glowColor.withValues(alpha: 0.5 * intensity),
               blurRadius: 20 * intensity),
           Shadow(
-              color: widget.glowColor.withOpacity(0.2 * intensity),
+              color: widget.glowColor.withValues(alpha: 0.2 * intensity),
               blurRadius: 40 * intensity),
         ],
       ),
@@ -600,7 +600,7 @@ class _DepthCardState extends State<DepthCard> {
           ),
           boxShadow: [
             BoxShadow(
-              color: widget.baseColor.withOpacity(0.4),
+              color: widget.baseColor.withValues(alpha: 0.4),
               blurRadius: 20 + _tilt.distance * 100,
               offset: Offset(_tilt.dx * 20, _tilt.dy * 20 + 8),
             ),
@@ -682,7 +682,7 @@ class _O2StatBadgeState extends State<O2StatBadge>
             widget.label,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -763,7 +763,7 @@ class _AuroraPainter extends CustomPainter {
         center: Alignment(math.cos(phase * math.pi * 2) * 0.5, 0),
         radius: 1.2,
         colors: [
-          colors[i].withOpacity(0.15),
+          colors[i].withValues(alpha: 0.15),
           Colors.transparent,
         ],
       ).createShader(rect);

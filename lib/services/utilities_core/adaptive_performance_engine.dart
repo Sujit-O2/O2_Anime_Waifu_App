@@ -6,7 +6,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// ADAPTIVE PERFORMANCE ENGINE — v9.0.2
+/// ADAPTIVE PERFORMANCE ENGINE — v10.0.2
 /// Battery-aware, thermal-aware, frame-budget-aware performance management.
 /// Automatically scales visual quality to preserve battery and smoothness.
 /// ═══════════════════════════════════════════════════════════════════════════

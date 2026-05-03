@@ -68,6 +68,7 @@ class _PremiumDrawerState extends State<PremiumDrawer>
 
     return Drawer(
       backgroundColor: Colors.transparent,
+      elevation: 0,
       child: SlideTransition(
         position: _slideAnim,
         child: FadeTransition(
@@ -82,16 +83,23 @@ class _PremiumDrawerState extends State<PremiumDrawer>
                   Color.lerp(
                     theme.scaffoldBackgroundColor,
                     theme.colorScheme.primary,
-                    0.04,
+                    0.05,
                   )!,
                 ],
               ),
               border: Border(
                 right: BorderSide(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  width: 1,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  width: 1.2,
                 ),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(2, 0),
+                ),
+              ],
             ),
             child: SafeArea(
               child: Column(
@@ -104,111 +112,168 @@ class _PremiumDrawerState extends State<PremiumDrawer>
                     relationshipLevel: widget.relationshipLevel,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // ── Stats Row ──────────────────────────────────────────
-                  _StatsRow(
-                    affectionPoints: widget.affectionPoints,
-                    streakDays: widget.streakDays,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) => Transform.translate(
+                      offset: Offset(0, 10 * (1 - value)),
+                      child: Opacity(opacity: value, child: child),
+                    ),
+                    child: _StatsRow(
+                      affectionPoints: widget.affectionPoints,
+                      streakDays: widget.streakDays,
+                    ),
                   ),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
+                        horizontal: 20, vertical: 18),
                     child: Divider(
-                      color: tokens.outline.withValues(alpha: 0.6),
+                      color: tokens.outline.withValues(alpha: 0.5),
                       height: 1,
+                      thickness: 0.5,
                     ),
                   ),
 
                   // ── Navigation Items ───────────────────────────────────
                   Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: RepaintBoundary(
+                      child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       physics: const BouncingScrollPhysics(),
                       children: [
-                        _NavSection(
-                          title: 'MAIN',
-                          items: const [
-                            _NavItem(
-                              icon: Icons.chat_bubble_rounded,
-                              label: 'Chat',
-                              index: 0,
-                              accentColor: Colors.pinkAccent,
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(-10 * (1 - value), 0),
+                              child: child,
                             ),
-                            _NavItem(
-                              icon: Icons.notifications_rounded,
-                              label: 'Notifications',
-                              index: 1,
-                              accentColor: Colors.amber,
-                            ),
-                            _NavItem(
-                              icon: Icons.video_library_rounded,
-                              label: 'Media',
-                              index: 2,
-                              accentColor: Colors.redAccent,
-                            ),
-                            _NavItem(
-                              icon: Icons.apps_rounded,
-                              label: 'All Features',
-                              route: '/comprehensive-features-hub',
-                              accentColor: Colors.tealAccent,
-                              badge: 'NEW',
-                            ),
-                          ],
-                          currentIndex: widget.currentIndex,
-                          onNavigate: widget.onNavigate,
+                          ),
+                          child: _NavSection(
+                            title: 'MAIN',
+                            items: const [
+                              _NavItem(
+                                icon: Icons.chat_bubble_rounded,
+                                label: 'Chat',
+                                index: 0,
+                                accentColor: Colors.pinkAccent,
+                              ),
+                              _NavItem(
+                                icon: Icons.notifications_rounded,
+                                label: 'Notifications',
+                                index: 1,
+                                accentColor: Colors.amber,
+                              ),
+                              _NavItem(
+                                icon: Icons.video_library_rounded,
+                                label: 'Media',
+                                index: 2,
+                                accentColor: Colors.redAccent,
+                              ),
+                              _NavItem(
+                                icon: Icons.apps_rounded,
+                                label: 'All Features',
+                                route: '/comprehensive-features-hub',
+                                accentColor: Colors.tealAccent,
+                                badge: 'NEW',
+                              ),
+                            ],
+                            currentIndex: widget.currentIndex,
+                            onNavigate: widget.onNavigate,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        _NavSection(
-                          title: 'CUSTOMIZE',
-                          items: const [
-                            _NavItem(
-                              icon: Icons.palette_rounded,
-                              label: 'Themes',
-                              index: 4,
-                              accentColor: Colors.purpleAccent,
+                        const SizedBox(height: 10),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(-10 * (1 - value), 0),
+                              child: child,
                             ),
-                            _NavItem(
-                              icon: Icons.settings_rounded,
-                              label: 'Settings',
-                              index: 3,
-                              accentColor: Colors.blueGrey,
-                            ),
-                          ],
-                          currentIndex: widget.currentIndex,
-                          onNavigate: widget.onNavigate,
+                          ),
+                          child: _NavSection(
+                            title: 'CUSTOMIZE',
+                            items: const [
+                              _NavItem(
+                                icon: Icons.palette_rounded,
+                                label: 'Themes',
+                                index: 4,
+                                accentColor: Colors.purpleAccent,
+                              ),
+                              _NavItem(
+                                icon: Icons.settings_rounded,
+                                label: 'Settings',
+                                index: 3,
+                                accentColor: Colors.blueGrey,
+                              ),
+                            ],
+                            currentIndex: widget.currentIndex,
+                            onNavigate: widget.onNavigate,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        _NavSection(
-                          title: 'ADVANCED',
-                          items: const [
-                            _NavItem(
-                              icon: Icons.code_rounded,
-                              label: 'Dev Config',
-                              index: 5,
-                              accentColor: Colors.greenAccent,
+                        const SizedBox(height: 10),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 700),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(-10 * (1 - value), 0),
+                              child: child,
                             ),
-                            _NavItem(
-                              icon: Icons.bug_report_rounded,
-                              label: 'Debug',
-                              index: 6,
-                              accentColor: Colors.orangeAccent,
-                            ),
-                          ],
-                          currentIndex: widget.currentIndex,
-                          onNavigate: widget.onNavigate,
+                          ),
+                          child: _NavSection(
+                            title: 'ADVANCED',
+                            items: const [
+                              _NavItem(
+                                icon: Icons.code_rounded,
+                                label: 'Dev Config',
+                                index: 5,
+                                accentColor: Colors.greenAccent,
+                              ),
+                              _NavItem(
+                                icon: Icons.bug_report_rounded,
+                                label: 'Debug',
+                                index: 6,
+                                accentColor: Colors.orangeAccent,
+                              ),
+                            ],
+                            currentIndex: widget.currentIndex,
+                            onNavigate: widget.onNavigate,
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                       ],
+                    ),
                     ),
                   ),
 
                   // ── Footer ─────────────────────────────────────────────
-                  _DrawerFooter(onAboutTap: () {
-                    Navigator.pop(context);
-                    widget.onNavigate(7);
-                  }),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 800),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) => Opacity(
+                      opacity: value,
+                      child: child,
+                    ),
+                    child: _DrawerFooter(onAboutTap: () {
+                      Navigator.pop(context);
+                      widget.onNavigate(7);
+                    }),
+                  ),
                 ],
               ),
             ),
@@ -241,89 +306,104 @@ class _ProfileHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.15),
-            theme.colorScheme.tertiary.withValues(alpha: 0.08),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) => Transform.translate(
+        offset: Offset(0, 12 * (1 - value)),
+        child: Opacity(opacity: value, child: child),
+      ),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(14, 18, 14, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary.withValues(alpha: 0.18),
+              theme.colorScheme.tertiary.withValues(alpha: 0.1),
+            ],
+          ),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.25),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              blurRadius: 24,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.2),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/gif/sidebar_top.gif',
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.low,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-              child: Row(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Stack(
             children: [
-              // Avatar with glow ring
-              _AvatarWidget(
-                avatarUrl: userAvatarUrl,
-                primaryColor: theme.colorScheme.primary,
-                tertiaryColor: theme.colorScheme.tertiary,
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/gif/sidebar_top.gif',
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.low,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        color: theme.colorScheme.onSurface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Avatar with glow ring
+                      _AvatarWidget(
+                        avatarUrl: userAvatarUrl,
+                        primaryColor: theme.colorScheme.primary,
+                        tertiaryColor: theme.colorScheme.tertiary,
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      userEmail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        color: tokens.textMuted,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              userName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                color: theme.colorScheme.onSurface,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              userEmail,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                color: tokens.textMuted,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _RelationshipBadge(level: relationshipLevel),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _RelationshipBadge(level: relationshipLevel),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-          ],
         ),
       ),
     );

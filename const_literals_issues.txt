@@ -1,4 +1,0 @@
-   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/screens/ai_advanced/voice_emotion_page.dart:21:21 • prefer_const_literals_to_create_immutables
-   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/screens/games/mini_games_page.dart:1049:39 • prefer_const_literals_to_create_immutables
-   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/screens/wellness_advanced/sleep_tracking_page.dart:21:21 • prefer_const_literals_to_create_immutables
-   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/screens/wellness_advanced/stress_detection_page.dart:21:21 • prefer_const_literals_to_create_immutables

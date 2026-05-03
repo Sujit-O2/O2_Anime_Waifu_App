@@ -6,7 +6,7 @@ import 'package:anime_waifu/services/utilities_core/geo_intelligence_service.dar
 import 'package:anime_waifu/widgets/o2_premium_kit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 MAP WIDGET — v9.0.2
+/// O2 MAP WIDGET — v10.0.2
 /// Premium animated map with location heatmap, geo-fence rings,
 /// travel path visualization, and place cluster labels.
 /// Pure Flutter CustomPainter — no external map SDK required.
@@ -155,7 +155,7 @@ class _O2MapWidgetState extends State<O2MapWidget>
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.black.withOpacity(0.4),
+          color: Colors.black.withValues(alpha: 0.4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -186,7 +186,7 @@ class _O2MapWidgetState extends State<O2MapWidget>
                 fontWeight: FontWeight.w700)),
         Text(label,
             style: TextStyle(
-                color: Colors.white.withOpacity(0.5), fontSize: 9)),
+                color: Colors.white.withValues(alpha: 0.5), fontSize: 9)),
       ],
     );
   }
@@ -213,9 +213,9 @@ class _O2MapWidgetState extends State<O2MapWidget>
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.6),
+          color: Colors.black.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: O2Colors.neonCyan.withOpacity(0.4)),
+          border: Border.all(color: O2Colors.neonCyan.withValues(alpha: 0.4)),
         ),
         child: Icon(icon, color: O2Colors.neonCyan, size: 16),
       ),
@@ -229,7 +229,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF00D1FF).withOpacity(0.06)
+      ..color = const Color(0xFF00D1FF).withValues(alpha: 0.06)
       ..strokeWidth = 0.5;
 
     const step = 30.0;
@@ -312,7 +312,7 @@ class _MapPainter extends CustomPainter {
         ..shader = RadialGradient(
           colors: [
             Color.lerp(const Color(0xFF00D1FF), const Color(0xFFFF0057), intensity)!
-                .withOpacity(0.5 * intensity),
+                .withValues(alpha: 0.5 * intensity),
             Colors.transparent,
           ],
         ).createShader(Rect.fromCircle(center: pos, radius: radius));
@@ -322,7 +322,7 @@ class _MapPainter extends CustomPainter {
     // ── Travel Path ───────────────────────────────────────────────────────────
     if (path.length >= 2) {
       final pathPaint = Paint()
-        ..color = const Color(0xFF00D1FF).withOpacity(0.6)
+        ..color = const Color(0xFF00D1FF).withValues(alpha: 0.6)
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
@@ -345,14 +345,14 @@ class _MapPainter extends CustomPainter {
 
       // Animated ring
       final ringPaint = Paint()
-        ..color = const Color(0xFFBF00FF).withOpacity(0.3 * pulse)
+        ..color = const Color(0xFFBF00FF).withValues(alpha: 0.3 * pulse)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5;
       canvas.drawCircle(pos, r * pulse, ringPaint);
 
       // Solid inner ring
       final innerPaint = Paint()
-        ..color = const Color(0xFFBF00FF).withOpacity(0.15)
+        ..color = const Color(0xFFBF00FF).withValues(alpha: 0.15)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(pos, r * 0.8, innerPaint);
 
@@ -374,7 +374,7 @@ class _MapPainter extends CustomPainter {
 
       // Glow
       final glowPaint = Paint()
-        ..color = pinPaint.color.withOpacity(0.3)
+        ..color = pinPaint.color.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawCircle(pos, r * 1.5, glowPaint);
 
@@ -391,7 +391,7 @@ class _MapPainter extends CustomPainter {
 
       // Pulse ring
       final pulsePaint = Paint()
-        ..color = const Color(0xFFFF0057).withOpacity(0.4 * (2 - pulse))
+        ..color = const Color(0xFFFF0057).withValues(alpha: 0.4 * (2 - pulse))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(pos, 16 * pulse, pulsePaint);
@@ -535,16 +535,16 @@ class _GeoFenceCreatorState extends State<GeoFenceCreator> {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: O2Colors.neonPurple.withOpacity(0.3)),
+          borderSide: BorderSide(color: O2Colors.neonPurple.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: O2Colors.neonPurple.withOpacity(0.3)),
+          borderSide: BorderSide(color: O2Colors.neonPurple.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -1,17 +1,13 @@
 // ignore_for_file: deprecated_member_use
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// PREMIUM CHAT INPUT BAR — v9.0.2
-/// Ultra-smooth input with:
-/// • Morphing mic ↔ send button with spring animation
-/// • Live voice waveform visualizer (16 bars)
-/// • Smart reply suggestion chips with slide-in animation
-/// • Emoji burst on send
-/// • Haptic feedback on all interactions
-/// • Adaptive height with smooth expand/collapse
+/// PREMIUM CHAT INPUT BAR — v10.0.2
+/// Glassmorphism design with frosted blur, neon glow border, morphing button
 /// ═══════════════════════════════════════════════════════════════════════════
 
 class PremiumChatInputBar extends StatefulWidget {
@@ -19,6 +15,10 @@ class PremiumChatInputBar extends StatefulWidget {
   final FocusNode? focusNode;
   final VoidCallback onSend;
   final VoidCallback onMicTap;
+  final VoidCallback? onImagePick;
+  final VoidCallback? onSurpriseMe;
+  final VoidCallback? onAssistantOverlay;
+  final bool hasImage;
   final bool isListening;
   final bool isThinking;
   final List<String> smartReplies;
@@ -31,6 +31,10 @@ class PremiumChatInputBar extends StatefulWidget {
     this.focusNode,
     required this.onSend,
     required this.onMicTap,
+    this.onImagePick,
+    this.onSurpriseMe,
+    this.onAssistantOverlay,
+    this.hasImage = false,
     this.isListening = false,
     this.isThinking = false,
     this.smartReplies = const [],
@@ -44,15 +48,14 @@ class PremiumChatInputBar extends StatefulWidget {
 
 class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     with TickerProviderStateMixin {
-  // Animations
   late AnimationController _sendMorphCtrl;
   late AnimationController _waveCtrl;
   late AnimationController _chipCtrl;
-  late AnimationController _sendBurstCtrl;
+  late AnimationController _glowCtrl;
 
-  late Animation<double> _sendMorph; // 0 = mic, 1 = send
+  late Animation<double> _sendMorph;
   late Animation<double> _chipSlide;
-  late Animation<double> _burstScale;
+  late Animation<double> _glowAnim;
 
   bool _hasText = false;
   bool _showChips = false;
@@ -70,19 +73,20 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
       ..addListener(_updateWave);
     _chipCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
-    _sendBurstCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+    _glowCtrl = AnimationController(
+        vsync: this, duration: const Duration(seconds: 2))
+      ..repeat(reverse: true);
 
-    _sendMorph = CurvedAnimation(parent: _sendMorphCtrl, curve: Curves.easeInOut);
-    _chipSlide = CurvedAnimation(parent: _chipCtrl, curve: Curves.easeOutBack);
-    _burstScale = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.4, end: 0.0), weight: 70),
-    ]).animate(CurvedAnimation(parent: _sendBurstCtrl, curve: Curves.easeOut));
+    _sendMorph =
+        CurvedAnimation(parent: _sendMorphCtrl, curve: Curves.easeInOut);
+    _chipSlide =
+        CurvedAnimation(parent: _chipCtrl, curve: Curves.easeOutBack);
+    _glowAnim = Tween<double>(begin: 0.3, end: 0.7)
+        .animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
 
     widget.controller.addListener(_onTextChanged);
 
-    if (widget.smartReplies.isNotEmpty) {
+    if (widget.smartReplies.isNotEmpty || widget.onSurpriseMe != null) {
       _showChips = true;
       _chipCtrl.forward();
     }
@@ -119,18 +123,22 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     } else if (!widget.isListening && old.isListening) {
       _waveCtrl.stop();
       setState(() {
-        for (int i = 0; i < _waveBars.length; i++) {
-          _waveBars[i] = 0.2;
-        }
+        for (int i = 0; i < _waveBars.length; i++) _waveBars[i] = 0.2;
       });
     }
 
-    if (widget.smartReplies != old.smartReplies &&
-        widget.smartReplies.isNotEmpty) {
+    final hasReplies =
+        widget.smartReplies.isNotEmpty || widget.onSurpriseMe != null;
+    final hadReplies =
+        old.smartReplies.isNotEmpty || old.onSurpriseMe != null;
+
+    if (hasReplies && !hadReplies) {
       _showChips = true;
       _chipCtrl.forward(from: 0);
-    } else if (widget.smartReplies.isEmpty) {
+    } else if (!hasReplies && hadReplies) {
       _chipCtrl.reverse().then((_) => setState(() => _showChips = false));
+    } else if (widget.smartReplies != old.smartReplies && hasReplies) {
+      _chipCtrl.forward(from: 0);
     }
   }
 
@@ -140,93 +148,160 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     _sendMorphCtrl.dispose();
     _waveCtrl.dispose();
     _chipCtrl.dispose();
-    _sendBurstCtrl.dispose();
+    _glowCtrl.dispose();
     super.dispose();
   }
 
   void _handleSend() {
     if (!_hasText) return;
     HapticFeedback.mediumImpact();
-    _sendBurstCtrl.forward(from: 0);
     widget.onSend();
-  }
-
-  void _handleMic() {
-    HapticFeedback.heavyImpact();
-    widget.onMicTap();
   }
 
   @override
   Widget build(BuildContext context) {
     final accent = widget.accentColor ?? const Color(0xFFFF0057);
-    final theme = Theme.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Smart reply chips
-        if (_showChips) _buildChips(accent),
-        // Main input row
-        Container(
-          margin: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            color: theme.colorScheme.surface.withOpacity(0.95),
-            border: Border.all(
-              color: widget.isListening
-                  ? accent
-                  : theme.colorScheme.outline.withOpacity(0.3),
-              width: widget.isListening ? 1.5 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withOpacity(widget.isListening ? 0.2 : 0.05),
-                blurRadius: widget.isListening ? 16 : 8,
-                spreadRadius: -2,
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const SizedBox(width: 4),
-              // Waveform / text field
-              Expanded(
-                child: widget.isListening
-                    ? _buildWaveform(accent)
-                    : _buildTextField(theme),
-              ),
-              const SizedBox(width: 4),
-              // Mic / Send button
-              _buildActionButton(accent),
-              const SizedBox(width: 4),
-            ],
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_showChips) _buildChips(accent),
+          _buildGlassBar(accent),
+        ],
+      ),
     );
   }
 
-  Widget _buildTextField(ThemeData theme) {
+  Widget _buildGlassBar(Color accent) {
+    return AnimatedBuilder(
+      animation: _glowAnim,
+      builder: (context, _) {
+        final glowOpacity =
+            widget.isListening ? _glowAnim.value : (_hasText ? 0.45 : 0.2);
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: glowOpacity * 0.5),
+                blurRadius: 20,
+                spreadRadius: -4,
+              ),
+              BoxShadow(
+                color: const Color(0xFF6C00FF).withValues(alpha: glowOpacity * 0.3),
+                blurRadius: 30,
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.white.withValues(alpha: 0.07),
+                  border: Border.all(
+                    color: widget.isListening
+                        ? accent.withValues(alpha: 0.8)
+                        : accent.withValues(alpha: glowOpacity * 0.6),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 4),
+                    if (widget.onImagePick != null) _buildImageButton(accent),
+                    Expanded(
+                      child: widget.isListening
+                          ? _buildWaveform(accent)
+                          : _buildTextField(),
+                    ),
+                    _buildActionButton(accent),
+                    const SizedBox(width: 6),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageButton(Color accent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          widget.onImagePick!();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.hasImage
+                ? accent.withValues(alpha: 0.2)
+                : Colors.white.withValues(alpha: 0.06),
+            border: Border.all(
+              color: widget.hasImage
+                  ? accent.withValues(alpha: 0.6)
+                  : Colors.white.withValues(alpha: 0.12),
+              width: 1,
+            ),
+          ),
+          child: Icon(
+            widget.hasImage
+                ? Icons.image_rounded
+                : Icons.add_photo_alternate_outlined,
+            color: widget.hasImage
+                ? accent
+                : Colors.white.withValues(alpha: 0.5),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField() {
     return TextField(
       controller: widget.controller,
       focusNode: widget.focusNode,
       maxLines: 5,
       minLines: 1,
       textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 15, height: 1.4),
+      style: GoogleFonts.outfit(
+        fontSize: 15,
+        height: 1.5,
+        color: Colors.white.withValues(alpha: 0.92),
+        fontWeight: FontWeight.w400,
+      ),
+      cursorColor: widget.accentColor ?? const Color(0xFFFF0057),
+      cursorWidth: 2,
+      cursorRadius: const Radius.circular(4),
       decoration: InputDecoration(
         hintText: widget.isThinking
             ? 'Zero Two is thinking...'
             : 'Message Zero Two...',
-        hintStyle: TextStyle(
-          color: theme.colorScheme.onSurface.withOpacity(0.4),
-          fontSize: 14,
-          fontStyle: widget.isThinking ? FontStyle.italic : FontStyle.normal,
+        hintStyle: GoogleFonts.outfit(
+          color: Colors.white.withValues(alpha: 0.28),
+          fontSize: 14.5,
+          fontStyle:
+              widget.isThinking ? FontStyle.italic : FontStyle.normal,
+          fontWeight: FontWeight.w300,
         ),
         border: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        enabledBorder: InputBorder.none,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),
     );
   }
@@ -249,10 +324,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [
-                    accent,
-                    accent.withOpacity(0.4),
-                  ],
+                  colors: [accent, accent.withValues(alpha: 0.3)],
                 ),
               ),
             );
@@ -264,66 +336,68 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 
   Widget _buildActionButton(Color accent) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6, right: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: AnimatedBuilder(
-        animation: Listenable.merge([_sendMorph, _burstScale]),
+        animation: _sendMorph,
         builder: (_, __) {
           final isSend = _sendMorph.value > 0.5;
           return GestureDetector(
-            onTap: isSend ? _handleSend : _handleMic,
-            child: Transform.scale(
-              scale: _sendBurstCtrl.isAnimating
-                  ? _burstScale.value
-                  : 1.0,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: widget.isListening
-                        ? [accent, accent.withOpacity(0.7)]
-                        : isSend
-                            ? [accent, accent.withOpacity(0.8)]
-                            : [
-                                accent.withOpacity(0.15),
-                                accent.withOpacity(0.08)
-                              ],
-                  ),
-                  boxShadow: (isSend || widget.isListening)
-                      ? [
-                          BoxShadow(
-                            color: accent.withOpacity(0.4),
-                            blurRadius: 12,
-                            spreadRadius: -2,
-                          )
-                        ]
-                      : [],
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, anim) => ScaleTransition(
-                    scale: anim,
-                    child: child,
-                  ),
-                  child: widget.isListening
-                      ? const Icon(Icons.stop_rounded,
-                          key: ValueKey('stop'),
-                          color: Colors.white,
-                          size: 22)
+            onTap: isSend ? _handleSend : () {
+              HapticFeedback.heavyImpact();
+              widget.onMicTap();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: widget.isListening
+                      ? [accent, const Color(0xFF6C00FF)]
                       : isSend
-                          ? const Icon(Icons.send_rounded,
-                              key: ValueKey('send'),
-                              color: Colors.white,
-                              size: 20)
-                          : Icon(Icons.mic_rounded,
-                              key: const ValueKey('mic'),
-                              color: accent,
-                              size: 22),
+                          ? [accent, const Color(0xFFFF6B9D)]
+                          : [
+                              Colors.white.withValues(alpha: 0.12),
+                              Colors.white.withValues(alpha: 0.06),
+                            ],
                 ),
+                border: Border.all(
+                  color: (isSend || widget.isListening)
+                      ? Colors.transparent
+                      : Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+                boxShadow: (isSend || widget.isListening)
+                    ? [
+                        BoxShadow(
+                          color: accent.withValues(alpha: 0.5),
+                          blurRadius: 14,
+                          spreadRadius: -2,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: widget.isListening
+                    ? const Icon(Icons.stop_rounded,
+                        key: ValueKey('stop'),
+                        color: Colors.white,
+                        size: 20)
+                    : isSend
+                        ? const Icon(Icons.send_rounded,
+                            key: ValueKey('send'),
+                            color: Colors.white,
+                            size: 18)
+                        : Icon(Icons.mic_rounded,
+                            key: const ValueKey('mic'),
+                            color: Colors.white.withValues(alpha: 0.6),
+                            size: 20),
               ),
             ),
           );
@@ -341,39 +415,132 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
       child: FadeTransition(
         opacity: _chipSlide,
         child: SizedBox(
-          height: 40,
-          child: ListView.separated(
+          height: 44,
+          child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: widget.smartReplies.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) {
-              final reply = widget.smartReplies[i];
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  widget.onSmartReply?.call(reply);
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: accent.withOpacity(0.5), width: 1),
-                    color: accent.withOpacity(0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            children: [
+              if (widget.onSurpriseMe != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _SurpriseChip(onPressed: widget.onSurpriseMe!),
+                ),
+              ...widget.smartReplies.map((reply) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        widget.onSmartReply?.call(reply);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter:
+                              ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: accent.withValues(alpha: 0.12),
+                              border: Border.all(
+                                  color: accent.withValues(alpha: 0.35),
+                                  width: 1),
+                            ),
+                            child: Text(
+                              reply,
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Surprise Chip ────────────────────────────────────────────────────────────
+class _SurpriseChip extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _SurpriseChip({required this.onPressed});
+
+  @override
+  State<_SurpriseChip> createState() => _SurpriseChipState();
+}
+
+class _SurpriseChipState extends State<_SurpriseChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(seconds: 2))
+      ..repeat(reverse: true);
+    _glow = Tween<double>(begin: 0.3, end: 0.8)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const p1 = Color(0xFFBB52FF);
+    const p2 = Color(0xFFFF4FA8);
+    return GestureDetector(
+      onTap: widget.onPressed,
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (context, child) => ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(colors: [p1, p2]),
+                boxShadow: [
+                  BoxShadow(
+                    color: p1.withValues(alpha: _glow.value * 0.5),
+                    blurRadius: 12,
+                    spreadRadius: 1,
                   ),
-                  child: Text(
-                    reply,
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_awesome_rounded,
+                      color: Colors.white, size: 13),
+                  SizedBox(width: 5),
+                  Text(
+                    'Surprise Me',
                     style: TextStyle(
+                      color: Colors.white,
                       fontSize: 12,
-                      color: accent,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              );
-            },
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -382,7 +549,6 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 }
 
 // ─── Thinking Indicator ───────────────────────────────────────────────────────
-/// Animated "Zero Two is thinking..." with bouncing dots.
 class ThinkingIndicator extends StatefulWidget {
   final Color color;
   final String label;
@@ -420,9 +586,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
 
   @override
   void dispose() {
-    for (final c in _ctrls) {
-      c.dispose();
-    }
+    for (final c in _ctrls) c.dispose();
     super.dispose();
   }
 
@@ -434,7 +598,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
         Text(
           widget.label,
           style: TextStyle(
-            color: widget.color.withOpacity(0.7),
+            color: widget.color.withValues(alpha: 0.7),
             fontSize: 12,
             fontStyle: FontStyle.italic,
           ),
