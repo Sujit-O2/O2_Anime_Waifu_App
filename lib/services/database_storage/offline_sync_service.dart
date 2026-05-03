@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 /// Offline sync service: Complete offline work, automatic sync on reconnect
@@ -43,37 +44,17 @@ class OfflineSyncService {
     }
   }
 
-  /// Monitor connectivity state
+  /// Monitor connectivity state using connectivity_plus stream (no polling)
   void _monitorConnectivity() {
-    // This would use connectivity_plus plugin
-    // For now, we'll use a timer-based approach
-    Timer.periodic(const Duration(seconds: 5), (timer) {
-      _checkConnectivity();
-    });
-  }
-
-  /// Check if device is online
-  Future<void> _checkConnectivity() async {
-    try {
-      // Simple check: try to read a document
-      final doc = await _firestore
-          .collection('_connectivity_check')
-          .doc('ping')
-          .get()
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw Exception('Timeout'),
-          );
-
-      _isOnline = doc.exists;
-
-      if (_isOnline && _pendingQueue.isNotEmpty) {
-        // Reconnected and have pending items
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) async {
+      final wasOnline = _isOnline;
+      _isOnline = results.any((r) => r != ConnectivityResult.none);
+      if (!wasOnline && _isOnline && _pendingQueue.isNotEmpty) {
         await _syncPendingQueue();
       }
-    } catch (e) {
-      _isOnline = false;
-    }
+    });
   }
 
   bool get isOnline => _isOnline;

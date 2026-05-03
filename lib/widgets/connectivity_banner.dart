@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -26,7 +26,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<Offset> _slide;
-  Timer? _checkTimer;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   bool _isOffline = false;
   bool _wasOffline = false;
 
@@ -42,24 +42,19 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-    // Poll connectivity every 5 seconds
-    _checkTimer = Timer.periodic(const Duration(seconds: 5), (_) => _check());
-    _check();
-  }
-
-  Future<void> _check() async {
-    try {
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 3));
-      final online = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    // Subscribe to connectivity stream — no polling, no DNS queries
+    _connectivitySub = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final online = results.any((r) => r != ConnectivityResult.none);
       _setOffline(!online);
-    } on SocketException {
-      _setOffline(true);
-    } on TimeoutException {
-      _setOffline(true);
-    } catch (_) {
-      // Don't change state on unknown errors
-    }
+    });
+
+    // Check initial state once
+    Connectivity().checkConnectivity().then((results) {
+      final online = results.any((r) => r != ConnectivityResult.none);
+      _setOffline(!online);
+    });
   }
 
   void _setOffline(bool offline) {
@@ -85,7 +80,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
 
   @override
   void dispose() {
-    _checkTimer?.cancel();
+    _connectivitySub?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
@@ -146,7 +141,10 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
                 ),
                 if (_isOffline)
                   GestureDetector(
-                    onTap: _check,
+                    onTap: () => Connectivity().checkConnectivity().then((results) {
+                      final online = results.any((r) => r != ConnectivityResult.none);
+                      _setOffline(!online);
+                    }),
                     child: const Icon(
                       Icons.refresh_rounded,
                       color: Colors.white54,

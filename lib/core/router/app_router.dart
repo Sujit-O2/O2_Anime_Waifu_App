@@ -136,6 +136,8 @@ import 'package:anime_waifu/screens/creative/art_direction_page.dart';
 import 'package:anime_waifu/screens/creative/collaborative_storytelling_page.dart';
 import 'package:anime_waifu/screens/creative/game_master_page.dart';
 import 'package:anime_waifu/screens/creative/music_composition_page.dart';
+import 'package:anime_waifu/screens/creative/video_gen_page.dart';
+import 'package:anime_waifu/screens/creative/audio_gen_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/hydration_nutrition_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/stress_detection_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/meditation_guide_page.dart';
@@ -483,6 +485,8 @@ class AppRouter {
   static const String collaborativeStorytelling = '/collaborative-storytelling';
   static const String gameMaster = '/game-master';
   static const String musicComposition = '/music-composition';
+  static const String videoGen = '/video-gen';
+  static const String audioGen = '/audio-gen';
   static const String hydrationNutrition = '/hydration-nutrition';
   static const String stressDetection = '/stress-detection';
   static const String meditationGuide = '/meditation-guide';
@@ -771,6 +775,8 @@ class AppRouter {
         AppRouter.collaborativeStorytelling: (_) => const CollaborativeStorytellingPage(),
         AppRouter.gameMaster: (_) => const GameMasterPage(),
         AppRouter.musicComposition: (_) => const MusicCompositionPage(),
+        AppRouter.videoGen: (_) => const VideoGenPage(),
+        AppRouter.audioGen: (_) => const AudioGenPage(),
         AppRouter.hydrationNutrition: (_) => const HydrationNutritionPage(),
         AppRouter.stressDetection: (_) => const StressDetectionPage(),
         AppRouter.meditationGuide: (_) => const MeditationGuidePage(),

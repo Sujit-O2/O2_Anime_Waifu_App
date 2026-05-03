@@ -226,11 +226,15 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                 child: Column(
                   children: [
                     SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: V2Theme.primaryColor.withValues(alpha: 0.6),
+                      width: 56,
+                      height: 56,
+                      child: Image.asset(
+                        'assets/gif/add_incircular_mode_app_oppening style.gif',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: V2Theme.primaryColor.withValues(alpha: 0.6),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
