@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 
 class AssistantShortcutActivity : Activity() {
@@ -13,12 +15,17 @@ class AssistantShortcutActivity : Activity() {
 
         if (AssistantOverlayController.canDrawOverlays(this)) {
             ensureAssistantServiceRunning()
-            AssistantOverlayController.showNow(
-                applicationContext,
-                status = "Zero Two",
-                transcript = "How can I help?",
-                autoHideMs = 300_000L
-            )
+            // Delay finish() so WindowManager has time to attach the overlay view
+            Handler(Looper.getMainLooper()).postDelayed({
+                AssistantOverlayController.showNow(
+                    applicationContext,
+                    status = "Zero Two",
+                    transcript = "How can I help?",
+                    autoHideMs = 300_000L
+                )
+                finish()
+                overridePendingTransition(0, 0)
+            }, 200)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -27,10 +34,12 @@ class AssistantShortcutActivity : Activity() {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
+            finish()
+            overridePendingTransition(0, 0)
+        } else {
+            finish()
+            overridePendingTransition(0, 0)
         }
-
-        finish()
-        overridePendingTransition(0, 0)
     }
 
     private fun ensureAssistantServiceRunning() {
