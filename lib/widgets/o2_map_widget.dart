@@ -6,7 +6,7 @@ import 'package:anime_waifu/services/utilities_core/geo_intelligence_service.dar
 import 'package:anime_waifu/widgets/o2_premium_kit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 MAP WIDGET — v9.0.2
+/// O2 MAP WIDGET — v10.0.2
 /// Premium animated map with location heatmap, geo-fence rings,
 /// travel path visualization, and place cluster labels.
 /// Pure Flutter CustomPainter — no external map SDK required.

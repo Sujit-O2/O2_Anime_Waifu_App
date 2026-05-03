@@ -721,7 +721,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       children: [
         Text(
-          'v8.0.0 · O2-WAIFU Production',
+          'v10.0.2 · O2-WAIFU Production',
           style: GoogleFonts.jetBrainsMono(
             color: Colors.white.withValues(alpha: 0.15),
             fontSize: 10,

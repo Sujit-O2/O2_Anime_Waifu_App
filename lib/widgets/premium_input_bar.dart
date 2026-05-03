@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// PREMIUM CHAT INPUT BAR — v9.0.2
+/// PREMIUM CHAT INPUT BAR — v10.0.2
 /// Ultra-smooth input with:
 /// • Morphing mic ↔ send button with spring animation
 /// • Live voice waveform visualizer (16 bars)

@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 BACKGROUND ENGINE — v9.0.2
+/// O2 BACKGROUND ENGINE — v10.0.2
 /// GPU-accelerated shader-like gradient animations:
 /// • Aurora borealis effect with sinusoidal color bands
 /// • Reactive particle mesh (responds to scroll/touch)
