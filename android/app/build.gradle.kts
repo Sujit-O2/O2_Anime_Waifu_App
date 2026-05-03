@@ -57,17 +57,6 @@ android {
         versionName = flutter.versionName
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = false  // set true if you need a single fat APK for sideloading
-        }
-    }
-
-
-
     buildTypes {
         debug {
             // Keep debug symbols only in debug builds.
