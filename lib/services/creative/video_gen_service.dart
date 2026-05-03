@@ -48,12 +48,18 @@ class VideoGenService {
   static const _maxPolls = 120; // 6 min
 
   // ── Key helper ─────────────────────────────────────────────────────────────
-  List<String> _keys(String envVar) => (dotenv.env[envVar] ?? '')
-      .split(',')
-      .map((k) => k.trim())
-      .where((k) => k.isNotEmpty && !k.contains('YOUR_'))
-      .toList()
-    ..shuffle();
+  List<String> _keys(String envVar) {
+    try {
+      return (dotenv.env[envVar] ?? '')
+          .split(',')
+          .map((k) => k.trim())
+          .where((k) => k.isNotEmpty && !k.contains('YOUR_'))
+          .toList()
+        ..shuffle();
+    } catch (_) {
+      return [];
+    }
+  }
 
   // ── Public ─────────────────────────────────────────────────────────────────
   Future<VideoGenResult> generate({
@@ -504,6 +510,7 @@ class VideoGenService {
 
     final hfKeys = _keys('HF_API_KEY');
     final attempts = [...hfKeys, null]; // null = anonymous free tier
+    int _hf503Retries = 0;
 
     for (int i = 0; i < attempts.length; i++) {
       final key = attempts[i];
@@ -526,7 +533,7 @@ class VideoGenService {
         if (res.statusCode == 503) {
           if (kDebugMode) debugPrint('[VideoGen] HF loading, waiting 30s...');
           await Future.delayed(const Duration(seconds: 30));
-          i--;
+          if (_hf503Retries < 3) { _hf503Retries++; i--; }
           continue;
         }
         if (res.statusCode == 429 && i < attempts.length - 1) continue;

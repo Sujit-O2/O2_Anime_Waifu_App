@@ -421,6 +421,8 @@ class _VideoGenPageState extends State<VideoGenPage> {
                       icon: const Icon(Icons.play_arrow_rounded,
                           color: Colors.white54),
                       onPressed: () async {
+                        await _vpCtrl?.dispose();
+                        _vpCtrl = null;
                         setState(() => _current = r);
                         await _loadVideo(r);
                       },

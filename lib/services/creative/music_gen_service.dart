@@ -37,7 +37,9 @@ class MusicGenService {
   static final MusicGenService instance = MusicGenService._();
 
   static const _replicateUrl =
-      'https://api.replicate.com/v1/models/meta/musicgen/predictions';
+      'https://api.replicate.com/v1/predictions';
+  static const _replicateMusicGenVersion =
+      '671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb';
   static const _hfUrl =
       'https://api-inference.huggingface.co/models/facebook/musicgen-small';
   static const _deApiUrl =
@@ -47,12 +49,18 @@ class MusicGenService {
 
   // ── Key helpers ────────────────────────────────────────────────────────────
 
-  List<String> _keys(String envVar) => (dotenv.env[envVar] ?? '')
-      .split(',')
-      .map((k) => k.trim())
-      .where((k) => k.isNotEmpty && !k.contains('YOUR_'))
-      .toList()
-    ..shuffle();
+  List<String> _keys(String envVar) {
+    try {
+      return (dotenv.env[envVar] ?? '')
+          .split(',')
+          .map((k) => k.trim())
+          .where((k) => k.isNotEmpty && !k.contains('YOUR_'))
+          .toList()
+        ..shuffle();
+    } catch (_) {
+      return [];
+    }
+  }
 
   // ── Public ─────────────────────────────────────────────────────────────────
 
@@ -199,6 +207,7 @@ class MusicGenService {
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
+            'version': _replicateMusicGenVersion,
             'input': {
               'prompt': prompt,
               'duration': duration,
@@ -267,6 +276,7 @@ class MusicGenService {
     final hfKeys = _keys('HF_API_KEY');
     // Try each HF key, then once without any key (free anonymous tier)
     final attempts = [...hfKeys, null];
+    int _hf503Retries = 0;
 
     for (int i = 0; i < attempts.length; i++) {
       final key = attempts[i];
@@ -289,10 +299,10 @@ class MusicGenService {
             .timeout(const Duration(minutes: 3));
 
         if (res.statusCode == 503) {
-          // Model cold-starting — wait and retry same attempt
+          // Model cold-starting — wait and retry, max 3 times total
           if (kDebugMode) debugPrint('[MusicGen] HF model loading, waiting 20s...');
           await Future.delayed(const Duration(seconds: 20));
-          i--; // retry same attempt once
+          if (_hf503Retries < 3) { _hf503Retries++; i--; }
           continue;
         }
 
