@@ -26,6 +26,12 @@ class ChatMessage {
   /// Optional remote image URL (for AI-generated images via Pollinations etc.)
   final String? imageUrl;
 
+  /// Optional audio URL (for AI-generated music/audio inline in chat)
+  final String? audioUrl;
+
+  /// Optional video URL (for AI-generated video inline in chat)
+  final String? videoUrl;
+
   /// Ghost/thinking placeholder
   bool isGhost;
 
@@ -43,6 +49,8 @@ class ChatMessage {
     this.reaction,
     this.imagePath,
     this.imageUrl,
+    this.audioUrl,
+    this.videoUrl,
     DateTime? timestamp,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
@@ -59,6 +67,8 @@ class ChatMessage {
       reaction: map['reaction'] as String?,
       imagePath: map['imagePath'] as String?,
       imageUrl: map['imageUrl'] as String?,
+      audioUrl: map['audioUrl'] as String?,
+      videoUrl: map['videoUrl'] as String?,
       timestamp: _parseTimestamp(map['timestamp']),
     );
   }
@@ -74,6 +84,8 @@ class ChatMessage {
     String? reaction,
     String? imagePath,
     String? imageUrl,
+    String? audioUrl,
+    String? videoUrl,
     DateTime? timestamp,
   }) =>
       ChatMessage(
@@ -86,6 +98,8 @@ class ChatMessage {
         reaction: reaction ?? this.reaction,
         imagePath: imagePath ?? this.imagePath,
         imageUrl: imageUrl ?? this.imageUrl,
+        audioUrl: audioUrl ?? this.audioUrl,
+        videoUrl: videoUrl ?? this.videoUrl,
         timestamp: timestamp ?? this.timestamp,
       );
 
@@ -105,6 +119,8 @@ class ChatMessage {
         if (reaction != null) 'reaction': reaction,
         if (imagePath != null) 'imagePath': imagePath,
         if (imageUrl != null) 'imageUrl': imageUrl,
+        if (audioUrl != null) 'audioUrl': audioUrl,
+        if (videoUrl != null) 'videoUrl': videoUrl,
       };
 
   /// Robustly parse timestamps from various sources (ISO string, Firestore Timestamp, epoch int)

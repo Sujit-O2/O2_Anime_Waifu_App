@@ -5,16 +5,17 @@ import 'package:anime_waifu/services/analytics_monitoring/advanced_performance_m
 import 'package:anime_waifu/services/database_storage/cloud_settings_sync_service.dart';
 import 'package:anime_waifu/services/database_storage/offline_first_database_service.dart';
 import 'package:anime_waifu/services/games_gamification/achievement_system_manager.dart';
-import 'package:anime_waifu/services/games_gamification/battle_and_raid_system.dart';
-import 'package:anime_waifu/services/games_gamification/guild_management_system.dart';
-import 'package:anime_waifu/services/games_gamification/seasonal_events_manager.dart';
-import 'package:anime_waifu/services/games_gamification/tournament_management_system.dart';
-import 'package:anime_waifu/services/integrations/discord_integration_manager.dart';
-import 'package:anime_waifu/services/integrations/friend_social_system_service.dart';
+// DISABLED (no visible UI / unused at boot):
+// import 'package:anime_waifu/services/games_gamification/battle_and_raid_system.dart';
+// import 'package:anime_waifu/services/games_gamification/guild_management_system.dart';
+// import 'package:anime_waifu/services/games_gamification/seasonal_events_manager.dart';
+// import 'package:anime_waifu/services/games_gamification/tournament_management_system.dart';
+// import 'package:anime_waifu/services/integrations/discord_integration_manager.dart';
+// import 'package:anime_waifu/services/integrations/friend_social_system_service.dart';
 import 'package:anime_waifu/services/user_profile/enhanced_user_profile_service.dart';
-import 'package:anime_waifu/services/utilities_core/ab_testing_framework.dart';
+// import 'package:anime_waifu/services/utilities_core/ab_testing_framework.dart';
 import 'package:anime_waifu/services/utilities_core/crash_reporting_service.dart';
-import 'package:anime_waifu/services/utilities_core/monetization_service.dart';
+// import 'package:anime_waifu/services/utilities_core/monetization_service.dart';
 import 'package:flutter/foundation.dart';
 
 /// 🚀 MEGA POWERFUL SERVICES ORCHESTRATOR
@@ -37,30 +38,30 @@ class MegaPowerfulServicesOrchestrator {
   // ===== TIER 2: DATA & PERSISTENCE (3 Services) =====
   late OfflineFirstDatabaseService _offlineDb;
   late EnhancedUserProfileService _userProfile;
-  late MonetizationService _monetization;
+  // DISABLED: late MonetizationService _monetization;
 
   // ===== TIER 3: SOCIAL & COMMUNITY (1 Service) =====
-  late FriendSocialSystemService _friendSystem;
+  // DISABLED: late FriendSocialSystemService _friendSystem;
 
   // ===== TIER 4: DEVOPS & MONITORING (2 Services) =====
   late CrashReportingService _crashReporting;
   late AdvancedPerformanceMonitoring _performanceMonitoring;
 
   // ===== TIER 5: GAMING & ENGAGEMENT (3 Services) =====
-  late BattleAndRaidSystem _battleSystem;
-  late SeasonalEventsManager _eventsManager;
-  late TournamentManagementSystem _tournamentManager;
+  // DISABLED: late BattleAndRaidSystem _battleSystem;
+  // DISABLED: late SeasonalEventsManager _eventsManager;
+  // DISABLED: late TournamentManagementSystem _tournamentManager;
 
   // ===== TIER 6: GUILDS & TEAM (1 Service) =====
-  late GuildManagementSystem _guildSystem;
+  // DISABLED: late GuildManagementSystem _guildSystem;
 
   // ===== TIER 6B: ENTERPRISE OPERATIONS (1 Service) =====
   late AchievementSystemManager _achievementSystem;
 
   // ===== TIER 7: INTEGRATIONS & EXTENSIONS (3 Services) =====
-  late DiscordIntegrationManager _discordIntegration;
+  // DISABLED: late DiscordIntegrationManager _discordIntegration;
   late CloudSettingsSyncService _cloudSettingsSync;
-  late ABTestingFramework _abTesting;
+  // DISABLED: late ABTestingFramework _abTesting;
 
   final Map<String, ServiceStatus> _serviceStatus = {};
   DateTime _initializationTime = DateTime.now();
@@ -108,15 +109,15 @@ class MegaPowerfulServicesOrchestrator {
       await _userProfile.initialize();
       _markServiceReady('User Profile', 'Data', 'AI Persona Training');
 
-      _monetization = MonetizationService();
-      await _monetization.initialize();
-      _markServiceReady('Monetization', 'Economy', 'IAP + Subscriptions + Battle Pass');
+      // DISABLED: Monetization has no visible UI
+      // _monetization = MonetizationService();
+      // await _monetization.initialize();
 
       // TIER 3: SOCIAL & COMMUNITY
       if (kDebugMode) debugPrint('\n📍 TIER 3: Social & Community Features');
-      _friendSystem = FriendSocialSystemService();
-      await _friendSystem.initialize();
-      _markServiceReady('Friend System', 'Social', 'Leaderboards + Challenges');
+      // DISABLED: FriendSocialSystem has no visible UI
+      // _friendSystem = FriendSocialSystemService();
+      // await _friendSystem.initialize();
 
       // TIER 4: DEVOPS & MONITORING
       if (kDebugMode) debugPrint('\n📍 TIER 4: DevOps & Real-Time Monitoring');
@@ -130,23 +131,19 @@ class MegaPowerfulServicesOrchestrator {
 
       // TIER 5: GAMING & ENGAGEMENT
       if (kDebugMode) debugPrint('\n📍 TIER 5: Gaming & Engagement Systems');
-      _battleSystem = BattleAndRaidSystem();
-      await _battleSystem.initialize();
-      _markServiceReady('Battle System', 'Gaming', 'PvE + Raids + Co-op');
-
-      _eventsManager = SeasonalEventsManager();
-      await _eventsManager.initialize();
-      _markServiceReady('Seasonal Events', 'Gaming', 'Limited-Time Campaigns + Gacha');
-
-      _tournamentManager = TournamentManagementSystem();
-      await _tournamentManager.initialize();
-      _markServiceReady('Tournament Manager', 'Gaming', 'Ranked Brackets + Prizes');
+      // DISABLED: Battle/Seasonal/Tournament have no visible UI
+      // _battleSystem = BattleAndRaidSystem();
+      // await _battleSystem.initialize();
+      // _eventsManager = SeasonalEventsManager();
+      // await _eventsManager.initialize();
+      // _tournamentManager = TournamentManagementSystem();
+      // await _tournamentManager.initialize();
 
       // TIER 6: GUILDS & TEAM
       if (kDebugMode) debugPrint('\n📍 TIER 6: Guilds & Team Mechanics');
-      _guildSystem = GuildManagementSystem();
-      await _guildSystem.initialize();
-      _markServiceReady('Guild System', 'Social', 'Team Wars + Treasury');
+      // DISABLED: Guild system has no visible UI
+      // _guildSystem = GuildManagementSystem();
+      // await _guildSystem.initialize();
 
       // TIER 6B: ENTERPRISE OPERATIONS
       if (kDebugMode) debugPrint('\n📍 TIER 6B: Enterprise Operations & Achievements');
@@ -156,17 +153,17 @@ class MegaPowerfulServicesOrchestrator {
 
       // TIER 7: INTEGRATIONS & EXTENSIONS
       if (kDebugMode) debugPrint('\n📍 TIER 7: Integrations & Advanced Features');
-      _discordIntegration = DiscordIntegrationManager();
-      await _discordIntegration.initialize();
-      _markServiceReady('Discord Integration', 'Integration', 'Webhooks & Event Streaming');
+      // DISABLED: Discord integration has no visible UI
+      // _discordIntegration = DiscordIntegrationManager();
+      // await _discordIntegration.initialize();
 
       _cloudSettingsSync = CloudSettingsSyncService();
       await _cloudSettingsSync.initialize();
       _markServiceReady('Cloud Settings Sync', 'Integration', 'Multi-Device Backup & Restore');
 
-      _abTesting = ABTestingFramework();
-      await _abTesting.initialize();
-      _markServiceReady('A/B Testing', 'Analytics', 'Variant Testing Framework');
+      // DISABLED: A/B testing framework has no visible UI
+      // _abTesting = ABTestingFramework();
+      // await _abTesting.initialize();
 
       _isFullyInitialized = true;
       _printInitializationSummary();
@@ -180,21 +177,21 @@ class MegaPowerfulServicesOrchestrator {
 
   // ===== SERVICE ACCESSORS =====
   AICopilotService getAICopilot() => _aiCopilot;
-  MonetizationService getMonetization() => _monetization;
+  // MonetizationService getMonetization() => _monetization; // DISABLED
   OfflineFirstDatabaseService getOfflineDB() => _offlineDb;
   EnhancedUserProfileService getUserProfile() => _userProfile;
-  FriendSocialSystemService getFriendSystem() => _friendSystem;
+  // FriendSocialSystemService getFriendSystem() => _friendSystem; // DISABLED
   CrashReportingService getCrashReporting() => _crashReporting;
   EmotionalAIService getEmotionalAI() => _emotionalAI;
   AdvancedPersonalizationEngine getPersonalization() => _personalization;
-  BattleAndRaidSystem getBattleSystem() => _battleSystem;
-  SeasonalEventsManager getEventsManager() => _eventsManager;
-  TournamentManagementSystem getTournamentManager() => _tournamentManager;
-  GuildManagementSystem getGuildSystem() => _guildSystem;
+  // BattleAndRaidSystem getBattleSystem() => _battleSystem; // DISABLED
+  // SeasonalEventsManager getEventsManager() => _eventsManager; // DISABLED
+  // TournamentManagementSystem getTournamentManager() => _tournamentManager; // DISABLED
+  // GuildManagementSystem getGuildSystem() => _guildSystem; // DISABLED
   AchievementSystemManager getAchievementSystem() => _achievementSystem;
-  DiscordIntegrationManager getDiscordIntegration() => _discordIntegration;
+  // DiscordIntegrationManager getDiscordIntegration() => _discordIntegration; // DISABLED
   CloudSettingsSyncService getCloudSettingsSync() => _cloudSettingsSync;
-  ABTestingFramework getABTesting() => _abTesting;
+  // ABTestingFramework getABTesting() => _abTesting; // DISABLED
   AdvancedPerformanceMonitoring getPerformanceMonitoring() => _performanceMonitoring;
 
   // ===== UNIFIED MEGA OPERATIONS =====
@@ -223,29 +220,26 @@ class MegaPowerfulServicesOrchestrator {
         duration: metadata?['duration'] as int? ?? 0,
       );
 
-      // 3. Monetization & Rewards
-      if (metadata?['rewardable'] == true) {
-        await _monetization.addCoins(metadata?['coins'] as int? ?? 10, interactionType);
-      }
+      // 3. Monetization & Rewards — DISABLED
+      // if (metadata?['rewardable'] == true) {
+      //   await _monetization.addCoins(metadata?['coins'] as int? ?? 10, interactionType);
+      // }
 
-      // 4. Gaming Progress
-      if (interactionType == 'battle_victory') {
-        final _ = metadata?['damage'] as int? ?? 50;
-      }
+      // 4. Gaming Progress — DISABLED
+      // if (interactionType == 'battle_victory') { ... }
 
-      // 5. Social & Community
-      // User profile fetch skipped if not available
+      // 5. Social & Community — DISABLED
       // final _ = await _friendSystem.getUserProfile(userId);
 
-      // 6. Events & Campaigns
-      if (interactionType == 'event_progress') {
-        await _eventsManager.updateEventProgress(userId, content, 10);
-      }
+      // 6. Events & Campaigns — DISABLED
+      // if (interactionType == 'event_progress') {
+      //   await _eventsManager.updateEventProgress(userId, content, 10);
+      // }
 
-      // 7. Guild Contribution
-      if (metadata?['guildId'] != null) {
-        await _guildSystem.addGuildExperience(metadata!['guildId'], 50);
-      }
+      // 7. Guild Contribution — DISABLED
+      // if (metadata?['guildId'] != null) {
+      //   await _guildSystem.addGuildExperience(metadata!['guildId'], 50);
+      // }
 
       // 8. Performance Tracking
       await _performanceMonitoring.recordMetric(
@@ -254,10 +248,10 @@ class MegaPowerfulServicesOrchestrator {
         unit: 'ms',
       );
 
-      // 9. Analytics & Testing
-      if (metadata?['testId'] != null) {
-        await _abTesting.trackEvent(userId, metadata!['testId'], interactionType, metadata);
-      }
+      // 9. Analytics & Testing — DISABLED
+      // if (metadata?['testId'] != null) {
+      //   await _abTesting.trackEvent(userId, metadata!['testId'], interactionType, metadata);
+      // }
 
       // 10. Logging & Monitoring
       await _crashReporting.recordSessionEvent(
@@ -283,19 +277,16 @@ class MegaPowerfulServicesOrchestrator {
         'copilot_level': 5,
       },
       'gaming': {
-        'battle_stats': await _battleSystem.getPlayerStats('current'),
-        'tournaments': [], // Mock
-        'guild_rank': 'Officer',
+        // 'battle_stats': disabled,
+        'guild_rank': 'N/A',
       },
       'social': {
-        'friends_online': 12,
-        'social_feed': 'loading...',
-        'leaderboard_position': 145,
+        'friends_online': 0,
+        'leaderboard_position': 0,
       },
       'monetization': {
-        'wallet': await _monetization.getUserWallet(),
-        'subscription': 'Pro',
-        'battle_pass_level': 42,
+        // 'wallet': disabled,
+        'subscription': 'Free',
       },
       'personalization': {
         'ui_config': await _personalization.getPersonalizedUI(),

@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:video_player/video_player.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// PREMIUM CHAT BUBBLE — Smooth animations, perfect alignment, polished look
@@ -182,6 +187,10 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
                                 if (widget.message.imageUrl != null ||
                                     widget.message.imagePath != null)
                                   _buildImage(context),
+                                if (widget.message.audioUrl != null)
+                                  _InlineAudioPlayer(url: widget.message.audioUrl!),
+                                if (widget.message.videoUrl != null)
+                                  _InlineVideoPlayer(url: widget.message.videoUrl!),
                                 if (widget.message.content.isNotEmpty)
                                   SelectableText(
                                     widget.message.content,
@@ -575,6 +584,221 @@ class _QuickReplyChipsState extends State<QuickReplyChips>
           );
         }).toList(),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inline Audio Player — shown inside chat bubble when audioUrl is set
+// ─────────────────────────────────────────────────────────────────────────────
+class _InlineAudioPlayer extends StatefulWidget {
+  final String url;
+  const _InlineAudioPlayer({required this.url});
+
+  @override
+  State<_InlineAudioPlayer> createState() => _InlineAudioPlayerState();
+}
+
+class _InlineAudioPlayerState extends State<_InlineAudioPlayer> {
+  final AudioPlayer _player = AudioPlayer();
+  PlayerState _state = PlayerState.stopped;
+  Duration _pos = Duration.zero;
+  Duration _total = Duration.zero;
+  bool _downloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _player.onPlayerStateChanged.listen((s) { if (mounted) setState(() => _state = s); });
+    _player.onPositionChanged.listen((p) { if (mounted) setState(() => _pos = p); });
+    _player.onDurationChanged.listen((d) { if (mounted) setState(() => _total = d); });
+  }
+
+  @override
+  void dispose() { _player.dispose(); super.dispose(); }
+
+  Source get _src => widget.url.startsWith('/')
+      ? DeviceFileSource(widget.url)
+      : UrlSource(widget.url);
+
+  String _fmt(Duration d) =>
+      '${d.inMinutes.remainder(60).toString().padLeft(2,'0')}:${d.inSeconds.remainder(60).toString().padLeft(2,'0')}';
+
+  Future<void> _download() async {
+    if (_downloading) return;
+    setState(() => _downloading = true);
+    try {
+      final bytes = widget.url.startsWith('/')
+          ? await File(widget.url).readAsBytes()
+          : (await http.get(Uri.parse(widget.url))).bodyBytes;
+      final dir = await getExternalStorageDirectory() ?? await getTemporaryDirectory();
+      final file = File('${dir.path}/o2_music_${DateTime.now().millisecondsSinceEpoch}.mp3');
+      await file.writeAsBytes(bytes);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to ${file.path}'), backgroundColor: Colors.green.shade700),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $e'), backgroundColor: Colors.red.shade700),
+      );
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPlaying = _state == PlayerState.playing;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [Colors.purple.shade900, Colors.deepPurple.shade800]),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(children: [
+        Row(children: [
+          const Icon(Icons.music_note_rounded, color: Colors.amberAccent, size: 18),
+          const SizedBox(width: 6),
+          const Expanded(child: Text('Generated Music', style: TextStyle(color: Colors.white70, fontSize: 12))),
+          IconButton(
+            padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+            icon: _downloading
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.amberAccent))
+                : const Icon(Icons.download_rounded, color: Colors.amberAccent, size: 20),
+            onPressed: _download,
+          ),
+        ]),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+            activeTrackColor: Colors.amberAccent, inactiveTrackColor: Colors.white24,
+            thumbColor: Colors.amberAccent, overlayShape: SliderComponentShape.noOverlay,
+          ),
+          child: Slider(
+            value: _total.inSeconds > 0 ? _pos.inSeconds.toDouble().clamp(0, _total.inSeconds.toDouble()) : 0,
+            max: _total.inSeconds > 0 ? _total.inSeconds.toDouble() : 1,
+            onChanged: (v) => _player.seek(Duration(seconds: v.round())),
+          ),
+        ),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(_fmt(_pos), style: const TextStyle(color: Colors.white38, fontSize: 10)),
+          IconButton(
+            iconSize: 36, padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+            icon: Icon(isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded,
+                color: Colors.amberAccent),
+            onPressed: () async {
+              if (isPlaying) { await _player.pause(); }
+              else { await _player.play(_src); }
+            },
+          ),
+          Text(_fmt(_total), style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        ]),
+      ]),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inline Video Player — shown inside chat bubble when videoUrl is set
+// ─────────────────────────────────────────────────────────────────────────────
+class _InlineVideoPlayer extends StatefulWidget {
+  final String url;
+  const _InlineVideoPlayer({required this.url});
+
+  @override
+  State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
+}
+
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
+  VideoPlayerController? _ctrl;
+  bool _initialized = false;
+  bool _downloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final ctrl = widget.url.startsWith('/')
+        ? VideoPlayerController.file(File(widget.url))
+        : VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    await ctrl.initialize();
+    ctrl.setLooping(true);
+    if (mounted) setState(() { _ctrl = ctrl; _initialized = true; });
+  }
+
+  @override
+  void dispose() { _ctrl?.dispose(); super.dispose(); }
+
+  Future<void> _download() async {
+    if (_downloading) return;
+    setState(() => _downloading = true);
+    try {
+      final bytes = widget.url.startsWith('/')
+          ? await File(widget.url).readAsBytes()
+          : (await http.get(Uri.parse(widget.url))).bodyBytes;
+      final dir = await getExternalStorageDirectory() ?? await getTemporaryDirectory();
+      final file = File('${dir.path}/o2_video_${DateTime.now().millisecondsSinceEpoch}.mp4');
+      await file.writeAsBytes(bytes);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to ${file.path}'), backgroundColor: Colors.green.shade700),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $e'), backgroundColor: Colors.red.shade700),
+      );
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: Colors.black),
+      clipBehavior: Clip.hardEdge,
+      child: Column(children: [
+        if (!_initialized)
+          const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(color: Colors.deepPurpleAccent)))
+        else
+          AspectRatio(
+            aspectRatio: _ctrl!.value.aspectRatio,
+            child: VideoPlayer(_ctrl!),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(children: [
+            const Icon(Icons.videocam_rounded, color: Colors.deepPurpleAccent, size: 16),
+            const SizedBox(width: 4),
+            const Expanded(child: Text('Generated Video', style: TextStyle(color: Colors.white54, fontSize: 11))),
+            if (_initialized) IconButton(
+              padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+              icon: Icon(
+                _ctrl!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: Colors.deepPurpleAccent, size: 22,
+              ),
+              onPressed: () => setState(() {
+                _ctrl!.value.isPlaying ? _ctrl!.pause() : _ctrl!.play();
+              }),
+            ),
+            IconButton(
+              padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+              icon: _downloading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.deepPurpleAccent))
+                  : const Icon(Icons.download_rounded, color: Colors.deepPurpleAccent, size: 20),
+              onPressed: _download,
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 }

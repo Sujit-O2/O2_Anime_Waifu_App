@@ -426,11 +426,11 @@ Widget drawerPulseStat({
       backgroundColor: materialTheme.scaffoldBackgroundColor,
       child: Stack(
         children: [
-          // Static background image for smoother drawer performance
+          // GIF background
           Positioned.fill(
             child: Opacity(
-              opacity: 0.12,
-              child: Image.asset('assets/img/bg2.jpg',
+              opacity: 0.18,
+              child: Image.asset('assets/gif/sidebar_bg.gif',
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.low,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink()),
@@ -468,7 +468,7 @@ Widget drawerPulseStat({
                   children: [
                     // Static cover image to keep drawer motion smooth
                     Image.asset(
-                      'assets/img/z2s.jpg',
+                      'assets/gif/sidebar_top.gif',
                       fit: BoxFit.cover,
                       alignment: const Alignment(0, -0.2), // Focus on face/eyes
                     ),
@@ -1053,6 +1053,101 @@ Widget drawerPulseStat({
                               ],
                               badge: 'Play')),
 
+                      // ── 🤖 AI TOOLS ──────────────────────────────────────
+                      _DrawerStaggerItem(
+                          index: 5,
+                          child: hubAccordion(
+                              'AI Tools',
+                              Icons.auto_awesome_rounded,
+                              Colors.purpleAccent,
+                              [
+                                drawerTile('AI Art', Icons.brush_rounded, Colors.deepPurpleAccent, () => Navigator.pushNamed(context, '/ai-art-generator'), badge: 'NEW'),
+                                drawerTile('AI Video', Icons.videocam_rounded, Colors.deepPurple, () => Navigator.pushNamed(context, '/video-gen'), badge: 'NEW'),
+                                drawerTile('AI Audio', Icons.music_note_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/audio-gen'), badge: 'NEW'),
+                                drawerTile('Writing Helper', Icons.edit_note_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/writing-helper')),
+                                drawerTile('Translator', Icons.translate_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/language-translator')),
+                                drawerTile('Recipe AI', Icons.restaurant_menu_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/recipe-recommender')),
+                                drawerTile('Life Advice', Icons.psychology_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/life-advice')),
+                                drawerTile('Smart Reply', Icons.quickreply_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/smart-reply'), badge: 'AI'),
+                                drawerTile('AI Copilot', Icons.assistant_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/ai-copilot'), badge: 'GPT'),
+                                drawerTile('Future Sim', Icons.timeline_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/future-simulation'), badge: 'SIM'),
+                              ],
+                              badge: 'AI')),
+
+                      // ── 🎬 ANIME & MEDIA ───────────────────────────────
+                      _DrawerStaggerItem(
+                          index: 6,
+                          child: hubAccordion(
+                              'Anime & Media',
+                              Icons.movie_filter_rounded,
+                              Colors.pinkAccent,
+                              [
+                                drawerTile('Anime Section', Icons.live_tv_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/anime-section'), badge: 'HOT'),
+                                drawerTile('Manga Reader', Icons.menu_book_rounded, const Color(0xFFBB52FF), () => Navigator.pushNamed(context, '/manga-section')),
+                                drawerTile('My Watchlist', Icons.favorite_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/watchlist')),
+                                drawerTile('Watch History', Icons.history_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/watch-history')),
+                                drawerTile('Anime Quiz', Icons.quiz_rounded, Colors.amber, () => Navigator.pushNamed(context, '/anime-quiz'), badge: 'PLAY'),
+                                drawerTile('Anime OST', Icons.music_note_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/anime-ost')),
+                                drawerTile('Web Streamers', Icons.travel_explore_rounded, Colors.lightBlueAccent, () => Navigator.pushNamed(context, '/web-streamers-hub'), badge: '26'),
+                                drawerTile('Cloud Videos', Icons.cloud_queue_rounded, Colors.cyanAccent, () => updateState(() => _navIndex = 12), badge: 'HD'),
+                              ],
+                              badge: 'Watch')),
+
+                      // ── 💪 WELLNESS ─────────────────────────────────────────────
+                      _DrawerStaggerItem(
+                          index: 7,
+                          child: hubAccordion(
+                              'Wellness',
+                              Icons.favorite_border_rounded,
+                              Colors.greenAccent,
+                              [
+                                drawerTile('Mood Tracker', Icons.mood_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/mood-tracking')),
+                                drawerTile('Habit Tracker', Icons.track_changes_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/habit-tracker'), badge: 'STREAK'),
+                                drawerTile('Meditation', Icons.self_improvement_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/guided-meditation')),
+                                drawerTile('Pomodoro', Icons.timer_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/pomodoro'), badge: 'FOCUS'),
+                                drawerTile('Sleep Tracker', Icons.bedtime_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/sleep-tracking')),
+                                drawerTile('Stress Check', Icons.monitor_heart_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/stress-detection')),
+                                drawerTile('Goal Tracker', Icons.flag_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/goal-tracker')),
+                              ],
+                              badge: 'Health')),
+
+                      // ── 🧠 MEMORY & AI ─────────────────────────────────────────
+                      _DrawerStaggerItem(
+                          index: 8,
+                          child: hubAccordion(
+                              'Memory & AI',
+                              Icons.psychology_alt_rounded,
+                              Colors.cyanAccent,
+                              [
+                                drawerTile('Memory Vault', Icons.lock_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/memory-vault'), badge: 'VAULT'),
+                                drawerTile('Dream Journal', Icons.nights_stay_rounded, Colors.indigoAccent, () => Navigator.pushNamed(context, '/enhanced-dream-journal')),
+                                drawerTile('Emotion Timeline', Icons.timeline_rounded, Colors.pinkAccent, () => Navigator.pushNamed(context, '/emotion-memory-timeline')),
+                                drawerTile('Relationship Map', Icons.favorite_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/relationship-heatmap')),
+                                drawerTile('Semantic Memory', Icons.hub_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/semantic-memory')),
+                                drawerTile('Personality', Icons.person_pin_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/personality-evolution')),
+                                drawerTile('Self Reflection', Icons.visibility_rounded, Colors.tealAccent, () => Navigator.pushNamed(context, '/self-reflection')),
+                              ],
+                              badge: 'Mind')),
+
+                      // ── 🛠️ UTILITIES ───────────────────────────────────────────
+                      _DrawerStaggerItem(
+                          index: 9,
+                          child: hubAccordion(
+                              'Utilities',
+                              Icons.build_rounded,
+                              Colors.blueAccent,
+                              [
+                                drawerTile('QR Scanner', Icons.qr_code_scanner_rounded, Colors.greenAccent, () => Navigator.pushNamed(context, '/qr-scanner')),
+                                drawerTile('Password Gen', Icons.password_rounded, Colors.redAccent, () => Navigator.pushNamed(context, '/password-generator'), badge: 'SAFE'),
+                                drawerTile('Bill Splitter', Icons.calculate_rounded, Colors.amberAccent, () => Navigator.pushNamed(context, '/bill-splitter')),
+                                drawerTile('Countdown', Icons.hourglass_bottom_rounded, Colors.cyanAccent, () => Navigator.pushNamed(context, '/countdown-timer')),
+                                drawerTile('Thought Capture', Icons.lightbulb_rounded, Colors.yellowAccent, () => Navigator.pushNamed(context, '/thought-capture')),
+                                drawerTile('Secret Notes', Icons.note_alt_rounded, Colors.purpleAccent, () => Navigator.pushNamed(context, '/secret-notes'), badge: 'LOCK'),
+                                drawerTile('Pinned Msgs', Icons.push_pin_rounded, Colors.orangeAccent, () => Navigator.pushNamed(context, '/pinned-messages')),
+                                drawerTile('Chat Export', Icons.ios_share_rounded, Colors.blueAccent, () => Navigator.pushNamed(context, '/chat-export')),
+                              ],
+                              badge: 'Tools')),
+
                       // ── ⚙️ SETTINGS ─────────────────────────────────────────
                       _DrawerStaggerItem(
                           index: 15,
@@ -1355,53 +1450,27 @@ class _BreathingPulseState extends State<BreathingPulse>
   }
 }
 
-class FadingQuoteOverlay extends StatefulWidget {
+class FadingQuoteOverlay extends StatelessWidget {
   const FadingQuoteOverlay({super.key});
-  @override
-  State<FadingQuoteOverlay> createState() => _FadingQuoteOverlayState();
-}
 
-class _FadingQuoteOverlayState extends State<FadingQuoteOverlay> {
-  final List<String> _quotes = [
+  static const List<String> _quotes = [
     "\"I've found you, my Darling.\"",
     "\"A beautiful world, isn't it?\"",
     '"Will you be my wings?"',
     "\"Let's fly away together.\"",
     "\"Don't let go of me...\"",
   ];
-  int _index = 0;
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (mounted) setState(() => _index = (_index + 1) % _quotes.length);
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(seconds: 2),
-      switchInCurve: Curves.easeIn,
-      switchOutCurve: Curves.easeOut,
-      child: Text(
-        _quotes[_index],
-        key: ValueKey<int>(_index),
-        style: GoogleFonts.outfit(
-          color: Colors.white.withValues(alpha: 0.4),
-          fontSize: 12,
-          fontStyle: FontStyle.italic,
-          letterSpacing: 1.0,
-          fontWeight: FontWeight.w300,
-        ),
+    return Text(
+      _quotes[0],
+      style: GoogleFonts.outfit(
+        color: Colors.white.withValues(alpha: 0.4),
+        fontSize: 12,
+        fontStyle: FontStyle.italic,
+        letterSpacing: 1.0,
+        fontWeight: FontWeight.w300,
       ),
     );
   }

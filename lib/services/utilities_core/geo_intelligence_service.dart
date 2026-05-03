@@ -171,9 +171,10 @@ class GeoIntelligenceService {
       ),
     ).listen(_onPosition, onError: (_) {});
 
-    // Re-cluster every 5 minutes
-    _clusterTimer =
-        Timer.periodic(const Duration(minutes: 5), (_) => _recluster());
+    // Only start recluster timer if there are saved fences to monitor
+    if (_fences.isNotEmpty) {
+      _startClusterTimer();
+    }
 
     return true;
   }
@@ -219,12 +220,22 @@ class GeoIntelligenceService {
   void addFence(GeoFence fence) {
     _fences.add(fence);
     _saveFences();
+    _startClusterTimer(); // ensure timer runs when geofencing is active
   }
 
   void removeFence(String id) {
     _fences.removeWhere((f) => f.id == id);
     _activeFences.remove(id);
     _saveFences();
+    if (_fences.isEmpty) {
+      _clusterTimer?.cancel(); // no fences left — stop the timer
+    }
+  }
+
+  void _startClusterTimer() {
+    if (_clusterTimer?.isActive ?? false) return;
+    _clusterTimer =
+        Timer.periodic(const Duration(minutes: 5), (_) => _recluster());
   }
 
   void _checkFences(double lat, double lng) {

@@ -49,7 +49,7 @@ class ServiceSyncOrchestrator {
   final _syncStreamController = StreamController<SyncEvent>.broadcast();
   final Map<String, StreamSubscription> _subscriptions = {};
   Timer? _syncTimer;
-  Duration _syncInterval = const Duration(seconds: 30);
+  Duration _syncInterval = const Duration(minutes: 5);
   bool _isOnline = true;
 
   /// Get sync status stream
@@ -75,7 +75,7 @@ class ServiceSyncOrchestrator {
 
   /// Initialize sync orchestrator
   Future<void> initialize({
-    Duration syncInterval = const Duration(seconds: 30),
+    Duration syncInterval = const Duration(minutes: 5),
   }) async {
     try {
       _syncInterval = syncInterval;

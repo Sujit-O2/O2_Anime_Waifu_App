@@ -258,6 +258,7 @@ class _HubPageState extends State<HubPage> with TickerProviderStateMixin {
             Expanded(
               child: TextField(
                 controller: _searchCtrl,
+                textDirection: TextDirection.ltr,
                 style: GoogleFonts.outfit(
                   color: theme.colorScheme.onSurface,
                   fontSize: 14,

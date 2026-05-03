@@ -3,7 +3,20 @@ part of 'package:anime_waifu/main.dart';
 extension _MainNotificationsExtension on _ChatHomePageState {
 // ── Page: Notification History ────────────────────────────────────────────
   Widget _buildNotificationsPage() {
-    return SafeArea(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0.12,
+            child: Image.asset(
+              'assets/gif/notification.gif',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.low,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+        ),
+        SafeArea(
       child: Column(
         children: [
           Padding(
@@ -188,6 +201,8 @@ extension _MainNotificationsExtension on _ChatHomePageState {
           ),
         ],
       ),
+        ),
+      ],
     );
   }
 
