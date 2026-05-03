@@ -474,12 +474,7 @@ class MusicCompositionService {
         break;
     }
 
-    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n' +
-        progressions
-            .asMap()
-            .entries
-            .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n');
+    return '🎼 Suggested Chord Progressions for $key $scale (${genre.label}):\n${progressions.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n')}';
   }
 
   String getCompositionTips({
@@ -539,8 +534,7 @@ class MusicCompositionService {
         break;
     }
 
-    return '💡 Composition Tips for ${genre.label} ($mood):\n' +
-        tips.map((t) => '• $t').join('\n');
+    return '💡 Composition Tips for ${genre.label} ($mood):\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getMusicInsights() {
@@ -568,6 +562,14 @@ class MusicCompositionService {
     }
 
     return buffer.toString();
+  }
+
+  List<MusicProject> getProjects() => List.unmodifiable(_projects);
+
+  List<Track> getTracks({String? projectId}) {
+    if (projectId == null) return List.unmodifiable(_tracks);
+    return List.unmodifiable(
+        _tracks.where((track) => track.projectId == projectId));
   }
 
   Future<void> _saveData() async {

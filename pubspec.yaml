@@ -1,7 +1,7 @@
 name: anime_waifu
 description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
 publish_to: "none"
-version: 8.0.3
+version: 10.0.2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -72,6 +72,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4   # Add this for launcher icon generation
+  mocktail: ^1.0.0
+  fake_async: ^1.3.0
+  build_runner: ^2.4.0
 
 flutter:
   uses-material-design: true
@@ -83,6 +86,9 @@ flutter:
     - assets/gif/background_of_about_section_blurry.gif
     - assets/gif/debug_area.gif
     - assets/gif/notification.gif
+    - assets/gif/sidebar_bg.gif
+    - assets/gif/sidebar_top.gif
+    - assets/gif/add_incircular_mode_app_oppening style.gif
     - assets/wakeword/
     - assets/template/
     - assets/models/anime_woman_model.glb

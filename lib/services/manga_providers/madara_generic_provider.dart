@@ -40,7 +40,7 @@ class MadaraGenericProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     try {
       final uri = Uri.parse('$providerBaseUrl/manga/');
       final resp = await RobustHttpClient.get(uri, headers: _headers);
@@ -52,7 +52,7 @@ class MadaraGenericProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     try {
       final uri = Uri.parse('$providerBaseUrl/manga-genre/$tagId/');
       final resp = await RobustHttpClient.get(uri, headers: _headers);

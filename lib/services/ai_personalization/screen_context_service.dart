@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:anime_waifu/services/ai_personalization/enhanced_screen_context_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +73,13 @@ class ScreenContextService {
   Future<void> initialize() async {
     if (!Platform.isAndroid) {
       if (kDebugMode) debugPrint('[ScreenContext] Only supported on Android');
+      return;
+    }
+
+    // EnhancedScreenContextService already polls the same channel at 3s.
+    // Skip this service to avoid duplicate platform channel calls.
+    if (EnhancedScreenContextService.instance.isEnabled) {
+      if (kDebugMode) debugPrint('[ScreenContext] Skipped — EnhancedScreenContextService is active');
       return;
     }
 

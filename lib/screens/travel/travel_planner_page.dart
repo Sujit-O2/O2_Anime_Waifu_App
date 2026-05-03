@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/travel/travel_planner_service.dart';
 
@@ -23,7 +24,7 @@ class _TravelPlannerPageState extends State<TravelPlannerPage> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

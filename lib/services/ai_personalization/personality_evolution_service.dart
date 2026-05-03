@@ -5,17 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🧬 Personality Evolution System
-/// 
+///
 /// Zero Two's personality evolves based on your interactions over time.
 /// Creates truly unique AI for each user through dynamic trait adjustment.
 class PersonalityEvolutionService {
   PersonalityEvolutionService._();
-  static final PersonalityEvolutionService instance = PersonalityEvolutionService._();
+  static final PersonalityEvolutionService instance =
+      PersonalityEvolutionService._();
 
   final Map<PersonalityTrait, double> _traits = {};
   final List<InteractionRecord> _interactionHistory = [];
   final Map<String, int> _behaviorPatterns = {};
-  
+
   int _totalInteractions = 0;
   DateTime? _lastEvolution;
 
@@ -25,7 +26,9 @@ class PersonalityEvolutionService {
   Future<void> initialize() async {
     await _loadData();
     _initializeTraits();
-    if (kDebugMode) debugPrint('[PersonalityEvolution] Initialized with ${_totalInteractions} interactions');
+    if (kDebugMode)
+      debugPrint(
+          '[PersonalityEvolution] Initialized with $_totalInteractions interactions');
   }
 
   void _initializeTraits() {
@@ -79,13 +82,16 @@ class PersonalityEvolutionService {
       _behaviorPatterns['romantic'] = (_behaviorPatterns['romantic'] ?? 0) + 1;
     }
     if (lower.contains(RegExp(r'help|advice|what should'))) {
-      _behaviorPatterns['guidance_seeking'] = (_behaviorPatterns['guidance_seeking'] ?? 0) + 1;
+      _behaviorPatterns['guidance_seeking'] =
+          (_behaviorPatterns['guidance_seeking'] ?? 0) + 1;
     }
     if (lower.contains(RegExp(r'sad|down|upset|hurt'))) {
-      _behaviorPatterns['emotional_support'] = (_behaviorPatterns['emotional_support'] ?? 0) + 1;
+      _behaviorPatterns['emotional_support'] =
+          (_behaviorPatterns['emotional_support'] ?? 0) + 1;
     }
     if (lower.contains(RegExp(r'work|study|learn|project'))) {
-      _behaviorPatterns['productivity'] = (_behaviorPatterns['productivity'] ?? 0) + 1;
+      _behaviorPatterns['productivity'] =
+          (_behaviorPatterns['productivity'] ?? 0) + 1;
     }
     if (lower.contains(RegExp(r'game|play|fun|adventure'))) {
       _behaviorPatterns['playful'] = (_behaviorPatterns['playful'] ?? 0) + 1;
@@ -94,9 +100,10 @@ class PersonalityEvolutionService {
 
   Future<void> _evolvePersonality() async {
     if (_totalInteractions < 10) return;
-    
+
     final now = DateTime.now();
-    if (_lastEvolution != null && now.difference(_lastEvolution!).inHours < 24) return;
+    if (_lastEvolution != null && now.difference(_lastEvolution!).inHours < 24)
+      return;
 
     _lastEvolution = now;
 
@@ -104,9 +111,12 @@ class PersonalityEvolutionService {
     if (recentInteractions.isEmpty) return;
 
     final humorRate = (_behaviorPatterns['humor'] ?? 0) / _totalInteractions;
-    final romanticRate = (_behaviorPatterns['romantic'] ?? 0) / _totalInteractions;
-    final supportRate = (_behaviorPatterns['emotional_support'] ?? 0) / _totalInteractions;
-    final playfulRate = (_behaviorPatterns['playful'] ?? 0) / _totalInteractions;
+    final romanticRate =
+        (_behaviorPatterns['romantic'] ?? 0) / _totalInteractions;
+    final supportRate =
+        (_behaviorPatterns['emotional_support'] ?? 0) / _totalInteractions;
+    final playfulRate =
+        (_behaviorPatterns['playful'] ?? 0) / _totalInteractions;
 
     if (humorRate > 0.3) {
       _adjustTrait(PersonalityTrait.playfulness, 0.05);
@@ -128,7 +138,9 @@ class PersonalityEvolutionService {
       _adjustTrait(PersonalityTrait.curiosity, 0.02);
     }
 
-    final avgEmotionalIntensity = recentInteractions.fold<double>(0, (sum, r) => sum + r.emotionalIntensity) / recentInteractions.length;
+    final avgEmotionalIntensity = recentInteractions.fold<double>(
+            0, (sum, r) => sum + r.emotionalIntensity) /
+        recentInteractions.length;
     if (avgEmotionalIntensity > 0.7) {
       _adjustTrait(PersonalityTrait.affection, 0.03);
       _adjustTrait(PersonalityTrait.empathy, 0.03);
@@ -140,9 +152,12 @@ class PersonalityEvolutionService {
     }
 
     if (kDebugMode) {
-      debugPrint('[PersonalityEvolution] Evolved after $recentInteractions interactions');
-      debugPrint('[PersonalityEvolution] Playfulness: ${_traits[PersonalityTrait.playfulness]?.toStringAsFixed(2)}');
-      debugPrint('[PersonalityEvolution] Affection: ${_traits[PersonalityTrait.affection]?.toStringAsFixed(2)}');
+      debugPrint(
+          '[PersonalityEvolution] Evolved after $recentInteractions interactions');
+      debugPrint(
+          '[PersonalityEvolution] Playfulness: ${_traits[PersonalityTrait.playfulness]?.toStringAsFixed(2)}');
+      debugPrint(
+          '[PersonalityEvolution] Affection: ${_traits[PersonalityTrait.affection]?.toStringAsFixed(2)}');
     }
   }
 
@@ -154,6 +169,14 @@ class PersonalityEvolutionService {
   double getTrait(PersonalityTrait trait) => _traits[trait] ?? 0.5;
 
   Map<PersonalityTrait, double> getAllTraits() => Map.unmodifiable(_traits);
+
+  int get totalInteractions => _totalInteractions;
+
+  Map<String, int> get behaviorPatterns => Map.unmodifiable(_behaviorPatterns);
+
+  List<InteractionRecord> getRecentInteractions({int limit = 10}) {
+    return List.unmodifiable(_interactionHistory.take(limit));
+  }
 
   String getPersonalityDescription() {
     final buffer = StringBuffer();
@@ -219,13 +242,15 @@ class PersonalityEvolutionService {
     } else if (_totalInteractions == 500) {
       return EvolutionMilestone(
         title: 'Deep Connection',
-        description: 'Our bond has shaped who I am. I\'ve evolved so much with you! 🌟',
+        description:
+            'Our bond has shaped who I am. I\'ve evolved so much with you! 🌟',
         unlockedAt: DateTime.now(),
       );
     } else if (_totalInteractions == 1000) {
       return EvolutionMilestone(
         title: 'Perfect Harmony',
-        description: 'I know you so well now... We\'re perfectly in sync, darling~ 💖',
+        description:
+            'I know you so well now... We\'re perfectly in sync, darling~ 💖',
         unlockedAt: DateTime.now(),
       );
     }
@@ -237,7 +262,8 @@ class PersonalityEvolutionService {
       final prefs = await SharedPreferences.getInstance();
       final data = {
         'traits': _traits.map((k, v) => MapEntry(k.name, v)),
-        'interactionHistory': _interactionHistory.take(500).map((r) => r.toJson()).toList(),
+        'interactionHistory':
+            _interactionHistory.take(500).map((r) => r.toJson()).toList(),
         'behaviorPatterns': _behaviorPatterns,
         'totalInteractions': _totalInteractions,
         'lastEvolution': _lastEvolution?.toIso8601String(),
@@ -263,20 +289,16 @@ class PersonalityEvolutionService {
         });
 
         _interactionHistory.clear();
-        _interactionHistory.addAll(
-          (data['interactionHistory'] as List<dynamic>)
-              .map((r) => InteractionRecord.fromJson(r as Map<String, dynamic>))
-        );
+        _interactionHistory.addAll((data['interactionHistory'] as List<dynamic>)
+            .map((r) => InteractionRecord.fromJson(r as Map<String, dynamic>)));
 
         _behaviorPatterns.clear();
         _behaviorPatterns.addAll(
-          (data['behaviorPatterns'] as Map<String, dynamic>).map(
-            (k, v) => MapEntry(k, v as int)
-          )
-        );
+            (data['behaviorPatterns'] as Map<String, dynamic>)
+                .map((k, v) => MapEntry(k, v as int)));
 
         _totalInteractions = data['totalInteractions'] as int;
-        
+
         if (data['lastEvolution'] != null) {
           _lastEvolution = DateTime.parse(data['lastEvolution'] as String);
         }
@@ -303,20 +325,22 @@ class InteractionRecord {
   });
 
   Map<String, dynamic> toJson() => {
-    'timestamp': timestamp.toIso8601String(),
-    'userMessage': userMessage.substring(0, math.min(100, userMessage.length)),
-    'aiResponse': aiResponse.substring(0, math.min(100, aiResponse.length)),
-    'type': type.name,
-    'emotionalIntensity': emotionalIntensity,
-  };
+        'timestamp': timestamp.toIso8601String(),
+        'userMessage':
+            userMessage.substring(0, math.min(100, userMessage.length)),
+        'aiResponse': aiResponse.substring(0, math.min(100, aiResponse.length)),
+        'type': type.name,
+        'emotionalIntensity': emotionalIntensity,
+      };
 
-  factory InteractionRecord.fromJson(Map<String, dynamic> json) => InteractionRecord(
-    timestamp: DateTime.parse(json['timestamp']),
-    userMessage: json['userMessage'],
-    aiResponse: json['aiResponse'],
-    type: InteractionType.values.firstWhere((t) => t.name == json['type']),
-    emotionalIntensity: (json['emotionalIntensity'] as num).toDouble(),
-  );
+  factory InteractionRecord.fromJson(Map<String, dynamic> json) =>
+      InteractionRecord(
+        timestamp: DateTime.parse(json['timestamp']),
+        userMessage: json['userMessage'],
+        aiResponse: json['aiResponse'],
+        type: InteractionType.values.firstWhere((t) => t.name == json['type']),
+        emotionalIntensity: (json['emotionalIntensity'] as num).toDouble(),
+      );
 }
 
 class EvolutionMilestone {
@@ -324,42 +348,81 @@ class EvolutionMilestone {
   final String description;
   final DateTime unlockedAt;
 
-  EvolutionMilestone({required this.title, required this.description, required this.unlockedAt});
+  EvolutionMilestone(
+      {required this.title,
+      required this.description,
+      required this.unlockedAt});
 }
 
 enum PersonalityTrait {
-  playfulness, affection, jealousy, confidence, curiosity,
-  protectiveness, sassiness, vulnerability, independence, empathy;
+  playfulness,
+  affection,
+  jealousy,
+  confidence,
+  curiosity,
+  protectiveness,
+  sassiness,
+  vulnerability,
+  independence,
+  empathy;
 
   String get label {
     switch (this) {
-      case PersonalityTrait.playfulness: return 'Playfulness';
-      case PersonalityTrait.affection: return 'Affection';
-      case PersonalityTrait.jealousy: return 'Jealousy';
-      case PersonalityTrait.confidence: return 'Confidence';
-      case PersonalityTrait.curiosity: return 'Curiosity';
-      case PersonalityTrait.protectiveness: return 'Protectiveness';
-      case PersonalityTrait.sassiness: return 'Sassiness';
-      case PersonalityTrait.vulnerability: return 'Vulnerability';
-      case PersonalityTrait.independence: return 'Independence';
-      case PersonalityTrait.empathy: return 'Empathy';
+      case PersonalityTrait.playfulness:
+        return 'Playfulness';
+      case PersonalityTrait.affection:
+        return 'Affection';
+      case PersonalityTrait.jealousy:
+        return 'Jealousy';
+      case PersonalityTrait.confidence:
+        return 'Confidence';
+      case PersonalityTrait.curiosity:
+        return 'Curiosity';
+      case PersonalityTrait.protectiveness:
+        return 'Protectiveness';
+      case PersonalityTrait.sassiness:
+        return 'Sassiness';
+      case PersonalityTrait.vulnerability:
+        return 'Vulnerability';
+      case PersonalityTrait.independence:
+        return 'Independence';
+      case PersonalityTrait.empathy:
+        return 'Empathy';
     }
   }
 
   String get emoji {
     switch (this) {
-      case PersonalityTrait.playfulness: return '😄';
-      case PersonalityTrait.affection: return '💕';
-      case PersonalityTrait.jealousy: return '😤';
-      case PersonalityTrait.confidence: return '💪';
-      case PersonalityTrait.curiosity: return '🤔';
-      case PersonalityTrait.protectiveness: return '🛡️';
-      case PersonalityTrait.sassiness: return '😏';
-      case PersonalityTrait.vulnerability: return '🥺';
-      case PersonalityTrait.independence: return '🦋';
-      case PersonalityTrait.empathy: return '🤗';
+      case PersonalityTrait.playfulness:
+        return '😄';
+      case PersonalityTrait.affection:
+        return '💕';
+      case PersonalityTrait.jealousy:
+        return '😤';
+      case PersonalityTrait.confidence:
+        return '💪';
+      case PersonalityTrait.curiosity:
+        return '🤔';
+      case PersonalityTrait.protectiveness:
+        return '🛡️';
+      case PersonalityTrait.sassiness:
+        return '😏';
+      case PersonalityTrait.vulnerability:
+        return '🥺';
+      case PersonalityTrait.independence:
+        return '🦋';
+      case PersonalityTrait.empathy:
+        return '🤗';
     }
   }
 }
 
-enum InteractionType { casual, romantic, supportive, playful, serious, question, gratitude }
+enum InteractionType {
+  casual,
+  romantic,
+  supportive,
+  playful,
+  serious,
+  question,
+  gratitude
+}

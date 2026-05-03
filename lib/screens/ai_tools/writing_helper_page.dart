@@ -106,7 +106,7 @@ class _WritingHelperPageState extends State<WritingHelperPage>
       if (!mounted) return;
       setState(() => _result = 'Quill slipped, Darling~ Try again!');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

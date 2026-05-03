@@ -344,8 +344,7 @@ class AcademicResearchService {
           .add('Great progress! Your research project looks well-developed.');
     }
 
-    return '📋 Research Recommendations:\n' +
-        recommendations.map((r) => '• $r').join('\n');
+    return '📋 Research Recommendations:\n${recommendations.map((r) => '• $r').join('\n')}';
   }
 
   String _getProjectTitle(String projectId) {

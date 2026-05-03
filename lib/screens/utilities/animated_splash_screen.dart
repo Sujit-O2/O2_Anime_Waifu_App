@@ -150,54 +150,61 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Container(
-                        width: 110,
-                        height: 110,
+                        width: 160,
+                        height: 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: V2Theme.primaryGradient,
                           boxShadow: <BoxShadow>[
                             BoxShadow(
-                              color: V2Theme.primaryColor.withValues(alpha: 0.4),
-                              blurRadius: 30,
-                              spreadRadius: 5,
+                              color: V2Theme.primaryColor.withValues(alpha: 0.55),
+                              blurRadius: 40,
+                              spreadRadius: 8,
+                            ),
+                            BoxShadow(
+                              color: const Color(0xFF00D1FF).withValues(alpha: 0.25),
+                              blurRadius: 60,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.favorite_rounded,
-                            color: Colors.white,
-                            size: 48,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/img/front.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(Icons.favorite_rounded,
+                                  color: Colors.white, size: 64),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       Transform.translate(
                         offset: Offset(0, _textSlide.value),
                         child: ShaderMask(
                           shaderCallback: (Rect bounds) =>
                               V2Theme.primaryGradient.createShader(bounds),
                           child: const Text(
-                            'Anime Waifu',
+                            'O2-WAIFU',
                             style: TextStyle(
-                              fontSize: 32,
+                              fontSize: 36,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
-                              letterSpacing: 2,
+                              letterSpacing: 4,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Transform.translate(
                         offset: Offset(0, _textSlide.value),
                         child: Text(
-                          'Your companion in every arc ✨',
+                          'Neural Companion Framework',
                           style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 14,
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            letterSpacing: 0.5,
+                            letterSpacing: 2.5,
                           ),
                         ),
                       ),
@@ -219,21 +226,25 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                 child: Column(
                   children: [
                     SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: V2Theme.primaryColor.withValues(alpha: 0.6),
+                      width: 56,
+                      height: 56,
+                      child: Image.asset(
+                        'assets/gif/add_incircular_mode_app_oppening style.gif',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: V2Theme.primaryColor.withValues(alpha: 0.6),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Loading your world...',
+                      'INITIALIZING NEURAL CORE...',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        fontSize: 11,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.35),
+                        fontSize: 10,
+                        letterSpacing: 2.5,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

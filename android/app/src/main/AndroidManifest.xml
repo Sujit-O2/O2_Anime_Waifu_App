@@ -110,7 +110,6 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"
-            android:launchMode="singleTask"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="com.example.anime_waifu.ACTION_ASSISTANT_POPUP_SHORTCUT" />
@@ -276,6 +275,16 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/waifu_widget_info" />
+        </receiver>
+
+        <!-- android_alarm_manager_plus: RebootBroadcastReceiver for alarm scheduling -->
+        <receiver
+            android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
         </receiver>
     </application>
 

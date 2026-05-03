@@ -142,7 +142,7 @@ class _ConversationSummaryPageState extends State<ConversationSummaryPage>
       setState(
           () => _summary = 'Something went wrong, Darling~ Please try again!');
     } finally {
-      setState(() {
+      if (mounted) setState(() {
         _loading = false;
         _shimmer = false;
       });

@@ -500,7 +500,7 @@ class _MeditationGuidePageState extends State<MeditationGuidePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.stop_circle_rounded,
+                      const Icon(Icons.stop_circle_rounded,
                           color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text('End Session',
@@ -519,7 +519,7 @@ class _MeditationGuidePageState extends State<MeditationGuidePage> {
         const SizedBox(height: 20),
 
         // Waifu commentary with better spacing
-        WaifuCommentary(mood: 'peaceful'),
+        const WaifuCommentary(mood: 'peaceful'),
       ],
     );
   }

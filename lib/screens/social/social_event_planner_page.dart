@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/social/social_event_planner_service.dart';
 
@@ -23,7 +24,7 @@ class _SocialEventPlannerPageState extends State<SocialEventPlannerPage> with Si
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

@@ -50,3 +50,6 @@ app.*.map.json
 .vs/
 # Misc
 .metadata
+
+# Claude
+.claude/

@@ -538,8 +538,7 @@ class GameMasterService {
                 ? 'Experienced Players'
                 : 'Veterans Only';
 
-    return '🎲 Campaign Ideas (${genre.name} - $difficultyMod, $playerCount players):\n' +
-        ideas.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n');
+    return '🎲 Campaign Ideas (${genre.name} - $difficultyMod, $playerCount players):\n${ideas.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n')}';
   }
 
   String getGMAdvice() {
@@ -556,7 +555,7 @@ class GameMasterService {
       '✨ Make failure interesting, not just frustrating',
     ];
 
-    return '🎮 Game Master Advice:\n' + advice.map((a) => '• $a').join('\n');
+    return '🎮 Game Master Advice:\n${advice.map((a) => '• $a').join('\n')}';
   }
 
   String getCampaignInsights() {
@@ -586,6 +585,14 @@ class GameMasterService {
     }
 
     return buffer.toString();
+  }
+
+  List<RPGCampaign> getCampaigns() => List.unmodifiable(_campaigns);
+
+  List<NPC> getNpcs({String? campaignId}) {
+    if (campaignId == null) return List.unmodifiable(_npcs);
+    return List.unmodifiable(
+        _npcs.where((npc) => npc.campaignId == campaignId));
   }
 
   Future<void> _saveData() async {

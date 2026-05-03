@@ -283,10 +283,23 @@ class _AiDebugPanelPageState extends State<AiDebugPanelPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: WaifuBackground(
-        opacity: 0.07,
-        tint: const Color(0xFF080C14),
-        child: SafeArea(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.10,
+              child: Image.asset(
+                'assets/gif/debug_area.gif',
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          WaifuBackground(
+            opacity: 0.07,
+            tint: const Color(0xFF080C14),
+            child: SafeArea(
           child: FadeTransition(
             opacity: _fadeCtrl,
             child: Column(children: [
@@ -382,6 +395,8 @@ class _AiDebugPanelPageState extends State<AiDebugPanelPage>
             ]),
           ),
         ),
+      ),
+        ],
       ),
     );
   }

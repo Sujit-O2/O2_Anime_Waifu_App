@@ -329,7 +329,7 @@ class DebateCriticalThinkingService {
       '🎯 Focus on what can be known, not just what is believed',
     ];
 
-    return '🧠 Critical Thinking Tips:\n' + tips.map((t) => '• $t').join('\n');
+    return '🧠 Critical Thinking Tips:\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getDebateInsights() {
@@ -365,6 +365,14 @@ class DebateCriticalThinkingService {
     }
 
     return buffer.toString();
+  }
+
+  List<DebateTopic> getTopics() => List.unmodifiable(_topics);
+
+  List<Argument> getArguments({String? topicId}) {
+    if (topicId == null) return List.unmodifiable(_arguments);
+    return List.unmodifiable(
+        _arguments.where((argument) => argument.topicId == topicId));
   }
 
   Future<void> _saveData() async {

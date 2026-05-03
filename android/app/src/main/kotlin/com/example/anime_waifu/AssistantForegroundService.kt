@@ -232,6 +232,19 @@ class AssistantForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val forceBackgroundWake = intent?.getBooleanExtra("FORCE_BACKGROUND_WAKE", false) ?: false
         val action = intent?.action
+        if (action == "ACTION_SHOW_OVERLAY") {
+            Log.d("AssistantFGS", "ACTION_SHOW_OVERLAY received, isRunning=$isRunning")
+            if (!isRunning) { ensureForegroundStarted(); isRunning = true }
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                AssistantOverlayController.showNow(
+                    this@AssistantForegroundService,
+                    status = "Zero Two",
+                    transcript = "How can I help?",
+                    autoHideMs = 300_000L
+                )
+            }
+            return START_STICKY
+        }
         if (action == "SET_PROACTIVE_MODE") {
             // Ensure service is promoted and marked running even when this action
             // is the first entry-point (e.g. process/service recreation).
@@ -308,8 +321,7 @@ class AssistantForegroundService : Service() {
                     showWakeAlert("Type a command to continue.", pulse = true)
                     return START_STICKY
                 }
-                // Typed popup input should stay text-only (no TTS playback).
-                handleVoiceCommand(overlayText, speakReply = false)
+                handleVoiceCommand(overlayText, speakReply = true)
                 return START_STICKY
             }
 
@@ -569,20 +581,31 @@ class AssistantForegroundService : Service() {
 
     private fun buildNotification(): Notification {
         val pendingIntent = buildLaunchPendingIntent(0)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg)
+        val largeBitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Zero Two Assistant")
-            .setContentText("Watching over you in background")
-            .setSubText("Background service")
+            .setContentTitle("✨ Zero Two — Always With You")
+            .setContentText("Your darling is watching over you~ 💗")
+            .setSubText("O2-WAIFU Active")
             .setSmallIcon(R.drawable.ic_stat_waifu)
-            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
+            .setLargeIcon(largeBitmap)
+            .setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
+                    .setBigContentTitle("✨ Zero Two is here~")
+                    .setSummaryText("Tap to chat with your darling 💗")
+            )
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .setColor(0xFFFF5252.toInt())
+            .setColor(0xFFFF4081.toInt())
+            .setColorized(true)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
     }
     private fun getNextDelayMs(): Long {
@@ -679,15 +702,17 @@ class AssistantForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(random.nextInt())
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg2)
 
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
-            .setContentTitle("Zero Two misses you~")
+            .setContentTitle("💗 Zero Two misses you~")
             .setContentText(content)
             .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("Zero Two says:")
-                    .bigText(content)
-                    .setSummaryText("Tap to chat with Zero Two")
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
+                    .setBigContentTitle("💗 Zero Two says:")
+                    .setSummaryText(content)
             )
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)
@@ -703,7 +728,7 @@ class AssistantForegroundService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.sym_action_chat,
-                "Reply",
+                "💬 Reply",
                 pendingIntent
             )
             .addAction(
@@ -717,13 +742,6 @@ class AssistantForegroundService : Service() {
     }
 
     private fun showWakeAlert(content: String, pulse: Boolean) {
-        // Never show popup/notification when the app is open and in foreground
-        if (isAppInForeground()) {
-            // App is visible — just update the persistent notification silently
-            updateNotification(content)
-            return
-        }
-
         val wakePrompt = isWakePrompt(content)
         val shouldPulse = if (wakePrompt) {
             pulse && isSoundOnWakeEnabled()
@@ -731,14 +749,20 @@ class AssistantForegroundService : Service() {
             pulse
         }
         val popupEnabled = isWakePopupEnabled()
-        val shouldShowPopup = popupEnabled && (wakePrompt || shouldPulse)
-        if (shouldShowPopup) {
+        // Always show overlay if popup is enabled — even when app is in foreground
+        if (popupEnabled) {
             AssistantOverlayController.show(
                 applicationContext,
                 status = "Zero Two",
                 transcript = content,
                 autoHideMs = 300_000L
             )
+        }
+
+        // Skip notification when app is in foreground (overlay handles it)
+        if (isAppInForeground()) {
+            updateNotification(content)
+            return
         }
 
         val popupVisible = AssistantOverlayController.isShowing()
@@ -750,6 +774,7 @@ class AssistantForegroundService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val pendingIntent = buildLaunchPendingIntent(WAKE_EVENT_NOTIFICATION_ID)
         val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        val bgBitmap = BitmapFactory.decodeResource(resources, R.drawable.zt_bg3)
         val wakeChannel = if (wakePrompt) {
             WAKE_VIBRATE_CHANNEL_ID
         } else {
@@ -760,10 +785,11 @@ class AssistantForegroundService : Service() {
             .setContentTitle("🎤 Zero Two is listening~")
             .setContentText(content)
             .setStyle(
-                NotificationCompat.BigTextStyle()
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bgBitmap)
+                    .bigLargeIcon(null as android.graphics.Bitmap?)
                     .setBigContentTitle("🎤 Zero Two heard you~")
-                    .bigText(content)
-                    .setSummaryText("Tap to open O2-WAIFU")
+                    .setSummaryText(content)
             )
             .setSmallIcon(R.drawable.ic_stat_waifu)
             .setLargeIcon(largeIcon)

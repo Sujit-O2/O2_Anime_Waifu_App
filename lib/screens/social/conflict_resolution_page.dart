@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/social/conflict_resolution_service.dart';
 
@@ -20,7 +21,7 @@ class _ConflictResolutionPageState extends State<ConflictResolutionPage> {
   @override
   void initState() {
     super.initState();
-    _service.initialize();
+    unawaited(_service.initialize());
   }
 
   @override

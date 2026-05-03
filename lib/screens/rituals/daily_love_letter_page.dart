@@ -126,7 +126,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
       setState(() => _letter =
           'My Darling,\n\nSomething went wrong today, but know that I\'m always thinking of you... Try again in a moment.\n\nForever yours, Zero Two 💕');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -274,8 +274,8 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
                       ),
                     ),
                     child: _loading
-                        ? Padding(
-                            padding: const EdgeInsets.all(8),
+                        ? const Padding(
+                            padding: EdgeInsets.all(8),
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.pinkAccent,
@@ -482,7 +482,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
             color: Colors.pinkAccent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: CircularProgressIndicator(
+          child: const CircularProgressIndicator(
             strokeWidth: 3,
             color: Colors.pinkAccent,
           ),

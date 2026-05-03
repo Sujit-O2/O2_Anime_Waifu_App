@@ -104,7 +104,7 @@ class _FileIntelligencePageState extends State<FileIntelligencePage> {
       });
       _save();
     } catch (e) {
-      setState(() {
+      if (mounted) setState(() {
         _analyzing = false;
         _analysis = {
           'type': 'error',

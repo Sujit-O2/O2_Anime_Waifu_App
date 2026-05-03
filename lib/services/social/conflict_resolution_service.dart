@@ -308,7 +308,7 @@ class ConflictResolutionService {
       '🌟 Find something to agree with',
     ];
 
-    return '🕊️ De-escalation Techniques:\n' + techniques.join('\n');
+    return '🕊️ De-escalation Techniques:\n${techniques.join('\n')}';
   }
 
   String getActiveListeningPrompts() {
@@ -323,7 +323,7 @@ class ConflictResolutionService {
       '"What would help right now?"',
     ];
 
-    return '👂 Active Listening Prompts:\n' + prompts.join('\n');
+    return '👂 Active Listening Prompts:\n${prompts.join('\n')}';
   }
 
   String getIStatementTemplate() {

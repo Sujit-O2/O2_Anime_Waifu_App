@@ -52,7 +52,7 @@ class _PluginSystemPageState extends State<PluginSystemPage>
       if (!mounted) return;
       setState(() => _plugins = [..._builtInPlugins, ...userPlugins]);
     } catch (_) {
-      setState(() => _plugins = [..._builtInPlugins]);
+      if (mounted) setState(() => _plugins = [..._builtInPlugins]);
     }
   }
 

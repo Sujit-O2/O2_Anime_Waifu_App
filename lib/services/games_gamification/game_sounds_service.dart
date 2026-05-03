@@ -345,14 +345,17 @@ class GameSoundsService {
     }
   }
 
-  /// Internal: Try to play audio asset with fallback
+  /// Internal: Try to play audio asset with fallback (.mp3 then .wav)
   Future<void> _tryPlay(String name) async {
     if (!_soundEnabled) return;
     try {
       await _player.play(AssetSource('sounds/$name.mp3'));
-    } catch (e) {
-      if (kDebugMode) debugPrint('[GameSounds] Failed to play $name: $e');
-      // Silently fail — haptic feedback already provided
+    } catch (e1) {
+      try {
+        await _player.play(AssetSource('sounds/$name.wav'));
+      } catch (e2) {
+        if (kDebugMode) debugPrint('[GameSounds] Failed to play $name: $e2');
+      }
     }
   }
 
@@ -372,62 +375,52 @@ class GameSoundsService {
     await _player.stop();
   }
 
-  /// Preload sounds for faster playback
-  Future<void> preloadSounds() async {
-    const sounds = [
-      'tap',
-      'correct',
-      'wrong',
-      'spin',
-      'reveal',
-      'battle_hit',
-      'enemy_attack',
-      'critical_hit',
-      'battle_victory',
-      'battle_defeat',
-      'block',
-      'special_ability',
-      'magic',
-      'achievement_unlocked',
-      'level_up',
-      'reward_collect',
-      'treasure_found',
-      'gacha_pull',
-      'gacha_legendary',
-      'event_start',
-      'event_complete',
-      'battle_pass_tier',
-      'tournament_start',
-      'tournament_win',
-      'tournament_champion',
-      'rank_up',
-      'guild_war_start',
-      'guild_war_victory',
-      'guild_member_joined',
-      'treasury_deposit',
-      'guild_perk_unlocked',
-      'raid_start',
-      'raid_boss_appear',
-      'raid_complete',
-      'raid_treasure',
-      'mini_game_win',
-      'mini_game_lose',
-      'mini_game_round',
-      'combo',
-      'combo_burst',
-      'streak_bonus',
-      'alert',
-      'notification',
-      'affection_increase',
-      'affection_decrease',
-    ];
-    for (final sound in sounds) {
-      try {
-        await _player.play(AssetSource('sounds/$sound.mp3'));
-        await _player.stop();
-      } catch (_) {
-        // Preload failed for this sound, skip
+   /// Preload sounds for faster playback
+   Future<void> preloadSounds() async {
+     const sounds = [
+       'tap',
+       'correct',
+       'wrong',
+       'spin',
+       'reveal',
+       'battle_hit',
+       'enemy_attack',
+       'critical_hit',
+       'battle_victory',
+       'battle_defeat',
+       'block',
+       'special_ability',
+       'magic',
+       'achievement_unlocked',
+       'level_up',
+       'raid_boss_appear',
+       'raid_complete',
+       'raid_treasure',
+       'mini_game_win',
+       'mini_game_lose',
+       'mini_game_round',
+       'combo',
+       'combo_burst',
+       'streak_bonus',
+       'alert',
+       'notification',
+       'affection_increase',
+       'affection_decrease',
+     ];
+      for (final sound in sounds) {
+        // Try .wav first
+        try {
+          await _player.play(AssetSource('sounds/$sound.wav'));
+          await _player.stop();
+        } catch (_) {
+          // Try .mp3 fallback
+          try {
+            await _player.play(AssetSource('sounds/$sound.mp3'));
+            await _player.stop();
+          } catch (_) {
+            // Preload failed for this sound, skip
+          }
+        }
       }
     }
-  }
 }

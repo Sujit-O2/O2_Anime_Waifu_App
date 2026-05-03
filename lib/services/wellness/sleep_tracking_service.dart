@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 😴 Sleep Tracking & Analysis Service
-/// 
-/// Integrates with device sensors to monitor sleep patterns and provide 
+///
+/// Integrates with device sensors to monitor sleep patterns and provide
 /// personalized sleep recommendations.
 class SleepTrackingService {
   SleepTrackingService._();
@@ -14,16 +14,18 @@ class SleepTrackingService {
   final Map<String, dynamic> _sleepData = {};
   final List<SleepSession> _sleepHistory = [];
   final Map<String, double> _sleepScores = {};
-  
+
   int _totalNightsTracked = 0;
   DateTime? _lastAnalysis;
-  
+
   static const String _storageKey = 'sleep_tracking_v1';
   static const int _maxHistory = 180; // 6 months of data
 
   Future<void> initialize() async {
     await _loadData();
-    if (kDebugMode) debugPrint('[SleepTracking] Initialized with $_totalNightsTracked nights tracked');
+    if (kDebugMode)
+      debugPrint(
+          '[SleepTracking] Initialized with $_totalNightsTracked nights tracked');
   }
 
   Future<void> startSleepTracking() async {
@@ -31,17 +33,17 @@ class SleepTrackingService {
     // For now, we'll simulate the start of a sleep session
     _sleepData['startTime'] = DateTime.now().toIso8601String();
     _sleepData['isTracking'] = true;
-    
+
     if (kDebugMode) debugPrint('[SleepTracking] Sleep tracking started');
   }
 
   Future<void> stopSleepTracking({required double sleepQuality}) async {
     if (!_sleepData['isTracking']) return;
-    
+
     final endTime = DateTime.now();
     final startTime = DateTime.parse(_sleepData['startTime']);
     final durationInHours = endTime.difference(startTime).inMinutes / 60;
-    
+
     final session = SleepSession(
       startTime: startTime,
       endTime: endTime,
@@ -51,23 +53,24 @@ class SleepTrackingService {
       deepSleepPercentage: _calculateDeepSleepPercentage(sleepQuality),
       awakeCount: _calculateAwakeCount(sleepQuality),
     );
-    
+
     _sleepHistory.insert(0, session);
     if (_sleepHistory.length > _maxHistory) {
       _sleepHistory.removeLast();
     }
-    
+
     _totalNightsTracked++;
     _sleepScores[endTime.toIso8601String().substring(0, 10)] = sleepQuality;
     _lastAnalysis = endTime;
-    
+
     _sleepData.clear();
     _sleepData['isTracking'] = false;
-    
+
     await _saveData();
-    
+
     if (kDebugMode) {
-      debugPrint('[SleepTracking] Sleep session recorded: ${durationInHours.toStringAsFixed(1)}h, Quality: $sleepQuality/10');
+      debugPrint(
+          '[SleepTracking] Sleep session recorded: ${durationInHours.toStringAsFixed(1)}h, Quality: $sleepQuality/10');
     }
   }
 
@@ -88,55 +91,71 @@ class SleepTrackingService {
 
   String getSleepInsights() {
     if (_sleepHistory.isEmpty) {
-      return "Start tracking your sleep to get personalized insights!";
+      return 'Start tracking your sleep to get personalized insights!';
     }
 
     final recentSessions = _sleepHistory.take(7).toList();
-    final avgDuration = recentSessions.fold<double>(0, (sum, s) => sum + s.durationHours) / recentSessions.length;
-    final avgQuality = recentSessions.fold<double>(0, (sum, s) => sum + s.sleepQuality) / recentSessions.length;
-    
+    final avgDuration =
+        recentSessions.fold<double>(0, (sum, s) => sum + s.durationHours) /
+            recentSessions.length;
+    final avgQuality =
+        recentSessions.fold<double>(0, (sum, s) => sum + s.sleepQuality) /
+            recentSessions.length;
+
     final buffer = StringBuffer();
     buffer.writeln('😴 Sleep Insights (Last 7 nights):');
-    buffer.writeln('• Average Duration: ${avgDuration.toStringAsFixed(1)} hours');
+    buffer
+        .writeln('• Average Duration: ${avgDuration.toStringAsFixed(1)} hours');
     buffer.writeln('• Average Quality: ${avgQuality.toStringAsFixed(1)}/10');
-    
+
     if (avgDuration < 7) {
-      buffer.writeln('💡 Try to get at least 7-8 hours of sleep for optimal recovery.');
+      buffer.writeln(
+          '💡 Try to get at least 7-8 hours of sleep for optimal recovery.');
     } else if (avgQuality < 6) {
-      buffer.writeln('💡 Your sleep quality could improve. Consider a consistent bedtime routine.');
+      buffer.writeln(
+          '💡 Your sleep quality could improve. Consider a consistent bedtime routine.');
     } else {
       buffer.writeln('🌟 Great sleep habits! Keep up the consistent routine.');
     }
-    
+
     return buffer.toString();
   }
 
   String getSleepRecommendation() {
-    if (_sleepHistory.isEmpty) return "Track your sleep first to get personalized recommendations.";
-    
+    if (_sleepHistory.isEmpty)
+      return 'Track your sleep first to get personalized recommendations.';
+
     final lastSession = _sleepHistory.first;
     final recommendations = <String>[];
-    
+
     if (lastSession.durationHours < 6) {
-      recommendations.add('Try going to bed earlier to increase sleep duration');
+      recommendations
+          .add('Try going to bed earlier to increase sleep duration');
     }
-    
+
     if (lastSession.sleepQuality < 5) {
       recommendations.add('Consider reducing screen time before bed');
       recommendations.add('Try relaxation techniques like deep breathing');
     }
-    
+
     if (lastSession.awakeCount > 3) {
       recommendations.add('Limit caffeine intake in the afternoon');
       recommendations.add('Ensure your bedroom is cool and dark');
     }
-    
+
     if (recommendations.isEmpty) {
-      recommendations.add('Your sleep looks great! Maintain your current routine');
+      recommendations
+          .add('Your sleep looks great! Maintain your current routine');
     }
-    
+
     return '💤 Sleep Recommendation: ${recommendations.join(' • ')}';
   }
+
+  List<SleepSession> getSessions({int limit = 10}) {
+    return List.unmodifiable(_sleepHistory.take(limit));
+  }
+
+  bool get isTracking => _sleepData['isTracking'] == true;
 
   Future<void> _saveData() async {
     try {
@@ -162,13 +181,12 @@ class SleepTrackingService {
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
 
         _sleepHistory.clear();
-        _sleepHistory.addAll(
-          (data['sleepHistory'] as List<dynamic>)
-              .map((s) => SleepSession.fromJson(s as Map<String, dynamic>))
-        );
+        _sleepHistory.addAll((data['sleepHistory'] as List<dynamic>)
+            .map((s) => SleepSession.fromJson(s as Map<String, dynamic>)));
 
         _totalNightsTracked = data['totalNightsTracked'] as int;
-        final loadedScores = Map<String, double>.from(data['sleepScores'] ?? {});
+        final loadedScores =
+            Map<String, double>.from(data['sleepScores'] ?? {});
         _sleepScores.clear();
         _sleepScores.addAll(loadedScores);
 
@@ -202,22 +220,22 @@ class SleepSession {
   });
 
   Map<String, dynamic> toJson() => {
-    'startTime': startTime.toIso8601String(),
-    'endTime': endTime.toIso8601String(),
-    'durationHours': durationHours,
-    'sleepQuality': sleepQuality,
-    'remPercentage': remPercentage,
-    'deepSleepPercentage': deepSleepPercentage,
-    'awakeCount': awakeCount,
-  };
+        'startTime': startTime.toIso8601String(),
+        'endTime': endTime.toIso8601String(),
+        'durationHours': durationHours,
+        'sleepQuality': sleepQuality,
+        'remPercentage': remPercentage,
+        'deepSleepPercentage': deepSleepPercentage,
+        'awakeCount': awakeCount,
+      };
 
   factory SleepSession.fromJson(Map<String, dynamic> json) => SleepSession(
-    startTime: DateTime.parse(json['startTime']),
-    endTime: DateTime.parse(json['endTime']),
-    durationHours: (json['durationHours'] as num).toDouble(),
-    sleepQuality: (json['sleepQuality'] as num).toDouble(),
-    remPercentage: (json['remPercentage'] as num).toDouble(),
-    deepSleepPercentage: (json['deepSleepPercentage'] as num).toDouble(),
-    awakeCount: (json['awakeCount'] as int),
-  );
+        startTime: DateTime.parse(json['startTime']),
+        endTime: DateTime.parse(json['endTime']),
+        durationHours: (json['durationHours'] as num).toDouble(),
+        sleepQuality: (json['sleepQuality'] as num).toDouble(),
+        remPercentage: (json['remPercentage'] as num).toDouble(),
+        deepSleepPercentage: (json['deepSleepPercentage'] as num).toDouble(),
+        awakeCount: (json['awakeCount'] as int),
+      );
 }

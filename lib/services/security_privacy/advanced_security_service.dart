@@ -214,7 +214,7 @@ class AdvancedSecurityService {
         'severity': severity,
         'timestamp': FieldValue.serverTimestamp(),
         'platform': Platform.operatingSystem,
-        'appVersion': '7.0.2', // Update with actual version
+        'appVersion': '10.0.2', // Update with actual version
       });
     } catch (e) {
       if (kDebugMode) debugPrint('Error logging security alert: $e');

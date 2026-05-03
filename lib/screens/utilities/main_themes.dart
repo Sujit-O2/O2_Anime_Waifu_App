@@ -1,10 +1,9 @@
-import 'dart:ui';
-
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/core/providers/theme_provider.dart';
 import 'package:anime_waifu/main.dart' show themeNotifier;
 import 'package:anime_waifu/services/user_profile/custom_theme_service.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -18,8 +17,7 @@ class ThemesPage extends StatefulWidget {
   State<ThemesPage> createState() => _ThemesPageState();
 }
 
-class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
-  late final AnimationController _pulseCtrl;
+class _ThemesPageState extends State<ThemesPage> {
   final CustomThemeService _customThemeService = CustomThemeService();
 
   static const _themeDescriptions = <AppThemeMode, String>{
@@ -53,16 +51,11 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-    _customThemeService.initialize();
+    unawaited(_customThemeService.initialize());
   }
 
   @override
   void dispose() {
-    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -131,6 +124,8 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
               delegate: SliverChildBuilderDelegate(
                 (ctx, i) => _buildThemeCard(themes[i], currentMode, tp),
                 childCount: themes.length,
+                addAutomaticKeepAlives: false,
+                addRepaintBoundaries: true,
               ),
             ),
           ),
@@ -561,65 +556,59 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
 
-    return AnimatedBuilder(
-      animation: _pulseCtrl,
-      builder: (_, __) {
-        final glowAlpha = 0.2 + (_pulseCtrl.value * 0.15);
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              colors: gradient.take(3).toList(),
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: gradient.take(3).toList(),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: primary.withValues(alpha: 0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: 0.25),
+            blurRadius: 30,
+            spreadRadius: 4,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 36)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('ACTIVE THEME',
+                    style: GoogleFonts.outfit(
+                      color: primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                    )),
+                const SizedBox(height: 2),
+                Text(name,
+                    style: GoogleFonts.outfit(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    )),
+                const SizedBox(height: 4),
+                Text(_themeDescriptions[mode] ?? '',
+                    style: GoogleFonts.outfit(
+                      color: tokens.textMuted,
+                      fontSize: 11,
+                      height: 1.3,
+                    )),
+              ],
             ),
-            border: Border.all(color: primary.withValues(alpha: 0.5), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: primary.withValues(alpha: glowAlpha),
-                blurRadius: 30,
-                spreadRadius: 4,
-              ),
-            ],
           ),
-          child: Row(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 36)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('ACTIVE THEME',
-                        style: GoogleFonts.outfit(
-                          color: primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                        )),
-                    const SizedBox(height: 2),
-                    Text(name,
-                        style: GoogleFonts.outfit(
-                          color: theme.colorScheme.onSurface,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                        )),
-                    const SizedBox(height: 4),
-                    Text(_themeDescriptions[mode] ?? '',
-                        style: GoogleFonts.outfit(
-                          color: tokens.textMuted,
-                          fontSize: 11,
-                          height: 1.3,
-                        )),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -638,12 +627,13 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
 
-    return GestureDetector(
-      onTap: () async {
-        await tp.setMode(mode);
-        themeNotifier.value = mode;
-      },
-      child: AnimatedContainer(
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () async {
+          await tp.setMode(mode);
+          themeNotifier.value = mode;
+        },
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
@@ -685,17 +675,6 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
         ),
         child: Stack(
           children: [
-            // Gradient overlay
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(19),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
-                  child: Container(color: Colors.transparent),
-                ),
-              ),
-            ),
-
             // Content
             Padding(
               padding: const EdgeInsets.all(14),
@@ -813,6 +792,7 @@ class _ThemesPageState extends State<ThemesPage> with TickerProviderStateMixin {
           ],
         ),
       ),
+    )
     );
   }
 

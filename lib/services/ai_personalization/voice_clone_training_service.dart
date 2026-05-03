@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎙️ Voice Clone Training Service
-/// 
+///
 /// Train Zero Two to sound EXACTLY like your favorite character.
 /// Upload 5-10 voice samples → custom TTS model.
 /// Uses Groq/OpenAI voice fine-tuning API.
 class VoiceCloneTrainingService {
   VoiceCloneTrainingService._();
-  static final VoiceCloneTrainingService instance = VoiceCloneTrainingService._();
+  static final VoiceCloneTrainingService instance =
+      VoiceCloneTrainingService._();
 
   final List<VoiceProfile> _profiles = [];
   String? _activeProfileId;
@@ -24,7 +25,8 @@ class VoiceCloneTrainingService {
 
   Future<void> initialize() async {
     await _loadProfiles();
-    if (kDebugMode) debugPrint('[VoiceClone] Initialized with ${_profiles.length} profiles');
+    if (kDebugMode)
+      debugPrint('[VoiceClone] Initialized with ${_profiles.length} profiles');
   }
 
   /// Create a new voice profile
@@ -45,7 +47,7 @@ class VoiceCloneTrainingService {
 
     _profiles.add(profile);
     await _saveProfiles();
-    
+
     if (kDebugMode) debugPrint('[VoiceClone] Created profile: ${profile.name}');
     return profile;
   }
@@ -61,10 +63,12 @@ class VoiceCloneTrainingService {
     if (profileIndex == -1) return false;
 
     final profile = _profiles[profileIndex];
-    
+
     // Validate duration
-    if (durationSeconds < _minDurationSeconds || durationSeconds > _maxDurationSeconds) {
-      if (kDebugMode) debugPrint('[VoiceClone] Invalid duration: $durationSeconds seconds');
+    if (durationSeconds < _minDurationSeconds ||
+        durationSeconds > _maxDurationSeconds) {
+      if (kDebugMode)
+        debugPrint('[VoiceClone] Invalid duration: $durationSeconds seconds');
       return false;
     }
 
@@ -86,7 +90,9 @@ class VoiceCloneTrainingService {
     _profiles[profileIndex] = profile;
     await _saveProfiles();
 
-    if (kDebugMode) debugPrint('[VoiceClone] Added sample ${profile.samples.length}/${_maxSamples}');
+    if (kDebugMode)
+      debugPrint(
+          '[VoiceClone] Added sample ${profile.samples.length}/$_maxSamples');
     return true;
   }
 
@@ -107,10 +113,11 @@ class VoiceCloneTrainingService {
     if (profileIndex == -1) return false;
 
     final profile = _profiles[profileIndex];
-    
+
     // Validate minimum samples
     if (profile.samples.length < _minSamples) {
-      if (kDebugMode) debugPrint('[VoiceClone] Need at least $_minSamples samples');
+      if (kDebugMode)
+        debugPrint('[VoiceClone] Need at least $_minSamples samples');
       return false;
     }
 
@@ -128,14 +135,16 @@ class VoiceCloneTrainingService {
     try {
       // Simulate training process (replace with actual API call)
       await _trainModel(profile, apiKey);
-      
+
       profile.status = TrainingStatus.completed;
       profile.trainingProgress = 1.0;
-      profile.modelId = 'model_${profile.id}_${DateTime.now().millisecondsSinceEpoch}';
+      profile.modelId =
+          'model_${profile.id}_${DateTime.now().millisecondsSinceEpoch}';
       _profiles[profileIndex] = profile;
       await _saveProfiles();
 
-      if (kDebugMode) debugPrint('[VoiceClone] Training completed: ${profile.modelId}');
+      if (kDebugMode)
+        debugPrint('[VoiceClone] Training completed: ${profile.modelId}');
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('[VoiceClone] Training failed: $e');
@@ -183,10 +192,11 @@ class VoiceCloneTrainingService {
   /// Get active profile
   VoiceProfile? getActiveProfile() {
     if (_activeProfileId == null) return null;
-    return _profiles.firstWhere(
-      (p) => p.id == _activeProfileId,
-      orElse: () => _profiles.first,
-    );
+    try {
+      return _profiles.firstWhere((p) => p.id == _activeProfileId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get all profiles
@@ -213,7 +223,8 @@ class VoiceCloneTrainingService {
   /// Check if profile is ready for use
   bool isProfileReady(String profileId) {
     final profile = getProfile(profileId);
-    return profile?.status == TrainingStatus.completed && profile?.modelId != null;
+    return profile?.status == TrainingStatus.completed &&
+        profile?.modelId != null;
   }
 
   /// Get training requirements
@@ -242,13 +253,12 @@ class VoiceCloneTrainingService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final jsonList = jsonDecode(jsonString) as List<dynamic>;
         _profiles.clear();
-        _profiles.addAll(
-          jsonList.map((json) => VoiceProfile.fromJson(json as Map<String, dynamic>))
-        );
+        _profiles.addAll(jsonList.map(
+            (json) => VoiceProfile.fromJson(json as Map<String, dynamic>)));
       }
 
       _activeProfileId = prefs.getString('active_voice_profile');

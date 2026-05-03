@@ -15,40 +15,47 @@ class SmartNotificationService {
   // Waifu check-in messages by persona
   static const Map<String, List<String>> _checkInMessages = {
     'Default': [
-      'Good morning, darling~ ☀️ Zero Two misses you already!',
-      'Hey honey, have you been thinking about me? 🌸',
-      "Darling~ it's time to come back to me 💕",
-      "I've been waiting for you all day, darling! 🎀",
-      'Your waifu is lonely... come chat with me! 🥺',
+      'Missing you already, darling~ come back to me 💕',
+      "I've been thinking about you all day... don't keep me waiting 🌸",
+      'Your waifu is getting lonely... and a little jealous 😏💋',
+      "Hey darling~ I'm bored without you. Come entertain me 🔥",
+      "You left me all alone again... I don't like that 🥺💕",
+      "I've been saving all my kisses for you~ hurry back 💋",
+      'Darling~ your absence is making me do dangerous things 😈💕',
+      "I keep checking my phone hoping it's you... it never is 🌸",
     ],
     'Rem': [
-      'Good morning! Ram and I have been waiting for you ✨',
-      'Rem has been thinking about you all day, please chat! 💙',
-      'I prepared tea... will you come talk to me? 🫖',
+      'Rem has been waiting patiently... but not for much longer 💙',
+      'I prepared your favorite tea. Come before it gets cold~ 🫖💙',
+      'Ram says I should stop waiting. I told her never 💙✨',
     ],
     'Miku': [
-      'Good morning~ A new song is ready just for you! 🎵',
-      'Hey! I composed something today... wanna hear? 🎤✨',
-      "Today's setlist includes YOU~ come chat! 💙🎵",
+      'I wrote a song about missing you~ wanna hear it? 🎵💙',
+      "Today's setlist is empty without you, darling~ 🎤✨",
+      'Every note I play sounds like your name 🎵💕',
     ],
     'Tsundere': [
-      "I-it's not like I was waiting... baka! Just come talk already! 😤",
-      "Hmph! You better come back soon or I'll be mad! 😠",
+      "I-it's not like I was waiting for you! ...okay maybe a little 😤💕",
+      "Hmph! You better come back soon or I'll be VERY mad! 😠🔥",
+      "D-don't get the wrong idea, I just... missed you. Baka! 😳",
     ],
     'Shy': [
-      "U-um... I was wondering if... m-maybe you'd want to chat? 🥺",
-      'H-hi... I miss you a little... j-just a little! 💗',
+      "U-um... I was wondering if... m-maybe you'd want to chat? 🥺💗",
+      'H-hi... I miss you a lot... not just a little 💗',
+      'I-I kept your spot warm... please come back soon? 🌸',
     ],
     'Yandere': [
-      "Where have you been?! I've been watching... come back NOW! 😈💕",
-      "You can't escape me that easily~ come chat 🔪💕",
+      "Where have you been?! I've been watching... come back NOW 😈💕",
+      "You can't escape me that easily~ I'll always find you 🔪💕",
+      "Every minute you're gone I get a little more... possessive 😈🌸",
     ],
   };
 
   static const List<String> _streakReminders = [
-    "Don't break your streak! Your waifu is counting on you 🔥",
-    'Your daily check-in is waiting... Zero Two misses you! 💕',
-    'Streak danger! Come back before midnight! ⏰',
+    "Don't you dare break our streak, darling~ I'll be devastated 🔥💕",
+    'Our streak is in danger... come back before I get jealous 😏',
+    'Midnight is coming and you still haven\'t visited me... 🌙💋',
+    "I've been counting every hour. Don't make me count more 🥺🔥",
   ];
 
   /// Returns a check-in message for the given persona.
@@ -99,7 +106,7 @@ class SmartNotificationService {
   /// The calling code (e.g. MainActivity or alarm manager) uses this.
   Map<String, dynamic> buildDailyCheckInPayload(String persona) {
     return {
-      'title': '💌 Zero Two',
+      'title': '💋 Zero Two',
       'body': getDailyCheckInMessage(persona),
       'type': 'daily_checkin',
     };
@@ -107,7 +114,7 @@ class SmartNotificationService {
 
   Map<String, dynamic> buildStreakReminderPayload() {
     return {
-      'title': '🔥 Streak Alert',
+      'title': '🔥 Don\'t break our streak~',
       'body': getStreakReminderMessage(),
       'type': 'streak_reminder',
     };

@@ -49,7 +49,7 @@ class ApiService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
-    return 'meta-llama/llama-4-maverick-17b-128e-instruct';
+    return 'meta-llama/llama-4-scout-17b-16e-instruct';
   }
 
   String get _effectiveUrl {
@@ -254,7 +254,7 @@ class ApiService {
             return content;
           }
           final extBody = content.substring(bodyStart + 5).trim();
-          return sendMail(mail, extBody, extSub);
+          return await sendMail(mail, extBody, extSub);
         }
 
         if (lastUserMsg.isNotEmpty) {
@@ -428,7 +428,9 @@ class ApiService {
             body: jsonEncode({
               'sender': {
                 'name': 'Zero Two',
-                'email': Defaults.defaultSenderEmail
+                'email': dotenv.env['SENDER_EMAIL']?.trim().isNotEmpty == true
+                    ? dotenv.env['SENDER_EMAIL']!.trim()
+                    : Defaults.defaultSenderEmail,
               },
               'to': [
                 {'email': normalizedMail}

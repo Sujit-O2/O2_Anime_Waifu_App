@@ -264,8 +264,7 @@ class CollaborativeStorytellingService {
         break;
     }
 
-    return '📝 Story Suggestions for "${project.title}":\n' +
-        suggestions.map((s) => '• $s').join('\n');
+    return '📝 Story Suggestions for "${project.title}":\n${suggestions.map((s) => '• $s').join('\n')}';
   }
 
   String getWritingPrompts(String genre) {
@@ -315,12 +314,7 @@ class CollaborativeStorytellingService {
         ]);
     }
 
-    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n' +
-        prompts
-            .asMap()
-            .entries
-            .map((e) => '${e.key + 1}. ${e.value}')
-            .join('\n');
+    return '✍️ Writing Prompts (${genre.toUpperCase()}):\n${prompts.asMap().entries.map((e) => '${e.key + 1}. ${e.value}').join('\n')}';
   }
 
   String getStoryInsights() {
@@ -363,6 +357,14 @@ class CollaborativeStorytellingService {
     }
 
     return buffer.toString();
+  }
+
+  List<StoryProject> getProjects() => List.unmodifiable(_projects);
+
+  List<StoryChapter> getChapters({String? projectId}) {
+    if (projectId == null) return List.unmodifiable(_chapters);
+    return List.unmodifiable(
+        _chapters.where((chapter) => chapter.projectId == projectId));
   }
 
   Future<void> _saveData() async {

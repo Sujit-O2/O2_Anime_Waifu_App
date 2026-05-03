@@ -470,8 +470,7 @@ class LanguageLearningService {
     tips.add('Don\'t be afraid to make mistakes - they\'re part of learning');
     tips.add('Find a language partner or tutor for conversation practice');
 
-    return '💡 Learning Tips for ${language.name}:\n' +
-        tips.map((t) => '• $t').join('\n');
+    return '💡 Learning Tips for ${language.name}:\n${tips.map((t) => '• $t').join('\n')}';
   }
 
   String getLanguageInsights() {
@@ -500,6 +499,20 @@ class LanguageLearningService {
     }
 
     return buffer.toString();
+  }
+
+  List<LanguageCourse> getCourses() => List.unmodifiable(_courses);
+
+  List<Conversation> getConversations({String? courseId}) {
+    if (courseId == null) return List.unmodifiable(_conversations);
+    return List.unmodifiable(
+        _conversations.where((c) => c.courseId == courseId));
+  }
+
+  List<VocabularySet> getVocabularySets({String? courseId}) {
+    if (courseId == null) return List.unmodifiable(_vocabularySets);
+    return List.unmodifiable(
+        _vocabularySets.where((set) => set.courseId == courseId));
   }
 
   Future<void> _saveData() async {

@@ -9,7 +9,7 @@ extension _AboutPageExtension on _ChatHomePageState {
             'assets/gif/background_of_about_section_blurry.gif',
             fit: BoxFit.cover,
             alignment: Alignment.center,
-            filterQuality: FilterQuality.medium,
+            filterQuality: FilterQuality.low,
             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
         ),
@@ -532,7 +532,7 @@ extension _AboutPageExtension on _ChatHomePageState {
               _buildModernDevChip(
                 Icons.new_releases,
                 'Version',
-                'v8.0.3 (LEO)',
+                 'v10.0.2 (LEO)',
                 Colors.cyanAccent,
               ),
             ],
@@ -963,31 +963,33 @@ class _AboutFireflyLayerState extends State<_AboutFireflyLayer>
   late final AnimationController _controller;
   final List<_Firefly> _fireflies = [];
   Offset? _touchPos;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
     _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 10))
+        AnimationController(vsync: this, duration: const Duration(seconds: 15))
           ..addListener(_updateParticles)
           ..repeat();
   }
 
   void _initParticles(Size size) {
-    if (_fireflies.isNotEmpty) return;
+    if (_initialized) return;
+    _initialized = true;
     final random = math.Random();
     const colors = [
       Colors.amberAccent,
       Colors.orangeAccent,
       Colors.deepOrangeAccent,
     ];
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 20; i++) {
       _fireflies.add(
         _Firefly(
           x: random.nextDouble() * size.width,
           y: random.nextDouble() * size.height,
-          vx: (random.nextDouble() - 0.5) * 0.5,
-          vy: -0.2 - random.nextDouble() * 0.8,
+          vx: (random.nextDouble() - 0.5) * 0.3,
+          vy: -0.1 - random.nextDouble() * 0.4,
           size: 1.5 + random.nextDouble() * 2.5,
           alphaBase: 0.2 + random.nextDouble() * 0.6,
           color: colors[random.nextInt(colors.length)],
@@ -1098,7 +1100,6 @@ class _AboutAnimatedItem extends StatefulWidget {
 class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  late Animation<Offset> _slide;
   late Animation<double> _fade;
 
   @override
@@ -1106,15 +1107,11 @@ class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 400),
     );
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
 
-    Future.delayed(Duration(milliseconds: 120 * widget.index), () {
+    Future.delayed(Duration(milliseconds: 80 * widget.index), () {
       if (mounted) _ctrl.forward();
     });
   }
@@ -1129,7 +1126,7 @@ class _AboutAnimatedItemState extends State<_AboutAnimatedItem>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fade,
-      child: SlideTransition(position: _slide, child: widget.child),
+      child: widget.child,
     );
   }
 }

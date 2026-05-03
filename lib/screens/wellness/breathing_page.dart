@@ -145,7 +145,7 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
                 color: Colors.lightBlueAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.air_rounded,
+              child: const Icon(Icons.air_rounded,
                   color: Colors.lightBlueAccent, size: 18),
             ),
             const SizedBox(width: 10),
@@ -207,7 +207,7 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
                       color: Colors.lightBlueAccent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(Icons.spa_rounded,
+                    child: const Icon(Icons.spa_rounded,
                         color: Colors.lightBlueAccent, size: 24),
                   ),
                   const SizedBox(width: 16),
@@ -217,7 +217,7 @@ class _BreathingExercisePageState extends State<BreathingExercisePage>
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.access_time_rounded,
+                            const Icon(Icons.access_time_rounded,
                                 color: Colors.lightBlueAccent, size: 14),
                             const SizedBox(width: 6),
                             Text(

@@ -694,14 +694,20 @@ class AppThemes {
         space: 1,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: panelElevated,
+        backgroundColor: const Color(0xE6200010),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: Colors.pinkAccent.withValues(alpha: 0.35),
+          ),
         ),
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: onSurface,
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
         ),
+        actionTextColor: Colors.pinkAccent,
+        elevation: 8,
       ),
       // Modern dialog theme
       dialogTheme: DialogThemeData(

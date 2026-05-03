@@ -101,7 +101,7 @@ class _DateNightPlannerPageState extends State<DateNightPlannerPage>
       if (!mounted) return;
       setState(() => _plan = 'Something went wrong~ Let me think of something else!');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

@@ -205,7 +205,7 @@ class ProjectManagementService {
 
   String getProjectInsights() {
     if (_projects.isEmpty) {
-      return "Create your first project to get started!";
+      return 'Create your first project to get started!';
     }
 
     final activeProjects =
@@ -313,6 +313,8 @@ class ProjectManagementService {
       if (kDebugMode) debugPrint('[ProjectManagement] Load error: $e');
     }
   }
+
+  List<Project> getProjects() => List.unmodifiable(_projects);
 }
 
 class Project {

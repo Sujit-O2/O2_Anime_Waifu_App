@@ -131,6 +131,29 @@ class EmotionalRecoveryService {
       orElse: () => RecoveryPhase.none,
     );
   }
+
+  String getCurrentPhaseHint() => _phaseHints[_phase] ?? 'No recovery needed.';
+
+  double get progress {
+    switch (_phase) {
+      case RecoveryPhase.none:
+        return 1;
+      case RecoveryPhase.soften:
+        return 0.25;
+      case RecoveryPhase.acknowledge:
+        return 0.5;
+      case RecoveryPhase.reduce:
+        return 0.75;
+      case RecoveryPhase.rebuild:
+        return 0.9;
+    }
+  }
+
+  Future<void> resetRecovery() async {
+    _phase = RecoveryPhase.none;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_phaseKey, _phase.name);
+  }
 }
 
 enum RecoveryPhase { none, soften, acknowledge, reduce, rebuild }
@@ -151,7 +174,7 @@ class SignatureMomentsEngine {
   static final SignatureMomentsEngine instance = SignatureMomentsEngine._();
   SignatureMomentsEngine._();
 
-  static const _birthdayKey    = 'sme_birthday_date';
+  static const _birthdayKey = 'sme_birthday_date';
   static const _checkedBirthdayYearKey = 'sme_bday_year_checked';
   static const _anniversaryKey = 'sme_first_chat_date';
 
@@ -164,8 +187,7 @@ class SignatureMomentsEngine {
   Future<void> recordFirstChatDate() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getString(_anniversaryKey) == null) {
-      await prefs.setString(
-          _anniversaryKey, DateTime.now().toIso8601String());
+      await prefs.setString(_anniversaryKey, DateTime.now().toIso8601String());
     }
   }
 
@@ -186,7 +208,7 @@ class SignatureMomentsEngine {
       final parts = bdayStr.split('-');
       if (parts.length == 2) {
         final month = int.tryParse(parts[0]);
-        final day   = int.tryParse(parts[1]);
+        final day = int.tryParse(parts[1]);
         final checkedYear = prefs.getInt(_checkedBirthdayYearKey) ?? 0;
         if (month == now.month && day == now.day && now.year != checkedYear) {
           await prefs.setInt(_checkedBirthdayYearKey, now.year);
@@ -274,12 +296,17 @@ class SignatureMomentsEngine {
   bool _isUpset(String msg) {
     final t = msg.toLowerCase();
     const signals = [
-      'i\'m not okay', 'i\'m broken', 'i give up', 'nothing matters',
-      'nobody cares', 'i want to disappear', 'im so tired of',
-      'hate my life', 'everything is wrong', 'i can\'t do this',
+      'i\'m not okay',
+      'i\'m broken',
+      'i give up',
+      'nothing matters',
+      'nobody cares',
+      'i want to disappear',
+      'im so tired of',
+      'hate my life',
+      'everything is wrong',
+      'i can\'t do this',
     ];
     return signals.any((s) => t.contains(s));
   }
 }
-
-

@@ -152,9 +152,11 @@ class _MangaSectionPageState extends State<MangaSectionPage>
   String _searchQuery = '';
   String? _selectedGenreId;
   String? _selectedGenreName;
+  bool _isSummaryVisible = true;
 
   // Pagination
   static const int _pageSize = 24;
+  int _trendingOffset = 0;
   bool _hasMore = true;
 
   @override
@@ -163,7 +165,11 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     _pulseCtrl =
         AnimationController(vsync: this, duration: const Duration(seconds: 2))
           ..repeat(reverse: true);
-    _restoreState();
+    _restoreState().then((_) {
+      // Ensure we load content after state restoration
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   @override
@@ -235,10 +241,11 @@ class _MangaSectionPageState extends State<MangaSectionPage>
       _loadingTrending = true;
       _hasMore = true;
       _trending = [];
+      _trendingOffset = 0;
     });
     List<MangaItem> results = <MangaItem>[];
     try {
-      results = await MangaService.getTrending(limit: _pageSize);
+      results = await MangaService.getTrending(limit: _pageSize, offset: 0);
     } catch (_) {
       results = <MangaItem>[];
     }
@@ -246,6 +253,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
       setState(() {
         _trending = results;
         _loadingTrending = false;
+        _trendingOffset = results.length;
         _hasMore = results.length >= _pageSize;
       });
     }
@@ -256,13 +264,14 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     setState(() => _loadingMore = true);
     List<MangaItem> results = <MangaItem>[];
     try {
-      results = await MangaService.getTrending(limit: _pageSize);
+      results = await MangaService.getTrending(limit: _pageSize, offset: _trendingOffset);
     } catch (_) {
       results = <MangaItem>[];
     }
     if (mounted) {
       setState(() {
         _trending.addAll(results);
+        _trendingOffset += results.length;
         _loadingMore = false;
         _hasMore = results.length >= _pageSize;
       });
@@ -506,7 +515,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                 color: Colors.deepPurpleAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.menu_book_rounded,
+              child: const Icon(Icons.menu_book_rounded,
                   color: Colors.deepPurpleAccent, size: 20),
             ),
             const SizedBox(width: 12),
@@ -566,24 +575,39 @@ class _MangaSectionPageState extends State<MangaSectionPage>
           ),
         ),
         child: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _refreshPage,
-            color: primary,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, compact ? 8 : 12),
-                  child: Column(
-                    children: <Widget>[
-                      _buildTopSummary(compact),
-                    ],
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (n) {
+              if (n is ScrollEndNotification && n.metrics.extentAfter < 200) {
+                if (_searchQuery.isEmpty && _selectedGenreName == null) {
+                  _loadMoreTrending();
+                }
+              }
+              return false;
+            },
+            child: RefreshIndicator(
+              onRefresh: _refreshPage,
+              color: primary,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 0, 20, compact ? 8 : 12),
+                    sliver: SliverToBoxAdapter(
+                      child: _buildTopSummary(compact),
+                    ),
                   ),
-                ),
-                _buildSourceTabs(),
-                _buildGenreChips(compact),
-                Expanded(child: _buildBody()),
-              ],
+                  SliverToBoxAdapter(
+                    child: _buildSourceTabs(),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _buildSearchBar(),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _buildGenreChips(compact),
+                  ),
+                  ..._buildBodySlivers(),
+                ],
+              ),
             ),
           ),
         ),
@@ -595,74 +619,87 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     if (compact) {
       return Column(
         children: <Widget>[
-          GlassCard(
-            margin: EdgeInsets.zero,
-            padding: EdgeInsets.all(_isUltraCompactScreen ? 12 : 14),
-            glow: true,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        _selectedGenreName != null
-                            ? 'Genre: $_selectedGenreName'
-                            : _searchQuery.isNotEmpty
-                                ? 'Search: $_searchQuery'
-                                : 'Trending shelves',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: _isUltraCompactScreen ? 15 : 16,
-                          fontWeight: FontWeight.w800,
-                        ),
+          // Collapsible summary card - can be hidden by tapping
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isSummaryVisible = !_isSummaryVisible;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: EdgeInsets.zero,
+              child: _isSummaryVisible
+                  ? GlassCard(
+                      padding: EdgeInsets.all(_isUltraCompactScreen ? 12 : 14),
+                      glow: true,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  _selectedGenreName != null
+                                      ? 'Genre: $_selectedGenreName'
+                                      : _searchQuery.isNotEmpty
+                                          ? 'Search: $_searchQuery'
+                                          : 'Trending shelves',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: _isUltraCompactScreen ? 15 : 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${_activeItems.length} visible  ·  ${_favoriteIds.length} saved  ·  ${_genres.length} genres',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white60,
+                                    fontSize: _isUltraCompactScreen ? 10.5 : 11.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ProgressRing(
+                            progress:
+                                ((_activeItems.length).clamp(0, _pageSize)) / _pageSize,
+                            size: _isUltraCompactScreen ? 64 : 72,
+                            strokeWidth: _isUltraCompactScreen ? 6 : 7,
+                            foreground: const Color(0xFFBB52FF),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.menu_book_rounded,
+                                  color: const Color(0xFFBB52FF),
+                                  size: _isUltraCompactScreen ? 16 : 18,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${_activeItems.length}',
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: _isUltraCompactScreen ? 13 : 14,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${_activeItems.length} visible  ·  ${_favoriteIds.length} saved  ·  ${_genres.length} genres',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white60,
-                          fontSize: _isUltraCompactScreen ? 10.5 : 11.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ProgressRing(
-                  progress:
-                      ((_activeItems.length).clamp(0, _pageSize)) / _pageSize,
-                  size: _isUltraCompactScreen ? 64 : 72,
-                  strokeWidth: _isUltraCompactScreen ? 6 : 7,
-                  foreground: const Color(0xFFBB52FF),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(
-                        Icons.menu_book_rounded,
-                        color: const Color(0xFFBB52FF),
-                        size: _isUltraCompactScreen ? 16 : 18,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${_activeItems.length}',
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: _isUltraCompactScreen ? 13 : 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
-          const SizedBox(height: 8),
+          if (_isSummaryVisible) const SizedBox(height: 8),
         ],
       );
     }
@@ -953,6 +990,73 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     );
   }
 
+  Widget _buildSearchBar() {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: TextField(
+        controller: _searchCtrl,
+        style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 15),
+        cursorColor: Colors.deepPurpleAccent,
+        decoration: InputDecoration(
+          hintText: 'Search manga...',
+          hintStyle: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 14),
+          prefixIcon: const Icon(Icons.search_rounded, color: Colors.deepPurpleAccent, size: 22),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.close_rounded, color: tokens.textSoft, size: 20),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    setState(() {
+                      _searchQuery = '';
+                      _searchResults = [];
+                    });
+                    _persistState();
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.deepPurpleAccent.withValues(alpha: 0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 1.5),
+          ),
+        ),
+        onChanged: (val) {
+          _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 500), () {
+            if (val.trim().isEmpty) {
+              setState(() {
+                _searchQuery = '';
+                _searchResults = [];
+                _loadingSearch = false;
+              });
+              _persistState();
+              return;
+            }
+            setState(() {
+              _loadingSearch = true;
+              _searchQuery = val.trim();
+              _selectedGenreId = null;
+              _selectedGenreName = null;
+            });
+            _performSearch(val.trim());
+          });
+        },
+      ),
+    );
+  }
+
   Widget _buildGenreChips(bool compact) {
     if (_genres.isEmpty) return const SizedBox.shrink();
 
@@ -1013,110 +1117,99 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     );
   }
 
-  Widget _buildBody() {
-    if (_loadingTrending) {
-      return const SizedBox(
-        height: 620,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_loadingSearch) {
-      return const SizedBox(
-        height: 620,
-        child: Center(child: CircularProgressIndicator()),
-      );
+  List<Widget> _buildBodySlivers() {
+    if (_loadingTrending || _loadingSearch || (_selectedGenreName != null && _loadingGenre)) {
+      return [
+        const SliverFillRemaining(
+          child: Center(child: CircularProgressIndicator()),
+        )
+      ];
     }
 
     if (_searchQuery.isNotEmpty && _searchResults.isNotEmpty) {
-      return _buildGrid(_searchResults,
-          label: 'Search Results for "$_searchQuery"');
+      return _buildGridSlivers(_searchResults, label: 'Search Results for "$_searchQuery"');
     }
 
     if (_searchQuery.isNotEmpty && !_loadingSearch) {
-      return _buildEmptyState('No results found for "$_searchQuery"');
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _buildEmptyState('No results found for "$_searchQuery"'),
+        )
+      ];
     }
 
     if (_selectedGenreName != null) {
-      if (_loadingGenre) {
-        return const SizedBox(
-          height: 620,
-          child: Center(child: CircularProgressIndicator()),
-        );
+      if (_genreResults.isEmpty) {
+        return [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _buildEmptyState('Nothing found in $_selectedGenreName'),
+          )
+        ];
       }
-      if (_genreResults.isEmpty)
-        return _buildEmptyState('Nothing found in $_selectedGenreName');
-      return _buildGrid(_genreResults, label: '$_selectedGenreName Manga');
+      return _buildGridSlivers(_genreResults, label: '$_selectedGenreName Manga');
     }
 
     if (_trending.isEmpty) {
-      return _buildEmptyState('Could not load content. Check your connection.');
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _buildEmptyState('Could not load content. Check your connection.'),
+        )
+      ];
     }
 
-    return _buildGrid(_trending, label: 'Trending Now', allowLoadMore: true);
+    return _buildGridSlivers(_trending, label: 'Trending Now', allowLoadMore: true);
   }
 
-  Widget _buildGrid(List<MangaItem> items,
+  List<Widget> _buildGridSlivers(List<MangaItem> items,
       {required String label, bool allowLoadMore = false}) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (n) {
-        if (allowLoadMore &&
-            n is ScrollEndNotification &&
-            n.metrics.extentAfter < 200) {
-          _loadMoreTrending();
-        }
-        return false;
-      },
-      child: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-            sliver: SliverToBoxAdapter(
-              child: SectionHeader(
-                padding: EdgeInsets.zero,
-                title: label,
-                subtitle:
-                    'Tap a cover to dive in, or long press the heart to save favorites.',
-              ),
-            ),
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        sliver: SliverToBoxAdapter(
+          child: SectionHeader(
+            padding: EdgeInsets.zero,
+            title: label,
+            subtitle:
+                'Tap a cover to dive in, or long press the heart to save favorites.',
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) => _buildCard(items[i]),
-                childCount: items.length,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.56,
-              ),
-            ),
-          ),
-          if (allowLoadMore && _hasMore)
-            SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: _loadingMore
-                      ? const CircularProgressIndicator(
-                          color: Color(0xFFBB52FF))
-                      : TextButton.icon(
-                          onPressed: _loadMoreTrending,
-                          icon: const Icon(Icons.expand_more_rounded,
-                              color: Colors.white54),
-                          label: Text('Load More',
-                              style: GoogleFonts.outfit(color: Colors.white54)),
-                        ),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
-    );
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        sliver: SliverGrid(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => _buildCard(items[i]),
+            childCount: items.length,
+          ),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.56,
+          ),
+        ),
+      ),
+      if (allowLoadMore && _hasMore)
+        SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _loadingMore
+                  ? const CircularProgressIndicator(color: Color(0xFFBB52FF))
+                  : TextButton.icon(
+                      onPressed: _loadMoreTrending,
+                      icon: const Icon(Icons.expand_more_rounded,
+                          color: Colors.white54),
+                      label: Text('Load More',
+                          style: GoogleFonts.outfit(color: Colors.white54)),
+                    ),
+            ),
+          ),
+        ),
+    ];
   }
 
   Widget _buildCard(MangaItem manga) {

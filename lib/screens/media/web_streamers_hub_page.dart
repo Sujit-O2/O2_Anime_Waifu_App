@@ -389,10 +389,10 @@ class _StreamerSite {
 
 const List<_StreamerSite> _sites = <_StreamerSite>[
   _StreamerSite(
-    name: 'HiAnime',
-    source: AnimeWebSource.hianime,
-    color: Colors.pinkAccent,
-    description: 'Popular anime search and streaming shell.',
+    name: 'AnimoTV Slash',
+    source: AnimeWebSource.animotvslash,
+    color: Color(0xFF00E5FF),
+    description: 'Fast, clean anime streaming. Sub & dub with a modern interface.',
     group: 'Anime',
   ),
   _StreamerSite(

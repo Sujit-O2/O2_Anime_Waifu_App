@@ -48,9 +48,10 @@ class MangaDexProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     final uri = _buildUriWithArrays('/manga', scalar: {
       'limit': limit.toString(),
+      'offset': offset.toString(),
       'order[followedCount]': 'desc',
     }, arrays: {
       'includes': ['cover_art'],
@@ -61,15 +62,15 @@ class MangaDexProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     final uri = _buildUriWithArrays('/manga', scalar: {
       'limit': limit.toString(),
+      'offset': offset.toString(),
       'order[followedCount]': 'desc',
     }, arrays: {
       'includes': ['cover_art'],
-      'includedTags': [tagId],   // <-- the real fix: proper repeated param
+      'includedTags': [tagId],
       'contentRating': _ratings,
-      // Removed 'availableTranslatedLanguage' restriction so ALL translations show up
     });
     return _fetchMangaList(uri);
   }

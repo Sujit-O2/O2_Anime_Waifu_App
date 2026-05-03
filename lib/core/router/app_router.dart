@@ -40,6 +40,40 @@ import 'package:anime_waifu/screens/games/waifu_tier_list_page.dart';
 import 'package:anime_waifu/screens/games/word_association_page.dart';
 import 'package:anime_waifu/screens/games/word_puzzle_page.dart';
 import 'package:anime_waifu/screens/games/would_you_rather_page.dart';
+import 'package:anime_waifu/screens/games/orbital_strike_page.dart';
+import 'package:anime_waifu/screens/games/battle_cry_page.dart';
+import 'package:anime_waifu/screens/games/guardian_summon_page.dart';
+import 'package:anime_waifu/screens/games/time_freeze_page.dart';
+import 'package:anime_waifu/screens/games/phantom_echo_page.dart';
+import 'package:anime_waifu/screens/games/quantum_leap_page.dart';
+import 'package:anime_waifu/screens/games/berserker_fury_page.dart';
+import 'package:anime_waifu/screens/games/null_zone_page.dart';
+import 'package:anime_waifu/screens/games/mass_resurgence_page.dart';
+import 'package:anime_waifu/screens/games/final_judgment_page.dart';
+import 'package:anime_waifu/screens/games/ultimates_hub_page.dart';
+import 'package:anime_waifu/screens/utilities/digital_twin_page.dart';
+import 'package:anime_waifu/screens/utilities/thought_to_text_page.dart';
+import 'package:anime_waifu/screens/utilities/future_simulation_page.dart';
+import 'package:anime_waifu/screens/utilities/live_screen_intelligence_page.dart';
+import 'package:anime_waifu/screens/utilities/personality_evolution_v2_page.dart';
+import 'package:anime_waifu/screens/utilities/cognitive_load_detector_page.dart';
+import 'package:anime_waifu/screens/utilities/auto_workflow_builder_page.dart';
+import 'package:anime_waifu/screens/utilities/life_pattern_analyzer_page.dart';
+import 'package:anime_waifu/screens/utilities/multi_agent_brain_page.dart';
+import 'package:anime_waifu/screens/utilities/reality_overlay_page.dart';
+import 'package:anime_waifu/screens/utilities/auto_life_manager_page.dart';
+import 'package:anime_waifu/screens/utilities/life_os_dashboard.dart';
+import 'package:anime_waifu/screens/utilities/smart_onboarding.dart';
+import 'package:anime_waifu/screens/smart_features/document_scanner_page.dart';
+import 'package:anime_waifu/screens/smart_features/expense_analyzer_page.dart';
+import 'package:anime_waifu/screens/smart_features/focus_mode_coach_page.dart';
+import 'package:anime_waifu/screens/smart_features/inbox_copilot_page.dart';
+import 'package:anime_waifu/screens/smart_features/knowledge_search_page.dart';
+import 'package:anime_waifu/screens/smart_features/life_timeline_page.dart';
+import 'package:anime_waifu/screens/smart_features/decision_helper_page.dart';
+import 'package:anime_waifu/screens/smart_features/smart_daily_briefing_page.dart';
+import 'package:anime_waifu/screens/smart_features/smart_study_page.dart';
+import 'package:anime_waifu/screens/smart_features/voice_automation_page.dart';
 // animated_splash_screen.dart requires args — use MaterialPageRoute
 import 'package:anime_waifu/screens/media/anime_calendar_page.dart';
 // anime_embed_player_page.dart requires constructor args — use MaterialPageRoute
@@ -49,7 +83,6 @@ import 'package:anime_waifu/screens/media/anime_recommender_page.dart';
 import 'package:anime_waifu/screens/media/anime_watch_party_page.dart';
 import 'package:anime_waifu/screens/media/downloads_page.dart';
 import 'package:anime_waifu/screens/media/episode_alerts_page.dart';
-import 'package:anime_waifu/screens/media/gif_viewer_page.dart';
 import 'package:anime_waifu/screens/media/hianime_webview_page.dart';
 import 'package:anime_waifu/screens/media/manga_reader_page.dart';
 import 'package:anime_waifu/screens/media/manga_section_page.dart';
@@ -103,6 +136,8 @@ import 'package:anime_waifu/screens/creative/art_direction_page.dart';
 import 'package:anime_waifu/screens/creative/collaborative_storytelling_page.dart';
 import 'package:anime_waifu/screens/creative/game_master_page.dart';
 import 'package:anime_waifu/screens/creative/music_composition_page.dart';
+import 'package:anime_waifu/screens/creative/video_gen_page.dart';
+import 'package:anime_waifu/screens/creative/audio_gen_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/hydration_nutrition_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/stress_detection_page.dart';
 import 'package:anime_waifu/screens/wellness_advanced/meditation_guide_page.dart';
@@ -227,6 +262,13 @@ import 'package:anime_waifu/screens/wellness/sleep_mode_page.dart';
 import 'package:anime_waifu/screens/wellness/study_timer_page.dart';
 import 'package:anime_waifu/screens/wellness/wellness_reminders_page.dart';
 import 'package:anime_waifu/services/anime_media/manga_service.dart';
+import 'package:anime_waifu/screens/utilities/premium_settings_page.dart';
+import 'package:anime_waifu/screens/media/photo_memory_album_page.dart';
+import 'package:anime_waifu/screens/utilities/data_vault_page.dart';
+import 'package:anime_waifu/screens/utilities/conversation_summary_page.dart';
+import 'package:anime_waifu/screens/utilities/character_database_page.dart';
+import 'package:anime_waifu/screens/admin/discord_integration_panel_page.dart';
+import 'package:anime_waifu/screens/utilities/anime_embed_player_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -424,7 +466,6 @@ class AppRouter {
   static const String memoryVault = '/memory-vault';
   static const String hianime = '/hianime';
   static const String mangaReader = '/manga-reader';
-  static const String gifViewer = '/gif-viewer';
   static const String giftIntelligence = '/gift-intelligence';
   static const String conflictResolution = '/conflict-resolution';
   static const String longDistanceRelationship = '/long-distance-relationship';
@@ -444,6 +485,8 @@ class AppRouter {
   static const String collaborativeStorytelling = '/collaborative-storytelling';
   static const String gameMaster = '/game-master';
   static const String musicComposition = '/music-composition';
+  static const String videoGen = '/video-gen';
+  static const String audioGen = '/audio-gen';
   static const String hydrationNutrition = '/hydration-nutrition';
   static const String stressDetection = '/stress-detection';
   static const String meditationGuide = '/meditation-guide';
@@ -469,6 +512,46 @@ class AppRouter {
   static const String selfReflection = '/self-reflection';
   static const String contactsLookup = '/contacts-lookup';
   static const String socialFeatures = '/social-features';
+  static const String ultimatesHub = '/ultimates-hub';
+  static const String orbitalStrike = '/orbital-strike';
+  static const String battleCry = '/battle-cry';
+  static const String guardianSummon = '/guardian-summon';
+  static const String timeFreeze = '/time-freeze';
+  static const String phantomEcho = '/phantom-echo';
+  static const String quantumLeap = '/quantum-leap';
+  static const String berserkerFury = '/berserker-fury';
+  static const String nullZone = '/null-zone';
+  static const String massResurgence = '/mass-resurgence';
+  static const String finalJudgment = '/final-judgment';
+  static const String digitalTwin = '/digital-twin';
+  static const String thoughtToText = '/thought-to-text';
+  static const String futureSimulation = '/future-simulation';
+  static const String liveScreenIntelligence = '/live-screen-intelligence';
+  static const String personalityEvolutionV2 = '/personality-evolution-v2';
+  static const String cognitiveLoadDetector = '/cognitive-load-detector';
+  static const String autoWorkflowBuilder = '/auto-workflow-builder';
+  static const String lifePatternAnalyzer = '/life-pattern-analyzer';
+  static const String multiAgentBrain = '/multi-agent-brain';
+  static const String realityOverlay = '/reality-overlay';
+  static const String autoLifeManager = '/auto-life-manager';
+  static const String lifeOs = '/life-os';
+  static const String onboarding = '/onboarding';
+
+  // ── Smart Features Routes ──────────────────────────────────────────────
+  static const String smartDailyBriefing = '/smart-daily-briefing';
+  static const String inboxCopilot = '/inbox-copilot';
+  static const String voiceAutomation = '/voice-automation';
+  static const String documentScanner = '/document-scanner';
+  static const String knowledgeSearch = '/knowledge-search';
+  static const String focusModeCoach = '/focus-mode-coach';
+  static const String expenseAnalyzer = '/expense-analyzer';
+  static const String lifeTimeline = '/life-timeline';
+  static const String decisionHelper = '/decision-helper';
+  static const String smartStudy = '/smart-study';
+  static const String premiumSettings = '/premium-settings';
+  static const String photoMemoryAlbum = '/photo-memory-album';
+  static const String discordIntegration = '/discord-integration';
+  static const String animeEmbedPlayer = '/anime-embed-player';
 
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
@@ -656,7 +739,6 @@ class AppRouter {
         memoryVault: (_) => const MemoryVaultPage(),
         AppRouter.hianime: (_) =>
             const HiAnimeWebviewPage(source: AnimeWebSource.hianime),
-        AppRouter.gifViewer: (_) => const GifViewerPage(),
         AppRouter.mangaReader: (context) {
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, dynamic>?;
@@ -693,6 +775,8 @@ class AppRouter {
         AppRouter.collaborativeStorytelling: (_) => const CollaborativeStorytellingPage(),
         AppRouter.gameMaster: (_) => const GameMasterPage(),
         AppRouter.musicComposition: (_) => const MusicCompositionPage(),
+        AppRouter.videoGen: (_) => const VideoGenPage(),
+        AppRouter.audioGen: (_) => const AudioGenPage(),
         AppRouter.hydrationNutrition: (_) => const HydrationNutritionPage(),
         AppRouter.stressDetection: (_) => const StressDetectionPage(),
         AppRouter.meditationGuide: (_) => const MeditationGuidePage(),
@@ -718,11 +802,75 @@ class AppRouter {
         AppRouter.selfReflection: (_) => const SelfReflectionPage(),
         AppRouter.contactsLookup: (_) => const ContactsLookupPage(),
         AppRouter.socialFeatures: (_) => const SocialFeaturesPage(),
+        AppRouter.ultimatesHub: (_) => const UltimatesHubPage(),
+        AppRouter.orbitalStrike: (_) => const OrbitalStrikePage(),
+        AppRouter.battleCry: (_) => const BattleCryPage(),
+        AppRouter.guardianSummon: (_) => const GuardianSummonPage(),
+        AppRouter.timeFreeze: (_) => const TimeFreezePage(),
+        AppRouter.phantomEcho: (_) => const PhantomEchoPage(),
+        AppRouter.quantumLeap: (_) => const QuantumLeapPage(),
+        AppRouter.berserkerFury: (_) => const BerserkerFuryPage(),
+        AppRouter.nullZone: (_) => const NullZonePage(),
+        AppRouter.massResurgence: (_) => const MassResurgencePage(),
+        AppRouter.finalJudgment: (_) => const FinalJudgmentPage(),
+        AppRouter.digitalTwin: (_) => const DigitalTwinPage(),
+        AppRouter.thoughtToText: (_) => const ThoughtToTextPage(),
+        AppRouter.futureSimulation: (_) => const FutureSimulationPage(),
+        AppRouter.liveScreenIntelligence: (_) => const LiveScreenIntelligencePage(),
+        AppRouter.personalityEvolutionV2: (_) => const PersonalityEvolutionV2Page(),
+        AppRouter.cognitiveLoadDetector: (_) => const CognitiveLoadDetectorPage(),
+        AppRouter.autoWorkflowBuilder: (_) => const AutoWorkflowBuilderPage(),
+        AppRouter.lifePatternAnalyzer: (_) => const LifePatternAnalyzerPage(),
+        AppRouter.multiAgentBrain: (_) => const MultiAgentBrainPage(),
+        AppRouter.realityOverlay: (_) => const RealityOverlayPage(),
+        AppRouter.autoLifeManager: (_) => const AutoLifeManagerPage(),
+        AppRouter.lifeOs: (_) => const LifeOsDashboard(),
+        AppRouter.onboarding: (_) => const SmartOnboarding(),
+
+        // ── Smart Features Routes ──────────────────────────────────────
+        AppRouter.smartDailyBriefing: (_) => const SmartDailyBriefingPage(),
+        AppRouter.inboxCopilot: (_) => const InboxCopilotPage(),
+        AppRouter.voiceAutomation: (_) => const VoiceAutomationPage(),
+        AppRouter.documentScanner: (_) => const DocumentScannerPage(),
+        AppRouter.knowledgeSearch: (_) => const KnowledgeSearchPage(),
+        AppRouter.focusModeCoach: (_) => const FocusModeCoachPage(),
+        AppRouter.expenseAnalyzer: (_) => const ExpenseAnalyzerPage(),
+        AppRouter.lifeTimeline: (_) => const LifeTimelinePage(),
+        AppRouter.decisionHelper: (_) => const DecisionHelperPage(),
+        AppRouter.smartStudy: (_) => const SmartStudyPage(),
+        AppRouter.premiumSettings: (_) => const PremiumSettingsPage(),
+        AppRouter.photoMemoryAlbum: (_) => const PhotoMemoryAlbumPage(),
+        AppRouter.discordIntegration: (_) => const DiscordIntegrationPanelPage(),
+        AppRouter.dataVault: (_) => const DataVaultPage(),
+        AppRouter.conversationSummary: (_) => const ConversationSummaryPage(),
       };
 
   /// Premium page transition that makes navigation feel smooth and modern.
   /// Uses a slide + fade combo with a spring curve for buttery page switches.
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    // Handle routes that require constructor arguments
+    if (settings.name == AppRouter.animeEmbedPlayer) {
+      final args = settings.arguments as Map<String, dynamic>? ?? {};
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => AnimeEmbedPlayerPage(
+          animeTitle: args['animeTitle'] as String? ?? '',
+          malId: args['malId'] as String? ?? '',
+          episodeNumber: args['episodeNumber'] as int? ?? 1,
+          subOrDub: args['subOrDub'] as String? ?? 'sub',
+        ),
+      );
+    }
+    if (settings.name == AppRouter.characterDatabase) {
+      final args = settings.arguments as Map<String, dynamic>? ?? {};
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => CharacterDatabasePage(
+          animeId: args['animeId'] as String? ?? '',
+          animeTitle: args['animeTitle'] as String? ?? '',
+        ),
+      );
+    }
     final builder = routes[settings.name];
     if (builder == null) {
       return onUnknownRoute(settings);

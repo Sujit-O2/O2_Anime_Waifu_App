@@ -201,6 +201,8 @@ class BudgetCoachService {
     return _transactions.take(limit).toList();
   }
 
+  List<Category> getCategories() => List.unmodifiable(_categories);
+
   double getCategorySpending(String category,
       {DateTime? startDate, DateTime? endDate}) {
     var filteredTransactions = _transactions.where(
@@ -384,8 +386,7 @@ class BudgetCoachService {
           'You\'re doing well! Keep tracking your expenses to maintain good habits');
     }
 
-    return '💡 Savings Recommendations:\n' +
-        recommendations.map((r) => '• $r').join('\n');
+    return '💡 Savings Recommendations:\n${recommendations.map((r) => '• $r').join('\n')}';
   }
 
   String getSpendingTrends() {
