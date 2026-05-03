@@ -110,7 +110,6 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"
-            android:launchMode="singleTask"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="com.example.anime_waifu.ACTION_ASSISTANT_POPUP_SHORTCUT" />

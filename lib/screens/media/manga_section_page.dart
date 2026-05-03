@@ -156,6 +156,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
 
   // Pagination
   static const int _pageSize = 24;
+  int _trendingOffset = 0;
   bool _hasMore = true;
 
   @override
@@ -240,10 +241,11 @@ class _MangaSectionPageState extends State<MangaSectionPage>
       _loadingTrending = true;
       _hasMore = true;
       _trending = [];
+      _trendingOffset = 0;
     });
     List<MangaItem> results = <MangaItem>[];
     try {
-      results = await MangaService.getTrending(limit: _pageSize);
+      results = await MangaService.getTrending(limit: _pageSize, offset: 0);
     } catch (_) {
       results = <MangaItem>[];
     }
@@ -251,6 +253,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
       setState(() {
         _trending = results;
         _loadingTrending = false;
+        _trendingOffset = results.length;
         _hasMore = results.length >= _pageSize;
       });
     }
@@ -261,13 +264,14 @@ class _MangaSectionPageState extends State<MangaSectionPage>
     setState(() => _loadingMore = true);
     List<MangaItem> results = <MangaItem>[];
     try {
-      results = await MangaService.getTrending(limit: _pageSize);
+      results = await MangaService.getTrending(limit: _pageSize, offset: _trendingOffset);
     } catch (_) {
       results = <MangaItem>[];
     }
     if (mounted) {
       setState(() {
         _trending.addAll(results);
+        _trendingOffset += results.length;
         _loadingMore = false;
         _hasMore = results.length >= _pageSize;
       });
@@ -594,6 +598,9 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                   ),
                   SliverToBoxAdapter(
                     child: _buildSourceTabs(),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _buildSearchBar(),
                   ),
                   SliverToBoxAdapter(
                     child: _buildGenreChips(compact),
@@ -979,6 +986,73 @@ class _MangaSectionPageState extends State<MangaSectionPage>
                 letterSpacing: 0.5,
               )),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    final theme = Theme.of(context);
+    final tokens = context.appTokens;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: TextField(
+        controller: _searchCtrl,
+        style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 15),
+        cursorColor: Colors.deepPurpleAccent,
+        decoration: InputDecoration(
+          hintText: 'Search manga...',
+          hintStyle: GoogleFonts.outfit(color: tokens.textSoft, fontSize: 14),
+          prefixIcon: const Icon(Icons.search_rounded, color: Colors.deepPurpleAccent, size: 22),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.close_rounded, color: tokens.textSoft, size: 20),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    setState(() {
+                      _searchQuery = '';
+                      _searchResults = [];
+                    });
+                    _persistState();
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.deepPurpleAccent.withValues(alpha: 0.3)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.deepPurpleAccent.withValues(alpha: 0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Colors.deepPurpleAccent, width: 1.5),
+          ),
+        ),
+        onChanged: (val) {
+          _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 500), () {
+            if (val.trim().isEmpty) {
+              setState(() {
+                _searchQuery = '';
+                _searchResults = [];
+                _loadingSearch = false;
+              });
+              _persistState();
+              return;
+            }
+            setState(() {
+              _loadingSearch = true;
+              _searchQuery = val.trim();
+              _selectedGenreId = null;
+              _selectedGenreName = null;
+            });
+            _performSearch(val.trim());
+          });
+        },
       ),
     );
   }

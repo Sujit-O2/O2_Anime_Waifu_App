@@ -26,7 +26,7 @@ class RawManhwaProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 20}) async {
+  Future<List<MangaItem>> getTrending({int limit = 20, int offset = 0}) async {
     try {
       final uri = Uri.parse('$_baseUrl/webtoon/'); // Main listing page
       final resp = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 15));
@@ -36,7 +36,7 @@ class RawManhwaProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 20}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 20, int offset = 0}) async {
     try {
       // Toonily uses /webtoon-genre/slug/
       final uri = Uri.parse('$_baseUrl/webtoon-genre/\$tagId/');

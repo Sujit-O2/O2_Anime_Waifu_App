@@ -63,7 +63,7 @@ class MangaParkProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     const gql = '''
       query(\$select: SearchComic_Select) {
         searchComic(select: \$select) {
@@ -73,7 +73,7 @@ class MangaParkProvider implements MangaProvider {
     ''';
     try {
       final data = await _query(gql, {
-        'select': {'sortby': 'field_follow_count', 'size': limit}
+        'select': {'sortby': 'field_follow_count', 'size': limit, 'page': (offset ~/ limit) + 1}
       });
       final items = (data?['searchComic']?['items'] as List?) ?? [];
       return items.map((e) => _fromMP(e as Map<String, dynamic>)).toList();
@@ -81,7 +81,7 @@ class MangaParkProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     const gql = '''
       query(\$select: SearchComic_Select) {
         searchComic(select: \$select) {
@@ -91,7 +91,7 @@ class MangaParkProvider implements MangaProvider {
     ''';
     try {
       final data = await _query(gql, {
-        'select': {'genre': tagId, 'sortby': 'field_follow_count', 'size': limit}
+        'select': {'genre': tagId, 'sortby': 'field_follow_count', 'size': limit, 'page': (offset ~/ limit) + 1}
       });
       final items = (data?['searchComic']?['items'] as List?) ?? [];
       return items.map((e) => _fromMP(e as Map<String, dynamic>)).toList();

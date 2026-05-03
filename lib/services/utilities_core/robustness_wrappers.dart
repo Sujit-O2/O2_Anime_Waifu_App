@@ -83,21 +83,21 @@ class RobustMangaWrapper implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     try {
-      final res = await primary.getTrending(limit: limit);
+      final res = await primary.getTrending(limit: limit, offset: offset);
       if (res.isNotEmpty) return res;
     } catch (_) {}
-    return secondary.getTrending(limit: limit);
+    return secondary.getTrending(limit: limit, offset: offset);
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     try {
-      final res = await primary.getByTag(tagId, limit: limit);
+      final res = await primary.getByTag(tagId, limit: limit, offset: offset);
       if (res.isNotEmpty) return res;
     } catch (_) {}
-    return secondary.getByTag(tagId, limit: limit);
+    return secondary.getByTag(tagId, limit: limit, offset: offset);
   }
 
   @override

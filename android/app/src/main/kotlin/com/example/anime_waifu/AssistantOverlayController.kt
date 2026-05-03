@@ -63,11 +63,19 @@ object AssistantOverlayController {
     private var hideRunnable: Runnable? = null
 
     fun canDrawOverlays(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(context)
-        } else {
-            true
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        // Primary check
+        if (Settings.canDrawOverlays(context)) return true
+        // Fallback: AppOps check for Vivo/MIUI devices that lie about Settings.canDrawOverlays()
+        return try {
+            val appOps = context.getSystemService(android.app.AppOpsManager::class.java)
+            val mode = appOps.checkOpNoThrow(
+                android.app.AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+            mode == android.app.AppOpsManager.MODE_ALLOWED
+        } catch (_: Exception) { false }
     }
 
     fun isShowing(): Boolean {
@@ -153,10 +161,10 @@ object AssistantOverlayController {
             return false
         }
 
-        ensureAttached(appContext)
+        ensureAttached(context)
         // Don't return false immediately if not attached - the show() method 
         // will handle the attachment asynchronously and show the overlay when ready
-        show(appContext, status, transcript, autoHideMs)
+        show(context, status, transcript, autoHideMs)
         return true
     }
 
@@ -169,7 +177,7 @@ object AssistantOverlayController {
         val appContext = context.applicationContext
         mainHandler.post {
             if (!attached || overlayView == null) {
-                show(appContext, status, transcript, autoHideMs)
+                show(context, status, transcript, autoHideMs)
                 return@post
             }
             val statusText = status.trim().ifBlank { "002" }
@@ -211,7 +219,7 @@ object AssistantOverlayController {
         val list = overlayChatList ?: return
         val scroll = overlayTranscriptScroll ?: return
         list.removeAllViews()
-        val inflater = LayoutInflater.from(context)
+        val inflater = LayoutInflater.from(android.view.ContextThemeWrapper(context.applicationContext, R.style.NormalTheme))
 
         for (item in sessionHistory) {
             val isUser = item.first.equals("You", ignoreCase = true)
@@ -246,12 +254,17 @@ object AssistantOverlayController {
     }
 
     private fun ensureAttached(context: Context) {
+        android.util.Log.e(TAG, "ensureAttached called, attached=$attached SDK=${android.os.Build.VERSION.SDK_INT}")
         if (attached && overlayView != null) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             val wm = context.getSystemService(WindowManager::class.java) ?: return
-            val root = LayoutInflater.from(context)
+            // Wrap in ContextThemeWrapper so LayoutInflater works with any context type
+            android.util.Log.e(TAG, "wm obtained, inflating layout")
+            val themedCtx = android.view.ContextThemeWrapper(context.applicationContext, R.style.NormalTheme)
+            val root = LayoutInflater.from(themedCtx)
                 .inflate(R.layout.assistant_overlay_modern, null)
+            android.util.Log.e(TAG, "layout inflated successfully")
 
             val scrim = root.findViewById<View>(R.id.overlayScrim)
             val sheet = root.findViewById<View>(R.id.assistantOverlaySheet)
@@ -296,7 +309,18 @@ object AssistantOverlayController {
             }
 
             root.setOnClickListener { hide(context) }
-            sheet.setOnClickListener { /* Consume touches inside sheet */ }
+            // Swipe-down on sheet to close
+            var swipeStartY = 0f
+            sheet.setOnTouchListener { v, event ->
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> { swipeStartY = event.rawY; false }
+                    android.view.MotionEvent.ACTION_UP -> {
+                        if (event.rawY - swipeStartY > 120f) { hide(context); true }
+                        else { v.performClick(); false }
+                    }
+                    else -> false
+                }
+            }
 
             input.setOnEditorActionListener { _, actionId, event ->
                 val isSend = actionId == EditorInfo.IME_ACTION_SEND
@@ -370,10 +394,10 @@ object AssistantOverlayController {
             visible = false
             animatingOut = false
         } catch (se: SecurityException) {
-            Log.w(TAG, "Overlay permission denied: ${se.message}")
+            Log.e(TAG, "Overlay permission denied: ${se.javaClass.simpleName}: ${se.message}")
             clearRefs()
         } catch (t: Throwable) {
-            Log.w(TAG, "Overlay attach failed: ${t.message}")
+            Log.e(TAG, "Overlay attach FAILED: ${t.javaClass.simpleName}: ${t.message} stack=${t.stackTraceToString().take(500)}")
             clearRefs()
         }
     }
@@ -548,8 +572,8 @@ object AssistantOverlayController {
         sheet.animate().cancel()
         scrim?.animate()?.cancel()
 
-        root.post {
-            if (token != animationToken || overlayView == null) return@post
+        mainHandler.postDelayed({
+            if (token != animationToken || overlayView == null) return@postDelayed
 
             // Start from well below and scaled down
             val startY = dpF(context, 480)
@@ -572,7 +596,7 @@ object AssistantOverlayController {
                 .translationY(0f)
                 .scaleX(1f)
                 .scaleY(1f)
-                .setDuration(460L)
+                .setDuration(280L)
                 .setInterpolator(OvershootInterpolator(1.35f))
                 .withEndAction {
                     if (token != animationToken) return@withEndAction
@@ -587,7 +611,7 @@ object AssistantOverlayController {
                     }
                 }
                 .start()
-        }
+        }, 50L)
     }
 
     private fun hideInternal(context: Context?) {

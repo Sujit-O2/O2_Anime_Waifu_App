@@ -94,11 +94,11 @@ class MangaService {
   static Future<List<MangaItem>> searchManga(String title, {int limit = 24}) =>
       _provider.searchManga(title, limit: limit);
 
-  static Future<List<MangaItem>> getTrending({int limit = 24}) =>
-      _provider.getTrending(limit: limit);
+  static Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) =>
+      _provider.getTrending(limit: limit, offset: offset);
 
-  static Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) =>
-      _provider.getByTag(tagId, limit: limit);
+  static Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) =>
+      _provider.getByTag(tagId, limit: limit, offset: offset);
 
   static Future<List<ChapterItem>> getChapters(String mangaId,
           {String lang = 'en', int limit = 100, int offset = 0}) =>

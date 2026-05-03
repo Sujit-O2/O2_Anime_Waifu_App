@@ -27,9 +27,10 @@ class ComickProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getTrending({int limit = 24}) async {
+  Future<List<MangaItem>> getTrending({int limit = 24, int offset = 0}) async {
     try {
-      final uri = Uri.parse('$_base/v1.0/search?sort=follow&limit=$limit&page=1');
+      final page = (offset ~/ limit) + 1;
+      final uri = Uri.parse('$_base/v1.0/search?sort=follow&limit=$limit&page=$page');
       final resp = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
       if (resp.statusCode != 200) return [];
       final List<dynamic> data = jsonDecode(resp.body);
@@ -40,9 +41,10 @@ class ComickProvider implements MangaProvider {
   }
 
   @override
-  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24}) async {
+  Future<List<MangaItem>> getByTag(String tagId, {int limit = 24, int offset = 0}) async {
     try {
-      final uri = Uri.parse('$_base/v1.0/search?genres=$tagId&sort=follow&limit=$limit&page=1');
+      final page = (offset ~/ limit) + 1;
+      final uri = Uri.parse('$_base/v1.0/search?genres=$tagId&sort=follow&limit=$limit&page=$page');
       final resp = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
       if (resp.statusCode != 200) return [];
       final List<dynamic> data = jsonDecode(resp.body);
