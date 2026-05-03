@@ -346,7 +346,7 @@ class _ExpenseAnalyzerPageState extends State<ExpenseAnalyzerPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _accent.withOpacity(0.3),
+            color: _accent.withValues(alpha: 0.3),
             blurRadius: 20, offset: const Offset(0, 8),
           ),
         ],
@@ -364,7 +364,7 @@ class _ExpenseAnalyzerPageState extends State<ExpenseAnalyzerPage>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -393,7 +393,7 @@ class _ExpenseAnalyzerPageState extends State<ExpenseAnalyzerPage>
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -440,7 +440,7 @@ class _ExpenseAnalyzerPageState extends State<ExpenseAnalyzerPage>
               Container(
                 width: 48, height: 48,
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.1),
+                  color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(

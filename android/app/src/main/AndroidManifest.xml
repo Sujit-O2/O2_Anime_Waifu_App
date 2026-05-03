@@ -277,6 +277,16 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/waifu_widget_info" />
         </receiver>
+
+        <!-- android_alarm_manager_plus: RebootBroadcastReceiver for alarm scheduling -->
+        <receiver
+            android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 

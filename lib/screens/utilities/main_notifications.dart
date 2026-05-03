@@ -17,6 +17,21 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2)),
                 const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.play_circle_outline, color: Colors.pinkAccent, size: 22),
+                  tooltip: 'Zero Two Videos',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => Scaffold(
+                      backgroundColor: Colors.black,
+                      appBar: AppBar(
+                        backgroundColor: Colors.black,
+                        title: const Text('Zero Two Episodes', style: TextStyle(color: Colors.white)),
+                        iconTheme: const IconThemeData(color: Colors.white),
+                      ),
+                      body: _buildComingSoonPage(),
+                    )),
+                  ),
+                ),
                 if (_notifHistory.isNotEmpty)
                   TextButton.icon(
                     icon: const Icon(Icons.delete_sweep_outlined,
@@ -103,6 +118,8 @@ extension _MainNotificationsExtension on _ChatHomePageState {
                 : ListView.builder(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    addRepaintBoundaries: true,
+                    cacheExtent: 600,
                     itemCount: _notifHistory.length,
                     itemBuilder: (ctx, i) {
                       final item = _notifHistory[i];
@@ -212,7 +229,7 @@ extension _MainNotificationsExtension on _ChatHomePageState {
               'assets/gif/notification.gif',
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
-              filterQuality: FilterQuality.high,
+              filterQuality: FilterQuality.low,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
             Container(

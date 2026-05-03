@@ -55,11 +55,14 @@ android {
         targetSdkVersion(35)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Only ship arm64-v8a + armeabi-v7a; skip x86/x86_64 (emulator-only).
-        // This cuts native lib payload (~320MB → ~160MB) and prevents OOM
-        // in PackageAndroidArtifact$IncrementalSplitterRunnable.
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false  // set true if you need a single fat APK for sideloading
         }
     }
 
@@ -77,6 +80,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             ndk {
                 debugSymbolLevel = "NONE"
             }

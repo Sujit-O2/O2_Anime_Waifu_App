@@ -5,7 +5,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:anime_waifu/widgets/animated_background.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final VoidCallback? onDone;
+  const LoginScreen({super.key, this.onDone});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -90,12 +91,31 @@ class _LoginScreenState extends State<LoginScreen>
         email: email,
         password: password,
       );
+      if (mounted) widget.onDone?.call();
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.message ?? 'Login failed.');
       }
     } catch (_) {
       if (mounted) setState(() => _errorMessage = 'Unexpected error.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInAnonymously() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      if (mounted) widget.onDone?.call();
+    } on FirebaseAuthException catch (_) {
+      // If anonymous auth fails, still proceed as guest
+      if (mounted) widget.onDone?.call();
+    } catch (_) {
+      if (mounted) widget.onDone?.call();
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -122,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen>
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
+      if (mounted) widget.onDone?.call();
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.message ?? 'Google sign-in failed.');
@@ -463,6 +484,10 @@ class _LoginScreenState extends State<LoginScreen>
 
               // Google button
               _buildGoogleButton(),
+              const SizedBox(height: 14),
+
+              // Guest button
+              _buildGuestButton(),
             ],
           ),
         ),
@@ -671,6 +696,22 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestButton() {
+    return TextButton(
+      onPressed: _isLoading ? null : _signInAnonymously,
+      child: Text(
+        'Continue as Guest',
+        style: GoogleFonts.outfit(
+          color: Colors.white.withValues(alpha: 0.45),
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          decoration: TextDecoration.underline,
+          decorationColor: Colors.white.withValues(alpha: 0.25),
         ),
       ),
     );

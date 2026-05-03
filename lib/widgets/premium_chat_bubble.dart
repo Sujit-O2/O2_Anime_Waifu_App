@@ -98,15 +98,15 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
                     curve: Curves.easeOutCubic,
                     decoration: BoxDecoration(
                       gradient: isUser
-                          ? LinearGradient(
-                              colors: const [
+                          ? const LinearGradient(
+                              colors: [
                                 Color(0xFFFF4081),
                                 Color(0xFFC2185B),
                                 Color(0xFF7C4DFF),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              stops: const [0.0, 0.5, 1.0],
+                              stops: [0.0, 0.5, 1.0],
                             )
                           : LinearGradient(
                               colors: [

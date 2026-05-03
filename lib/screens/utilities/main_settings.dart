@@ -410,12 +410,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     const SizedBox(height: 16),
 
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.lightGreenAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
@@ -473,12 +473,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     // ── STT Provider Toggle ─────────────────────────────────
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.tealAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -556,12 +556,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     // TTS Playback Speed slider
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.lightBlueAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -610,12 +610,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
 
                     // Voice Engine Model Chooser
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.cyanAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1135,12 +1135,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     // Wallpaper Brightness slider
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.amberAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1192,12 +1192,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     const SizedBox(height: 20),
 
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.amberAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1261,12 +1261,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
                     ),
                     // Chat Text Size chooser
                     Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.02))),
+                        color: Colors.cyanAccent.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1855,32 +1855,36 @@ extension _MainSettingsExtension on _ChatHomePageState {
     required String value,
     required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.white10)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 16),
             ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 14),
-          Text(label,
-              style: GoogleFonts.outfit(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Text(value,
-              style: GoogleFonts.outfit(
-                  color: color, fontSize: 12, fontWeight: FontWeight.w700)),
-        ],
+            const SizedBox(width: 14),
+            Text(label,
+                style: GoogleFonts.outfit(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500)),
+            const Spacer(),
+            Text(value,
+                style: GoogleFonts.outfit(
+                    color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }
@@ -1957,50 +1961,55 @@ extension _MainSettingsExtension on _ChatHomePageState {
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
             splashColor: color.withValues(alpha: 0.1),
             highlightColor: color.withValues(alpha: 0.05),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.white10)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: color, size: 18),
                     ),
-                    child: Icon(icon, color: color, size: 18),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.outfit(
-                            color: Colors.white54,
-                            fontSize: 11,
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.outfit(
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: Colors.white24, size: 20),
-                ],
+                    const Icon(Icons.chevron_right_rounded,
+                        color: Colors.white24, size: 20),
+                  ],
+                ),
               ),
             ),
           ),
@@ -2018,13 +2027,26 @@ extension _MainSettingsExtension on _ChatHomePageState {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
-            child: Text(title,
-                style: GoogleFonts.outfit(
-                    color: tokens.textSoft,
-                    fontSize: 11,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w700)),
+            padding: const EdgeInsets.only(left: 8, bottom: 10, top: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(title,
+                    style: GoogleFonts.outfit(
+                        color: tokens.textSoft,
+                        fontSize: 11,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
           ),
           Container(
             decoration: BoxDecoration(
@@ -2047,6 +2069,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                 ),
               ],
             ),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Column(
@@ -2334,10 +2357,6 @@ extension _MainSettingsExtension on _ChatHomePageState {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.02))),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2674,7 +2693,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
   }
 }
 
-Widget _settingsTile({
+  Widget _settingsTile({
   required IconData icon,
   required String label,
   required String subtitle,
@@ -2686,96 +2705,101 @@ Widget _settingsTile({
     builder: (context) {
       final theme = Theme.of(context);
       final tokens = context.appTokens;
-      return InkWell(
-        onTap: () => onChanged(!value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: tokens.outline.withValues(alpha: 0.9)),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: InkWell(
+          onTap: () => onChanged(!value),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: value
+                  ? activeColor.withValues(alpha: 0.06)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
             ),
-          ),
-          child: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: value
-                      ? LinearGradient(
-                          colors: [
-                            activeColor.withValues(alpha: 0.28),
-                            activeColor.withValues(alpha: 0.10),
-                          ],
-                        )
-                      : LinearGradient(
-                          colors: [
-                            tokens.panelElevated,
-                            tokens.panelMuted,
-                          ],
-                        ),
-                  border: Border.all(
-                    color: value
-                        ? activeColor.withValues(alpha: 0.35)
-                        : tokens.outline,
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: value
+                        ? LinearGradient(
+                            colors: [
+                              activeColor.withValues(alpha: 0.28),
+                              activeColor.withValues(alpha: 0.10),
+                            ],
+                          )
+                        : LinearGradient(
+                            colors: [
+                              tokens.panelElevated,
+                              tokens.panelMuted,
+                            ],
+                          ),
+                    border: Border.all(
+                      color: value
+                          ? activeColor.withValues(alpha: 0.35)
+                          : tokens.outline,
+                    ),
                   ),
-                ),
-                child: Icon(
-                  icon,
-                  color: value ? activeColor : tokens.textSoft,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label,
-                        style: GoogleFonts.outfit(
-                            color: theme.colorScheme.onSurface,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: GoogleFonts.outfit(
-                            color: tokens.textMuted, fontSize: 11.2)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: value
-                      ? activeColor.withValues(alpha: 0.14)
-                      : tokens.panelMuted,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: value
-                        ? activeColor.withValues(alpha: 0.28)
-                        : tokens.outline,
-                  ),
-                ),
-                child: Text(
-                  value ? 'On' : 'Off',
-                  style: GoogleFonts.outfit(
+                  child: Icon(
+                    icon,
                     color: value ? activeColor : tokens.textSoft,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
+                    size: 18,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Switch(
-                value: value,
-                onChanged: onChanged,
-                activeColor: activeColor,
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label,
+                          style: GoogleFonts.outfit(
+                              color: theme.colorScheme.onSurface,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(subtitle,
+                          style: GoogleFonts.outfit(
+                              color: tokens.textMuted, fontSize: 11.2)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: value
+                        ? activeColor.withValues(alpha: 0.14)
+                        : tokens.panelMuted,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: value
+                          ? activeColor.withValues(alpha: 0.28)
+                          : tokens.outline,
+                    ),
+                  ),
+                  child: Text(
+                    value ? 'On' : 'Off',
+                    style: GoogleFonts.outfit(
+                      color: value ? activeColor : tokens.textSoft,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Switch(
+                  value: value,
+                  onChanged: onChanged,
+                  activeColor: activeColor,
+                ),
+              ],
+            ),
           ),
         ),
       );

@@ -260,6 +260,13 @@ import 'package:anime_waifu/screens/wellness/sleep_mode_page.dart';
 import 'package:anime_waifu/screens/wellness/study_timer_page.dart';
 import 'package:anime_waifu/screens/wellness/wellness_reminders_page.dart';
 import 'package:anime_waifu/services/anime_media/manga_service.dart';
+import 'package:anime_waifu/screens/utilities/premium_settings_page.dart';
+import 'package:anime_waifu/screens/media/photo_memory_album_page.dart';
+import 'package:anime_waifu/screens/utilities/data_vault_page.dart';
+import 'package:anime_waifu/screens/utilities/conversation_summary_page.dart';
+import 'package:anime_waifu/screens/utilities/character_database_page.dart';
+import 'package:anime_waifu/screens/admin/discord_integration_panel_page.dart';
+import 'package:anime_waifu/screens/utilities/anime_embed_player_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -537,6 +544,10 @@ class AppRouter {
   static const String lifeTimeline = '/life-timeline';
   static const String decisionHelper = '/decision-helper';
   static const String smartStudy = '/smart-study';
+  static const String premiumSettings = '/premium-settings';
+  static const String photoMemoryAlbum = '/photo-memory-album';
+  static const String discordIntegration = '/discord-integration';
+  static const String animeEmbedPlayer = '/anime-embed-player';
 
   // ── Route Map ───────────────────────────────────────────────────────────
   static Map<String, WidgetBuilder> get routes => {
@@ -821,11 +832,39 @@ class AppRouter {
         AppRouter.lifeTimeline: (_) => const LifeTimelinePage(),
         AppRouter.decisionHelper: (_) => const DecisionHelperPage(),
         AppRouter.smartStudy: (_) => const SmartStudyPage(),
+        AppRouter.premiumSettings: (_) => const PremiumSettingsPage(),
+        AppRouter.photoMemoryAlbum: (_) => const PhotoMemoryAlbumPage(),
+        AppRouter.discordIntegration: (_) => const DiscordIntegrationPanelPage(),
+        AppRouter.dataVault: (_) => const DataVaultPage(),
+        AppRouter.conversationSummary: (_) => const ConversationSummaryPage(),
       };
 
   /// Premium page transition that makes navigation feel smooth and modern.
   /// Uses a slide + fade combo with a spring curve for buttery page switches.
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    // Handle routes that require constructor arguments
+    if (settings.name == AppRouter.animeEmbedPlayer) {
+      final args = settings.arguments as Map<String, dynamic>? ?? {};
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => AnimeEmbedPlayerPage(
+          animeTitle: args['animeTitle'] as String? ?? '',
+          malId: args['malId'] as String? ?? '',
+          episodeNumber: args['episodeNumber'] as int? ?? 1,
+          subOrDub: args['subOrDub'] as String? ?? 'sub',
+        ),
+      );
+    }
+    if (settings.name == AppRouter.characterDatabase) {
+      final args = settings.arguments as Map<String, dynamic>? ?? {};
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => CharacterDatabasePage(
+          animeId: args['animeId'] as String? ?? '',
+          animeTitle: args['animeTitle'] as String? ?? '',
+        ),
+      );
+    }
     final builder = routes[settings.name];
     if (builder == null) {
       return onUnknownRoute(settings);

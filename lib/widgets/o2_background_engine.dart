@@ -235,7 +235,7 @@ class _BackgroundPainter extends CustomPainter {
         radius: 1.2,
         colors: [
           Colors.transparent,
-          palette.base.withOpacity(0.6),
+          palette.base.withValues(alpha: 0.6),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(
@@ -250,7 +250,7 @@ class _BackgroundPainter extends CustomPainter {
         ),
         radius: 0.8,
         colors: [
-          palette.aurora[0].withOpacity(0.04),
+          palette.aurora[0].withValues(alpha: 0.04),
           Colors.transparent,
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -275,8 +275,8 @@ class _BackgroundPainter extends CustomPainter {
         center: Alignment.center,
         radius: 1.0,
         colors: [
-          colors[i].withOpacity(0.12),
-          colors[i].withOpacity(0.04),
+          colors[i].withValues(alpha: 0.12),
+          colors[i].withValues(alpha: 0.04),
           Colors.transparent,
         ],
         stops: const [0.0, 0.5, 1.0],
@@ -295,7 +295,7 @@ class _BackgroundPainter extends CustomPainter {
       final py = (p.y - p.speed * t) % 1.0;
       final twinkle = 0.5 + 0.5 * math.sin(t * math.pi * 4 + p.phase);
 
-      paint.color = palette.particleColor.withOpacity(p.opacity * twinkle);
+      paint.color = palette.particleColor.withValues(alpha: p.opacity * twinkle);
       canvas.drawCircle(
         Offset(px * size.width, py * size.height),
         p.size,
@@ -424,14 +424,14 @@ class _MeshPainter extends CustomPainter {
 
     final dotPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = color.withOpacity(0.5);
+      ..color = color.withValues(alpha: 0.5);
 
     for (int i = 0; i < positions.length; i++) {
       for (int j = i + 1; j < positions.length; j++) {
         final d = (positions[i] - positions[j]).distance;
         if (d < maxDist) {
           final opacity = (1 - d / maxDist) * 0.3;
-          linePaint.color = color.withOpacity(opacity);
+          linePaint.color = color.withValues(alpha: opacity);
           canvas.drawLine(positions[i], positions[j], linePaint);
         }
       }
@@ -441,7 +441,7 @@ class _MeshPainter extends CustomPainter {
         final td = (positions[i] - touch).distance;
         if (td < 150) {
           final intensity = (1 - td / 150) * 0.6;
-          linePaint.color = color.withOpacity(intensity);
+          linePaint.color = color.withValues(alpha: intensity);
           canvas.drawLine(positions[i], touch, linePaint);
         }
       }

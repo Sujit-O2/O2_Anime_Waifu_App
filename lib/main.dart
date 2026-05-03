@@ -37,11 +37,9 @@ import 'package:anime_waifu/screens/utilities/commands_page.dart';
 import 'package:anime_waifu/screens/utilities/features_hub_page.dart';
 import 'package:anime_waifu/screens/utilities/gacha_page.dart';
 import 'package:anime_waifu/screens/utilities/image_pack_page.dart';
-import 'package:anime_waifu/screens/utilities/login_screen.dart';
 import 'package:anime_waifu/screens/utilities/main_themes.dart';
 // Additional screen imports for part files
 import 'package:anime_waifu/screens/utilities/music_player_page.dart';
-import 'package:anime_waifu/screens/utilities/secret_notes_page.dart';
 import 'package:anime_waifu/screens/utilities/stats_habits_page.dart';
 import 'package:anime_waifu/screens/utilities/theme_accent_page.dart';
 import 'package:anime_waifu/screens/utilities/waifu_voice_call_screen.dart';
@@ -104,6 +102,7 @@ import 'package:anime_waifu/services/utilities_core/adaptive_performance_engine.
 import 'package:anime_waifu/services/utilities_core/geo_intelligence_service.dart';
 import 'package:anime_waifu/widgets/app_lock_wrapper.dart';
 import 'package:anime_waifu/widgets/gesture_control_overlay.dart';
+import 'package:anime_waifu/widgets/main_bottom_nav.dart';
 import 'package:anime_waifu/widgets/o2_background_engine.dart';
 import 'package:anime_waifu/widgets/premium_input_bar.dart';
 import 'package:anime_waifu/widgets/reactive_pulse.dart';
@@ -127,12 +126,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:anime_waifu/screens/utilities/login_screen.dart';
 import 'package:anime_waifu/utils/lazy_service_loader.dart';
-import 'package:anime_waifu/screens/utilities/smart_onboarding.dart';
-import 'package:anime_waifu/screens/utilities/life_os_dashboard.dart';
 
-import 'screens/utilities/quests_page.dart';
-import 'screens/wellness/mood_tracker_page.dart';
 import 'widgets/liveliness_widgets.dart';
 
 part 'screens/utilities/about_page.dart';
@@ -486,50 +482,54 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
             darkTheme: AppThemes.getDarkTheme(themeProv.mode),
             routes: AppRouter.routes,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            home: StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 300),
-                    builder: (context, opacity, child) => Opacity(
-                      opacity: opacity,
-                      child: child,
-                    ),
-                    child: const Scaffold(
-                      body: Center(
-                          child: CircularProgressIndicator(
-                              color: Colors.pinkAccent)),
-                    ),
-                  );
-                }
-                if (snapshot.hasData) {
-                  return FutureBuilder<bool>(
-                    future: SmartOnboarding.isCompleted(),
-                    builder: (context, onboardSnap) {
-                      if (onboardSnap.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Scaffold(
-                          body: Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.pinkAccent)),
-                        );
-                      }
-                      final done = onboardSnap.data ?? false;
-                      if (!done) return const SmartOnboarding();
-                      return AppLockWrapper(
-                          key: appLockKey, child: const LifeOsDashboard());
-                    },
-                  );
-                }
-                return const LoginScreen();
-              },
-            ),
+            home: _FirstLaunchGate(child: AppLockWrapper(key: appLockKey, child: const ChatHomePage())),
           ),
         );
       },
     );
+  }
+}
+
+/// Shows LoginScreen on first launch only. After login/skip, sets a flag so
+/// subsequent launches go straight to the app.
+class _FirstLaunchGate extends StatefulWidget {
+  final Widget child;
+  const _FirstLaunchGate({required this.child});
+  @override
+  State<_FirstLaunchGate> createState() => _FirstLaunchGateState();
+}
+
+class _FirstLaunchGateState extends State<_FirstLaunchGate> {
+  static const _key = 'has_launched_before';
+  bool? _hasLaunched;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (!mounted) return;
+      setState(() => _hasLaunched = p.getBool(_key) ?? false);
+    });
+  }
+
+  void _onLoginDone() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_key, true);
+    if (!mounted) return;
+    setState(() => _hasLaunched = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasLaunched == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.pinkAccent)),
+      );
+    }
+    if (!_hasLaunched!) {
+      return LoginScreen(onDone: _onLoginDone);
+    }
+    return widget.child;
   }
 }
 
@@ -1073,6 +1073,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
     _openingController.forward().whenComplete(() {
       if (mounted) {
+        setState(() => _showOpeningOverlay = false);
+      }
+    });
+    // Safety: force-hide after 3s regardless of animation state
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _showOpeningOverlay) {
         setState(() => _showOpeningOverlay = false);
       }
     });
@@ -2377,6 +2383,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _backgroundTransitionTimer?.cancel();
 
     if (state == AppLifecycleState.resumed) {
+      // Ensure content is always visible when returning from background
+      if (mounted && _showOpeningOverlay) {
+        setState(() => _showOpeningOverlay = false);
+      }
       _suspendWakeWord = false;
       if (_assistantModeEnabled) {
         // Hand-off: stop native wake first, then restore Flutter wake.
@@ -2662,7 +2672,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       if (useSmartVerification) {
         final audioData = _wakeWordService.getRecentAudio();
         if (audioData.isNotEmpty) {
-          if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+          if (Platform.isAndroid && _wakePopupEnabled) {
             await _assistantModeService.showOverlay(
               status: 'Verifying...',
               transcript: 'Checking wake word...',
@@ -2671,7 +2681,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
           final isValid = await _verifyWakeWordWithGroq(audioData);
           if (!isValid) {
-            if (Platform.isAndroid && _wakePopupEnabled && _navIndex != 0) {
+            if (Platform.isAndroid && _wakePopupEnabled) {
               await _assistantModeService.hideOverlay();
             }
             return; // False alarm rejected by STT!
@@ -2692,17 +2702,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         }
       } catch (_) {}
 
-      // Don't show overlay when user is already on the chat screen, UNLESS the app is backgrounded.
+      // Show overlay on wake word regardless of which screen is active
       bool isBackground = _appLifecycleState != AppLifecycleState.resumed;
-      if (Platform.isAndroid &&
-          _wakePopupEnabled &&
-          (_navIndex != 0 || isBackground)) {
+      if (Platform.isAndroid && _wakePopupEnabled) {
         await _assistantModeService.showOverlay(
           status: 'Wake word detected',
           transcript: wakeName.isNotEmpty ? wakeName : 'Speak your command',
         );
       } else if (isBackground) {
-        // If they disabled the popup but are in the background, force the app to the front so they can interact.
         await _assistantModeService.bringToFront();
       }
 
@@ -4885,10 +4892,16 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               SystemNavigator.pop();
             }
           },
-          child: Scaffold(
+           child: Scaffold(
+            extendBody: false,
             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
             drawer: _buildNavDrawer(themeMode),
+            bottomNavigationBar: (_navIndex == 0 || _navIndex > 4) ? null : MainBottomNav(
+              currentIndex: _navIndex.clamp(0, 4),
+              onTap: (i) => setState(() => _navIndex = i),
+              accentColor: theme.colorScheme.primary,
+            ),
              appBar: AppBar(
                backgroundColor: Colors.transparent,
                elevation: 0,
@@ -5754,8 +5767,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                               _isChatSearchActive ? null : _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(
                               parent: BouncingScrollPhysics()),
-                          cacheExtent: 420,
-                          addAutomaticKeepAlives: true,
+                          cacheExtent: 1200,
+                          addAutomaticKeepAlives: false,
                           addRepaintBoundaries: true,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4, vertical: 10),
@@ -5834,19 +5847,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                             }
                             final msgIndex = collapseOld ? index - 1 : index;
                             final msg = visibleMessages[msgIndex];
+                            final isNewest = msgIndex == visibleMessages.length - 1;
+                            final bubble = RepaintBoundary(
+                              child: _buildBubble(context, msg, isGhost: false),
+                            );
+                            if (!isNewest) return bubble;
                             return TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0.0, end: 1.0),
-                              duration: Duration(
-                                  milliseconds: 280 + (msgIndex * 30).clamp(0, 300)),
+                              duration: const Duration(milliseconds: 280),
                               curve: Curves.easeOutCubic,
                               builder: (context, value, child) =>
                                   Transform.translate(
                                 offset: Offset(0, 12 * (1 - value)),
                                 child: Opacity(opacity: value, child: child),
                               ),
-                              child: RepaintBoundary(
-                                child: _buildBubble(context, msg, isGhost: false),
-                              ),
+                              child: bubble,
                             );
                           },
                         );
@@ -6969,13 +6984,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     final isListening = _speechService.listening;
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarPadding = MediaQuery.paddingOf(context).bottom;
 
     return GestureDetector(
       onHorizontalDragEnd: (d) {
         if ((d.primaryVelocity ?? 0) < -400) _launchAssistantOverlay();
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
+        padding: EdgeInsets.fromLTRB(8, 0, 8, keyboardHeight > 0 ? 8 : (navBarPadding > 0 ? navBarPadding : 12)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -7014,7 +7031,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -7034,6 +7051,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               onMicTap: () => unawaited(_toggleManualMic()),
               onImagePick: () => unawaited(_pickImage()),
               onSurpriseMe: _fireSurpriseMe,
+              onAssistantOverlay: () => unawaited(_launchAssistantOverlay()),
               hasImage: _selectedImage != null,
               isListening: isListening,
               isThinking: _isBusy,
@@ -7400,44 +7418,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             opacity: _contentFade,
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  _buildAvatarArea(),
-                  _buildChatList(),
-                  _buildInputArea(),
-                ],
+              child: Padding(
+                padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom > 0 ? 0 : 0),
+                child: Column(
+                  children: [
+                    _buildAvatarArea(),
+                    _buildChatList(),
+                    _buildInputArea(),
+                  ],
+                ),
               ),
             ),
           ),
         );
 
       case 1:
-        return _buildNotificationsPage();
+        return RepaintBoundary(child: _buildNotificationsPage());
       case 2:
-        return FeaturesHubPage(
-          onBack: () => setState(() => _navIndex = 0),
-          onOpenCloudinary: () => setState(() => _navIndex = 12),
+        return RepaintBoundary(
+          child: FeaturesHubPage(
+            onBack: () => setState(() => _navIndex = 0),
+            onOpenCloudinary: () => setState(() => _navIndex = 0),
+          ),
         );
       case 3:
-        return _buildSettingsPage();
+        return RepaintBoundary(child: _buildSettingsPage());
       case 4:
-        return const ThemesPage();
+        return const RepaintBoundary(child: ThemesPage());
       case 5:
-        return _buildDevConfigPage();
+        return RepaintBoundary(child: _buildDevConfigPage());
       case 6:
-        return _buildDebugPage();
+        return RepaintBoundary(child: _buildDebugPage());
       case 7:
-        return _buildAboutPage();
-      case 8:
-        return const GachaPage();
-      case 9:
-        return const MoodTrackerPage();
-      case 10:
-        return const SecretNotesPage();
-      case 11:
-        return const QuestsPage();
-      case 12:
-        return _buildComingSoonPage();
+        return RepaintBoundary(child: _buildAboutPage());
       default:
         return const SizedBox.shrink();
     }

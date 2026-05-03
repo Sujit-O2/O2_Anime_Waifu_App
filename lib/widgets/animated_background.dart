@@ -178,14 +178,6 @@ class ParticlePainter extends CustomPainter {
           break;
       }
 
-      // Subtle glow
-      paint.style = PaintingStyle.fill;
-      paint.color = themeColor.withValues(alpha: p.opacity * 0.2);
-      if (type == ParticleType.sakura || type == ParticleType.embers) {
-        canvas.drawCircle(Offset(p.x, p.y), p.radius * 3, paint);
-      } else {
-        canvas.drawCircle(Offset(p.x, p.y), p.radius * 2.1, paint);
-      }
     }
   }
 
@@ -302,7 +294,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                           // Frame budget check: skip expensive update if behind
                           final now = DateTime.now();
                           final elapsed = now.difference(_lastFrameTime);
-                          if (elapsed.inMilliseconds > 8) {
+                          if (elapsed.inMilliseconds > 16) {
                             // ~120fps budget
                             _lastFrameTime = now;
                             final size = Size(
@@ -372,6 +364,7 @@ class _StaticBackgroundLayer extends StatelessWidget {
                             errorBuilder: (c, e, s) => Image.asset(
                               'assets/gif/background_of_about_section_blurry.gif',
                               fit: BoxFit.cover,
+                              filterQuality: FilterQuality.low,
                             ),
                           ),
               );

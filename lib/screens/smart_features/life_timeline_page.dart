@@ -101,7 +101,7 @@ class _LifeTimelinePageState extends State<LifeTimelinePage>
             margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: _accent.withOpacity(0.15),
+              color: _accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -237,7 +237,7 @@ class _LifeTimelinePageState extends State<LifeTimelinePage>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _accent.withOpacity(0.15),
+                      color: _accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(_formatDate(date),
@@ -264,7 +264,7 @@ class _LifeTimelinePageState extends State<LifeTimelinePage>
         color: _surface,
         borderRadius: BorderRadius.circular(12),
         border: Border(
-          left: BorderSide(color: _accent.withOpacity(0.5), width: 3),
+          left: BorderSide(color: _accent.withValues(alpha: 0.5), width: 3),
         ),
       ),
       child: Row(

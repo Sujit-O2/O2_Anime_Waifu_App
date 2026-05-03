@@ -186,7 +186,7 @@ class _DecisionHelperPageState extends State<DecisionHelperPage>
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _accent.withOpacity(0.3)),
+        border: Border.all(color: _accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +294,7 @@ class _DecisionHelperPageState extends State<DecisionHelperPage>
               icon: const Icon(Icons.add, size: 16),
               label: Text('Add Option', style: GoogleFonts.outfit(fontSize: 13)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _accent.withOpacity(0.2),
+                backgroundColor: _accent.withValues(alpha: 0.2),
                 foregroundColor: _accent,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -332,7 +332,7 @@ class _DecisionHelperPageState extends State<DecisionHelperPage>
                 Container(
                   width: 28, height: 28,
                   decoration: BoxDecoration(
-                    color: _accent.withOpacity(0.15),
+                    color: _accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
@@ -420,11 +420,11 @@ class _DecisionHelperPageState extends State<DecisionHelperPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_accent.withOpacity(0.15), _surface],
+          colors: [_accent.withValues(alpha: 0.15), _surface],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _accent.withOpacity(0.3)),
+        border: Border.all(color: _accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,10 +440,10 @@ class _DecisionHelperPageState extends State<DecisionHelperPage>
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: r.riskLevel == 'Low'
-                      ? Colors.green.withOpacity(0.2)
+                      ? Colors.green.withValues(alpha: 0.2)
                       : r.riskLevel == 'Medium'
-                          ? Colors.orange.withOpacity(0.2)
-                          : Colors.red.withOpacity(0.2),
+                          ? Colors.orange.withValues(alpha: 0.2)
+                          : Colors.red.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

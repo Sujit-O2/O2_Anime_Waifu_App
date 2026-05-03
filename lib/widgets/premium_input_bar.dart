@@ -22,6 +22,7 @@ class PremiumChatInputBar extends StatefulWidget {
   final VoidCallback onMicTap;
   final VoidCallback? onImagePick;
   final VoidCallback? onSurpriseMe;
+  final VoidCallback? onAssistantOverlay;
   final bool hasImage;
   final bool isListening;
   final bool isThinking;
@@ -37,6 +38,7 @@ class PremiumChatInputBar extends StatefulWidget {
     required this.onMicTap,
     this.onImagePick,
     this.onSurpriseMe,
+    this.onAssistantOverlay,
     this.hasImage = false,
     this.isListening = false,
     this.isThinking = false,
@@ -183,32 +185,24 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+          margin: const EdgeInsets.fromLTRB(4, 4, 4, 4),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(28),
             color: isDark
-                ? theme.colorScheme.surface.withOpacity(0.92)
-                : theme.colorScheme.surface.withOpacity(0.98),
+                ? theme.colorScheme.surface.withValues(alpha: 0.95)
+                : theme.colorScheme.surface.withValues(alpha: 0.98),
             border: Border.all(
               color: widget.isListening
-                  ? accent.withOpacity(0.6)
-                  : theme.colorScheme.outline.withOpacity(0.25),
+                  ? accent.withValues(alpha: 0.6)
+                  : theme.colorScheme.outline.withValues(alpha: 0.25),
               width: widget.isListening ? 1.5 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: widget.isListening
-                    ? accent.withOpacity(0.15)
-                    : accent.withOpacity(0.06),
-                blurRadius: widget.isListening ? 20 : 12,
+                color: accent.withValues(alpha: widget.isListening ? 0.15 : 0.06),
+                blurRadius: 12,
                 spreadRadius: -3,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
-                blurRadius: 16,
-                spreadRadius: -4,
-                offset: const Offset(0, 2),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -239,7 +233,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                                   : Icons.add_photo_alternate_outlined,
                               color: widget.hasImage
                                   ? accent
-                                  : theme.colorScheme.onSurface.withOpacity(0.5),
+                                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                               size: 22,
                             ),
                           ),
@@ -266,7 +260,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                                       width: 1.5),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: accent.withOpacity(0.4),
+                                      color: accent.withValues(alpha: 0.4),
                                       blurRadius: 4,
                                     ),
                                   ],
@@ -296,7 +290,8 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
   }
 
   Widget _buildTextField(ThemeData theme) {
-    return TextField(
+    return ClipRect(
+      child: TextField(
       controller: widget.controller,
       focusNode: widget.focusNode,
       maxLines: 5,
@@ -316,7 +311,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
             ? 'Zero Two is thinking...'
             : 'Message Zero Two...',
         hintStyle: GoogleFonts.outfit(
-          color: theme.colorScheme.onSurface.withOpacity(0.35),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
           fontSize: 14.5,
           fontStyle: widget.isThinking ? FontStyle.italic : FontStyle.normal,
           fontWeight: FontWeight.w400,
@@ -325,8 +320,9 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
         focusedBorder: InputBorder.none,
         enabledBorder: InputBorder.none,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
+    ),
     );
   }
 
@@ -350,7 +346,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                   end: Alignment.topCenter,
                   colors: [
                     accent,
-                    accent.withOpacity(0.4),
+                    accent.withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -384,18 +380,18 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: widget.isListening
-                        ? [accent, accent.withOpacity(0.7)]
+                        ? [accent, accent.withValues(alpha: 0.7)]
                         : isSend
-                            ? [accent, accent.withOpacity(0.8)]
+                            ? [accent, accent.withValues(alpha: 0.8)]
                             : [
-                                accent.withOpacity(0.15),
-                                accent.withOpacity(0.08)
+                                accent.withValues(alpha: 0.15),
+                                accent.withValues(alpha: 0.08)
                               ],
                   ),
                   boxShadow: (isSend || widget.isListening)
                       ? [
                           BoxShadow(
-                            color: accent.withOpacity(0.4),
+                            color: accent.withValues(alpha: 0.4),
                             blurRadius: 12,
                             spreadRadius: -2,
                           )
@@ -462,15 +458,15 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           gradient: LinearGradient(
-                            colors: [accent.withOpacity(0.2), accent.withOpacity(0.05)],
+                            colors: [accent.withValues(alpha: 0.2), accent.withValues(alpha: 0.05)],
                           ),
-                          border: Border.all(color: accent.withOpacity(0.4), width: 1),
+                          border: Border.all(color: accent.withValues(alpha: 0.4), width: 1),
                         ),
                         child: Text(
                           reply,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -524,7 +520,7 @@ class _SurpriseChipState extends State<_SurpriseChip> with SingleTickerProviderS
             borderRadius: BorderRadius.circular(20),
             gradient: const LinearGradient(colors: [p1, p2]),
             boxShadow: [
-              BoxShadow(color: p1.withOpacity(_glow.value * 0.4), blurRadius: 10, spreadRadius: 1),
+              BoxShadow(color: p1.withValues(alpha: _glow.value * 0.4), blurRadius: 10, spreadRadius: 1),
             ],
           ),
           child: const Row(
@@ -597,7 +593,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
         Text(
           widget.label,
           style: TextStyle(
-            color: widget.color.withOpacity(0.7),
+            color: widget.color.withValues(alpha: 0.7),
             fontSize: 12,
             fontStyle: FontStyle.italic,
           ),

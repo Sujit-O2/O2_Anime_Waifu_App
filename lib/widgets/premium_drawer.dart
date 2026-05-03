@@ -141,7 +141,8 @@ class _PremiumDrawerState extends State<PremiumDrawer>
 
                   // ── Navigation Items ───────────────────────────────────
                   Expanded(
-                    child: ListView(
+                    child: RepaintBoundary(
+                      child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       physics: const BouncingScrollPhysics(),
                       children: [
@@ -255,6 +256,7 @@ class _PremiumDrawerState extends State<PremiumDrawer>
                         ),
                         const SizedBox(height: 20),
                       ],
+                    ),
                     ),
                   ),
 

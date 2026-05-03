@@ -1661,64 +1661,83 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
                     const SizedBox(height: 16),
 
-                    // Search Bar
+                    // ═══ IMPROVED SEARCH BAR ═══
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline,
-                          width: 1,
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.06),
+                          ],
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search_rounded,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              style: GoogleFonts.outfit(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Search features...',
-                                hintStyle: GoogleFonts.outfit(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 14,
-                                ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              onChanged: (value) {
-                                setState(() => _query = value);
-                                _saveHubPrefs();
-                              },
-                              controller: TextEditingController(text: _query),
-                            ),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
                           ),
-                          if (_query.isNotEmpty)
-                            IconButton(
-                              icon: Icon(Icons.clear_rounded,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  size: 18),
-                              onPressed: () {
-                                setState(() => _query = '');
-                                _saveHubPrefs();
-                              },
-                            ),
                         ],
                       ),
+                      child: Row(children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                                Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(Icons.search_rounded,
+                              color: Theme.of(context).colorScheme.primary, size: 22),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            style: GoogleFonts.outfit(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16, fontWeight: FontWeight.w500,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Search features...',
+                              hintStyle: GoogleFonts.outfit(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                                fontSize: 15,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                            ),
+                            onChanged: (value) {
+                              setState(() => _query = value);
+                              _saveHubPrefs();
+                            },
+                            controller: TextEditingController(text: _query),
+                          ),
+                        ),
+                        if (_query.isNotEmpty)
+                          IconButton(
+                            icon: Icon(Icons.close_rounded,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), size: 20),
+                            onPressed: () {
+                              setState(() => _query = '');
+                              _saveHubPrefs();
+                            },
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Icon(Icons.tune_rounded,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25), size: 20),
+                          ),
+                      ]),
                     ),
                   ],
                 ),
@@ -1726,28 +1745,30 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
               // Scrollable overview + category list
               Expanded(
-                child: ListView(
+                child: ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                  children: [
-                    _buildHubOverview(
-                      commentaryMood: commentaryMood,
-                      totalItems: totalItems,
-                      visibleItems: visibleItems,
-                    ),
-                    const SizedBox(height: 12),
-                    if (visibleCategories.isEmpty)
-                      const EmptyState(
+                  addRepaintBoundaries: true,
+                  cacheExtent: 800,
+                  itemCount: 2 + (visibleCategories.isEmpty ? 1 : visibleCategories.length),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _buildHubOverview(
+                        commentaryMood: commentaryMood,
+                        totalItems: totalItems,
+                        visibleItems: visibleItems,
+                      );
+                    }
+                    if (index == 1) return const SizedBox(height: 12);
+                    if (visibleCategories.isEmpty) {
+                      return const EmptyState(
                         icon: Icons.search_off_rounded,
                         title: 'No matching features',
                         subtitle:
                             'Try a broader search and the matching feature groups will appear here.',
-                      )
-                    else
-                      ...List.generate(
-                        visibleCategories.length,
-                        (i) => _buildCategoryCard(visibleCategories[i], i),
-                      ),
-                  ],
+                      );
+                    }
+                    return _buildCategoryCard(visibleCategories[index - 2], index - 2);
+                  },
                 ),
               ),
             ]),

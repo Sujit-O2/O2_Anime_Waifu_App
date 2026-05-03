@@ -49,7 +49,7 @@ class ApiService {
 
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
-    return 'meta-llama/llama-4-maverick-17b-128e-instruct';
+    return 'meta-llama/llama-4-scout-17b-16e-instruct';
   }
 
   String get _effectiveUrl {
