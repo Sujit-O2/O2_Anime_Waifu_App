@@ -345,59 +345,85 @@ Widget drawerPulseStat({
        required IconData icon,
        required Color color,
      }) {
-       return Container(
-         margin: const EdgeInsets.symmetric(horizontal: 4),
-         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-         decoration: BoxDecoration(
-           borderRadius: BorderRadius.circular(12),
-           gradient: LinearGradient(
-             colors: [
-               tokens.panelElevated,
-               tokens.panel,
+       return Expanded(
+         child: Container(
+           margin: const EdgeInsets.symmetric(horizontal: 3),
+           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+           decoration: BoxDecoration(
+             borderRadius: BorderRadius.circular(14),
+             gradient: LinearGradient(
+               colors: [
+                 color.withValues(alpha: 0.08),
+                 tokens.panel,
+               ],
+               begin: Alignment.topLeft,
+               end: Alignment.bottomRight,
+             ),
+             border: Border.all(
+               color: color.withValues(alpha: 0.3),
+               width: 1.5,
+             ),
+             boxShadow: [
+               BoxShadow(
+                 color: color.withValues(alpha: 0.15),
+                 blurRadius: 12,
+                 offset: const Offset(0, 4),
+                 spreadRadius: -2,
+               )
              ],
            ),
-           border: Border.all(
-             color: tokens.outline,
-             width: 1,
+           child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(10),
+                 decoration: BoxDecoration(
+                   gradient: LinearGradient(
+                     colors: [
+                       color.withValues(alpha: 0.3),
+                       color.withValues(alpha: 0.15),
+                     ],
+                   ),
+                   borderRadius: BorderRadius.circular(10),
+                   boxShadow: [
+                     BoxShadow(
+                       color: color.withValues(alpha: 0.4),
+                       blurRadius: 8,
+                       spreadRadius: -1,
+                     ),
+                   ],
+                 ),
+                 child: Icon(icon, color: color, size: 20),
+               ),
+               const SizedBox(height: 10),
+               ShaderMask(
+                 shaderCallback: (bounds) => LinearGradient(
+                   colors: [color, color.withValues(alpha: 0.7)],
+                 ).createShader(bounds),
+                 child: Text(
+                   value,
+                   maxLines: 1,
+                   overflow: TextOverflow.ellipsis,
+                   style: GoogleFonts.outfit(
+                     color: Colors.white,
+                     fontSize: 15,
+                     fontWeight: FontWeight.w900,
+                     letterSpacing: 0.5,
+                   ),
+                 ),
+               ),
+               const SizedBox(height: 4),
+               Text(
+                 label,
+                 style: GoogleFonts.outfit(
+                   color: tokens.textSoft,
+                   fontSize: 10,
+                   fontWeight: FontWeight.w600,
+                   letterSpacing: 0.8,
+                 ),
+               ),
+             ],
            ),
-           boxShadow: [
-             BoxShadow(
-               color: Colors.black.withValues(alpha: 0.05),
-               blurRadius: 4,
-               offset: const Offset(0, 2),
-             )
-           ],
-         ),
-         child: Column(
-           mainAxisSize: MainAxisSize.min,
-           children: [
-             Container(
-               padding: const EdgeInsets.all(8),
-               decoration: BoxDecoration(
-                 color: color.withValues(alpha: 0.1),
-                 borderRadius: BorderRadius.circular(8),
-               ),
-               child: Icon(icon, color: color, size: 18),
-             ),
-             const SizedBox(height: 8),
-             Text(
-               value,
-               style: GoogleFonts.outfit(
-                 color: colors.onSurface,
-                 fontSize: 14,
-                 fontWeight: FontWeight.w700,
-               ),
-             ),
-             const SizedBox(height: 4),
-             Text(
-               label,
-               style: GoogleFonts.outfit(
-                 color: tokens.textSoft,
-                 fontSize: 11,
-                 fontWeight: FontWeight.w500,
-               ),
-             ),
-           ],
          ),
        );
      }
@@ -825,8 +851,10 @@ Widget drawerPulseStat({
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               drawerPulseStat(
                                 label: 'XP',
@@ -1398,6 +1426,82 @@ class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1)),
             ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedMissionIcon extends StatefulWidget {
+  final Color primary;
+  const _AnimatedMissionIcon({required this.primary});
+
+  @override
+  State<_AnimatedMissionIcon> createState() => _AnimatedMissionIconState();
+}
+
+class _AnimatedMissionIconState extends State<_AnimatedMissionIcon>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _rotation;
+  late Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+    _rotation = Tween<double>(begin: 0, end: 1).animate(_ctrl);
+    _pulse = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _pulse.value,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: [
+                  widget.primary,
+                  Colors.pinkAccent,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.primary.withValues(alpha: 0.5),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: RotationTransition(
+              turns: _rotation,
+              child: const Icon(
+                Icons.dashboard_customize_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
           ),
         );
       },
