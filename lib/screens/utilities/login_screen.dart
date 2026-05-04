@@ -130,117 +130,122 @@ class _LoginScreenState extends State<LoginScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFF08000F),
         resizeToAvoidBottomInset: true,
-        body: Stack(
-          children: [
-            // ── Full-bleed character art ──────────────────────────────────
-            FadeTransition(
-              opacity: _heroFade,
-              child: SizedBox.expand(
-                child: Image.asset(
-                  'assets/img/z2s.jpg',
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                  errorBuilder: (_, __, ___) => Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF2A0030), Color(0xFF08000F)],
+        body: SingleChildScrollView(
+          child: SizedBox(
+            height: size.height,
+            child: Stack(
+              children: [
+                // ── Full-bleed character art ──────────────────────────────────
+                FadeTransition(
+                  opacity: _heroFade,
+                  child: SizedBox.expand(
+                    child: Image.asset(
+                      'assets/img/z2s.jpg',
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF2A0030), Color(0xFF08000F)],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // ── Gradient fade — top subtle, bottom heavy ──────────────────
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.0, 0.35, 0.62, 1.0],
-                  colors: [
-                    Color(0x00000000),
-                    Color(0x22000000),
-                    Color(0xCC08000F),
-                    Color(0xFF08000F),
-                  ],
-                ),
-              ),
-            ),
-
-            // ── Animated neon glow orbs ───────────────────────────────────
-            AnimatedBuilder(
-              animation: _pulse,
-              builder: (_, __) => Stack(children: [
-                Positioned(
-                  top: size.height * 0.28,
-                  left: -40,
-                  child: _glowOrb(const Color(0xFFFF0057), 200, _pulse.value * 0.18),
-                ),
-                Positioned(
-                  top: size.height * 0.18,
-                  right: -30,
-                  child: _glowOrb(const Color(0xFF00D1FF), 160, _pulse.value * 0.12),
-                ),
-              ]),
-            ),
-
-            // ── Top badge ────────────────────────────────────────────────
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: FadeTransition(
-                  opacity: _heroFade,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white.withValues(alpha: 0.08),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6, height: 6,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF00FF88),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text('NEURAL CORE ONLINE',
-                                style: GoogleFonts.jetBrainsMono(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 9,
-                                  letterSpacing: 1.5,
-                                )),
-                          ],
-                        ),
-                      ),
-                    ],
+                // ── Gradient fade — top subtle, bottom heavy ──────────────────
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: [0.0, 0.35, 0.62, 1.0],
+                      colors: [
+                        Color(0x00000000),
+                        Color(0x22000000),
+                        Color(0xCC08000F),
+                        Color(0xFF08000F),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
 
-            // ── Bottom login card ─────────────────────────────────────────
-            Positioned(
-              left: 0, right: 0, bottom: 0,
-              child: AnimatedBuilder(
-                animation: _cardSlide,
-                builder: (_, child) => Transform.translate(
-                  offset: Offset(0, 60 * (1 - _cardSlide.value)),
-                  child: Opacity(opacity: _cardSlide.value, child: child),
+                // ── Animated neon glow orbs ───────────────────────────────────
+                AnimatedBuilder(
+                  animation: _pulse,
+                  builder: (_, __) => Stack(children: [
+                    Positioned(
+                      top: size.height * 0.28,
+                      left: -40,
+                      child: _glowOrb(const Color(0xFFFF0057), 200, _pulse.value * 0.18),
+                    ),
+                    Positioned(
+                      top: size.height * 0.18,
+                      right: -30,
+                      child: _glowOrb(const Color(0xFF00D1FF), 160, _pulse.value * 0.12),
+                    ),
+                  ]),
                 ),
-                child: _buildCard(size),
-              ),
+
+                // ── Top badge ────────────────────────────────────────────────
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: FadeTransition(
+                      opacity: _heroFade,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white.withValues(alpha: 0.08),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6, height: 6,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF00FF88),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text('NEURAL CORE ONLINE',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 9,
+                                      letterSpacing: 1.5,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ── Bottom login card ─────────────────────────────────────────
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  child: AnimatedBuilder(
+                    animation: _cardSlide,
+                    builder: (_, child) => Transform.translate(
+                      offset: Offset(0, 60 * (1 - _cardSlide.value)),
+                      child: Opacity(opacity: _cardSlide.value, child: child),
+                    ),
+                    child: _buildCard(size),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -276,11 +281,12 @@ class _LoginScreenState extends State<LoginScreen>
               right: BorderSide(color: Color(0x22FF0057), width: 0.8),
             ),
           ),
-          child: SingleChildScrollView(
+          child: Padding(
             padding: EdgeInsets.fromLTRB(
                 28, 28, 28, MediaQuery.viewInsetsOf(context).bottom + 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Drag handle
                 Center(

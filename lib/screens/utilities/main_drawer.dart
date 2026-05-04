@@ -138,80 +138,97 @@ Widget navItem(String label, IconData icon, int navIdx, {int? badgeCount}) {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            borderRadius: BorderRadius.circular(10),
-            splashColor: color.withValues(alpha: 0.12),
-            highlightColor: color.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            splashColor: color.withValues(alpha: 0.2),
+            highlightColor: color.withValues(alpha: 0.1),
             onTap: () {
               Navigator.pop(context);
               onTap();
             },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: tokens.outline),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tokens.outline.withValues(alpha: 0.5)),
                 gradient: LinearGradient(
-                  colors: [tokens.panelElevated, tokens.panel],
+                  colors: [
+                    tokens.panelElevated.withValues(alpha: 0.8),
+                    tokens.panel.withValues(alpha: 0.6)
+                  ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(children: [
-                // Premium glowing icon
+                // Premium glowing icon with pulse
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     gradient: LinearGradient(
                       colors: [
-                        color.withValues(alpha: 0.35),
-                        color.withValues(alpha: 0.12)
+                        color.withValues(alpha: 0.4),
+                        color.withValues(alpha: 0.15)
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     border: Border.all(
-                        color: color.withValues(alpha: 0.3), width: 1),
+                        color: color.withValues(alpha: 0.4), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                          color: color.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          spreadRadius: -2),
+                          color: color.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          spreadRadius: -1),
                     ],
                   ),
-                  child: Icon(icon, color: color, size: 14),
+                  child: Icon(icon, color: color, size: 16),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Text(label,
                       style: GoogleFonts.outfit(
-                        color: colors.onSurface,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
+                        color: colors.onSurface.withValues(alpha: 0.95),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
                       )),
                 ),
                 if (badge != null)
                   Container(
-                    margin: const EdgeInsets.only(right: 6),
+                    margin: const EdgeInsets.only(right: 8),
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: color.withValues(alpha: 0.35)),
-                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: color.withValues(alpha: 0.4)),
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withValues(alpha: 0.2),
+                          color.withValues(alpha: 0.1)
+                        ],
+                      ),
                     ),
                     child: Text(badge,
                         style: GoogleFonts.jetBrainsMono(
                             color: color,
                             fontSize: 9,
-                            fontWeight: FontWeight.bold)),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5)),
                   ),
-                Icon(Icons.chevron_right_rounded,
-                    color: color.withValues(alpha: 0.4), size: 16),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    color: color.withValues(alpha: 0.5), size: 14),
               ]),
             ),
           ),
@@ -223,34 +240,42 @@ Widget hubAccordion(
         String title, IconData icon, Color color, List<Widget> children,
         {String? badge}) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: tokens.outline),
-          color: tokens.panel,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: tokens.outline.withValues(alpha: 0.6), width: 1.5),
+          gradient: LinearGradient(
+            colors: [
+              tokens.panel.withValues(alpha: 0.9),
+              tokens.panelElevated.withValues(alpha: 0.7),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+              spreadRadius: -2,
             )
           ],
         ),
         child: Theme(
           data: materialTheme.copyWith(
             dividerColor: Colors.transparent,
-            splashColor: color.withValues(alpha: 0.08),
-            highlightColor: color.withValues(alpha: 0.04),
+            splashColor: color.withValues(alpha: 0.15),
+            highlightColor: color.withValues(alpha: 0.08),
           ),
           child: ExpansionTile(
             collapsedIconColor: tokens.textMuted,
             iconColor: color,
-            childrenPadding: EdgeInsets.zero,
-            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(bottom: 8),
+            tilePadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             collapsedShape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             leading: Padding(
               padding: const EdgeInsets.all(4),
               child: Container(
@@ -493,23 +518,6 @@ Widget drawerPulseStat({
                     ),
 
                     // Top-right dynamic ambient quote
-                    Positioned(
-                      top: 16,
-                      right: 16,
-                      child: SafeArea(
-                        child: Text(
-                          "\"I've found you, my Darling.\"",
-                          style: GoogleFonts.outfit(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 1.0,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                      ),
-                    ),
-
                     // Avatar & Stats directly overlaid on the fade
                     Positioned(
                       left: 20,
@@ -633,26 +641,28 @@ Widget drawerPulseStat({
                     maxPts = 200;
                   }
 
-                  return Container(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
                     margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: LinearGradient(
                         colors: [
-                          color.withValues(alpha: 0.08),
-                          Colors.white.withValues(alpha: 0.02),
+                          color.withValues(alpha: 0.12),
+                          Colors.white.withValues(alpha: 0.03),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       border: Border.all(
-                          color: color.withValues(alpha: 0.15), width: 1),
+                          color: color.withValues(alpha: 0.2), width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                            color: color.withValues(alpha: 0.08),
-                            blurRadius: 20,
-                            spreadRadius: -4),
+                            color: color.withValues(alpha: 0.15),
+                            blurRadius: 24,
+                            spreadRadius: -2),
                       ],
                     ),
                     child: Column(
@@ -776,35 +786,27 @@ Widget drawerPulseStat({
                         children: [
                           Row(
                             children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      primary.withValues(alpha: 0.8),
-                                      Colors.pinkAccent.withValues(alpha: 0.8),
-                                    ],
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.dashboard_customize_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
+                              _AnimatedMissionIcon(primary: primary),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Mission Control',
-                                      style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
+                                    ShaderMask(
+                                      shaderCallback: (bounds) => LinearGradient(
+                                        colors: [
+                                          primary,
+                                          Colors.pinkAccent,
+                                        ],
+                                      ).createShader(bounds),
+                                      child: Text(
+                                        'Mission Control',
+                                        style: GoogleFonts.outfit(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.5,
+                                        ),
                                       ),
                                     ),
                                     Text(
@@ -1445,32 +1447,6 @@ class _BreathingPulseState extends State<BreathingPulse>
           color: widget.color,
           boxShadow: [BoxShadow(color: widget.color, blurRadius: widget.size)],
         ),
-      ),
-    );
-  }
-}
-
-class FadingQuoteOverlay extends StatelessWidget {
-  const FadingQuoteOverlay({super.key});
-
-  static const List<String> _quotes = [
-    "\"I've found you, my Darling.\"",
-    "\"A beautiful world, isn't it?\"",
-    '"Will you be my wings?"',
-    "\"Let's fly away together.\"",
-    "\"Don't let go of me...\"",
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      _quotes[0],
-      style: GoogleFonts.outfit(
-        color: Colors.white.withValues(alpha: 0.4),
-        fontSize: 12,
-        fontStyle: FontStyle.italic,
-        letterSpacing: 1.0,
-        fontWeight: FontWeight.w300,
       ),
     );
   }

@@ -199,11 +199,11 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color: Colors.white.withValues(alpha: 0.07),
+                  color: Colors.white.withValues(alpha: 0.04),
                   border: Border.all(
                     color: widget.isListening
                         ? accent.withValues(alpha: 0.8)
