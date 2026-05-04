@@ -47,8 +47,6 @@ class _VideoGenPageState extends State<VideoGenPage> {
     try {
       final result = await VideoGenService.instance.generate(
         prompt: prompt,
-        numFrames: _numFrames,
-        fps: _fps,
       );
       if (!mounted) return;
       await _loadVideo(result);

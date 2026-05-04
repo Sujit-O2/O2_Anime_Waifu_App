@@ -112,7 +112,6 @@ class _MusicCompositionPageState extends State<MusicCompositionPage>
     try {
       final result = await MusicGenService.instance.generate(
         prompt: prompt,
-        durationSeconds: _duration,
       );
       if (mounted) {
         setState(() {

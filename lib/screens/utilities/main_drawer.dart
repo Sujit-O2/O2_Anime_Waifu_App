@@ -492,24 +492,6 @@ Widget drawerPulseStat({
                       ),
                     ),
 
-                    // Top-right dynamic ambient quote
-                    Positioned(
-                      top: 16,
-                      right: 16,
-                      child: SafeArea(
-                        child: Text(
-                          "\"I've found you, my Darling.\"",
-                          style: GoogleFonts.outfit(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 1.0,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                      ),
-                    ),
-
                     // Avatar & Stats directly overlaid on the fade
                     Positioned(
                       left: 20,
@@ -1445,32 +1427,6 @@ class _BreathingPulseState extends State<BreathingPulse>
           color: widget.color,
           boxShadow: [BoxShadow(color: widget.color, blurRadius: widget.size)],
         ),
-      ),
-    );
-  }
-}
-
-class FadingQuoteOverlay extends StatelessWidget {
-  const FadingQuoteOverlay({super.key});
-
-  static const List<String> _quotes = [
-    "\"I've found you, my Darling.\"",
-    "\"A beautiful world, isn't it?\"",
-    '"Will you be my wings?"',
-    "\"Let's fly away together.\"",
-    "\"Don't let go of me...\"",
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      _quotes[0],
-      style: GoogleFonts.outfit(
-        color: Colors.white.withValues(alpha: 0.4),
-        fontSize: 12,
-        fontStyle: FontStyle.italic,
-        letterSpacing: 1.0,
-        fontWeight: FontWeight.w300,
       ),
     );
   }

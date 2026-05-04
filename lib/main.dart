@@ -34,6 +34,7 @@ import 'package:anime_waifu/services/creative/music_gen_service.dart';
 import 'package:anime_waifu/services/creative/video_gen_service.dart';
 import 'package:anime_waifu/screens/rituals/morning_greeting_card.dart';
 import 'package:anime_waifu/screens/utilities/advanced_settings_page.dart';
+import 'package:anime_waifu/screens/utilities/animated_splash_screen.dart';
 import 'package:anime_waifu/screens/utilities/anime_section_page.dart';
 import 'package:anime_waifu/screens/utilities/character_database_page.dart';
 import 'package:anime_waifu/screens/utilities/commands_page.dart';
@@ -496,7 +497,9 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
             darkTheme: AppThemes.getDarkTheme(themeProv.mode),
             routes: AppRouter.routes,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            home: _FirstLaunchGate(child: AppLockWrapper(key: appLockKey, child: const ChatHomePage())),
+            home: AnimatedSplashScreen(
+              nextScreen: _FirstLaunchGate(child: AppLockWrapper(key: appLockKey, child: const ChatHomePage())),
+            ),
           ),
         );
       },
@@ -3804,9 +3807,11 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
                   // Generate dynamic flirty message using AI
                   final flirtyPrompt = 'Generate a short, flirty 5-10 word message as Zero Two sending a selfie to her darling. Be playful and use 1-2 emojis.';
                   try {
-                    assistantText = await ApiService.callGroqApi(
-                      messages: [{'role': 'user', 'content': flirtyPrompt}],
-                      systemPrompt: 'You are Zero Two. Respond with ONLY the flirty message, nothing else.',
+                    assistantText = await ApiService().sendConversation(
+                      [
+                        {'role': 'system', 'content': 'You are Zero Two. Respond with ONLY the flirty message, nothing else.'},
+                        {'role': 'user', 'content': flirtyPrompt},
+                      ],
                     );
                   } catch (e) {
                     // Fallback if AI fails
@@ -3849,7 +3854,7 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
           unawaited(() async {
             try {
               final result = await MusicGenService.instance.generate(
-                prompt: musicPrompt, durationSeconds: 20);
+                prompt: musicPrompt);
               if (!mounted) return;
               setState(() {
                 final idx = _messages.indexWhere((m) => m.id == genMsg.id);
@@ -4928,7 +4933,7 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
             }
           },
            child: Scaffold(
-            extendBody: false,
+            extendBody: true,
             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
             drawer: _buildNavDrawer(themeMode),
@@ -4940,6 +4945,13 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
              appBar: AppBar(
                backgroundColor: Colors.transparent,
                elevation: 0,
+               scrolledUnderElevation: 0,
+               systemOverlayStyle: SystemUiOverlayStyle(
+                 statusBarColor: Colors.transparent,
+                 statusBarIconBrightness: theme.brightness == Brightness.dark
+                     ? Brightness.light
+                     : Brightness.dark,
+               ),
                leadingWidth: 64,
                leading: Builder(
                  builder: (ctx) => Padding(
@@ -7256,7 +7268,8 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
       top: top,
       left: 12,
       right: 12,
-      child: IgnorePointer(
+      child: RepaintBoundary(
+        child: IgnorePointer(
         ignoring: !_showInAppNotif,
         child: AnimatedSlide(
           duration: const Duration(milliseconds: 330),
@@ -7372,20 +7385,10 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
                       ),
                       const SizedBox(width: 12),
                       // → Arrow
-                      ScaleTransition(
-                        scale: _showInAppNotif
-                            ? Tween(begin: 0.8, end: 1.0).animate(
-                                CurvedAnimation(
-                                    parent: ModalRoute.of(context)?.animation ??
-                                        const AlwaysStoppedAnimation(1),
-                                    curve: Curves.easeOut),
-                              )
-                            : const AlwaysStoppedAnimation(1.0),
-                        child: Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 16,
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: Colors.white.withValues(alpha: 0.6),
                       ),
                     ],
                   ),
@@ -7393,6 +7396,7 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
               ),
             ),
           ),
+        ),
         ),
       ),
     );

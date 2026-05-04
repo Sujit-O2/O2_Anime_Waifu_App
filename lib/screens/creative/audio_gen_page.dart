@@ -71,7 +71,6 @@ class _AudioGenPageState extends State<AudioGenPage> {
     try {
       final result = await MusicGenService.instance.generate(
         prompt: prompt,
-        durationSeconds: _duration,
       );
       if (!mounted) return;
       setState(() {

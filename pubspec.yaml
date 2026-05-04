@@ -81,7 +81,6 @@ flutter:
 
   # Keep wake-word models under assets/wakeword for stable release loading.
   assets:
-    - assets/
     - assets/img/
     - assets/gif/background_of_about_section_blurry.gif
     - assets/gif/debug_area.gif
