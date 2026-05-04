@@ -327,10 +327,12 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
   late List<_Petal> _petals;
   late List<_HubCategory> _categories;
   String _query = '';
+  late TextEditingController _searchCtrl;
 
   @override
   void initState() {
     super.initState();
+    _searchCtrl = TextEditingController();
     final rng = Random(42);
     _petals = List.generate(
         18,
@@ -358,6 +360,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _sakuraCtrl.dispose();
     super.dispose();
   }
@@ -1701,6 +1704,7 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                         ),
                         Expanded(
                           child: TextField(
+                            textDirection: TextDirection.ltr,
                             style: GoogleFonts.outfit(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 16, fontWeight: FontWeight.w500,
@@ -1716,10 +1720,11 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                             ),
                             onChanged: (value) {
-                              setState(() => _query = value);
+                              _query = value;
                               _saveHubPrefs();
+                              setState(() {});
                             },
-                            controller: TextEditingController(text: _query),
+                            controller: _searchCtrl,
                           ),
                         ),
                         if (_query.isNotEmpty)
@@ -1727,8 +1732,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                             icon: Icon(Icons.close_rounded,
                                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), size: 20),
                             onPressed: () {
-                              setState(() => _query = '');
+                              _searchCtrl.clear();
+                              _query = '';
                               _saveHubPrefs();
+                              setState(() {});
                             },
                           )
                         else

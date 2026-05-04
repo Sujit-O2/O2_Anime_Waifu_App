@@ -21,6 +21,9 @@ class PremiumChatBubble extends StatefulWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onReact;
   final bool isSelected;
+  /// Pass true only for freshly inserted messages. Old messages skip the
+  /// animation entirely, saving one AnimationController per historical bubble.
+  final bool isNew;
 
   const PremiumChatBubble({
     super.key,
@@ -30,6 +33,7 @@ class PremiumChatBubble extends StatefulWidget {
     this.onLongPress,
     this.onReact,
     this.isSelected = false,
+    this.isNew = false,
   });
 
   @override
@@ -50,21 +54,20 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
       vsync: this,
       duration: const Duration(milliseconds: 350),
     );
-    _fadeAnim = CurvedAnimation(
-      parent: _animCtrl,
-      curve: Curves.easeOut,
-    );
+    _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animCtrl,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _scaleAnim = Tween<double>(begin: 0.96, end: 1.0).animate(
       CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic),
     );
-    _animCtrl.forward();
+    if (widget.isNew) {
+      _animCtrl.forward();
+    } else {
+      // Old message — skip animation, jump straight to final state
+      _animCtrl.value = 1.0;
+    }
   }
 
   @override

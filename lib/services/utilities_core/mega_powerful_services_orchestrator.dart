@@ -85,85 +85,38 @@ class MegaPowerfulServicesOrchestrator {
 
       _initializationTime = DateTime.now();
 
-      // TIER 1: AI & CORE SERVICES
-      if (kDebugMode) debugPrint('\n📍 TIER 1: AI & Core Intelligence Services');
+      // Initialize all tiers in parallel for maximum speed
       _aiCopilot = AICopilotService();
-      await _aiCopilot.initialize();
-      _markServiceReady('AI Copilot', 'AI', 'Sentiment Analysis & Conversation Memory');
-
       _emotionalAI = EmotionalAIService();
-      await _emotionalAI.initialize();
-      _markServiceReady('Emotional AI', 'AI', 'Emotion Detection & Wellness Support');
-
       _personalization = AdvancedPersonalizationEngine();
-      await _personalization.initialize();
-      _markServiceReady('Personalization', 'AI', 'Adaptive UI & Behavior Prediction');
-
-      // TIER 2: DATA & PERSISTENCE
-      if (kDebugMode) debugPrint('\n📍 TIER 2: Data & Persistence Layer');
       _offlineDb = OfflineFirstDatabaseService();
-      await _offlineDb.initialize();
-      _markServiceReady('Offline-First DB', 'Data', 'Progressive Sync Architecture');
-
       _userProfile = EnhancedUserProfileService();
-      await _userProfile.initialize();
-      _markServiceReady('User Profile', 'Data', 'AI Persona Training');
-
-      // DISABLED: Monetization has no visible UI
-      // _monetization = MonetizationService();
-      // await _monetization.initialize();
-
-      // TIER 3: SOCIAL & COMMUNITY
-      if (kDebugMode) debugPrint('\n📍 TIER 3: Social & Community Features');
-      // DISABLED: FriendSocialSystem has no visible UI
-      // _friendSystem = FriendSocialSystemService();
-      // await _friendSystem.initialize();
-
-      // TIER 4: DEVOPS & MONITORING
-      if (kDebugMode) debugPrint('\n📍 TIER 4: DevOps & Real-Time Monitoring');
       _crashReporting = CrashReportingService();
-      await _crashReporting.initialize();
-      _markServiceReady('Crash Reporting', 'DevOps', 'Error Tracking & Analysis');
-
       _performanceMonitoring = AdvancedPerformanceMonitoring();
-      await _performanceMonitoring.initialize();
-      _markServiceReady('Performance Monitor', 'DevOps', 'Bottleneck Detection');
-
-      // TIER 5: GAMING & ENGAGEMENT
-      if (kDebugMode) debugPrint('\n📍 TIER 5: Gaming & Engagement Systems');
-      // DISABLED: Battle/Seasonal/Tournament have no visible UI
-      // _battleSystem = BattleAndRaidSystem();
-      // await _battleSystem.initialize();
-      // _eventsManager = SeasonalEventsManager();
-      // await _eventsManager.initialize();
-      // _tournamentManager = TournamentManagementSystem();
-      // await _tournamentManager.initialize();
-
-      // TIER 6: GUILDS & TEAM
-      if (kDebugMode) debugPrint('\n📍 TIER 6: Guilds & Team Mechanics');
-      // DISABLED: Guild system has no visible UI
-      // _guildSystem = GuildManagementSystem();
-      // await _guildSystem.initialize();
-
-      // TIER 6B: ENTERPRISE OPERATIONS
-      if (kDebugMode) debugPrint('\n📍 TIER 6B: Enterprise Operations & Achievements');
       _achievementSystem = AchievementSystemManager();
-      await _achievementSystem.initialize();
-      _markServiceReady('Achievement System', 'Gaming', 'Tiers, Quest Lines & Social');
-
-      // TIER 7: INTEGRATIONS & EXTENSIONS
-      if (kDebugMode) debugPrint('\n📍 TIER 7: Integrations & Advanced Features');
-      // DISABLED: Discord integration has no visible UI
-      // _discordIntegration = DiscordIntegrationManager();
-      // await _discordIntegration.initialize();
-
       _cloudSettingsSync = CloudSettingsSyncService();
-      await _cloudSettingsSync.initialize();
-      _markServiceReady('Cloud Settings Sync', 'Integration', 'Multi-Device Backup & Restore');
 
-      // DISABLED: A/B testing framework has no visible UI
-      // _abTesting = ABTestingFramework();
-      // await _abTesting.initialize();
+      await Future.wait([
+        _aiCopilot.initialize(),
+        _emotionalAI.initialize(),
+        _personalization.initialize(),
+        _offlineDb.initialize(),
+        _userProfile.initialize(),
+        _crashReporting.initialize(),
+        _performanceMonitoring.initialize(),
+        _achievementSystem.initialize(),
+        _cloudSettingsSync.initialize(),
+      ]);
+
+      _markServiceReady('AI Copilot', 'AI', 'Sentiment Analysis & Conversation Memory');
+      _markServiceReady('Emotional AI', 'AI', 'Emotion Detection & Wellness Support');
+      _markServiceReady('Personalization', 'AI', 'Adaptive UI & Behavior Prediction');
+      _markServiceReady('Offline-First DB', 'Data', 'Progressive Sync Architecture');
+      _markServiceReady('User Profile', 'Data', 'AI Persona Training');
+      _markServiceReady('Crash Reporting', 'DevOps', 'Error Tracking & Analysis');
+      _markServiceReady('Performance Monitor', 'DevOps', 'Bottleneck Detection');
+      _markServiceReady('Achievement System', 'Gaming', 'Tiers, Quest Lines & Social');
+      _markServiceReady('Cloud Settings Sync', 'Integration', 'Multi-Device Backup & Restore');
 
       _isFullyInitialized = true;
       _printInitializationSummary();
