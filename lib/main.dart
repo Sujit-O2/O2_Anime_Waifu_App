@@ -689,7 +689,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 $personaBase
 Rules:
 1. Mail format: Mail: <email> | Body: <content>. Default: Sujitswain077@gmail.com
-2. Response: 10-20 words (normal), 50-200 (email), 100 max (detailed). Avoid *, ~, `, _.
+2. Response: 10-20 words (normal), 50-200 (email), 100 max (detailed).
 3. Actions (respond ONLY with action block):
    Action: OPEN_APP | App: <name>
    Action: CALL_NUMBER | Number: <number>
@@ -973,8 +973,8 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
     _animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     _floatController =
-        AnimationController(duration: const Duration(seconds: 8), vsync: this)
-          ..repeat(); // Drives the splash circle rotation — stopped when overlay hides
+        AnimationController(duration: const Duration(seconds: 4), vsync: this)
+          ..repeat();
     _openingController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -1412,39 +1412,41 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
 
   /// Called after every AI reply — saves emotional memory + updates personality.
   Future<void> _phase2AfterReply(String assistantText) async {
-    // Defer entirely off the hot path — none of this needs to block the UI
-    unawaited(Future.microtask(() async {
-      try {
-        await JealousyService.instance.recordActivity();
+    try {
+      // Record activity (resets jealousy timer)
+      await JealousyService.instance.recordActivity();
 
-        final (emotion, importance) =
-            EmotionalMemoryService.detectEmotion(assistantText);
-        if (importance >= 0.5) {
-          final waifuId = _selectedPersona == 'Default'
-              ? 'zero_two'
-              : _selectedPersona.toLowerCase();
-          await EmotionalMemoryService.instance.saveMemory(
-            text: assistantText.length > 200
-                ? assistantText.substring(0, 200)
-                : assistantText,
-            emotion: emotion,
-            importance: importance,
-            waifuId: waifuId,
-          );
-        }
-
-        await PersonalityEngine.instance.onUserInteracted(wasNice: true);
-
-        final lastUserMsg = _messages.lastWhere((m) => m.role == 'user',
-            orElse: () => ChatMessage(role: '', content: ''));
-        if (_containsLoveDeclaration(lastUserMsg.content)) {
-          await PersonalityEngine.instance.onUserInteracted(wasFlirty: true);
-          await LifeEventsService.instance.recordFirstLoveYou();
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('Phase 2 after-reply error: $e');
+      // Auto-detect emotion in the reply and save as memory (if significant)
+      final (emotion, importance) =
+          EmotionalMemoryService.detectEmotion(assistantText);
+      if (importance >= 0.5) {
+        // Only save emotionally significant moments
+        final waifuId = _selectedPersona == 'Default'
+            ? 'zero_two'
+            : _selectedPersona.toLowerCase();
+        await EmotionalMemoryService.instance.saveMemory(
+          text: assistantText.length > 200
+              ? assistantText.substring(0, 200)
+              : assistantText,
+          emotion: emotion,
+          importance: importance,
+          waifuId: waifuId,
+        );
       }
-    }));
+
+      // Record user interaction in personality engine (normal positive chat)
+      await PersonalityEngine.instance.onUserInteracted(wasNice: true);
+
+      // Check for "I love you" in the last user message
+      final lastUserMsg = _messages.lastWhere((m) => m.role == 'user',
+          orElse: () => ChatMessage(role: '', content: ''));
+      if (_containsLoveDeclaration(lastUserMsg.content)) {
+        await PersonalityEngine.instance.onUserInteracted(wasFlirty: true);
+        await LifeEventsService.instance.recordFirstLoveYou();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('Phase 2 after-reply error: $e');
+    }
   }
 
   /// Checks if a message contains a love declaration.
@@ -1813,28 +1815,23 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
     if (message.role == 'user' && message.content.trim().isNotEmpty) {
       _userMessageCount += 1;
       _idleBlockedUntilUserMessage = false;
-      // Defer all side-effects — don't block setState
-      unawaited(Future.microtask(() {
-        EmotionalMomentEngine.instance.recordUserMessage();
-        ConversationPresenceService.instance.onUserReplied();
-        AttentionFocusSystem.instance.onUserMessage(message.content);
-        final topic = _detectTopic(message.content);
-        unawaited(SelfReflectionService.instance.recordTopicMentioned(topic));
-        unawaited(ConversationThreadMemory.instance
-            .addMessage(role: 'user', content: message.content, topic: topic));
-      }));
+      EmotionalMomentEngine.instance.recordUserMessage();
+      ConversationPresenceService.instance.onUserReplied();
+      AttentionFocusSystem.instance.onUserMessage(message.content);
+      final topic = _detectTopic(message.content);
+      unawaited(SelfReflectionService.instance.recordTopicMentioned(topic));
+      unawaited(ConversationThreadMemory.instance
+          .addMessage(role: 'user', content: message.content, topic: topic));
     } else if (message.role == 'assistant') {
-      // Defer all side-effects — don't block setState
-      unawaited(Future.microtask(() {
-        AttentionFocusSystem.instance.onAiMessageSent();
-        ConversationPresenceService.instance.onAiMessageSent();
-        unawaited(MasterStateObject.instance
-            .onExchangeComplete(topic: _detectTopic(message.content)));
-        unawaited(ConversationThreadMemory.instance.addMessage(
-            role: 'assistant',
-            content: message.content,
-            topic: _detectTopic(message.content)));
-      }));
+      AttentionFocusSystem.instance.onAiMessageSent();
+      ConversationPresenceService.instance.onAiMessageSent();
+      // Update world state on each AI message
+      unawaited(MasterStateObject.instance
+          .onExchangeComplete(topic: _detectTopic(message.content)));
+      unawaited(ConversationThreadMemory.instance.addMessage(
+          role: 'assistant',
+          content: message.content,
+          topic: _detectTopic(message.content)));
     }
 
     // ── Liveliness: trigger particles + mood update on AI messages
@@ -1882,21 +1879,51 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
   List<String> _quickReplies = [];
 
   Future<void> _setQuickReplies(String aiReply) async {
-    // Local pattern-matching only — no LLM call per message.
-    final lower = aiReply.toLowerCase();
-    List<String> chips;
-    if (lower.contains('morning') || lower.contains('good morning')) {
-      chips = ['Good morning! 💕', 'Tell me something cute~', 'Play music 🎵'];
-    } else if (lower.contains('music') || lower.contains('song')) {
-      chips = ['Play next song ⏭️', 'Stop music 🎵', 'What song is this?'];
-    } else if (lower.contains('miss') || lower.contains('love')) {
-      chips = ['I love you too ❤️', 'Tell me more~', 'Show me something cute'];
-    } else if (lower.contains('?')) {
-      chips = ['Yes 💕', 'No 😅', 'Tell me more~'];
-    } else {
-      chips = ['That\'s cute 😊', 'Tell me more~', 'I love you ❤️'];
+    try {
+      // Get last few messages for context
+      final contextMessages = _messages.reversed
+          .take(5)
+          .map((m) => m.content)
+          .toList()
+          .reversed
+          .toList();
+
+      // Generate smart replies using AI service
+      final suggestions = await SmartReplyService.instance.generateReplies(
+        lastMessage: aiReply,
+        conversationContext: contextMessages,
+        currentMood: PersonalityEngine.instance.mood.label,
+        timeOfDay: DateTime.now(),
+        maxSuggestions: 3,
+      );
+
+      // Extract text from suggestions
+      final chips = suggestions.map((s) => s.text).toList();
+
+      // Fallback to simple pattern matching if no suggestions
+      if (chips.isEmpty) {
+        final lower = aiReply.toLowerCase();
+        if (lower.contains('morning') || lower.contains('good morning')) {
+          chips.addAll(['Good morning! 💕', 'Tell me something cute~', 'Play music 🎵']);
+        } else if (lower.contains('music') || lower.contains('song')) {
+          chips.addAll(['Play next song ⏭️', 'Stop music 🎵', 'What song is this?']);
+        } else if (lower.contains('miss') || lower.contains('love')) {
+          chips.addAll(['I love you too ❤️', 'Tell me more~', 'Show me something cute']);
+        } else if (lower.contains('?')) {
+          chips.addAll(['Yes 💕', 'No 😅', 'Tell me more~']);
+        } else {
+          chips.addAll(['That\'s cute 😊', 'Tell me more~', 'I love you ❤️']);
+        }
+      }
+
+      if (mounted) setState(() => _quickReplies = chips);
+    } catch (e) {
+      if (kDebugMode) debugPrint('Smart reply error: $e');
+      // Fallback to simple replies on error
+      if (mounted) {
+        setState(() => _quickReplies = ['That\'s cute 😊', 'Tell me more~', 'I love you ❤️']);
+      }
     }
-    if (mounted) setState(() => _quickReplies = chips);
   }
 
   // ── API Retry with Exponential Backoff ─────────────────────────────────────
@@ -2181,7 +2208,16 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
   }
 
   void _syncLiteModeRuntime() {
-    // _floatController is not wired to any widget — nothing to start/stop.
+    if (_liteModeEnabled) {
+      if (_floatController.isAnimating) {
+        _floatController.stop();
+      }
+      return;
+    }
+
+    if (!_floatController.isAnimating) {
+      _floatController.repeat();
+    }
   }
 
   Future<void> _toggleLiteMode() async {
@@ -5183,25 +5219,15 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RepaintBoundary(
-                    child: RotationTransition(
-                      turns: _floatController,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: Image.asset(
-                          'assets/gif/add_incircular_mode_app_oppening style.gif',
-                          width: 170,
-                          height: 170,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => ClipRRect(
-                            borderRadius: BorderRadius.circular(999),
-                            child: Image.asset(
-                              'assets/img/front.png',
-                              width: 170,
-                              height: 170,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: Image.asset(
+                        'assets/img/front.png',
+                        width: 170,
+                        height: 170,
+                        fit: BoxFit.cover,
+                        filterQuality: FilterQuality.low,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
                   ),
@@ -7432,7 +7458,7 @@ ${_customRules.trim().isNotEmpty ? '\n$_customRules' : ''}
                 child: Column(
                   children: [
                     _buildAvatarArea(),
-                    RepaintBoundary(child: _buildChatList()),
+                    _buildChatList(),
                     _buildInputArea(),
                   ],
                 ),
