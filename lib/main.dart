@@ -1096,17 +1096,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         curve: const Interval(0.72, 1.0, curve: Curves.easeOutCubic),
       ),
     );
-    _openingController.forward().whenComplete(() {
-      if (mounted) {
+    _openingController.addListener(() {
+      if (_openingController.value >= 0.85 && _showOpeningOverlay) {
         setState(() => _showOpeningOverlay = false);
       }
     });
-    // Safety: force-hide after 3s regardless of animation state
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted && _showOpeningOverlay) {
-        setState(() => _showOpeningOverlay = false);
-      }
-    });
+    _openingController.forward();
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -2411,6 +2406,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       // Ensure content is always visible when returning from background
       if (mounted && _showOpeningOverlay) {
         setState(() => _showOpeningOverlay = false);
+        _openingController.value = 1.0;
       }
       _suspendWakeWord = false;
       if (_assistantModeEnabled) {
