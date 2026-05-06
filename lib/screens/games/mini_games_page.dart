@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/main.dart';
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 import 'package:anime_waifu/widgets/premium_page_route.dart';
 
 const List<String> _o2GameBackgroundAssets = [
@@ -22,127 +24,28 @@ const String _o2GameFallbackAsset = 'assets/img/z12.jpg';
 
 String _randomO2GameBackground([Random? rng]) {
   final random = rng ?? Random();
-  return _o2GameBackgroundAssets[
-      random.nextInt(_o2GameBackgroundAssets.length)];
+  return _o2GameBackgroundAssets[random.nextInt(_o2GameBackgroundAssets.length)];
 }
 
 class _GameBackdrop extends StatelessWidget {
   final String asset;
   final Color glowColor;
   final Color surfaceTint;
-
-  const _GameBackdrop({
-    required this.asset,
-    required this.glowColor,
-    required this.surfaceTint,
-  });
+  const _GameBackdrop({required this.asset, required this.glowColor, required this.surfaceTint});
 
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: IgnorePointer(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              asset,
-              fit: BoxFit.cover,
-              opacity: const AlwaysStoppedAnimation(0.24),
-              errorBuilder: (_, __, ___) => Image.asset(
-                _o2GameFallbackAsset,
-                fit: BoxFit.cover,
-                opacity: const AlwaysStoppedAnimation(0.24),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    surfaceTint.withValues(alpha: 0.58),
-                    surfaceTint.withValues(alpha: 0.76),
-                    Colors.black.withValues(alpha: 0.90),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: -36,
-              right: -24,
-              child: _BackdropOrb(
-                size: 170,
-                color: glowColor.withValues(alpha: 0.22),
-              ),
-            ),
-            Positioned(
-              bottom: 110,
-              left: -34,
-              child: _BackdropOrb(
-                size: 140,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-            Positioned(
-              top: 180,
-              right: 24,
-              child: _BackdropOrb(
-                size: 90,
-                color: glowColor.withValues(alpha: 0.12),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GameCardShimmer extends StatelessWidget {
-  const _GameCardShimmer();
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[800]!,
-      highlightColor: Colors.grey[700]!,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.grey[800]!, Colors.grey[700]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              const Spacer(),
-              Container(
-                width: double.infinity,
-                height: 17,
-                color: Colors.grey[600],
-              ),
-              const SizedBox(height: 4),
-              Container(
-                width: double.infinity * 0.8,
-                height: 11,
-                color: Colors.grey[600],
-              ),
-            ],
-          ),
-        ),
+        child: Stack(fit: StackFit.expand, children: [
+          Image.asset(asset, fit: BoxFit.cover, opacity: const AlwaysStoppedAnimation(0.24),
+              errorBuilder: (_, __, ___) => Image.asset(_o2GameFallbackAsset, fit: BoxFit.cover, opacity: const AlwaysStoppedAnimation(0.24))),
+          DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [
+            surfaceTint.withValues(alpha: 0.58), surfaceTint.withValues(alpha: 0.76), Colors.black.withValues(alpha: 0.90)]))),
+          Positioned(top: -36, right: -24, child: _BackdropOrb(size: 170, color: glowColor.withValues(alpha: 0.22))),
+          Positioned(bottom: 110, left: -34, child: _BackdropOrb(size: 140, color: Colors.white.withValues(alpha: 0.08))),
+          Positioned(top: 180, right: 24, child: _BackdropOrb(size: 90, color: glowColor.withValues(alpha: 0.12))),
+        ]),
       ),
     );
   }
@@ -151,44 +54,50 @@ class _GameCardShimmer extends StatelessWidget {
 class _BackdropOrb extends StatelessWidget {
   final double size;
   final Color color;
-
-  const _BackdropOrb({
-    required this.size,
-    required this.color,
-  });
+  const _BackdropOrb({required this.size, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
-      height: size,
+      width: size, height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0.0),
-          ],
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0.0)]),
+        boxShadow: [BoxShadow(color: color, blurRadius: size * 0.38, spreadRadius: size * 0.06)],
+      ),
+    );
+  }
+}
+
+class _GameCardShimmer extends StatelessWidget {
+  const _GameCardShimmer();
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[800]!, highlightColor: Colors.grey[700]!,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [Colors.grey[800]!, Colors.grey[700]!], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(24),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: color,
-            blurRadius: size * 0.38,
-            spreadRadius: size * 0.06,
-          ),
-        ],
+        child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 50, height: 50, decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(14))),
+          const Spacer(),
+          Container(width: double.infinity, height: 17, color: Colors.grey[600]),
+          const SizedBox(height: 4),
+          Container(width: 100, height: 11, color: Colors.grey[600]),
+        ])),
       ),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GAMES HUB – lists all playable animated games
+// GAMES HUB
 // ─────────────────────────────────────────────────────────────────────────────
 
 class GamesHubPage extends StatefulWidget {
   const GamesHubPage({super.key});
-
   @override
   State<GamesHubPage> createState() => _GamesHubPageState();
 }
@@ -198,23 +107,32 @@ class _GamesHubPageState extends State<GamesHubPage> {
   bool _isLoading = true;
   String _selectedCategory = 'All';
 
-  static const List<String> _categories = [
-    'All',
-    'Puzzle',
-    'Action',
-    'Quiz',
-    'Arcade'
+  static const List<String> _categories = ['All', 'Puzzle', 'Action', 'Quiz', 'Arcade'];
+  static const List<String> _gameIds = [
+    'snake', 'memory_match', 'tap_reaction', 'number_guesser',
+    'wordle', 'anime_quiz', 'block_blast', 'block_breaker'
   ];
+
+  Map<String, Map<String, dynamic>> _dbStats = {};
 
   @override
   void initState() {
     super.initState();
     _bannerAsset = _randomO2GameBackground();
-    // Simulate loading for smooth UX
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) setState(() => _isLoading = false);
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    final all = await GameProgressDB.instance.loadAll(_gameIds);
+    if (!mounted) return;
+    setState(() {
+      _dbStats = all;
+      _isLoading = false;
     });
   }
+
+  int _level(String id) => (_dbStats[id]?['level'] as int?) ?? 1;
+  int _best(String id) => (_dbStats[id]?['bestScore'] as int?) ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -224,698 +142,222 @@ class _GamesHubPageState extends State<GamesHubPage> {
         if (!didPop) {
           Navigator.canPop(context)
               ? Navigator.pop(context)
-              : Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ChatHomePage()),
-                  (r) => false);
+              : Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const ChatHomePage()), (r) => false);
         }
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Stack(
-          children: [
-            _GameBackdrop(
-              asset: _bannerAsset,
-              glowColor: Colors.pinkAccent,
-              surfaceTint: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(children: [
+          _GameBackdrop(asset: _bannerAsset, glowColor: Colors.pinkAccent, surfaceTint: Theme.of(context).scaffoldBackgroundColor),
+          CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+            SliverAppBar(
+              expandedHeight: 240, collapsedHeight: 240, toolbarHeight: 240,
+              floating: false, pinned: true,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8), size: 22),
+                onPressed: () => Navigator.canPop(context)
+                    ? Navigator.pop(context)
+                    : Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const ChatHomePage()), (r) => false),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: const EdgeInsets.fromLTRB(72, 0, 20, 20),
+                title: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [Colors.pinkAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.15)]),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3), width: 1),
+                    ),
+                    child: Text('🎮 ZERO TWO ARCADE', style: GoogleFonts.outfit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('GAME ZONE', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 28, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 2, height: 1.1)),
+                  const SizedBox(height: 6),
+                  Text('Play with Zero Two, Darling~', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w500, height: 1.3)),
+                ]),
+                background: Stack(fit: StackFit.expand, children: [
+                  Image.asset(_bannerAsset, fit: BoxFit.cover, alignment: Alignment.topCenter,
+                      errorBuilder: (_, __, ___) => Image.asset(_o2GameFallbackAsset, fit: BoxFit.cover, alignment: Alignment.topCenter)),
+                  Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [
+                    Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                    Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
+                    Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                  ]))),
+                  Positioned(top: -20, right: -15, child: _BackdropOrb(size: 160, color: Colors.pinkAccent.withValues(alpha: 0.18))),
+                  Positioned(bottom: -20, left: -15, child: _BackdropOrb(size: 120, color: Colors.cyanAccent.withValues(alpha: 0.12))),
+                  Positioned(top: 80, right: 40, child: _BackdropOrb(size: 80, color: Colors.purpleAccent.withValues(alpha: 0.15))),
+                ]),
+              ),
             ),
-            CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 240,
-                  collapsedHeight: 240,
-                  toolbarHeight: 240,
-                  floating: false,
-                  pinned: true,
-                  backgroundColor: Theme.of(context)
-                      .scaffoldBackgroundColor
-                      .withValues(alpha: 0.95),
-                  elevation: 0,
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.8),
-                        size: 22),
-                    onPressed: () => Navigator.canPop(context)
-                        ? Navigator.pop(context)
-                        : Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ChatHomePage()),
-                            (r) => false),
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: false,
-                    titlePadding: const EdgeInsets.fromLTRB(72, 0, 20, 20),
-                    title: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.pinkAccent.withValues(alpha: 0.2),
-                                Colors.purpleAccent.withValues(alpha: 0.15),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.pinkAccent.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            '🎮 ZERO TWO ARCADE',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'GAME ZONE',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 28,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            letterSpacing: 2,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Play with Zero Two, Darling~',
-                          style: GoogleFonts.outfit(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [
+                        Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                        Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                      ], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Theme.of(context).colorScheme.outline, width: 1),
+                      boxShadow: [BoxShadow(color: Colors.pinkAccent.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))],
                     ),
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          _bannerAsset,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                          errorBuilder: (_, __, ___) => Image.asset(
-                            _o2GameFallbackAsset,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          ),
+                    child: Row(children: [
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          const Icon(Icons.auto_awesome_rounded, color: Colors.pinkAccent, size: 16),
+                          const SizedBox(width: 8),
+                          Text('ARCADE MOOD', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                        ]),
+                        const SizedBox(height: 10),
+                        Text('Premium Game Hub', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        const SizedBox(height: 10),
+                        Text('Jump between reflex, puzzle, and quiz modes without losing the Zero Two arcade vibe.',
+                            style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 14, height: 1.5, fontWeight: FontWeight.w500)),
+                      ])),
+                      const SizedBox(width: 24),
+                      Container(
+                        width: 80, height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(colors: [Colors.pinkAccent.withValues(alpha: 0.2), Colors.pinkAccent.withValues(alpha: 0.1)]),
+                          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.4), width: 2),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Theme.of(context)
-                                    .scaffoldBackgroundColor
-                                    .withValues(alpha: 0.1),
-                                Theme.of(context)
-                                    .scaffoldBackgroundColor
-                                    .withValues(alpha: 0.8),
-                                Theme.of(context)
-                                    .scaffoldBackgroundColor
-                                    .withValues(alpha: 0.95),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: -20,
-                          right: -15,
-                          child: _BackdropOrb(
-                            size: 160,
-                            color: Colors.pinkAccent.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: -20,
-                          left: -15,
-                          child: _BackdropOrb(
-                            size: 120,
-                            color: Colors.cyanAccent.withValues(alpha: 0.12),
-                          ),
-                        ),
-                        Positioned(
-                          top: 80,
-                          right: 40,
-                          child: _BackdropOrb(
-                            size: 80,
-                            color: Colors.purpleAccent.withValues(alpha: 0.15),
-                          ),
-                        ),
-                      ],
-                    ),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          const Icon(Icons.videogame_asset_rounded, color: Colors.pinkAccent, size: 24),
+                          const SizedBox(height: 4),
+                          Text('8', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.w900)),
+                          Text('Games', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.w600)),
+                        ]),
+                      ),
+                    ]),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Theme.of(context)
-                                    .colorScheme
-                                    .surface
-                                    .withValues(alpha: 0.9),
-                                Theme.of(context)
-                                    .colorScheme
-                                    .surface
-                                    .withValues(alpha: 0.8),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline,
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    Colors.pinkAccent.withValues(alpha: 0.15),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.auto_awesome_rounded,
-                                            color: Colors.pinkAccent, size: 16),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'ARCADE MOOD',
-                                          style: GoogleFonts.outfit(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Premium Game Hub',
-                                      style: GoogleFonts.outfit(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Jump between reflex, puzzle, and quiz modes without losing the Zero Two arcade vibe.',
-                                      style: GoogleFonts.outfit(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontSize: 14,
-                                        height: 1.5,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 24),
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.pinkAccent.withValues(alpha: 0.2),
-                                      Colors.pinkAccent.withValues(alpha: 0.1),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.pinkAccent
-                                        .withValues(alpha: 0.4),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    const Icon(
-                                      Icons.videogame_asset_rounded,
-                                      color: Colors.pinkAccent,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '8',
-                                      style: GoogleFonts.outfit(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Games',
-                                      style: GoogleFonts.outfit(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const WaifuCommentary(mood: 'motivated'),
-                        const SizedBox(height: 20),
-
-                        // Premium stats grid
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: _buildPremiumStatCard(
-                                title: 'Arcade',
-                                value: '4',
-                                icon: Icons.flash_on_rounded,
-                                color: Colors.orangeAccent,
-                                subtitle: 'Action Games',
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildPremiumStatCard(
-                                title: 'Brain',
-                                value: '2',
-                                icon: Icons.psychology_rounded,
-                                color: Colors.cyanAccent,
-                                subtitle: 'Puzzle Games',
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: _buildPremiumStatCard(
-                                title: 'Quiz',
-                                value: '1',
-                                icon: Icons.quiz_rounded,
-                                color: Colors.pinkAccent,
-                                subtitle: 'Trivia Games',
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildPremiumStatCard(
-                                title: 'Classic',
-                                value: '1',
-                                icon: Icons.stars_rounded,
-                                color: Colors.lightGreenAccent,
-                                subtitle: 'Retro Games',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'GAME CATEGORIES',
-                          style: GoogleFonts.outfit(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 44,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: _categories.map((category) {
-                              final isSelected = _selectedCategory == category;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(22),
-                                    onTap: () => setState(
-                                        () => _selectedCategory = category),
-                                    splashColor: Colors.purpleAccent
-                                        .withValues(alpha: 0.1),
-                                    highlightColor: Colors.purpleAccent
-                                        .withValues(alpha: 0.05),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeOutCubic,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 10),
-                                      decoration: BoxDecoration(
-                                        gradient: isSelected
-                                            ? LinearGradient(
-                                                colors: [
-                                                  Colors.purpleAccent
-                                                      .withValues(alpha: 0.25),
-                                                  Colors.purpleAccent
-                                                      .withValues(alpha: 0.15),
-                                                ],
-                                              )
-                                            : LinearGradient(
-                                                colors: [
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .surface
-                                                      .withValues(alpha: 0.8),
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .surface
-                                                      .withValues(alpha: 0.6),
-                                                ],
-                                              ),
-                                        borderRadius: BorderRadius.circular(22),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Colors.purpleAccent
-                                                  .withValues(alpha: 0.4)
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .outline,
-                                          width: isSelected ? 1.5 : 1,
-                                        ),
-                                        boxShadow: isSelected
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.purpleAccent
-                                                      .withValues(alpha: 0.2),
-                                                  blurRadius: 12,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Text(
-                                        category.toUpperCase(),
-                                        style: GoogleFonts.outfit(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.8),
-                                          fontSize: 13,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: _isLoading
-                      ? SliverGrid.count(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 18,
-                          crossAxisSpacing: 18,
-                          childAspectRatio: 0.82,
-                          children: List.generate(
-                            8,
-                            (index) => const _GameCardShimmer(),
-                          ),
-                        )
-                      : SliverGrid.count(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 18,
-                          crossAxisSpacing: 18,
-                          childAspectRatio: 0.82,
-                          children: [
-                            _GameCard(
-                              title: 'Snake',
-                              subtitle: 'Classic snake — eat, grow, survive',
-                              icon: Icons.shuffle_rounded,
-                              gradient: const [
-                                Color(0xFF00E676),
-                                Color(0xFF00897B)
-                              ],
-                              winStreak: 3,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const SnakeGamePage(),
-                                      style: RouteTransitionStyle.fadeScale)),
-                            ),
-                            _GameCard(
-                              title: 'Memory Match',
-                              subtitle: 'Flip & match the anime pairs',
-                              icon: Icons.grid_view_rounded,
-                              gradient: const [
-                                Color(0xFFFF4081),
-                                Color(0xFFAD1457)
-                              ],
-                              winStreak: 5,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const MemoryMatchPage(),
-                                      style: RouteTransitionStyle.fadeSlide)),
-                            ),
-                            _GameCard(
-                              title: 'Tap Reaction',
-                              subtitle: 'Test your reflexes!',
-                              icon: Icons.touch_app_rounded,
-                              gradient: const [
-                                Color(0xFFFF9100),
-                                Color(0xFFE65100)
-                              ],
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const TapReactionPage(),
-                                      style: RouteTransitionStyle.fadeScale)),
-                            ),
-                            _GameCard(
-                              title: 'Number Guess',
-                              subtitle: 'Guess Zero Two\'s secret number',
-                              icon: Icons.casino_rounded,
-                              gradient: const [
-                                Color(0xFF7C4DFF),
-                                Color(0xFF4527A0)
-                              ],
-                              winStreak: 1,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const NumberGuesserPage(),
-                                      style: RouteTransitionStyle.fadeSlide)),
-                            ),
-                            _GameCard(
-                              title: 'Wordle',
-                              subtitle:
-                                  'Guess a hidden 5-letter anime word. Green = right spot, Yellow = wrong spot',
-                              icon: Icons.abc_rounded,
-                              gradient: const [
-                                Color(0xFF26C6DA),
-                                Color(0xFF00838F)
-                              ],
-                              winStreak: 2,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const WordleGamePage(),
-                                      style: RouteTransitionStyle.fadeScale)),
-                            ),
-                            _GameCard(
-                              title: 'Anime Quiz',
-                              subtitle: 'Test your anime knowledge!',
-                              icon: Icons.quiz_rounded,
-                              gradient: const [
-                                Color(0xFFEC407A),
-                                Color(0xFF880E4F)
-                              ],
-                              winStreak: 4,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const AnimeQuizPage(),
-                                      style: RouteTransitionStyle.fadeSlide)),
-                            ),
-                            _GameCard(
-                              title: 'Block Blast',
-                              subtitle: 'Fill rows to clear the board!',
-                              icon: Icons.view_quilt_rounded,
-                              gradient: const [
-                                Color(0xFFFF6F00),
-                                Color(0xFFE65100)
-                              ],
-                              winStreak: 1,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  PremiumPageRoute(
-                                      child: const BlockBlastPage(),
-                                      style: RouteTransitionStyle.fadeScale)),
-                            ),
-                            _GameCard(
-                              title: 'Block Breaker',
-                              subtitle: 'Break all bricks with the ball!',
-                              icon: Icons.sports_tennis_rounded,
-                              gradient: const [
-                                Color(0xFF00B0FF),
-                                Color(0xFF0D47A1)
-                              ],
-                              winStreak: 0,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const BlockBreakerPage())),
-                            ),
-                          ],
-                        ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  const WaifuCommentary(mood: 'motivated'),
+                  const SizedBox(height: 20),
+                  Row(children: [
+                    Expanded(child: _buildStatCard('Arcade', '4', Icons.flash_on_rounded, Colors.orangeAccent, 'Action Games')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildStatCard('Brain', '2', Icons.psychology_rounded, Colors.cyanAccent, 'Puzzle Games')),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    Expanded(child: _buildStatCard('Quiz', '1', Icons.quiz_rounded, Colors.pinkAccent, 'Trivia Games')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildStatCard('Classic', '1', Icons.stars_rounded, Colors.lightGreenAccent, 'Retro Games')),
+                  ]),
+                ]),
+              ),
             ),
-          ],
-        ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('GAME CATEGORIES', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 44,
+                    child: ListView(scrollDirection: Axis.horizontal, children: _categories.map((cat) {
+                      final sel = _selectedCategory == cat;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Material(color: Colors.transparent, child: InkWell(
+                          borderRadius: BorderRadius.circular(22),
+                          onTap: () => setState(() => _selectedCategory = cat),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            decoration: BoxDecoration(
+                              gradient: sel
+                                  ? LinearGradient(colors: [Colors.purpleAccent.withValues(alpha: 0.25), Colors.purpleAccent.withValues(alpha: 0.15)])
+                                  : LinearGradient(colors: [Theme.of(context).colorScheme.surface.withValues(alpha: 0.8), Theme.of(context).colorScheme.surface.withValues(alpha: 0.6)]),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(color: sel ? Colors.purpleAccent.withValues(alpha: 0.4) : Theme.of(context).colorScheme.outline, width: sel ? 1.5 : 1),
+                              boxShadow: sel ? [BoxShadow(color: Colors.purpleAccent.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))] : null,
+                            ),
+                            child: Text(cat.toUpperCase(), style: GoogleFonts.outfit(
+                              color: sel ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              fontSize: 13, fontWeight: sel ? FontWeight.w700 : FontWeight.w500, letterSpacing: 0.5)),
+                          ),
+                        )),
+                      );
+                    }).toList()),
+                  ),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(20),
+              sliver: _isLoading
+                  ? SliverGrid.count(crossAxisCount: 2, mainAxisSpacing: 18, crossAxisSpacing: 18, childAspectRatio: 0.82,
+                      children: List.generate(8, (_) => const _GameCardShimmer()))
+                  : SliverGrid.count(crossAxisCount: 2, mainAxisSpacing: 18, crossAxisSpacing: 18, childAspectRatio: 0.82, children: [
+                      _GameCard(title: 'Snake', subtitle: 'Classic snake — eat, grow, survive',
+                        icon: Icons.shuffle_rounded, gradient: const [Color(0xFF00E676), Color(0xFF00897B)],
+                        level: _level('snake'), bestScore: _best('snake'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const SnakeGamePage(), style: RouteTransitionStyle.fadeScale))),
+                      _GameCard(title: 'Memory Match', subtitle: 'Flip & match the anime pairs',
+                        icon: Icons.grid_view_rounded, gradient: const [Color(0xFFFF4081), Color(0xFFAD1457)],
+                        level: _level('memory_match'), bestScore: _best('memory_match'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const MemoryMatchPage(), style: RouteTransitionStyle.fadeSlide))),
+                      _GameCard(title: 'Tap Reaction', subtitle: 'Test your reflexes!',
+                        icon: Icons.touch_app_rounded, gradient: const [Color(0xFFFF9100), Color(0xFFE65100)],
+                        level: _level('tap_reaction'), bestScore: _best('tap_reaction'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const TapReactionPage(), style: RouteTransitionStyle.fadeScale))),
+                      _GameCard(title: 'Number Guess', subtitle: 'Guess Zero Two\'s secret number',
+                        icon: Icons.casino_rounded, gradient: const [Color(0xFF7C4DFF), Color(0xFF4527A0)],
+                        level: _level('number_guesser'), bestScore: _best('number_guesser'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const NumberGuesserPage(), style: RouteTransitionStyle.fadeSlide))),
+                      _GameCard(title: 'Wordle', subtitle: 'Guess a hidden anime word. Green = right spot, Yellow = wrong spot',
+                        icon: Icons.abc_rounded, gradient: const [Color(0xFF26C6DA), Color(0xFF00838F)],
+                        level: _level('wordle'), bestScore: _best('wordle'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const WordleGamePage(), style: RouteTransitionStyle.fadeScale))),
+                      _GameCard(title: 'Anime Quiz', subtitle: 'Test your anime knowledge!',
+                        icon: Icons.quiz_rounded, gradient: const [Color(0xFFEC407A), Color(0xFF880E4F)],
+                        level: _level('anime_quiz'), bestScore: _best('anime_quiz'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const AnimeQuizPage(), style: RouteTransitionStyle.fadeSlide))),
+                      _GameCard(title: 'Block Blast', subtitle: 'Fill rows to clear the board!',
+                        icon: Icons.view_quilt_rounded, gradient: const [Color(0xFFFF6F00), Color(0xFFE65100)],
+                        level: _level('block_blast'), bestScore: _best('block_blast'),
+                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const BlockBlastPage(), style: RouteTransitionStyle.fadeScale))),
+                      _GameCard(title: 'Block Breaker', subtitle: 'Break all bricks with the ball!',
+                        icon: Icons.sports_tennis_rounded, gradient: const [Color(0xFF00B0FF), Color(0xFF0D47A1)],
+                        level: _level('block_breaker'), bestScore: _best('block_breaker'),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BlockBreakerPage()))),
+                    ]),
+            ),
+          ]),
+        ]),
       ),
     );
   }
 
-  Widget _buildPremiumStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-    required String subtitle,
-  }) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
     final theme = Theme.of(context);
-    final tokens = Theme.of(context).colorScheme;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.1),
-            color.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: LinearGradient(colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              color: theme.colorScheme.onSurface,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              color: tokens.onSurface,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: GoogleFonts.outfit(
-              color: tokens.onSurface,
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+      child: Column(children: [
+        Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 20)),
+        const SizedBox(height: 8),
+        Text(value, style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 4),
+        Text(title, style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+        const SizedBox(height: 2),
+        Text(subtitle, style: GoogleFonts.outfit(color: theme.colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.w500)),
+      ]),
     );
   }
 }
@@ -929,37 +371,30 @@ class _GameCard extends StatefulWidget {
   final IconData icon;
   final List<Color> gradient;
   final VoidCallback onTap;
-  final int winStreak;
+  final int level;
+  final int bestScore;
 
   const _GameCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.gradient,
-    required this.onTap,
-    this.winStreak = 0,
+    required this.title, required this.subtitle, required this.icon,
+    required this.gradient, required this.onTap,
+    this.level = 1, this.bestScore = 0,
   });
 
   @override
   State<_GameCard> createState() => _GameCardState();
 }
 
-class _GameCardState extends State<_GameCard>
-    with SingleTickerProviderStateMixin {
+class _GameCardState extends State<_GameCard> with SingleTickerProviderStateMixin {
   late AnimationController _ac;
 
   @override
   void initState() {
     super.initState();
-    _ac = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 150));
+    _ac = AnimationController(vsync: this, duration: const Duration(milliseconds: 150));
   }
 
   @override
-  void dispose() {
-    _ac.dispose();
-    super.dispose();
-  }
+  void dispose() { _ac.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -967,136 +402,59 @@ class _GameCardState extends State<_GameCard>
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          widget.onTap();
-        },
+        onTap: () { HapticFeedback.lightImpact(); widget.onTap(); },
         splashColor: widget.gradient.first.withValues(alpha: 0.1),
         highlightColor: widget.gradient.first.withValues(alpha: 0.05),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 200), curve: Curves.easeOut,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: widget.gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: LinearGradient(colors: widget.gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: widget.gradient.last.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
+            border: Border.all(color: widget.gradient.last.withValues(alpha: 0.3), width: 1.5),
             boxShadow: [
-              BoxShadow(
-                color: widget.gradient.last.withValues(alpha: 0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: -2,
-              ),
-              BoxShadow(
-                color: widget.gradient.last.withValues(alpha: 0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: -1,
-              ),
+              BoxShadow(color: widget.gradient.last.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8), spreadRadius: -2),
+              BoxShadow(color: widget.gradient.last.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4), spreadRadius: -1),
             ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Icon container with premium design
-                Stack(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.2),
-                            Colors.white.withValues(alpha: 0.1),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Icon(widget.icon, color: Colors.white, size: 26),
-                    ),
-
-                    // Win streak badge
-                    if (widget.winStreak > 0)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.amber, Colors.orangeAccent],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.amber.withValues(alpha: 0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            '${widget.winStreak}',
-                            style: GoogleFonts.outfit(
-                              color: Colors.black,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Stack(children: [
+                Container(
+                  width: 52, height: 52,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0.1)]),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                    boxShadow: [BoxShadow(color: Colors.white.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3))],
+                  ),
+                  child: Icon(widget.icon, color: Colors.white, size: 26),
                 ),
-
-                const Spacer(),
-
-                // Title with premium typography
-                Text(widget.title,
-                    style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5)),
-
-                const SizedBox(height: 6),
-
-                // Subtitle with better line height
-                Text(widget.subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 12,
-                        height: 1.4,
-                        fontWeight: FontWeight.w500)),
+                // LVL badge
+                Positioned(
+                  top: -4, right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Colors.amber, Colors.orangeAccent]),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 2))],
+                    ),
+                    child: Text('LVL ${widget.level}', style: GoogleFonts.outfit(color: Colors.black, fontSize: 8, fontWeight: FontWeight.w900)),
+                  ),
+                ),
+              ]),
+              const Spacer(),
+              Text(widget.title, style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+              const SizedBox(height: 4),
+              Text(widget.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.85), fontSize: 12, height: 1.4, fontWeight: FontWeight.w500)),
+              if (widget.bestScore > 0) ...[
+                const SizedBox(height: 4),
+                Text('🏆 ${widget.bestScore}', style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.75), fontSize: 11, fontWeight: FontWeight.w600)),
               ],
-            ),
+            ]),
           ),
         ),
       ),
@@ -1105,7 +463,7 @@ class _GameCardState extends State<_GameCard>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SNAKE GAME
+// SNAKE GAME — levels + lives + DB
 // ─────────────────────────────────────────────────────────────────────────────
 
 class SnakeGamePage extends StatefulWidget {
@@ -1122,73 +480,95 @@ class _SnakeGameState extends State<SnakeGamePage> {
   Point<int>? _pendingDir;
   Timer? _timer;
   int _score = 0;
+  int _lives = 3;
+  int _level = 1;
+  int _bestScore = 0;
   bool _running = false, _dead = false;
   bool _bgMusicEnabled = true;
   final Random _rng = Random();
   late final String _bgAsset;
 
+  int get _tickMs => max(80, 160 - _level * 8);
+
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _resetGame();
-    // Start background music for snake game
-    GameSoundsService.instance
-        .playBackgroundMusic('sounds/game_arcade_bgm.mp3');
+    _loadDB();
+    _resetSnake();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_arcade_bgm.mp3');
   }
 
-  void _resetGame() {
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('snake');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
+  }
+
+  void _resetSnake() {
     _snake = [const Point(10, 10), const Point(9, 10), const Point(8, 10)];
     _dir = const Point(1, 0);
     _pendingDir = null;
-    _score = 0;
     _dead = false;
     _running = false;
     _placeFood();
   }
 
+  void _newGame() {
+    _score = 0;
+    _lives = 3;
+    _level = 1;
+    _resetSnake();
+  }
+
   void _startGame() {
     setState(() => _running = true);
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 160), (_) => _tick());
+    _timer = Timer.periodic(Duration(milliseconds: _tickMs), (_) => _tick());
   }
 
   void _tick() {
     if (!mounted) return;
-    if (_pendingDir != null) {
-      _dir = _pendingDir!;
-      _pendingDir = null;
-    }
+    if (_pendingDir != null) { _dir = _pendingDir!; _pendingDir = null; }
     if (_snake.isEmpty) return;
     final head = Point(_snake.first.x + _dir.x, _snake.first.y + _dir.y);
-    if (head.x < 0 ||
-        head.x >= cols ||
-        head.y < 0 ||
-        head.y >= rows ||
-        _snake.any((s) => s == head)) {
+    if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || _snake.any((s) => s == head)) {
       _timer?.cancel();
-      setState(() {
-        _dead = true;
-        _running = false;
-      });
+      _lives--;
+      if (_lives <= 0) {
+        _saveDB();
+        setState(() { _dead = true; _running = false; });
+      } else {
+        setState(() { _dead = true; _running = false; });
+      }
       return;
     }
     setState(() {
       _snake.insert(0, head);
       if (head == _food) {
         _score++;
+        _level = max(1, _score ~/ 5 + 1);
         _placeFood();
+        // Restart timer with new speed
+        _timer?.cancel();
+        _timer = Timer.periodic(Duration(milliseconds: _tickMs), (_) => _tick());
       } else {
         _snake.removeLast();
       }
     });
   }
 
+  Future<void> _saveDB() async {
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('snake', level: _level, bestScore: _bestScore, totalPlayed: (_bestScore > 0 ? 1 : 0));
+  }
+
   void _placeFood() {
     Point<int> p;
-    do {
-      p = Point(_rng.nextInt(cols), _rng.nextInt(rows));
-    } while (_snake.any((s) => s == p));
+    do { p = Point(_rng.nextInt(cols), _rng.nextInt(rows)); } while (_snake.any((s) => s == p));
     _food = p;
   }
 
@@ -1203,178 +583,90 @@ class _SnakeGameState extends State<SnakeGamePage> {
     super.dispose();
   }
 
+  Widget _livesRow() => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+    for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+    const SizedBox(width: 12),
+    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+      child: Text('LVL $_level', style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+    const SizedBox(width: 8),
+    Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+  ]);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.transparent, elevation: 0,
         title: TweenAnimationBuilder<int>(
-          tween: IntTween(begin: 0, end: _score),
-          duration: const Duration(milliseconds: 300),
-          builder: (context, value, child) => Text(
-            'Snake — $value pts',
-            style: GoogleFonts.outfit(
-                color: Colors.greenAccent, fontWeight: FontWeight.w800),
-          ),
-        ),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+          tween: IntTween(begin: 0, end: _score), duration: const Duration(milliseconds: 300),
+          builder: (_, v, __) => Text('Snake — $v pts', style: GoogleFonts.outfit(color: Colors.greenAccent, fontWeight: FontWeight.w800))),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
         actions: [
-          IconButton(
-            icon:
-                const Icon(Icons.music_note_rounded, color: Colors.greenAccent),
-            onPressed: () {
-              if (_bgMusicEnabled) {
-                GameSoundsService.instance.pauseBackgroundMusic();
-              } else {
-                GameSoundsService.instance.resumeBackgroundMusic();
-              }
-              setState(() => _bgMusicEnabled = !_bgMusicEnabled);
-            },
-          ),
+          IconButton(icon: const Icon(Icons.music_note_rounded, color: Colors.greenAccent), onPressed: () {
+            if (_bgMusicEnabled) GameSoundsService.instance.pauseBackgroundMusic();
+            else GameSoundsService.instance.resumeBackgroundMusic();
+            setState(() => _bgMusicEnabled = !_bgMusicEnabled);
+          }),
         ],
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.greenAccent,
-            surfaceTint: const Color(0xFF060D12),
-          ),
-          Column(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onHorizontalDragUpdate: (d) {
-                    if (d.delta.dx > 0) {
-                      _turn(const Point(1, 0));
-                    } else {
-                      _turn(const Point(-1, 0));
-                    }
-                  },
-                  onVerticalDragUpdate: (d) {
-                    if (d.delta.dy > 0) {
-                      _turn(const Point(0, 1));
-                    } else {
-                      _turn(const Point(0, -1));
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return SizedBox(
-                            width: constraints.maxWidth,
-                            height: constraints.maxHeight,
-                            child: CustomPaint(
-                              size: Size(
-                                constraints.maxWidth,
-                                constraints.maxHeight,
-                              ),
-                              painter: _SnakePainter(_snake, _food, cols, rows),
-                              child: _dead || !_running
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (_dead)
-                                            Text('Game Over!',
-                                                style: GoogleFonts.outfit(
-                                                    color: Colors.redAccent,
-                                                    fontSize: 32,
-                                                    fontWeight:
-                                                        FontWeight.w900)),
-                                          const SizedBox(height: 16),
-                                          AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 200),
-                                            curve: Curves.easeOut,
-                                            transform: _running
-                                                ? Matrix4.identity()
-                                                : Matrix4.identity()
-                                              ..scale(0.95),
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.greenAccent,
-                                                  foregroundColor: Colors.black,
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 36,
-                                                      vertical: 14),
-                                                  elevation: _running ? 8 : 4),
-                                              onPressed: () {
-                                                setState(() => _resetGame());
-                                                _startGame();
-                                              },
-                                              child: AnimatedSwitcher(
-                                                duration: const Duration(
-                                                    milliseconds: 200),
-                                                child: Text(
-                                                    _dead
-                                                        ? 'Play Again'
-                                                        : 'Start',
-                                                    key: ValueKey<bool>(_dead),
-                                                    style: GoogleFonts.outfit(
-                                                        fontWeight:
-                                                            FontWeight.w800,
-                                                        fontSize: 16)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : const SizedBox.expand(),
-                            ),
-                          );
-                        },
-                      ),
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.greenAccent, surfaceTint: const Color(0xFF060D12)),
+        Column(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: _livesRow()),
+          Expanded(
+            child: GestureDetector(
+              onHorizontalDragUpdate: (d) => _turn(d.delta.dx > 0 ? const Point(1, 0) : const Point(-1, 0)),
+              onVerticalDragUpdate: (d) => _turn(d.delta.dy > 0 ? const Point(0, 1) : const Point(0, -1)),
+              child: Padding(padding: const EdgeInsets.all(12), child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: LayoutBuilder(builder: (_, constraints) {
+                  return SizedBox(width: constraints.maxWidth, height: constraints.maxHeight,
+                    child: CustomPaint(
+                      size: Size(constraints.maxWidth, constraints.maxHeight),
+                      painter: _SnakePainter(_snake, _food, cols, rows),
+                      child: (_dead || !_running) ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        if (_dead) Text(_lives <= 0 ? 'Game Over!' : 'Ouch! $_lives lives left', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                          onPressed: () {
+                            if (_lives <= 0) { setState(() => _newGame()); }
+                            else { setState(() => _resetSnake()); }
+                            _startGame();
+                          },
+                          child: Text(_lives <= 0 ? 'New Game' : (_dead ? 'Try Again' : 'Start'),
+                              style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                        ),
+                      ])) : const SizedBox.expand(),
                     ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Column(children: [
-                  _dpadBtn(Icons.keyboard_arrow_up_rounded, const Point(0, -1)),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    _dpadBtn(
-                        Icons.keyboard_arrow_left_rounded, const Point(-1, 0)),
-                    const SizedBox(width: 56),
-                    _dpadBtn(
-                        Icons.keyboard_arrow_right_rounded, const Point(1, 0)),
-                  ]),
-                  _dpadBtn(
-                      Icons.keyboard_arrow_down_rounded, const Point(0, 1)),
-                ]),
-              ),
-            ],
+                  );
+                }),
+              )),
+            ),
           ),
-        ],
-      ),
+          Padding(padding: const EdgeInsets.only(bottom: 24), child: Column(children: [
+            _dpadBtn(Icons.keyboard_arrow_up_rounded, const Point(0, -1)),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _dpadBtn(Icons.keyboard_arrow_left_rounded, const Point(-1, 0)),
+              const SizedBox(width: 56),
+              _dpadBtn(Icons.keyboard_arrow_right_rounded, const Point(1, 0)),
+            ]),
+            _dpadBtn(Icons.keyboard_arrow_down_rounded, const Point(0, 1)),
+          ])),
+        ]),
+      ]),
     );
   }
 
   Widget _dpadBtn(IconData icon, Point<int> dir) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.greenAccent, size: 40),
-      onPressed: () {
-        if (!_running && !_dead) _startGame();
-        _turn(dir);
-      },
-    );
+    return IconButton(icon: Icon(icon, color: Colors.greenAccent, size: 40), onPressed: () {
+      if (!_running && !_dead) _startGame();
+      _turn(dir);
+    });
   }
 }
 
@@ -1387,22 +679,13 @@ class _SnakePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cw = size.width / cols, ch = size.height / rows;
-    // Background grid
-    final bgPaint = Paint()..color = const Color(0xFF0D1F1A);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
-    // Food
-    final foodPaint = Paint()..color = Colors.redAccent;
-    canvas.drawCircle(Offset((food.x + 0.5) * cw, (food.y + 0.5) * ch),
-        min(cw, ch) * 0.42, foodPaint);
-    // Snake
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = const Color(0xFF0D1F1A));
+    canvas.drawCircle(Offset((food.x + 0.5) * cw, (food.y + 0.5) * ch), min(cw, ch) * 0.42, Paint()..color = Colors.redAccent);
     for (int i = 0; i < snake.length; i++) {
       final s = snake[i];
       final t = 1 - (i / snake.length * 0.6);
-      final p = Paint()
-        ..color = Color.lerp(Colors.greenAccent, Colors.green[900]!, 1 - t)!;
-      final r = RRect.fromRectAndRadius(
-          Rect.fromLTWH(s.x * cw + 1, s.y * ch + 1, cw - 2, ch - 2),
-          Radius.circular(min(cw, ch) * 0.3));
+      final p = Paint()..color = Color.lerp(Colors.greenAccent, Colors.green[900]!, 1 - t)!;
+      final r = RRect.fromRectAndRadius(Rect.fromLTWH(s.x * cw + 1, s.y * ch + 1, cw - 2, ch - 2), Radius.circular(min(cw, ch) * 0.3));
       canvas.drawRRect(r, p);
     }
   }
@@ -1412,7 +695,7 @@ class _SnakePainter extends CustomPainter {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MEMORY MATCH GAME
+// MEMORY MATCH — levels + lives + DB
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MemoryMatchPage extends StatefulWidget {
@@ -1422,242 +705,171 @@ class MemoryMatchPage extends StatefulWidget {
 }
 
 class _MemoryMatchState extends State<MemoryMatchPage> {
-  static const _emojis = ['🌸', '⚔️', '🦋', '💮', '🎴', '🌺', '🍡', '🎎'];
+  static const _emojis = ['🌸','⚔️','🎌','🦊','🐉','💮','🎴','🌙','⭐','🔥','💎','🎭','🌊','🎵','🍡','🦋'];
+
+  int _level = 1;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
   late List<String> _cards;
-  List<bool> _flipped = [];
-  List<bool> _matched = [];
-  int? _first, _second;
-  bool _busy = false;
-  int _moves = 0, _matches = 0;
+  late List<bool> _flipped;
+  late List<bool> _matched;
+  int? _firstIdx;
+  bool _locked = false;
+  bool _won = false;
   late final String _bgAsset;
+
+  int get _pairCount => min(4 + _level, _emojis.length);
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _init();
-    // Start background music for memory match game
-    GameSoundsService.instance
-        .playBackgroundMusic('sounds/game_puzzle_bgm.mp3');
+    _loadDB();
   }
 
-  void _init() {
-    _cards = [..._emojis, ..._emojis]..shuffle();
-    _flipped = List.filled(16, false);
-    _matched = List.filled(16, false);
-    _moves = 0;
-    _matches = 0;
-    _first = null;
-    _second = null;
-    _busy = false;
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('memory_match');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
+    });
+    _buildBoard();
   }
 
-  Future<void> _tap(int i) async {
-    if (_busy || _flipped[i] || _matched[i]) return;
-    setState(() => _flipped[i] = true);
-    if (_first == null) {
-      _first = i;
+  void _buildBoard() {
+    final pool = _emojis.sublist(0, _pairCount);
+    _cards = [...pool, ...pool]..shuffle(Random());
+    _flipped = List.filled(_cards.length, false);
+    _matched = List.filled(_cards.length, false);
+    _firstIdx = null;
+    _locked = false;
+    _won = false;
+  }
+
+  void _onTap(int idx) {
+    if (_locked || _flipped[idx] || _matched[idx]) return;
+    setState(() => _flipped[idx] = true);
+    if (_firstIdx == null) {
+      _firstIdx = idx;
     } else {
-      _second = i;
-      _moves++;
-      _busy = true;
-      await Future.delayed(const Duration(milliseconds: 700));
-      if (_cards[_first!] == _cards[_second!]) {
-        _matched[_first!] = _matched[_second!] = true;
-        _matches++;
+      final a = _firstIdx!;
+      _firstIdx = null;
+      if (_cards[a] == _cards[idx]) {
+        setState(() {
+          _matched[a] = true;
+          _matched[idx] = true;
+          _score += 10 + _level * 2;
+        });
+        if (_matched.every((m) => m)) {
+          _level++;
+          _won = true;
+          _saveDB();
+          setState(() {});
+        }
       } else {
-        _flipped[_first!] = _flipped[_second!] = false;
+        _locked = true;
+        Future.delayed(const Duration(milliseconds: 900), () {
+          if (!mounted) return;
+          setState(() {
+            _flipped[a] = false;
+            _flipped[idx] = false;
+            _locked = false;
+            _lives--;
+          });
+          if (_lives <= 0) { _saveDB(); setState(() {}); }
+        });
       }
-      _first = _second = null;
-      _busy = false;
-      if (!mounted) return;
-      setState(() {});
     }
   }
 
-  @override
-  void dispose() {
-    GameSoundsService.instance.stopBackgroundMusic();
-    super.dispose();
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('memory_match', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+  }
+
+  void _restart() {
+    setState(() {
+      _lives = 3;
+      _score = 0;
+      _level = 1;
+      _buildBoard();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final won = _matches == _emojis.length;
+    final cs = Theme.of(context).colorScheme;
+    final cols = _pairCount <= 6 ? 3 : 4;
+    final gameOver = _lives <= 0;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: TweenAnimationBuilder<int>(
-          tween: IntTween(begin: 0, end: _moves),
-          duration: const Duration(milliseconds: 300),
-          builder: (context, value, child) => Text(
-            'Memory Match — $value moves',
-            style: GoogleFonts.outfit(
-                color: Colors.pinkAccent, fontWeight: FontWeight.w800),
-          ),
-        ),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              GameSoundsService.instance.soundEnabled
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
-              color: Colors.cyanAccent,
-            ),
-            onPressed: () => setState(() {
-              GameSoundsService.instance
-                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
-            }),
-          ),
-        ],
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Memory Match — $_score pts', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontWeight: FontWeight.w800)),
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.pinkAccent,
-            surfaceTint: const Color(0xFF110018),
-          ),
-          Column(
-            children: [
-              if (won)
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.pinkAccent, surfaceTint: const Color(0xFF120810)),
+        Column(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(color: Colors.pinkAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+              child: Text('LVL $_level', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 8),
+            Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+          ])),
+          Expanded(child: (gameOver || _won)
+            ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(_won ? '🎉 Level Complete!' : '💔 Game Over!',
+                    style: GoogleFonts.outfit(color: _won ? Colors.greenAccent : Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent, foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                  onPressed: () { if (_won) { setState(() { _lives = 3; _buildBoard(); }); } else { _restart(); } },
+                  child: Text(_won ? 'Next Level' : 'Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                ),
+              ]))
+            : Padding(padding: const EdgeInsets.all(16), child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 10, crossAxisSpacing: 10),
+                itemCount: _cards.length,
+                itemBuilder: (_, i) {
+                  final show = _flipped[i] || _matched[i];
+                  return GestureDetector(
+                    onTap: () => _onTap(i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      decoration: BoxDecoration(
+                        color: _matched[i] ? Colors.pinkAccent.withValues(alpha: 0.3)
+                            : show ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _matched[i] ? Colors.pinkAccent : Colors.white.withValues(alpha: 0.2), width: 1.5),
+                      ),
+                      child: Center(child: Text(show ? _cards[i] : '❓', style: const TextStyle(fontSize: 28))),
                     ),
-                    decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [Color(0xFFFF4081), Color(0xFFAD1457)]),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Text('🎉 You won in $_moves moves!',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16)),
-                  ),
-                ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10),
-                    itemCount: 16,
-                    itemBuilder: (_, i) => _CardTile(
-                      emoji: _cards[i],
-                      flipped: _flipped[i],
-                      matched: _matched[i],
-                      onTap: () => _tap(i),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardTile extends StatefulWidget {
-  final String emoji;
-  final bool flipped, matched;
-  final VoidCallback onTap;
-  const _CardTile(
-      {required this.emoji,
-      required this.flipped,
-      required this.matched,
-      required this.onTap});
-  @override
-  State<_CardTile> createState() => _CardTileState();
-}
-
-class _CardTileState extends State<_CardTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ac;
-  late Animation<double> _flip;
-
-  @override
-  void initState() {
-    super.initState();
-    _ac = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
-    _flip = Tween(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _ac, curve: Curves.easeInOutCubic));
-  }
-
-  @override
-  void didUpdateWidget(_CardTile old) {
-    super.didUpdateWidget(old);
-    if (widget.flipped != old.flipped) {
-      widget.flipped ? _ac.forward() : _ac.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _ac.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _flip,
-        builder: (_, __) {
-          final angle = _flip.value * pi;
-          final showFront = angle <= pi / 2;
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.rotationY(angle),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: widget.matched
-                      ? [const Color(0xFF00E676), const Color(0xFF00897B)]
-                      : showFront
-                          ? [const Color(0xFFFF4081), const Color(0xFFAD1457)]
-                          : [const Color(0xFF2D0845), const Color(0xFF1A0030)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  showFront ? '' : widget.emoji,
-                  style: const TextStyle(fontSize: 28),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+                  );
+                },
+              ))),
+        ]),
+      ]),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAP REACTION GAME
+// TAP REACTION — levels + lives + DB
+// Tap the target as fast as possible. Window shrinks each level.
 // ─────────────────────────────────────────────────────────────────────────────
-
-// Reaction game phases — top-level (Dart doesn't allow enums inside classes)
-enum _Phase { idle, waiting, ready, result }
 
 class TapReactionPage extends StatefulWidget {
   const TapReactionPage({super.key});
@@ -1665,180 +877,189 @@ class TapReactionPage extends StatefulWidget {
   State<TapReactionPage> createState() => _TapReactionState();
 }
 
-class _TapReactionState extends State<TapReactionPage>
-    with SingleTickerProviderStateMixin {
-  _Phase _phase = _Phase.idle;
-  int _round = 0, _totalMs = 0;
-  DateTime? _showTime;
-  Timer? _timer;
-  late AnimationController _pulse;
-  late Animation<double> _pulseAnim;
-  final Random _rng = Random();
-  final List<int> _times = [];
+class _TapReactionState extends State<TapReactionPage> {
+  int _level = 1;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
+  int _round = 0;
+  static const int _roundsPerLevel = 5;
+
+  // window in ms: starts 1200ms, shrinks 80ms per level, floor 300ms
+  int get _windowMs => max(300, 1200 - (_level - 1) * 80);
+
+  bool _waiting = true;   // waiting for the target to appear
+  bool _targetVisible = false;
+  bool _tooEarly = false;
+  bool _missed = false;
+  bool _gameOver = false;
+  DateTime? _shownAt;
+  int? _lastReactionMs;
+  Timer? _waitTimer;
+  Timer? _hideTimer;
   late final String _bgAsset;
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _pulse = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
-    _pulseAnim = Tween(begin: 0.95, end: 1.05)
-        .animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut));
-    _pulse.repeat(reverse: true);
-    // Start background music for tap reaction game
-    GameSoundsService.instance
-        .playBackgroundMusic('sounds/game_reaction_bgm.mp3');
+    _loadDB();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _pulse.dispose();
-    GameSoundsService.instance.stopBackgroundMusic();
-    super.dispose();
-  }
-
-  void _start() {
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('tap_reaction');
+    if (!mounted) return;
     setState(() {
-      _phase = _Phase.waiting;
-      _round++;
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
     });
-    final delay = 1500 + _rng.nextInt(3000);
-    _timer = Timer(Duration(milliseconds: delay), () {
+  }
+
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('tap_reaction', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+  }
+
+  void _startRound() {
+    _waitTimer?.cancel();
+    _hideTimer?.cancel();
+    setState(() { _waiting = true; _targetVisible = false; _tooEarly = false; _missed = false; _lastReactionMs = null; });
+    final delay = 1000 + Random().nextInt(2000);
+    _waitTimer = Timer(Duration(milliseconds: delay), () {
       if (!mounted) return;
-      setState(() {
-        _phase = _Phase.ready;
-        _showTime = DateTime.now();
+      setState(() { _targetVisible = true; _waiting = false; _shownAt = DateTime.now(); });
+      _hideTimer = Timer(Duration(milliseconds: _windowMs), () {
+        if (!mounted || !_targetVisible) return;
+        setState(() { _targetVisible = false; _missed = true; _lives--; });
+        if (_lives <= 0) { _saveDB(); setState(() => _gameOver = true); }
       });
     });
   }
 
-  void _tap() {
-    if (_phase == _Phase.waiting) {
-      _timer?.cancel();
-      setState(() => _phase = _Phase.idle);
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Too early! Wait for green.')));
+  void _onTap() {
+    if (_gameOver) return;
+    if (_waiting) {
+      _waitTimer?.cancel();
+      setState(() { _tooEarly = true; _lives--; });
+      if (_lives <= 0) { _saveDB(); setState(() => _gameOver = true); return; }
+      Future.delayed(const Duration(milliseconds: 800), _startRound);
       return;
     }
-    if (_phase == _Phase.ready) {
-      final ms = DateTime.now().difference(_showTime!).inMilliseconds;
-      _times.add(ms);
-      _totalMs += ms;
-      setState(() => _phase = _Phase.result);
+    if (!_targetVisible) return;
+    _hideTimer?.cancel();
+    final ms = DateTime.now().difference(_shownAt!).inMilliseconds;
+    final pts = max(10, 200 - ms ~/ 5 + _level * 5);
+    _score += pts;
+    _lastReactionMs = ms;
+    _round++;
+    setState(() { _targetVisible = false; });
+    if (_round >= _roundsPerLevel) {
+      _level++;
+      _round = 0;
+      _saveDB();
+      Future.delayed(const Duration(milliseconds: 600), _startRound);
+    } else {
+      Future.delayed(const Duration(milliseconds: 400), _startRound);
     }
   }
 
+  void _restart() {
+    _waitTimer?.cancel(); _hideTimer?.cancel();
+    setState(() { _level = 1; _lives = 3; _score = 0; _round = 0; _gameOver = false; _targetVisible = false; _waiting = true; _tooEarly = false; _missed = false; _lastReactionMs = null; });
+  }
+
+  @override
+  void dispose() { _waitTimer?.cancel(); _hideTimer?.cancel(); super.dispose(); }
+
   @override
   Widget build(BuildContext context) {
-    final avg = _times.isEmpty ? 0 : _totalMs ~/ _times.length;
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Tap Reaction',
-            style: GoogleFonts.outfit(
-                color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Tap Reaction — $_score pts', style: GoogleFonts.outfit(color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.orangeAccent,
-            surfaceTint: const Color(0xFF0D0A00),
-          ),
-          GestureDetector(
-            onTap: _phase == _Phase.idle || _phase == _Phase.result
-                ? _start
-                : _tap,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: _phase == _Phase.ready
-                  ? Colors.green.withValues(alpha: 0.3)
-                  : _phase == _Phase.waiting
-                      ? Colors.red.withValues(alpha: 0.2)
-                      : Colors.transparent,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ScaleTransition(
-                    scale: _pulseAnim,
-                    child: Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: _phase == _Phase.ready
-                              ? [Colors.greenAccent, Colors.green]
-                              : _phase == _Phase.waiting
-                                  ? [Colors.redAccent, Colors.red[900]!]
-                                  : [Colors.orangeAccent, Colors.deepOrange],
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.orangeAccent, surfaceTint: const Color(0xFF120A00)),
+        Column(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+              child: Text('LVL $_level  •  ${_windowMs}ms', style: GoogleFonts.outfit(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 8),
+            Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+          ])),
+          Expanded(child: _gameOver
+            ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('Game Over!', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                  onPressed: _restart,
+                  child: Text('Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                ),
+              ]))
+            : GestureDetector(
+                onTap: _onTap,
+                behavior: HitTestBehavior.opaque,
+                child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  if (!_targetVisible && _waiting && !_tooEarly && !_missed)
+                    Text('Get ready…', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 22, fontWeight: FontWeight.w600)),
+                  if (_tooEarly)
+                    Text('Too early! 😬', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 22, fontWeight: FontWeight.w700)),
+                  if (_missed)
+                    Text('Too slow! 🐢', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 22, fontWeight: FontWeight.w700)),
+                  if (_lastReactionMs != null && !_tooEarly && !_missed)
+                    Text('${_lastReactionMs}ms ⚡', style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 22, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 40),
+                  AnimatedScale(
+                    scale: _targetVisible ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: GestureDetector(
+                      onTap: _onTap,
+                      child: Container(
+                        width: 140, height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const RadialGradient(colors: [Colors.orangeAccent, Colors.deepOrange]),
+                          boxShadow: [BoxShadow(color: Colors.orangeAccent.withValues(alpha: 0.6), blurRadius: 40, spreadRadius: 8)],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                              color: (_phase == _Phase.ready
-                                      ? Colors.green
-                                      : Colors.orange)
-                                  .withValues(alpha: 0.5),
-                              blurRadius: 30,
-                              spreadRadius: 5)
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          _phase == _Phase.idle
-                              ? 'â–¶ TAP TO\nSTART'
-                              : _phase == _Phase.waiting
-                                  ? 'WAIT...'
-                                  : _phase == _Phase.ready
-                                      ? 'TAP!'
-                                      : '${_times.last} ms',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: _phase == _Phase.result ? 28 : 22,
-                              fontWeight: FontWeight.w900),
-                        ),
+                        child: const Center(child: Text('TAP!', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900))),
                       ),
                     ),
                   ),
                   const SizedBox(height: 40),
-                  if (_times.isNotEmpty) ...[
-                    Text('Round $_round  •  Avg: $avg ms',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white70, fontSize: 14)),
-                    const SizedBox(height: 8),
-                    Text(
-                        _phase == _Phase.result
-                            ? 'Tap anywhere to try again'
-                            : '',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white38, fontSize: 13)),
-                  ] else
-                    Text('Tap the circle when it turns green!',
-                        style: GoogleFonts.outfit(
-                            color: Colors.white38, fontSize: 13)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+                  if (!_targetVisible && _waiting && !_tooEarly && !_missed)
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                      onPressed: _startRound,
+                      child: Text('Start Round', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                    ),
+                  Text('Round ${_round + 1} / $_roundsPerLevel', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 13)),
+                ])),
+              )),
+        ]),
+      ]),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NUMBER GUESSER GAME
+// NUMBER GUESSER — levels + lives + DB
+// Range grows with level: level 1 = 1-50, level N = 1-(50+N*50)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class NumberGuesserPage extends StatefulWidget {
@@ -1847,2540 +1068,1224 @@ class NumberGuesserPage extends StatefulWidget {
   State<NumberGuesserPage> createState() => _NumberGuesserState();
 }
 
-class _NumberGuesserState extends State<NumberGuesserPage>
-    with SingleTickerProviderStateMixin {
-  final Random _rng = Random();
+class _NumberGuesserState extends State<NumberGuesserPage> {
+  int _level = 1;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
   late int _secret;
+  late int _maxNum;
+  int _guessesLeft = 0;
   final _ctrl = TextEditingController();
   String _hint = '';
-  int _attempts = 0;
   bool _won = false;
-  late AnimationController _shake;
-  late Animation<double> _shakeAnim;
+  bool _gameOver = false;
   late final String _bgAsset;
+
+  int get _maxGuesses => max(3, 8 - _level ~/ 2);
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _secret = _rng.nextInt(100) + 1;
-    _shake = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
-    _shakeAnim = Tween(begin: -8.0, end: 8.0)
-        .animate(CurvedAnimation(parent: _shake, curve: Curves.elasticIn));
-    // Start background music for number guesser game
-    GameSoundsService.instance.playBackgroundMusic('sounds/game_brain_bgm.mp3');
+    _loadDB();
   }
 
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    _shake.dispose();
-    GameSoundsService.instance.stopBackgroundMusic();
-    super.dispose();
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('number_guesser');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
+    });
+    _newRound();
+  }
+
+  void _newRound() {
+    _maxNum = 50 + _level * 50;
+    _secret = Random().nextInt(_maxNum) + 1;
+    _guessesLeft = _maxGuesses;
+    _hint = 'Guess a number between 1 and $_maxNum';
+    _won = false;
+    _gameOver = false;
+    _ctrl.clear();
+  }
+
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('number_guesser', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
   }
 
   void _guess() {
     final n = int.tryParse(_ctrl.text.trim());
-    if (n == null || n < 1 || n > 100) {
-      _shake.forward(from: 0);
-      setState(() => _hint = 'Enter a number between 1 and 100');
+    if (n == null || n < 1 || n > _maxNum) {
+      setState(() => _hint = 'Enter a number between 1 and $_maxNum!');
       return;
     }
-    _attempts++;
+    _ctrl.clear();
+    _guessesLeft--;
     if (n == _secret) {
-      setState(() {
-        _hint = '🎉 Correct! The number was $_secret!';
-        _won = true;
-      });
-    } else if (n < _secret) {
-      _shake.forward(from: 0);
-      setState(() => _hint = 'Too low! Try higher, darling~');
+      final pts = (_guessesLeft + 1) * 10 + _level * 5;
+      _score += pts;
+      _level++;
+      _won = true;
+      _saveDB();
+      setState(() => _hint = '🎉 Correct! +$pts pts');
+    } else if (_guessesLeft <= 0) {
+      _lives--;
+      _gameOver = _lives <= 0;
+      _saveDB();
+      setState(() => _hint = '💔 It was $_secret. ${_gameOver ? "Game Over!" : "$_lives lives left."}');
     } else {
-      _shake.forward(from: 0);
-      setState(() => _hint = 'Too high! Go lower, honey~');
+      final diff = (n - _secret).abs();
+      final temp = diff < 5 ? '🔥 Burning hot!' : diff < 15 ? '♨️ Warm' : diff < 30 ? '❄️ Cold' : '🧊 Freezing!';
+      setState(() => _hint = n < _secret ? '⬆️ Higher! $temp ($_guessesLeft guesses left)' : '⬇️ Lower! $temp ($_guessesLeft guesses left)');
     }
-    _ctrl.clear();
-  }
-
-  void _reset() {
-    setState(() {
-      _secret = _rng.nextInt(100) + 1;
-      _hint = '';
-      _attempts = 0;
-      _won = false;
-    });
-    _ctrl.clear();
   }
 
   @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Number Guess',
-            style: GoogleFonts.outfit(
-                color: Colors.deepPurpleAccent, fontWeight: FontWeight.w800)),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              GameSoundsService.instance.soundEnabled
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
-              color: Colors.orangeAccent,
-            ),
-            onPressed: () => setState(() {
-              GameSoundsService.instance
-                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
-            }),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: Colors.deepPurpleAccent),
-            onPressed: _reset,
-          )
-        ],
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Number Guess — $_score pts', style: GoogleFonts.outfit(color: Colors.purpleAccent, fontWeight: FontWeight.w800)),
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.deepPurpleAccent,
-            surfaceTint: const Color(0xFF0C0018),
-          ),
-          SingleChildScrollView(
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.purpleAccent, surfaceTint: const Color(0xFF0D0818)),
+        Padding(padding: const EdgeInsets.all(24), child: Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(color: Colors.purpleAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+              child: Text('LVL $_level  •  1–$_maxNum', style: GoogleFonts.outfit(color: Colors.purpleAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 8),
+            Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 40),
+          Container(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                        colors: [Color(0xFF7C4DFF), Color(0xFF4527A0)]),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.deepPurple.withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          spreadRadius: 4)
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text('?',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 64,
-                              fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      Text("I'm thinking of a number\nbetween 1 and 100",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                              color: Colors.white70, fontSize: 14)),
-                      const SizedBox(height: 4),
-                      Text('Attempt $_attempts',
-                          style: GoogleFonts.outfit(
-                              color: Colors.white38, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                if (_hint.isNotEmpty)
-                  AnimatedBuilder(
-                    animation: _shakeAnim,
-                    builder: (_, child) => Transform.translate(
-                        offset: Offset(_shakeAnim.value, 0), child: child),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _won
-                            ? Colors.green.withValues(alpha: 0.2)
-                            : Colors.pinkAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: _won
-                                ? Colors.greenAccent.withValues(alpha: 0.5)
-                                : Colors.pinkAccent.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(_hint,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                              color:
-                                  _won ? Colors.greenAccent : Colors.pinkAccent,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                if (!_won) ...[
-                  TextField(
-                    controller: _ctrl,
-                    keyboardType: TextInputType.number,
-                    style:
-                        GoogleFonts.outfit(color: Colors.white, fontSize: 20),
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      hintText: 'Your guess...',
-                      hintStyle: GoogleFonts.outfit(color: Colors.white30),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.07),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                    ),
-                    onSubmitted: (_) => _guess(),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          padding: const EdgeInsets.symmetric(vertical: 16)),
-                      onPressed: _guess,
-                      child: Text('GUESS',
-                          style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w800, fontSize: 16)),
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.greenAccent,
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          padding: const EdgeInsets.symmetric(vertical: 16)),
-                      onPressed: _reset,
-                      child: Text('Play Again',
-                          style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w800, fontSize: 16)),
-                    ),
-                  ),
-                ],
-              ],
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
             ),
+            child: Column(children: [
+              Text('🎯 Guesses left: $_guessesLeft / $_maxGuesses',
+                  style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 16),
+              Text(_hint, textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, height: 1.4)),
+            ]),
           ),
-        ],
-      ),
+          const SizedBox(height: 32),
+          if (!_won && !_gameOver) ...[
+            TextField(
+              controller: _ctrl,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
+              decoration: InputDecoration(
+                hintText: 'Your guess…',
+                hintStyle: GoogleFonts.outfit(color: Colors.white38),
+                filled: true, fillColor: Colors.white.withValues(alpha: 0.08),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.purpleAccent, width: 2)),
+              ),
+              onSubmitted: (_) => _guess(),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(width: double.infinity, child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent, foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16)),
+              onPressed: _guess,
+              child: Text('GUESS', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)),
+            )),
+          ],
+          if (_won || _gameOver) ...[
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent, foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+              onPressed: () {
+                if (_gameOver) setState(() { _lives = 3; _score = 0; _level = 1; _newRound(); });
+                else setState(() => _newRound());
+              },
+              child: Text(_gameOver ? 'New Game' : 'Next Level', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+            ),
+          ],
+        ])),
+      ]),
     );
   }
 }
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-// WORDLE GAME
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// ─────────────────────────────────────────────────────────────────────────────
+// WORDLE GAME — levels + lives + DB
+// 5-letter anime words. Higher levels = rarer words, fewer guesses.
+// ─────────────────────────────────────────────────────────────────────────────
 
 class WordleGamePage extends StatefulWidget {
   const WordleGamePage({super.key});
   @override
-  State<WordleGamePage> createState() => _WordleGamePageState();
+  State<WordleGamePage> createState() => _WordleGameState();
 }
 
-class _WordleGamePageState extends State<WordleGamePage> {
-  final List<String> _easyWords = ['ANIME', 'OTAKU', 'MANGA', 'WAIFU', 'KAWAI'];
-  final List<String> _mediumWords = [
-    'NARUTO',
-    'SAKURA',
-    'SHONEN',
-    'SENPAI',
-    'ISEKAI'
-  ];
-  final List<String> _hardWords = [
-    'SAMURAI',
-    'TSUNDERE',
-    'SHINIGAMI',
-    'HOKAGE',
-    'HENTOSHI'
+class _WordleGameState extends State<WordleGamePage> {
+  // Tiered word lists: tier 0 = easy, tier 1 = medium, tier 2 = hard
+  static const _wordTiers = [
+    ['NARUT','GOKUU','LUFFY','ICHIG','MIKAN','SAKUR','HINAB','KAKSH','ITACH','GAARA'],
+    ['ZEROT','ASUNA','KIRIT','MIKSA','ERENS','LEVIS','REMUS','EMILI','YUMIS','ARMIN'],
+    ['STREL','FRANX','KLAXO','DARLI','SQUAD','PISTL','STAMI','GENST','CHLOR','ARGNT'],
   ];
 
-  late String _targetWord;
-  final List<String> _guesses = [];
-  String _currentGuess = '';
-  late int _maxGuesses;
-  bool _gameOver = false;
+  int _level = 1;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
+  late String _secret;
+  late List<String> _guesses;
+  late List<List<int>> _colors; // 0=grey,1=yellow,2=green
+  String _current = '';
   bool _won = false;
+  bool _gameOver = false;
+  String _msg = '';
   late final String _bgAsset;
 
-  String _phase = 'difficulty';
+  int get _maxGuesses => max(3, 6 - _level ~/ 3);
+  int get _tier => min(2, (_level - 1) ~/ 3);
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
+    _loadDB();
   }
 
-  void _startGame(String diff) {
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('wordle');
+    if (!mounted) return;
     setState(() {
-      _phase = 'game';
-      _guesses.clear();
-      _currentGuess = '';
-      _gameOver = false;
-      _won = false;
-
-      final rng = Random();
-      if (diff == 'Easy') {
-        _targetWord = _easyWords[rng.nextInt(_easyWords.length)];
-        _maxGuesses = 8;
-      } else if (diff == 'Hard') {
-        _targetWord = _hardWords[rng.nextInt(_hardWords.length)];
-        _maxGuesses = 5;
-      } else {
-        _targetWord = _mediumWords[rng.nextInt(_mediumWords.length)];
-        _maxGuesses = 6;
-      }
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
     });
+    _newRound();
   }
 
-  void _reset() {
-    setState(() {
-      _phase = 'difficulty';
-    });
+  void _newRound() {
+    final pool = _wordTiers[_tier];
+    _secret = pool[Random().nextInt(pool.length)];
+    _guesses = [];
+    _colors = [];
+    _current = '';
+    _won = false;
+    _gameOver = false;
+    _msg = '';
   }
 
-  void _verifyGuess() {
-    if (_currentGuess.length != _targetWord.length) return;
-    SystemSound.play(SystemSoundType.click);
-    HapticFeedback.lightImpact();
-    setState(() {
-      _guesses.add(_currentGuess);
-      if (_currentGuess == _targetWord) {
-        _won = true;
-        _gameOver = true;
-        SystemSound.play(SystemSoundType.alert);
-      } else if (_guesses.length >= _maxGuesses) {
-        _gameOver = true;
-      }
-      _currentGuess = '';
-    });
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('wordle', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
   }
 
-  void _addLetter(String letter) {
-    if (_currentGuess.length < 5 && !_gameOver) {
-      setState(() => _currentGuess += letter);
-    }
+  void _key(String ch) {
+    if (_won || _gameOver || _current.length >= 5) return;
+    setState(() => _current += ch);
   }
 
-  void _removeLetter() {
-    if (_currentGuess.isNotEmpty && !_gameOver) {
-      setState(() =>
-          _currentGuess = _currentGuess.substring(0, _currentGuess.length - 1));
-    }
+  void _del() {
+    if (_current.isEmpty) return;
+    setState(() => _current = _current.substring(0, _current.length - 1));
   }
 
-  Widget _buildGridRow(String word, bool isSubmitted) {
-    List<Widget> boxes = [];
+  void _submit() {
+    if (_current.length < 5) { setState(() => _msg = 'Need 5 letters!'); return; }
+    final guess = _current;
+    final row = List.filled(5, 0);
+    final secretChars = _secret.split('');
+    final used = List.filled(5, false);
+    // greens
     for (int i = 0; i < 5; i++) {
-      String char = i < word.length ? word[i] : '';
-      Color bgColor = Colors.black45;
-      Color borderColor = Colors.white24;
-      if (isSubmitted && char.isNotEmpty) {
-        if (_targetWord[i] == char) {
-          bgColor = Colors.green.shade600;
-          borderColor = Colors.green.shade600;
-        } else if (_targetWord.contains(char)) {
-          bgColor = Colors.orange.shade600;
-          borderColor = Colors.orange.shade600;
-        } else {
-          bgColor = Colors.grey.shade800;
-          borderColor = Colors.grey.shade800;
-        }
-      } else if (char.isNotEmpty) {
-        borderColor = Colors.white60;
-      }
-
-      boxes.add(Container(
-        width: 50,
-        height: 50,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: bgColor,
-          border: Border.all(color: borderColor, width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          char,
-          style: GoogleFonts.outfit(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ));
+      if (guess[i] == secretChars[i]) { row[i] = 2; used[i] = true; }
     }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: boxes.expand((b) => [b, const SizedBox(width: 8)]).toList()
-        ..removeLast(),
-    );
+    // yellows
+    for (int i = 0; i < 5; i++) {
+      if (row[i] == 2) continue;
+      for (int j = 0; j < 5; j++) {
+        if (!used[j] && guess[i] == secretChars[j]) { row[i] = 1; used[j] = true; break; }
+      }
+    }
+    setState(() {
+      _guesses.add(guess);
+      _colors.add(row);
+      _current = '';
+      _msg = '';
+    });
+    if (guess == _secret) {
+      final pts = (_maxGuesses - _guesses.length + 1) * 20 + _level * 10;
+      _score += pts;
+      _level++;
+      _won = true;
+      _saveDB();
+      setState(() => _msg = '🎉 Correct! +$pts pts');
+    } else if (_guesses.length >= _maxGuesses) {
+      _lives--;
+      _gameOver = _lives <= 0;
+      _saveDB();
+      setState(() => _msg = '💔 It was $_secret');
+    }
   }
 
-  Widget _buildKeyboard() {
-    const rows = [
-      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-      ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL']
-    ];
-    return Column(
-      children: rows
-          .map((row) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: row.map((key) {
-                    final isAction = key == 'ENTER' || key == 'DEL';
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: Material(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(4),
-                        child: InkWell(
-                          onTap: () {
-                            if (key == 'ENTER') {
-                              _verifyGuess();
-                            } else if (key == 'DEL') {
-                              _removeLetter();
-                            } else {
-                              _addLetter(key);
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(4),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isAction ? 12 : 10,
-                              vertical: 14,
-                            ),
-                            child: Text(
-                              key,
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.bold,
-                                fontSize: isAction ? 12 : 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ))
-          .toList(),
-    );
-  }
+  static const _rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+
+  Color _tileColor(int c) => c == 2 ? Colors.green : c == 1 ? Colors.amber : Colors.white24;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text('Anime Wordle',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Wordle — $_score pts', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontWeight: FontWeight.w800)),
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.cyanAccent,
-            surfaceTint: const Color(0xFF1A1A24),
-          ),
-          SafeArea(
-            child: _phase == 'difficulty'
-                ? _buildDifficultySelector()
-                : _buildGameUI(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDifficultySelector() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.abc_rounded, size: 64, color: Colors.cyanAccent),
-          const SizedBox(height: 24),
-          _difficultyBtn(
-              'Easy (5 Letters, 8 Guesses)', 'Easy', Colors.greenAccent),
-          const SizedBox(height: 16),
-          _difficultyBtn(
-              'Medium (6 Letters, 6 Guesses)', 'Medium', Colors.orangeAccent),
-          const SizedBox(height: 16),
-          _difficultyBtn(
-              'Hard (7+ Letters, 5 Guesses)', 'Hard', Colors.redAccent),
-        ],
-      ),
-    );
-  }
-
-  Widget _difficultyBtn(String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: InkWell(
-        onTap: () => _startGame(value),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(label,
-              style: GoogleFonts.outfit(
-                  color: color,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGameUI() {
-    return Column(
-      children: [
-        const SizedBox(height: 20),
-        Expanded(
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            children: [
-              for (int i = 0; i < _maxGuesses; i++) ...[
-                if (i < _guesses.length)
-                  _buildGridRow(_guesses[i], true)
-                else if (i == _guesses.length)
-                  _buildGridRow(_currentGuess, false)
-                else
-                  _buildGridRow('', false),
-                const SizedBox(height: 8),
-              ],
-            ],
-          ),
-        ),
-        if (_gameOver) ...[
-          Text(
-            _won ? 'Sugoi! You got it!' : 'Game Over! Word was $_targetWord',
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: _won ? Colors.greenAccent : Colors.redAccent,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: _reset,
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                foregroundColor: Colors.black),
-            child: const Text('Play Again'),
-          ),
-          const SizedBox(height: 20),
-        ],
-        if (!_gameOver) _buildKeyboard(),
-        const SizedBox(height: 20),
-      ],
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.cyanAccent, surfaceTint: const Color(0xFF001418)),
+        Column(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(color: Colors.cyanAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+              child: Text('LVL $_level  •  $_maxGuesses tries', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 8),
+            Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+          ])),
+          if (_msg.isNotEmpty)
+            Padding(padding: const EdgeInsets.only(bottom: 4),
+              child: Text(_msg, style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700))),
+          // Grid
+          Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (int r = 0; r < _maxGuesses; r++)
+              Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(mainAxisSize: MainAxisSize.min, children: [
+                for (int c = 0; c < 5; c++) ...[
+                  Container(
+                    width: 48, height: 48,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: r < _guesses.length ? _tileColor(_colors[r][c]) : Colors.white.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: r == _guesses.length && c < _current.length
+                          ? Colors.cyanAccent : Colors.white24, width: 1.5),
+                    ),
+                    child: Center(child: Text(
+                      r < _guesses.length ? _guesses[r][c]
+                          : (r == _guesses.length && c < _current.length ? _current[c] : ''),
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
+                    )),
+                  ),
+                ],
+              ])),
+          ]))),
+          // Keyboard
+          if (!_won && !_gameOver)
+            Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 16), child: Column(children: [
+              for (final row in _rows)
+                Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  for (final ch in row.split(''))
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: SizedBox(
+                      width: 30, height: 40,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.12), foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
+                        onPressed: () => _key(ch),
+                        child: Text(ch, style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    )),
+                  if (row == 'ZXCVBNM') ...[
+                    const SizedBox(width: 4),
+                    SizedBox(width: 44, height: 40, child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.withValues(alpha: 0.3), foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
+                      onPressed: _del,
+                      child: const Icon(Icons.backspace_rounded, size: 16),
+                    )),
+                    const SizedBox(width: 4),
+                    SizedBox(width: 52, height: 40, child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent.withValues(alpha: 0.3), foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
+                      onPressed: _submit,
+                      child: Text('GO', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w900)),
+                    )),
+                  ],
+                ])),
+            ])),
+          if (_won || _gameOver)
+            Padding(padding: const EdgeInsets.only(bottom: 24), child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent, foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+              onPressed: () {
+                if (_gameOver) setState(() { _lives = 3; _score = 0; _level = 1; _newRound(); });
+                else setState(() => _newRound());
+              },
+              child: Text(_gameOver ? 'New Game' : 'Next Level', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+            )),
+        ]),
+      ]),
     );
   }
 }
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-// ANIME QUIZ GAME — Unlimited rounds, 10 questions per round
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-// ── Master question bank (80+ questions) ─────────────────────────────────────
-const List<Map<String, dynamic>> _kAnimeQuestions = [
-  // ── One Piece ─────────────────────────────────────────────────
-  {
-    'q': 'What fruit gives Luffy his rubber powers?',
-    'opts': [
-      'Mera Mera no Mi',
-      'Gomu Gomu no Mi',
-      'Ope Ope no Mi',
-      'Hana Hana no Mi'
-    ],
-    'ans': 1
-  },
-  {
-    'q': 'Who is the first mate of the Straw Hat Pirates?',
-    'opts': ['Sanji', 'Usopp', 'Zoro', 'Nami'],
-    'ans': 2
-  },
-  {
-    'q': "What is Nami's main weapon?",
-    'opts': ['Clima-Tact', 'Sword', 'Slingshot', 'Trident'],
-    'ans': 0
-  },
-  {
-    'q': 'Which island is the home of the Whitebeard Pirates?',
-    'opts': ['Impel Down', 'Marineford', 'Punk Hazard', 'Moby Dick'],
-    'ans': 3
-  },
-  {
-    'q': "What is Trafalgar Law's Devil Fruit?",
-    'opts': [
-      'Hana Hana no Mi',
-      'Ope Ope no Mi',
-      'Bara Bara no Mi',
-      'Mori Mori no Mi'
-    ],
-    'ans': 1
-  },
-  {
-    'q': 'What is the name of Zoro\'s ultimate sword technique?',
-    'opts': ['Rashomon', 'Oni Giri', 'Tora Gari', 'Asura'],
-    'ans': 3
-  },
-  // ── Naruto ────────────────────────────────────────────────────
-  {
-    'q': 'Who is the Nine-Tails Jinchuriki?',
-    'opts': ['Gaara', 'Killer B', 'Naruto', 'Minato'],
-    'ans': 2
-  },
-  {
-    'q': "What is Sasuke Uchiha's signature technique?",
-    'opts': ['Rasengan', 'Chidori', 'Shadow Clone', 'Amaterasu'],
-    'ans': 1
-  },
-  {
-    'q': 'Who trained Naruto to use Sage Mode?',
-    'opts': ['Jiraiya', 'Fukasaku', 'Tsunade', 'Kakashi'],
-    'ans': 1
-  },
-  {
-    'q': "What is Rock Lee's specialty?",
-    'opts': ['Genjutsu', 'Ninjutsu', 'Taijutsu', 'Kenjutsu'],
-    'ans': 2
-  },
-  {
-    'q': 'What village is Naruto from?',
-    'opts': ['Sand Village', 'Mist Village', 'Leaf Village', 'Cloud Village'],
-    'ans': 2
-  },
-  {
-    'q': 'Who is the first Hokage?',
-    'opts': ['Tobirama Senju', 'Hashirama Senju', 'Sarutobi', 'Minato'],
-    'ans': 1
-  },
-  // ── Attack on Titan ───────────────────────────────────────────
-  {
-    'q': 'Who holds the Founding Titan at the start of AOT?',
-    'opts': ['Reiner', 'Eren', 'Zeke', 'Historia'],
-    'ans': 1
-  },
-  {
-    'q': 'What is the Scout Regiment\'s symbol?',
-    'opts': ['Wings of Freedom', 'Crossed Swords', 'Eagle Crest', 'Titan Mark'],
-    'ans': 0
-  },
-  {
-    'q': "What is Levi's last name?",
-    'opts': ['Ackerman', 'Yeager', 'Braun', 'Springer'],
-    'ans': 0
-  },
-  {
-    'q': 'What kills titans most efficiently?',
-    'opts': ['Arrows', 'Cannons', 'Nape slash', 'Fire'],
-    'ans': 2
-  },
-  {
-    'q': 'Who is the Armored Titan?',
-    'opts': ['Bertholdt', 'Reiner', 'Annie', 'Zeke'],
-    'ans': 1
-  },
-  // ── Death Note ────────────────────────────────────────────────
-  {
-    'q': 'What is the name of the shinigami who drops the Death Note?',
-    'opts': ['Rem', 'Ryuk', 'Gelus', 'Sidoh'],
-    'ans': 1
-  },
-  {
-    'q': "What is Light Yagami's alias?",
-    'opts': ['Beyond Birthday', 'Kira', 'L', 'N'],
-    'ans': 1
-  },
-  {
-    'q': 'What do you need to kill someone using the Death Note?',
-    'opts': [
-      'Full name & age',
-      'Full name & face',
-      'Full name & birthdate',
-      'Just a name'
-    ],
-    'ans': 1
-  },
-  {
-    'q': "What is L's real name?",
-    'opts': ['Lawliet', 'Ryuzaki', 'L. Lowe', 'L. Watari'],
-    'ans': 0
-  },
-  // ── Dragon Ball ───────────────────────────────────────────────
-  {
-    'q': 'Who is the first character to become a Super Saiyan in DBZ?',
-    'opts': ['Vegeta', 'Gohan', 'Goku', 'Trunks'],
-    'ans': 2
-  },
-  {
-    'q': 'What are the 7 dragon balls used to summon?',
-    'opts': ['A Genie', 'Shenron', 'Energy', 'A Portal'],
-    'ans': 1
-  },
-  {
-    'q': "What is Vegeta's home planet?",
-    'opts': ['Namek', 'Earth', 'Planet Vegeta', 'New Vegeta'],
-    'ans': 2
-  },
-  {
-    'q': "What is Piccolo's species?",
-    'opts': ['Saiyan', 'Android', 'Namekian', 'Human'],
-    'ans': 2
-  },
-  {
-    'q': 'What fusion dance produces Gogeta?',
-    'opts': [
-      'Goku + Vegeta',
-      'Gohan + Goten',
-      'Gohan + Piccolo',
-      'Goku + Gohan'
-    ],
-    'ans': 0
-  },
-  // ── Fullmetal Alchemist ───────────────────────────────────────
-  {
-    'q': "Who is Edward Elric's brother?",
-    'opts': ['Roy Mustang', 'Alphonse Elric', 'Hughes', 'Envy'],
-    'ans': 1
-  },
-  {
-    'q': 'What is the ultimate taboo in alchemy?',
-    'opts': [
-      'Transmuting gold',
-      'Human transmutation',
-      'Making weapons',
-      'Splitting atoms'
-    ],
-    'ans': 1
-  },
-  {
-    'q': "What is Roy Mustang's alchemy specialty?",
-    'opts': ['Earth', 'Water', 'Fire', 'Lightning'],
-    'ans': 2
-  },
-  {
-    'q': "What body part does Ed sacrifice to restore Al's soul?",
-    'opts': ['Right arm', 'Left leg', 'Left arm', 'Right leg'],
-    'ans': 0
-  },
-  // ── One Punch Man ─────────────────────────────────────────────
-  {
-    'q': 'Who is known as the One Punch Man?',
-    'opts': ['Genos', 'King', 'Saitama', 'Garou'],
-    'ans': 2
-  },
-  {
-    'q': "What is Genos's nickname for Saitama?",
-    'opts': ['Master', 'Teacher', 'Sensei', 'Boss'],
-    'ans': 2
-  },
-  {
-    'q': 'What rank is Saitama in the Hero Association?',
-    'opts': ['S-Class', 'A-Class', 'B-Class', 'C-Class'],
-    'ans': 3
-  },
-  {
-    'q': "What is Saitama's daily training routine (partially)?",
-    'opts': [
-      '200 km run',
-      '100 push-ups, sit-ups, squats + 10 km run',
-      '500 punches',
-      'Meditation'
-    ],
-    'ans': 1
-  },
-  // ── Demon Slayer ──────────────────────────────────────────────
-  {
-    'q': "What is Tanjiro Kamado's breathing style?",
-    'opts': [
-      'Thunder Breathing',
-      'Water Breathing',
-      'Flame Breathing',
-      'Sun Breathing'
-    ],
-    'ans': 1
-  },
-  {
-    'q': "Who poisoned Tanjiro's family?",
-    'opts': ['Muzan Kibutsuji', 'Doma', 'Rui', 'Akaza'],
-    'ans': 0
-  },
-  {
-    'q': 'What makes Tanjiro\'s final form unique?',
-    'opts': [
-      'Flame Breathing',
-      'Breath of the Sun (Hinokami Kagura)',
-      'Mist Breathing',
-      'Love Breathing'
-    ],
-    'ans': 1
-  },
-  {
-    'q': "What is Zenitsu's only technique?",
-    'opts': [
-      'Water Wheel',
-      'Thunderclap and Flash',
-      'Whirlwind',
-      'Dance of the Fire God'
-    ],
-    'ans': 1
-  },
-  // ── My Hero Academia ──────────────────────────────────────────
-  {
-    'q': "What is Deku's Quirk called?",
-    'opts': ['Half-Cold Half-Hot', 'Explosion', 'One For All', 'Zero Gravity'],
-    'ans': 2
-  },
-  {
-    'q': 'Who is the Symbol of Peace?',
-    'opts': ['Endeavor', 'All For One', 'Best Jeanist', 'All Might'],
-    'ans': 3
-  },
-  {
-    'q': "What is Bakugo's Quirk?",
-    'opts': ['Fire', 'Explosion', 'Hardening', 'Black Whip'],
-    'ans': 1
-  },
-  {
-    'q': 'What school do U.A. heroes attend?',
-    'opts': ['Shiketsu', 'Ketsubutsu', 'Seiai', 'U.A. High'],
-    'ans': 3
-  },
-  {
-    'q': 'What class is Deku in?',
-    'opts': ['Class 1-B', 'Class 2-A', 'Class 1-A', 'Class 3-C'],
-    'ans': 2
-  },
-  // ── Hunter x Hunter ───────────────────────────────────────────
-  {
-    'q': "What is Gon Freecss's father?",
-    'opts': ['Netero', 'Ging Freecss', 'Killua', 'Leorio'],
-    'ans': 1
-  },
-  {
-    'q': "What is Killua Zoldyck's special technique?",
-    'opts': ['Nen', 'Godspeed', 'Jajanken', 'Bungee Gum'],
-    'ans': 1
-  },
-  {
-    'q': "What is Hisoka's Nen type?",
-    'opts': ['Emitter', 'Transmuter', 'Enhancer', 'Specialist'],
-    'ans': 1
-  },
-  {
-    'q': 'What animal can Gon transform into with Nen?',
-    'opts': ['None — he has Enhancer Nen', 'Dragon', 'Wolf', 'Eagle'],
-    'ans': 0
-  },
-  // ── Sword Art Online ──────────────────────────────────────────
-  {
-    'q': "What is Kirito's real name?",
-    'opts': [
-      'Kazuto Kirigaya',
-      'Ryoutarou Tsuboi',
-      'Kouhei Izaki',
-      'Keita Nakamura'
-    ],
-    'ans': 0
-  },
-  {
-    'q': "What is Asuna's rapier named?",
-    'opts': ['Lambent Light', 'Dark Repulser', 'Elucidator', 'Night Sky Sword'],
-    'ans': 0
-  },
-  {
-    'q': 'What is the final boss of Sword Art Online game?',
-    'opts': [
-      'Akihiko Kayaba / Heathcliff',
-      'Oberon',
-      'Death Gun',
-      'Administrator'
-    ],
-    'ans': 0
-  },
-  // ── Darling in the FranXX ─────────────────────────────────────
-  {
-    'q': "What is Zero Two's code?",
-    'opts': ['016', '002', '326', '666'],
-    'ans': 1
-  },
-  {
-    'q': "What is Hiro's codename after piloting with Zero Two?",
-    'opts': ['Code 016', 'Code 002', 'Darling', 'Code 015'],
-    'ans': 0
-  },
-  {
-    'q': 'What are the mechs in Darling in the FranXX called?',
-    'opts': ['Knightmares', 'Gundams', 'Titans', 'FranXX'],
-    'ans': 3
-  },
-  {
-    'q': 'What is the enemy organism in DitF?',
-    'opts': ['Klaxosaurs', 'Titans', 'Apostles', 'Shadows'],
-    'ans': 0
-  },
-  // ── Bleach ────────────────────────────────────────────────────
-  {
-    'q': "What is Ichigo Kurosaki's sword called?",
-    'opts': ['Zanpakuto: Zangetsu', 'Byakuya', 'Renji', 'Senbonzakura'],
-    'ans': 0
-  },
-  {
-    'q': 'What are the hollows hunted by Soul Reapers?',
-    'opts': ['Quincies', 'Arrancars', 'Hollows', 'Fullbringers'],
-    'ans': 2
-  },
-  {
-    'q': "What is Byakuya Kuchiki's Bankai?",
-    'opts': [
-      'Senbonzakura Kageyoshi',
-      'Daiguren Hyōrinmaru',
-      'Tenken',
-      'Ittō Kasō'
-    ],
-    'ans': 0
-  },
-  // ── Tokyo Ghoul ───────────────────────────────────────────────
-  {
-    'q': "What is Ken Kaneki's ghoul kagune type?",
-    'opts': ['Rinkaku', 'Ukaku', 'Koukaku', 'Bikaku'],
-    'ans': 0
-  },
-  {
-    'q': 'What coffee shop does Kaneki frequent?',
-    'opts': [':re', 'Anteiku', 'Ghoul House', 'Cochlea'],
-    'ans': 1
-  },
-  // ── Black Clover ──────────────────────────────────────────────
-  {
-    'q': 'What magic does Asta use?',
-    'opts': ['Fire Magic', 'Anti-Magic', 'Darkness Magic', 'Light Magic'],
-    'ans': 1
-  },
-  {
-    'q': "What is Yuno's grimoire clover type?",
-    'opts': ['Four-leaf', 'Five-leaf', 'Three-leaf', 'Two-leaf'],
-    'ans': 0
-  },
-  {
-    'q': "What is Asta's squad in Black Clover?",
-    'opts': ['Silver Eagles', 'Golden Dawn', 'Black Bulls', 'Crimson Lion'],
-    'ans': 2
-  },
-  // ── Jujutsu Kaisen ────────────────────────────────────────────
-  {
-    'q': 'Who is Ryomen Sukuna?',
-    'opts': ['A hero', 'The King of Curses', 'A teacher', 'A student'],
-    'ans': 1
-  },
-  {
-    'q': "What is Gojo Satoru's Infinity technique called?",
-    'opts': [
-      'Domain Expansion',
-      'Limitless + Six Eyes',
-      'Cursed Energy',
-      'Black Flash'
-    ],
-    'ans': 1
-  },
-  {
-    'q': 'What curse does Yuji Itadori eat at the start?',
-    'opts': [
-      "Sukuna's finger",
-      "Uraume's crystal",
-      "Mahito's flesh",
-      "Geto's hands"
-    ],
-    'ans': 0
-  },
-  // ── Miscellaneous ─────────────────────────────────────────────
-  {
-    'q': 'In Re:Zero, what power does Subaru have?',
-    'opts': [
-      'Time Manipulation',
-      'Return by Death',
-      'Future Sight',
-      'Teleportation'
-    ],
-    'ans': 1
-  },
-  {
-    'q': "What is the name of Rem's weapon?",
-    'opts': ['Naginata', 'Morning Star Flail', 'Kusarigama', 'Battle Axe'],
-    'ans': 1
-  },
-  {
-    'q': 'In No Game No Life, Shiro and Sora are known as what?',
-    'opts': ['Tet', 'Blank (Kuuhaku)', 'Jibril', 'Izuna'],
-    'ans': 1
-  },
-  {
-    'q': "What is Kirigakure Saizo's nickname in Wise man's Grandchild?",
-    'opts': ['Great Sage', 'Merlin', 'Shin', 'Wiseman'],
-    'ans': 2
-  },
-  {
-    'q': 'In Overlord, what is Ainz Ooal Gown\'s real-world name?',
-    'opts': ['Suzuki Satoru', 'Momonga', 'Punitto Moe', 'TouchMe'],
-    'ans': 0
-  },
-  {
-    'q': 'Which anime features the Celestial Spirits?',
-    'opts': ['SAO', 'Fairy Tail', 'Black Clover', 'Magi'],
-    'ans': 1
-  },
-  {
-    'q': "What is the name of Natsu's fire magic?",
-    'opts': [
-      'Dragon Slayer Magic',
-      'Fire God Slayer',
-      'Phoenix Drive',
-      'Flame Emperor'
-    ],
-    'ans': 0
-  },
-  {
-    'q': 'Who is the strongest Hashira in Demon Slayer?',
-    'opts': ['Giyu', 'Sanemi', 'Gyomei Himejima', 'Mitsuri'],
-    'ans': 2
-  },
-  {
-    'q': 'What is the main currency in the SAO world?',
-    'opts': ['Zenny', 'Col', 'Berries', 'Meseta'],
-    'ans': 1
-  },
-  {
-    'q': "In Evangelion, what is Shinji's dad's name?",
-    'opts': ['Gendo Ikari', 'Kaji Ryoji', 'Kozo Fuyutsuki', 'Yui Ikari'],
-    'ans': 0
-  },
-  {
-    'q': 'What does AOT stand for?',
-    'opts': [
-      'Army of Titans',
-      'Attack on Titan',
-      'Age of Titans',
-      'Assault on Titans'
-    ],
-    'ans': 1
-  },
-  {
-    'q': 'What powers the FranXX mechs in DitF?',
-    'opts': ['Klaxosaur blood', 'FRANXX Core', 'Magma energy', 'APE tech'],
-    'ans': 0
-  },
-  {
-    'q': 'What studio produced Attack on Titan Season 1?',
-    'opts': ['MAPPA', 'Ufotable', 'Wit Studio', 'Bones'],
-    'ans': 2
-  },
-  {
-    'q': 'Who voices Naruto Uzumaki in the Japanese dub?',
-    'opts': [
-      'Maile Flanagan',
-      'Junko Takeuchi',
-      'Noriaki Sugiyama',
-      'Chie Nakamura'
-    ],
-    'ans': 1
-  },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// ANIME QUIZ — levels + lives + DB
+// Timed MCQ. Timer shrinks per level. Harder questions at higher levels.
+// ─────────────────────────────────────────────────────────────────────────────
 
 class AnimeQuizPage extends StatefulWidget {
   const AnimeQuizPage({super.key});
   @override
-  State<AnimeQuizPage> createState() => _AnimeQuizPageState();
+  State<AnimeQuizPage> createState() => _AnimeQuizState();
 }
 
-class _AnimeQuizPageState extends State<AnimeQuizPage>
-    with SingleTickerProviderStateMixin {
-  static const int _questionsPerRound = 10;
-  // OpenTDB: Anime & Manga category = 31, free, no key required
-  static const String _apiBaseUrl =
-      'https://opentdb.com/api.php?amount=10&category=31&type=multiple&encode=url3986';
-
-  final Random _rng = Random();
+class _AnimeQuizState extends State<AnimeQuizPage> {
+  int _level = 1;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
+  int _timeLeft = 0;
+  Timer? _timer;
+  int? _selected;
+  bool _answered = false;
+  bool _gameOver = false;
+  bool _loading = false;
+  String _error = '';
   late final String _bgAsset;
 
-  // ── Round state ────────────────────────────────────────────────
-  int _round = 1;
-  int _currentQ = 0;
-  int _roundScore = 0;
-  int _totalScore = 0;
+  // Current question from API
+  String _question = '';
+  List<String> _opts = [];
+  int _correctIdx = 0;
 
-  bool _answered = false;
-  int? _selectedIdx;
-
-  // Quiz data for current round — each entry: {q, opts: [String], ans: int}
-  List<Map<String, dynamic>> _roundQuestions = [];
-  bool _loading = false; // Start false to show difficulty selector
-
-  // Phase: 'difficulty' | 'quiz' | 'roundSummary'
-  String _phase = 'difficulty';
-  String _selectedDifficulty = 'medium';
-
-  late AnimationController _timerController;
-  Timer? _autoAdvanceTimer;
+  int get _timerSecs => max(5, 15 - _level);
+  String get _difficulty => _level <= 4 ? 'easy' : _level <= 8 ? 'medium' : 'hard';
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _timerController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 15))
-          ..addStatusListener((s) {
-            if (s == AnimationStatus.completed && !_answered) {
-              _answer(-1); // time out = wrong answer
-            }
-          });
-    // Wait for user to select difficulty before fetching
+    _loadDB();
   }
 
-  // ── API fetch ─────────────────────────────────────────────────
-  Future<void> _fetchRound() async {
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('anime_quiz');
     if (!mounted) return;
     setState(() {
-      _loading = true;
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
     });
+    _fetchQuestion();
+  }
+
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('anime_quiz', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+  }
+
+  /// Calls the LLM to generate a fresh anime trivia question.
+  Future<void> _fetchQuestion() async {
+    if (!mounted) return;
+    setState(() { _loading = true; _error = ''; _answered = false; _selected = null; });
+    _timer?.cancel();
+
     try {
-      final url = '$_apiBaseUrl&difficulty=$_selectedDifficulty';
-      final resp =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
-      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
-      final data = jsonDecode(resp.body) as Map<String, dynamic>;
-      final code = data['response_code'] as int;
-      if (code != 0) throw Exception('OpenTDB code $code');
-      // ... same parsing logic ...
-      final results = data['results'] as List<dynamic>;
-      final parsed = <Map<String, dynamic>>[];
-      for (final r in results) {
-        final question = Uri.decodeComponent(r['question']?.toString() ?? '');
-        final correct =
-            Uri.decodeComponent(r['correct_answer']?.toString() ?? '');
-        final incorrects = (r['incorrect_answers'] as List<dynamic>)
-            .map((e) => Uri.decodeComponent(e as String))
-            .toList();
-        final allOpts = [...incorrects, correct]..shuffle(_rng);
-        final ansIdx = allOpts.indexOf(correct);
-        parsed.add({'q': question, 'opts': allOpts, 'ans': ansIdx});
-      }
+      final apiKey = dotenv.env['API_KEY'] ?? '';
+      if (apiKey.isEmpty) throw Exception('No API key');
+
+      final prompt = '''Generate one anime trivia question at $_difficulty difficulty (level $_level).
+Respond with ONLY valid JSON, no markdown, no extra text:
+{"q":"question text","a":"correct answer","opts":["opt1","opt2","opt3","opt4"]}
+Rules: exactly 4 options, correct answer must be one of the options, no duplicate options.''';
+
+      final res = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {'Authorization': 'Bearer $apiKey', 'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
+          'messages': [{'role': 'user', 'content': prompt}],
+          'max_tokens': 200,
+          'temperature': 0.9,
+        }),
+      ).timeout(const Duration(seconds: 15));
+
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      final raw = (data['choices'][0]['message']['content'] as String).trim();
+      // Strip any accidental markdown fences
+      final clean = raw.replaceAll(RegExp(r'```[a-z]*\n?'), '').replaceAll('```', '').trim();
+      final q = jsonDecode(clean) as Map<String, dynamic>;
+
+      final opts = List<String>.from(q['opts'] as List);
+      final correct = q['a'] as String;
+      final ci = opts.indexOf(correct);
+      if (ci == -1) throw Exception('Answer not in options');
+
       if (!mounted) return;
       setState(() {
-        _roundQuestions = parsed;
+        _question = q['q'] as String;
+        _opts = opts;
+        _correctIdx = ci;
         _loading = false;
-        _currentQ = 0;
-        _roundScore = 0;
-        _answered = false;
-        _selectedIdx = null;
-        _phase = 'quiz';
       });
-      _timerController.forward(from: 0);
+      _startTimer();
     } catch (e) {
-      // Fallback to local bank if no internet
-      _useFallback();
+      if (!mounted) return;
+      setState(() { _loading = false; _error = 'Failed to load question. Tap retry.'; });
     }
   }
 
-  void _useFallback() {
-    if (!mounted) return;
-    final pool = List.of(_kAnimeQuestions)..shuffle(_rng);
-    setState(() {
-      _roundQuestions = pool.take(_questionsPerRound).toList();
-      _loading = false;
-      _currentQ = 0;
-      _roundScore = 0;
-      _answered = false;
-      _selectedIdx = null;
-      _phase = 'quiz';
-    });
-    _timerController.forward(from: 0);
-  }
-
-  // ── Gameplay ───────────────────────────────────────────────────
-  void _answer(int idx) {
-    if (_answered || _roundQuestions.isEmpty) return;
-    _timerController.stop();
-    setState(() {
-      _answered = true;
-      _selectedIdx = idx;
-      if (idx == _roundQuestions[_currentQ]['ans']) {
-        _roundScore++;
-        _totalScore++;
+  void _startTimer() {
+    _timer?.cancel();
+    _timeLeft = _timerSecs;
+    setState(() {});
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      _timeLeft--;
+      if (_timeLeft <= 0) {
+        _timer?.cancel();
+        _lives--;
+        _answered = true;
+        if (_lives <= 0) { _saveDB(); setState(() => _gameOver = true); return; }
+        setState(() {});
+        Future.delayed(const Duration(milliseconds: 1200), _fetchQuestion);
+      } else {
+        setState(() {});
       }
     });
-    _autoAdvanceTimer?.cancel();
-    _autoAdvanceTimer = Timer(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      _goNext();
-    });
   }
 
-  void _goNext() {
-    if (_currentQ < _questionsPerRound - 1) {
-      setState(() {
-        _currentQ++;
-        _answered = false;
-        _selectedIdx = null;
-      });
-      _timerController.forward(from: 0);
+  void _answer(int idx) {
+    if (_answered || _loading) return;
+    _timer?.cancel();
+    _selected = idx;
+    _answered = true;
+    if (idx == _correctIdx) {
+      final pts = _timeLeft * 5 + _level * 10;
+      _score += pts;
+      _level++;
+      _saveDB();
     } else {
-      setState(() => _phase = 'roundSummary');
+      _lives--;
+      if (_lives <= 0) { _saveDB(); setState(() => _gameOver = true); return; }
     }
+    setState(() {});
+    Future.delayed(const Duration(milliseconds: 1200), _fetchQuestion);
   }
 
-  void _nextRound() {
-    setState(() => _round++);
-    _fetchRound();
+  void _restart() {
+    _timer?.cancel();
+    setState(() { _level = 1; _lives = 3; _score = 0; _gameOver = false; });
+    _fetchQuestion();
   }
 
   @override
-  void dispose() {
-    _timerController.dispose();
-    _autoAdvanceTimer?.cancel();
-    super.dispose();
-  }
-
-  String _gradeLabel() {
-    final pct = _roundScore / _questionsPerRound;
-    if (pct == 1.0) return '🏆 Perfect!';
-    if (pct >= 0.8) return '⭐ Excellent!';
-    if (pct >= 0.6) return '👍 Good Job!';
-    if (pct >= 0.4) return '😊 Keep Going!';
-    return '💪 Try Again!';
-  }
-
-  Color _gradeColor() {
-    final pct = _roundScore / _questionsPerRound;
-    if (pct == 1.0) return Colors.amberAccent;
-    if (pct >= 0.8) return Colors.greenAccent;
-    if (pct >= 0.6) return Colors.cyanAccent;
-    if (pct >= 0.4) return Colors.orangeAccent;
-    return Colors.redAccent;
-  }
+  void dispose() { _timer?.cancel(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          _phase == 'difficulty'
-              ? 'Select Difficulty'
-              : _phase == 'roundSummary'
-                  ? 'Round $_round Done!'
-                  : 'Round $_round  •  Q${_currentQ + 1}/$_questionsPerRound',
-          style: GoogleFonts.outfit(
-              color: Colors.pinkAccent, fontWeight: FontWeight.w800),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text('🏅 $_totalScore',
-                  style: GoogleFonts.outfit(
-                      color: Colors.amberAccent,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () { _timer?.cancel(); Navigator.pop(context); }),
+        title: Text('Anime Quiz — $_score pts', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontWeight: FontWeight.w800)),
       ),
       body: Stack(children: [
-        _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.pinkAccent,
-            surfaceTint: const Color(0xFF1A1A24)),
-        SafeArea(child: _buildBody()),
-      ]),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_loading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.pinkAccent));
-    }
-    if (_phase == 'difficulty') return _buildDifficultySelection();
-    if (_phase == 'roundSummary') return _buildRoundSummary();
-    return _buildQuizBody();
-  }
-
-  Widget _buildDifficultySelection() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.psychology_rounded,
-              size: 64, color: Colors.pinkAccent),
-          const SizedBox(height: 24),
-          _difficultyBtn('Easy', 'easy', Colors.greenAccent),
-          const SizedBox(height: 16),
-          _difficultyBtn('Medium', 'medium', Colors.orangeAccent),
-          const SizedBox(height: 16),
-          _difficultyBtn('Hard', 'hard', Colors.redAccent),
-        ],
-      ),
-    );
-  }
-
-  Widget _difficultyBtn(String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: InkWell(
-        onTap: () {
-          _selectedDifficulty = value;
-          _fetchRound();
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            border: Border.all(color: color.withValues(alpha: 0.6), width: 2),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(label,
-              style: GoogleFonts.outfit(
-                  color: color,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuizBody() {
-    if (_roundQuestions.isEmpty) {
-      return Center(
-          child: Text('No questions loaded.',
-              style: GoogleFonts.outfit(color: Colors.white54)));
-    }
-    final q = _roundQuestions[_currentQ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Round progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: (_currentQ + 1) / _questionsPerRound,
-              backgroundColor: Colors.white12,
-              valueColor: const AlwaysStoppedAnimation(Colors.pinkAccent),
-              minHeight: 6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Timer bar
-          AnimatedBuilder(
-            animation: _timerController,
-            builder: (_, __) {
-              final remaining = 1.0 - _timerController.value;
-              final color = remaining > 0.5
-                  ? Colors.greenAccent
-                  : remaining > 0.25
-                      ? Colors.orangeAccent
-                      : Colors.redAccent;
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
-                  value: remaining,
-                  backgroundColor: Colors.white10,
-                  valueColor: AlwaysStoppedAnimation(color),
-                  minHeight: 4,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 18),
-          // Question card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: Colors.pinkAccent.withValues(alpha: 0.22)),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.pinkAccent.withValues(alpha: 0.10),
-                    blurRadius: 18),
-              ],
-            ),
-            child: Text(
-              q['q']?.toString() ?? '',
-              style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.4),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 22),
-          // Answer options
-          ...List.generate(4, (i) {
-            final opts = q['opts'] as List<dynamic>;
-            final isCorrect = i == q['ans'];
-            final isSelected = i == _selectedIdx;
-
-            Color borderColor = Colors.white.withValues(alpha: 0.12);
-            Color bgColor = Colors.white.withValues(alpha: 0.06);
-            Color textColor = Colors.white70;
-            IconData? trailingIcon;
-
-            if (_answered) {
-              if (isCorrect) {
-                borderColor = Colors.greenAccent;
-                bgColor = Colors.greenAccent.withValues(alpha: 0.15);
-                textColor = Colors.greenAccent;
-                trailingIcon = Icons.check_circle_rounded;
-              } else if (isSelected) {
-                borderColor = Colors.redAccent;
-                bgColor = Colors.redAccent.withValues(alpha: 0.14);
-                textColor = Colors.redAccent;
-                trailingIcon = Icons.cancel_rounded;
-              }
-            }
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 11),
-              child: GestureDetector(
-                onTap: () => _answer(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: borderColor, width: 1.2),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
-                        child: Text(['A', 'B', 'C', 'D'][i],
-                            style: GoogleFonts.outfit(
-                                color: textColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(opts[i] as String,
-                            style: GoogleFonts.outfit(
-                                fontSize: 15,
-                                color: textColor,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                      if (trailingIcon != null)
-                        Icon(trailingIcon, color: textColor, size: 20),
-                    ],
-                  ),
-                ),
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.pinkAccent, surfaceTint: const Color(0xFF120010)),
+        _gameOver
+          ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('Game Over!', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 8),
+              Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent, foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                onPressed: _restart,
+                child: Text('Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
               ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoundSummary() {
-    final grade = _gradeLabel();
-    final gradeColor = _gradeColor();
-    final pct = _roundScore / _questionsPerRound;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(grade,
-                style: GoogleFonts.outfit(
-                    color: gradeColor,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900)),
-            const SizedBox(height: 18),
-            Container(
-              width: 130,
-              height: 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: gradeColor, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                      color: gradeColor.withValues(alpha: 0.30),
-                      blurRadius: 28,
-                      spreadRadius: 4),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('$_roundScore/$_questionsPerRound',
-                    style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900)),
-                Text('${(pct * 100).round()}%',
-                    style: GoogleFonts.outfit(
-                        color: Colors.white60, fontSize: 13)),
+            ]))
+          : Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 12),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.pinkAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                  child: Text('LVL $_level • $_difficulty', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+                const SizedBox(width: 8),
+                Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                if (!_loading && _error.isEmpty)
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _timeLeft <= 5 ? Colors.redAccent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.1),
+                      border: Border.all(color: _timeLeft <= 5 ? Colors.redAccent : Colors.white38, width: 2),
+                    ),
+                    child: Center(child: Text('$_timeLeft', style: GoogleFonts.outfit(color: _timeLeft <= 5 ? Colors.redAccent : Colors.white, fontSize: 16, fontWeight: FontWeight.w900))),
+                  ),
               ]),
-            ),
-            const SizedBox(height: 18),
-            Text('Total Score: $_totalScore pts',
-                style: GoogleFonts.outfit(
-                    color: Colors.amberAccent,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            Text('Round $_round complete!',
-                style: GoogleFonts.outfit(color: Colors.white54, fontSize: 13)),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18)),
+              const SizedBox(height: 24),
+              if (_loading)
+                Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const CircularProgressIndicator(color: Colors.pinkAccent),
+                  const SizedBox(height: 16),
+                  Text('Zero Two is thinking of a question…', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14)),
+                ])))
+              else if (_error.isNotEmpty)
+                Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text(_error, textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 15)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent, foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    onPressed: _fetchQuestion,
+                    child: Text('Retry', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+                  ),
+                ])))
+              else ...[
+                Container(
+                  width: double.infinity, padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(_question, textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, height: 1.4)),
                 ),
-                onPressed: _nextRound,
-                icon: const Icon(Icons.arrow_forward_rounded),
-                label: Text('Next Round →',
-                    style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w800, fontSize: 16)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Exit Quiz',
-                  style:
-                      GoogleFonts.outfit(color: Colors.white38, fontSize: 14)),
-            ),
-          ],
-        ),
-      ),
+                const SizedBox(height: 24),
+                ...List.generate(_opts.length, (i) {
+                  Color bg = Colors.white.withValues(alpha: 0.08);
+                  Color border = Colors.white24;
+                  if (_answered) {
+                    if (i == _correctIdx) { bg = Colors.green.withValues(alpha: 0.3); border = Colors.greenAccent; }
+                    else if (i == _selected) { bg = Colors.red.withValues(alpha: 0.3); border = Colors.redAccent; }
+                  }
+                  return Padding(padding: const EdgeInsets.only(bottom: 12), child: GestureDetector(
+                    onTap: () => _answer(i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: double.infinity, padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14), border: Border.all(color: border, width: 1.5)),
+                      child: Text(_opts[i], style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                    ),
+                  ));
+                }),
+              ],
+            ])),
+      ]),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BLOCK BLAST GAME
-// Place tetromino-like pieces onto an 8×8 grid. Full rows/cols clear for score.
+// BLOCK BLAST — drag-and-drop with ghost preview, levels + lives + DB
 // ─────────────────────────────────────────────────────────────────────────────
-
-// All possible piece shapes (list of [row, col] offsets from an anchor)
-const List<List<List<int>>> _kBlockBlastPieces = [
-  // O-piece (2×2)
-  [
-    [0, 0],
-    [0, 1],
-    [1, 0],
-    [1, 1]
-  ],
-  // I-piece horizontal
-  [
-    [0, 0],
-    [0, 1],
-    [0, 2],
-    [0, 3]
-  ],
-  // I-piece vertical
-  [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [3, 0]
-  ],
-  // L-piece
-  [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [2, 1]
-  ],
-  // J-piece
-  [
-    [0, 1],
-    [1, 1],
-    [2, 0],
-    [2, 1]
-  ],
-  // S-piece
-  [
-    [0, 1],
-    [0, 2],
-    [1, 0],
-    [1, 1]
-  ],
-  // Z-piece
-  [
-    [0, 0],
-    [0, 1],
-    [1, 1],
-    [1, 2]
-  ],
-  // T-piece
-  [
-    [0, 0],
-    [0, 1],
-    [0, 2],
-    [1, 1]
-  ],
-  // Single cell
-  [
-    [0, 0]
-  ],
-  // 2×1
-  [
-    [0, 0],
-    [0, 1]
-  ],
-  // 1×2
-  [
-    [0, 0],
-    [1, 0]
-  ],
-  // 3×1
-  [
-    [0, 0],
-    [0, 1],
-    [0, 2]
-  ],
-  // 1×3
-  [
-    [0, 0],
-    [1, 0],
-    [2, 0]
-  ],
-  // 2×2 corner
-  [
-    [0, 0],
-    [0, 1],
-    [1, 0]
-  ],
-  [
-    [0, 0],
-    [0, 1],
-    [1, 1]
-  ],
-];
-
-const List<Color> _kBlockColors = [
-  Color(0xFFFF4081),
-  Color(0xFF26C6DA),
-  Color(0xFF7C4DFF),
-  Color(0xFF00E676),
-  Color(0xFFFF9100),
-  Color(0xFFEC407A),
-  Color(0xFF40C4FF),
-];
 
 class BlockBlastPage extends StatefulWidget {
   const BlockBlastPage({super.key});
   @override
-  State<BlockBlastPage> createState() => _BlockBlastPageState();
+  State<BlockBlastPage> createState() => _BlockBlastState();
 }
 
-class _BlockBlastPageState extends State<BlockBlastPage> {
-  static const int _kSize = 8;
-  final Random _rng = Random();
-  late final String _bgAsset;
+class _BlockBlastState extends State<BlockBlastPage> {
+  static const int _cols = 8, _rows = 8;
+  static const double _cellSize = 38.0;
 
-  // Grid: null = empty, Color = filled
-  List<List<Color?>> _grid =
-      List.generate(_kSize, (_) => List.filled(_kSize, null));
+  static const _shapes = [
+    [[0,0],[0,1],[0,2]],
+    [[0,0],[1,0],[2,0]],
+    [[0,0],[0,1],[1,0],[1,1]],
+    [[0,0],[0,1],[0,2],[1,0]],
+    [[0,0],[0,1],[0,2],[1,2]],
+    [[0,0],[1,0],[1,1],[2,1]],
+    [[0,1],[1,0],[1,1],[2,0]],
+    [[0,0],[0,1]],
+    [[0,0],[1,0]],
+    [[0,0]],
+  ];
 
-  // 3 upcoming pieces
-  late List<List<List<int>>> _tray;
-  late List<Color> _trayColors;
-  late List<bool> _trayUsed;
-  int? _draggingIndex;
+  static const _pieceColors = [
+    Color(0xFFFF6F00), Color(0xFF00B0FF), Color(0xFFAB47BC),
+    Color(0xFF26C6DA), Color(0xFFEC407A), Color(0xFF66BB6A),
+    Color(0xFFFFCA28), Color(0xFFEF5350),
+  ];
 
-  int _score = 0;
+  int _level = 1, _lives = 3, _score = 0, _bestScore = 0, _totalPlayed = 0;
   bool _gameOver = false;
-  int _combo = 0;
-  bool _perfectClear = false;
-  Timer? _perfectClearTimer;
+  late final String _bgAsset;
+  late List<List<int>> _grid;
+  late List<List<List<int>>> _pieces;
+  late List<Color> _pieceColorList;
+
+  // Ghost preview state
+  int? _hoverPiece;
+  int _ghostRow = 0, _ghostCol = 0;
+  bool _ghostValid = false;
+
+  // Board GlobalKey to convert drag offsets to grid coords
+  final _boardKey = GlobalKey();
+
+  final Random _rng = Random();
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _newTray();
-    // Start background music for block blast game
-    GameSoundsService.instance
-        .playBackgroundMusic('sounds/game_puzzle_bgm.mp3');
+    _loadDB();
   }
 
-  void _newTray() {
-    _tray = List.generate(
-        3, (_) => _kBlockBlastPieces[_rng.nextInt(_kBlockBlastPieces.length)]);
-    _trayColors = List.generate(
-        3, (_) => _kBlockColors[_rng.nextInt(_kBlockColors.length)]);
-    _trayUsed = List.filled(3, false);
-    _checkGameOver();
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('block_blast');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
+    });
+    _newGame();
   }
 
-  List<List<int>> _piece(int idx) => _tray[idx];
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('block_blast', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+  }
 
-  bool _canPlace(List<List<int>> piece, int row, int col) {
-    for (final cell in piece) {
+  void _newGame() {
+    _grid = List.generate(_rows, (_) => List.filled(_cols, -1));
+    final prefill = min((_level - 1) * 3, 20);
+    for (int i = 0; i < prefill; i++) {
+      _grid[_rng.nextInt(_rows)][_rng.nextInt(_cols)] = _rng.nextInt(_pieceColors.length);
+    }
+    _spawnPieces();
+    _gameOver = false;
+  }
+
+  void _spawnPieces() {
+    _pieces = List.generate(3, (_) => _shapes[_rng.nextInt(_shapes.length)].map((r) => List<int>.from(r)).toList());
+    _pieceColorList = List.generate(3, (_) => _pieceColors[_rng.nextInt(_pieceColors.length)]);
+    _hoverPiece = null;
+    if (!_canPlaceAny()) {
+      _lives--;
+      if (_lives <= 0) { _saveDB(); setState(() => _gameOver = true); return; }
+      _spawnPieces();
+    }
+  }
+
+  bool _canPlaceAny() {
+    for (int p = 0; p < _pieces.length; p++) {
+      if (_pieces[p].isEmpty) continue;
+      for (int r = 0; r < _rows; r++) {
+        for (int c = 0; c < _cols; c++) {
+          if (_fits(_pieces[p], r, c)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _fits(List<List<int>> shape, int row, int col) {
+    for (final cell in shape) {
       final r = row + cell[0], c = col + cell[1];
-      if (r < 0 || r >= _kSize || c < 0 || c >= _kSize) return false;
-      if (_grid[r][c] != null) return false;
+      if (r < 0 || r >= _rows || c < 0 || c >= _cols || _grid[r][c] != -1) return false;
     }
     return true;
   }
 
   void _place(int pieceIdx, int row, int col) {
-    if (_trayUsed[pieceIdx]) return;
-    final piece = _piece(pieceIdx);
-    if (!_canPlace(piece, row, col)) return;
-    SystemSound.play(SystemSoundType.click);
-    HapticFeedback.selectionClick();
-    setState(() {
-      for (final cell in piece) {
-        _grid[row + cell[0]][col + cell[1]] = _trayColors[pieceIdx];
-      }
-      _trayUsed[pieceIdx] = true;
-      _perfectClear = false; // Reset perfect clear flag
-      _clearLines();
-      if (_trayUsed.every((u) => u)) _newTray();
-    });
+    if (!_fits(_pieces[pieceIdx], row, col)) return;
+    final colorIdx = _pieceColors.indexOf(_pieceColorList[pieceIdx]);
+    for (final cell in _pieces[pieceIdx]) {
+      _grid[row + cell[0]][col + cell[1]] = colorIdx;
+    }
+    _pieces[pieceIdx] = [];
+    _clearLines();
+    _score += 10 + _level * 2;
+    if (_pieces.every((p) => p.isEmpty)) {
+      _level++;
+      _saveDB();
+      _spawnPieces();
+    }
+    setState(() {});
   }
 
   void _clearLines() {
-    // Detect full rows
-    final rowsToClear = <int>[];
-    for (int r = 0; r < _kSize; r++) {
-      if (_grid[r].every((c) => c != null)) rowsToClear.add(r);
+    int cleared = 0;
+    for (int r = 0; r < _rows; r++) {
+      if (_grid[r].every((c) => c != -1)) { _grid[r] = List.filled(_cols, -1); cleared++; }
     }
-    // Detect full columns
-    final colsToClear = <int>[];
-    for (int c = 0; c < _kSize; c++) {
-      if (List.generate(_kSize, (r) => _grid[r][c]).every((x) => x != null)) {
-        colsToClear.add(c);
+    for (int c = 0; c < _cols; c++) {
+      if (List.generate(_rows, (r) => _grid[r][c]).every((v) => v != -1)) {
+        for (int r = 0; r < _rows; r++) { _grid[r][c] = -1; }
+        cleared++;
       }
     }
-
-    // Calculate total lines cleared
-    final totalClears = rowsToClear.length + colsToClear.length;
-    if (totalClears > 0) {
-      _combo++;
-      int baseScore = totalClears * 10;
-
-      // Combo multiplier (1x, 1.5x, 2x, 2.5x, etc.)
-      double comboMultiplier = 1.0 + (_combo - 1) * 0.5;
-      if (comboMultiplier > 3.0) comboMultiplier = 3.0; // Cap at 3x
-
-      // Check for perfect clear (all blocks cleared)
-      bool isPerfectClear =
-          _grid.every((row) => row.every((cell) => cell == null));
-      if (isPerfectClear && totalClears > 0) {
-        _perfectClear = true;
-        comboMultiplier *= 2.0; // Double multiplier for perfect clear
-        GameSoundsService.instance
-            .playAchievementUnlocked(); // Special sound for perfect clear
-        // Hide perfect clear overlay after 2 seconds
-        _perfectClearTimer?.cancel();
-        _perfectClearTimer = Timer(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() => _perfectClear = false);
-          }
-        });
-      }
-
-      int finalScore = (baseScore * comboMultiplier).round();
-      _score += finalScore;
-
-      // Clear the lines
-      for (final r in rowsToClear) {
-        for (int c = 0; c < _kSize; c++) {
-          _grid[r][c] = null;
-        }
-      }
-      for (final c in colsToClear) {
-        for (int r = 0; r < _kSize; r++) {
-          _grid[r][c] = null;
-        }
-      }
-
-      // Play sound effects
-      if (_perfectClear) {
-        GameSoundsService.instance.playAchievementUnlocked();
-      } else {
-        GameSoundsService.instance.playRewardCollect();
-      }
-    } else {
-      // No clears, reset combo
-      _combo = 0;
-    }
+    if (cleared > 0) _score += cleared * 50 + cleared * cleared * 10;
   }
 
-  void _checkGameOver() {
-    for (int i = 0; i < 3; i++) {
-      if (_trayUsed[i]) continue;
-      final piece = _piece(i);
-      for (int r = 0; r < _kSize; r++) {
-        for (int c = 0; c < _kSize; c++) {
-          if (_canPlace(piece, r, c)) return;
-        }
-      }
+  /// Convert a global drag position to grid [row, col], anchored to piece top-left.
+  (int, int) _globalToGrid(Offset global) {
+    final box = _boardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return (0, 0);
+    final local = box.globalToLocal(global);
+    final col = (local.dx / _cellSize).floor();
+    final row = (local.dy / _cellSize).floor();
+    return (row, col);
+  }
+
+  void _onDragUpdate(int pieceIdx, Offset global) {
+    final (row, col) = _globalToGrid(global);
+    final valid = _fits(_pieces[pieceIdx], row, col);
+    setState(() { _hoverPiece = pieceIdx; _ghostRow = row; _ghostCol = col; _ghostValid = valid; });
+  }
+
+  void _onDragEnd(int pieceIdx, Offset global) {
+    final (row, col) = _globalToGrid(global);
+    if (_fits(_pieces[pieceIdx], row, col)) {
+      _place(pieceIdx, row, col);
     }
-    setState(() => _gameOver = true);
+    setState(() { _hoverPiece = null; });
   }
 
-  void _restart() {
-    setState(() {
-      _grid = List.generate(_kSize, (_) => List.filled(_kSize, null));
-      _score = 0;
-      _gameOver = false;
-      _combo = 0;
-      _perfectClear = false;
-    });
-    _newTray();
-  }
-
-  @override
-  void dispose() {
-    GameSoundsService.instance.stopBackgroundMusic();
-    super.dispose();
+  Widget _buildPieceWidget(int pi, {double cellSize = 28.0}) {
+    if (_pieces[pi].isEmpty) return const SizedBox(width: 80, height: 80);
+    final shape = _pieces[pi];
+    final maxR = shape.map((c) => c[0]).reduce(max) + 1;
+    final maxC = shape.map((c) => c[1]).reduce(max) + 1;
+    return SizedBox(
+      width: maxC * cellSize,
+      height: maxR * cellSize,
+      child: Stack(children: shape.map((cell) => Positioned(
+        left: cell[1] * cellSize,
+        top: cell[0] * cellSize,
+        child: Container(
+          width: cellSize - 2, height: cellSize - 2,
+          decoration: BoxDecoration(
+            color: _pieceColorList[pi],
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [BoxShadow(color: _pieceColorList[pi].withValues(alpha: 0.5), blurRadius: 6, offset: const Offset(0, 2))],
+          ),
+        ),
+      )).toList()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-            'Block Blast — $_score pts${_combo > 1 ? ' (${_combo}x)' : ''}',
-            style: GoogleFonts.outfit(
-                color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              GameSoundsService.instance.soundEnabled
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
-              color: Colors.orangeAccent,
-            ),
-            onPressed: () => setState(() {
-              GameSoundsService.instance
-                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
-            }),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.orangeAccent,
-            surfaceTint: const Color(0xFF0A0A1A),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // Grid
-                Expanded(
-                  flex: 5,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: _buildGrid(),
-                      ),
-                    ),
-                  ),
-                ),
-                // Tray with 3 pieces
-                Expanded(
-                  flex: 3,
-                  child: _buildTray(),
-                ),
-              ],
-            ),
-          ),
-          if (_gameOver) _buildGameOverOverlay(),
-          if (_perfectClear) _buildPerfectClearOverlay(),
-        ],
-      ),
-    );
-  }
+    final cs = Theme.of(context).colorScheme;
+    const boardSize = _cellSize * _cols;
 
-  Widget _buildGrid() {
-    return LayoutBuilder(builder: (ctx, constraints) {
-      final cellSize = constraints.maxWidth / (_kSize == 0 ? 1 : _kSize);
-      return DragTarget<int>(
-        onAcceptWithDetails: (details) {
-          // Compute cell from position
-          final box = ctx.findRenderObject() as RenderBox?;
-          if (box == null) return;
-          final local = box.globalToLocal(details.offset);
-          final col = (local.dx / cellSize).floor();
-          final row = (local.dy / cellSize).floor();
-          if (_draggingIndex != null) _place(_draggingIndex!, row, col);
-          _draggingIndex = null;
-        },
-        onWillAcceptWithDetails: (_) => true,
-        builder: (ctx, candidateData, rejectedData) {
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white.withValues(alpha: 0.04),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _kSize,
+    return Scaffold(
+      backgroundColor: cs.surface,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Block Blast — $_score pts', style: GoogleFonts.outfit(color: Colors.orangeAccent, fontWeight: FontWeight.w800)),
+      ),
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.orangeAccent, surfaceTint: const Color(0xFF120800)),
+        _gameOver
+          ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('Game Over!', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 8),
+              Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                onPressed: () => setState(() { _lives = 3; _score = 0; _level = 1; _newGame(); }),
+                child: Text('Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
               ),
-              itemCount: _kSize * _kSize,
-              itemBuilder: (ctx, idx) {
-                final r = idx ~/ (_kSize == 0 ? 1 : _kSize), c = idx % _kSize;
-                final color = _grid[r][c];
-                return Container(
-                  margin: const EdgeInsets.all(1),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
-                    color: color ?? Colors.white.withValues(alpha: 0.06),
-                    boxShadow: color != null
-                        ? [
-                            BoxShadow(
-                                color: color.withValues(alpha: 0.4),
-                                blurRadius: 4)
-                          ]
-                        : null,
+            ]))
+          : Column(children: [
+              Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 12),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                  child: Text('LVL $_level', style: GoogleFonts.outfit(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+                const SizedBox(width: 8),
+                Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+              ])),
+              // Board
+              Center(child: Container(
+                key: _boardKey,
+                width: boardSize, height: boardSize,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Stack(children: [
+                  // Grid cells
+                  Column(mainAxisSize: MainAxisSize.min, children: List.generate(_rows, (r) =>
+                    Row(mainAxisSize: MainAxisSize.min, children: List.generate(_cols, (c) {
+                      final colorIdx = _grid[r][c];
+                      // Ghost preview
+                      bool isGhost = false;
+                      bool ghostOk = false;
+                      if (_hoverPiece != null) {
+                        for (final cell in _pieces[_hoverPiece!]) {
+                          if (_ghostRow + cell[0] == r && _ghostCol + cell[1] == c) {
+                            isGhost = true;
+                            ghostOk = _ghostValid;
+                            break;
+                          }
+                        }
+                      }
+                      return Container(
+                        width: _cellSize, height: _cellSize,
+                        margin: const EdgeInsets.all(1),
+                        decoration: BoxDecoration(
+                          color: isGhost
+                              ? (ghostOk ? _pieceColorList[_hoverPiece!].withValues(alpha: 0.55) : Colors.redAccent.withValues(alpha: 0.35))
+                              : colorIdx >= 0 ? _pieceColors[colorIdx] : Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isGhost ? (ghostOk ? _pieceColorList[_hoverPiece!] : Colors.redAccent) : Colors.white.withValues(alpha: 0.08),
+                            width: isGhost ? 1.5 : 0.5,
+                          ),
+                        ),
+                      );
+                    })),
+                  )),
+                ]),
+              )),
+              const SizedBox(height: 20),
+              // Piece tray — each piece is a Draggable
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: List.generate(3, (pi) {
+                if (_pieces[pi].isEmpty) return const SizedBox(width: 80, height: 80);
+                return Draggable<int>(
+                  data: pi,
+                  onDragUpdate: (d) => _onDragUpdate(pi, d.globalPosition),
+                  onDragEnd: (d) => _onDragEnd(pi, d.offset),
+                  onDraggableCanceled: (_, __) => setState(() => _hoverPiece = null),
+                  feedback: Opacity(opacity: 0.85, child: _buildPieceWidget(pi, cellSize: _cellSize)),
+                  childWhenDragging: Opacity(opacity: 0.25, child: _buildPieceWidget(pi)),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _pieceColorList[pi].withValues(alpha: 0.4), width: 1.5),
+                    ),
+                    child: _buildPieceWidget(pi),
                   ),
                 );
-              },
-            ),
-          );
-        },
-      );
-    });
-  }
-
-  Widget _buildTray() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: List.generate(3, (i) {
-        if (_trayUsed[i]) return const SizedBox(width: 90, height: 90);
-        return Draggable<int>(
-          data: i,
-          onDragStarted: () => _draggingIndex = i,
-          onDraggableCanceled: (_, __) => _draggingIndex = null,
-          feedback: _buildMiniPiece(_piece(i), _trayColors[i], scale: 2.0),
-          childWhenDragging: Opacity(
-              opacity: 0.3, child: _buildMiniPiece(_piece(i), _trayColors[i])),
-          child: _buildMiniPiece(_piece(i), _trayColors[i]),
-        );
-      }),
-    );
-  }
-
-  Widget _buildMiniPiece(List<List<int>> piece, Color color,
-      {double scale = 1.0}) {
-    if (piece.isEmpty) return const SizedBox(width: 80, height: 80);
-    final maxR = piece.map((c) => c[0]).reduce(max) + 1;
-    final maxC = piece.map((c) => c[1]).reduce(max) + 1;
-    final cellSize = 16.0 * scale;
-    final cells = <Widget>[];
-    for (int r = 0; r < maxR; r++) {
-      for (int c = 0; c < maxC; c++) {
-        final filled = piece.any((p) => p[0] == r && p[1] == c);
-        cells.add(Container(
-          width: cellSize,
-          height: cellSize,
-          margin: const EdgeInsets.all(1),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(3),
-            color: filled ? color : Colors.transparent,
-            boxShadow: filled
-                ? [
-                    BoxShadow(
-                        color: color.withValues(alpha: 0.5), blurRadius: 4)
-                  ]
-                : null,
-          ),
-        ));
-      }
-    }
-    return SizedBox(
-      width: maxC * (cellSize + 2),
-      height: maxR * (cellSize + 2),
-      child: GridView.count(
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: maxC,
-        padding: EdgeInsets.zero,
-        children: cells,
-      ),
-    );
-  }
-
-  Widget _buildGameOverOverlay() {
-    return Positioned.fill(
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.72),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('No More Moves!',
-                  style: GoogleFonts.outfit(
-                      color: Colors.orangeAccent,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w900)),
-              const SizedBox(height: 8),
-              Text('Score: $_score',
-                  style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600)),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 36, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20))),
-                onPressed: _restart,
-                child: Text('Play Again',
-                    style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w800, fontSize: 16)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerfectClearOverlay() {
-    return Positioned.fill(
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.5),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Colors.yellowAccent, Colors.orangeAccent]),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.yellowAccent.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5)
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Text('PERFECT CLEAR!',
-                        style: GoogleFonts.outfit(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 8),
-                    Text('Double Score Bonus!',
-                        style: GoogleFonts.outfit(
-                            color: Colors.black87,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+              })),
+              const SizedBox(height: 12),
+              Text('Drag pieces onto the board', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
+              const SizedBox(height: 16),
+            ]),
+      ]),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BLOCK BREAKER GAME (Arkanoid / Breakout)
+// BLOCK BREAKER — levels + lives + DB
+// Classic Breakout. Ball speed and brick rows increase with level.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class BlockBreakerPage extends StatefulWidget {
   const BlockBreakerPage({super.key});
   @override
-  State<BlockBreakerPage> createState() => _BlockBreakerPageState();
+  State<BlockBreakerPage> createState() => _BlockBreakerState();
 }
 
-class _BreakerBrick {
-  double x, y, w, h;
-  Color color;
-  bool alive;
-  _BreakerBrick(
-      {required this.x,
-      required this.y,
-      required this.w,
-      required this.h,
-      required this.color})
-      : alive = true;
-}
+class _BlockBreakerState extends State<BlockBreakerPage> with SingleTickerProviderStateMixin {
+  static const int _brickCols = 7;
+  static const double _paddleW = 80, _paddleH = 12, _ballR = 8;
 
-class _BlockBreakerPageState extends State<BlockBreakerPage>
-    with SingleTickerProviderStateMixin {
-  double get _paddleW =>
-      80 + (_level - 1) * 10.0; // Wider paddle on higher levels
-  static const double _paddleH = 14, _ballR = 9;
-  static const double _brickW = 40, _brickH = 18, _brickGap = 4;
-  static const int _cols = 7, _rows = 5;
-
-  final Random _rng = Random();
-  late final String _bgAsset;
-  late AnimationController _ticker;
-
-  // Game world size (set in LayoutBuilder)
-  double _w = 360, _h = 600;
-
-  double _paddleX = 140;
-  double _ballX = 180, _ballY = 450;
-  double _vx = 3, _vy = -5;
-
-  List<_BreakerBrick> _bricks = [];
-  int _score = 0;
   int _level = 1;
-  bool _started = false, _gameOver = false, _won = false;
+  int _lives = 3;
+  int _score = 0;
+  int _bestScore = 0;
+  int _totalPlayed = 0;
+  bool _running = false;
+  bool _gameOver = false;
+  bool _won = false;
+  late final String _bgAsset;
+
+  // Game state (in logical units, mapped to screen in paint)
+  double _pw = 300, _ph = 500; // play area size, set in layout
+  double _paddleX = 110;
+  double _ballX = 150, _ballY = 400;
+  double _vx = 3, _vy = -4;
+  late List<List<bool>> _bricks;
+  late List<List<Color>> _brickColors;
+  int _brickRows = 3;
+
+  late AnimationController _ac;
+
+  static const _rowColors = [
+    Color(0xFFEF5350), Color(0xFFFF9800), Color(0xFFFFEB3B),
+    Color(0xFF66BB6A), Color(0xFF42A5F5), Color(0xFFAB47BC),
+  ];
+
+  double get _ballSpeed => 3.5 + _level * 0.4;
 
   @override
   void initState() {
     super.initState();
     _bgAsset = _randomO2GameBackground();
-    _ticker = AnimationController(
-        vsync: this, duration: const Duration(seconds: 9999))
-      ..addListener(_tick);
-    // Start background music for block breaker game
-    GameSoundsService.instance
-        .playBackgroundMusic('sounds/game_arcade_bgm.mp3');
+    _ac = AnimationController(vsync: this, duration: const Duration(milliseconds: 16))
+      ..addListener(_tick)
+      ..repeat();
+    _loadDB();
   }
 
-  void _initBricks() {
-    _bricks = [];
-    const totalBrickWidth = _cols * (_brickW + _brickGap) - _brickGap;
-    final startX = (_w - totalBrickWidth) / 2;
-    const startY = 60.0;
-    final colors = [
-      Colors.pinkAccent,
-      Colors.cyanAccent,
-      Colors.purpleAccent,
-      Colors.orangeAccent,
-      Colors.greenAccent,
-    ];
-
-    // Different layouts based on level
-    final layoutType = _level % 4; // 4 different layouts
-
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        bool createBrick = true;
-
-        // Level-based layouts
-        switch (layoutType) {
-          case 0: // Standard grid
-            break;
-          case 1: // Checkerboard
-            if ((r + c) % 2 == 0) createBrick = false;
-            break;
-          case 2: // Pyramid
-            if (c < r || c >= _cols - r) createBrick = false;
-            break;
-          case 3: // Random gaps
-            if (_rng.nextDouble() < 0.2) createBrick = false;
-            break;
-        }
-
-        // Add unbreakable bricks on higher levels
-        if (_level > 3 && _rng.nextDouble() < 0.1) {
-          // Unbreakable brick (different color)
-          _bricks.add(_BreakerBrick(
-            x: startX + c * (_brickW + _brickGap),
-            y: startY + r * (_brickH + _brickGap),
-            w: _brickW,
-            h: _brickH,
-            color: Colors.grey[800]!, // Dark grey for unbreakable
-          )..alive = true); // Custom property for unbreakable
-          continue;
-        }
-
-        if (createBrick) {
-          _bricks.add(_BreakerBrick(
-            x: startX + c * (_brickW + _brickGap),
-            y: startY + r * (_brickH + _brickGap),
-            w: _brickW,
-            h: _brickH,
-            color: colors[r % colors.length],
-          ));
-        }
-      }
-    }
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('block_breaker');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
+    });
+    _buildLevel();
   }
 
-  void _startGame() {
-    _paddleX = _w / 2 - _paddleW / 2;
-    _ballX = _w / 2;
-    _ballY = _h - 120;
-    final angle = (_rng.nextDouble() * 60 - 30) * (3.14159 / 180);
+  Future<void> _saveDB() async {
+    _totalPlayed++;
+    if (_score > _bestScore) _bestScore = _score;
+    await GameProgressDB.instance.save('block_breaker', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+  }
 
-    // Level-based upgrades
-    double baseSpeed = 4.0 + (_level - 1) * 0.5; // Faster ball on higher levels
-    _vx = baseSpeed * sin(angle);
-    _vy = -5 - (_level - 1) * 0.5; // Faster vertical speed
-
-    _score = 0;
-    _level = 1; // Reset level on new game
-    _gameOver = false;
+  void _buildLevel() {
+    _brickRows = min(2 + _level, 6);
+    _bricks = List.generate(_brickRows, (_) => List.filled(_brickCols, true));
+    _brickColors = List.generate(_brickRows, (r) => List.filled(_brickCols, _rowColors[r % _rowColors.length]));
+    _resetBall();
     _won = false;
-    _initBricks();
-    _started = true;
-    _ticker.repeat();
+    _running = false;
+  }
+
+  void _resetBall() {
+    _ballX = _pw / 2;
+    _ballY = _ph * 0.75;
+    _paddleX = _pw / 2 - _paddleW / 2;
+    final angle = (Random().nextDouble() * 60 - 30) * (pi / 180);
+    _vx = _ballSpeed * sin(angle);
+    _vy = -_ballSpeed * cos(angle).abs();
   }
 
   void _tick() {
-    if (!_started || _gameOver || _won) return;
+    if (!_running || _gameOver || _won) return;
     setState(() {
       _ballX += _vx;
       _ballY += _vy;
 
-      // Wall bounce
-      if (_ballX - _ballR <= 0) {
-        _ballX = _ballR;
-        _vx = _vx.abs();
-      }
-      if (_ballX + _ballR >= _w) {
-        _ballX = _w - _ballR;
-        _vx = -_vx.abs();
-      }
-      if (_ballY - _ballR <= 0) {
-        _ballY = _ballR;
-        _vy = _vy.abs();
-      }
+      // Wall bounces
+      if (_ballX - _ballR <= 0) { _ballX = _ballR; _vx = _vx.abs(); }
+      if (_ballX + _ballR >= _pw) { _ballX = _pw - _ballR; _vx = -_vx.abs(); }
+      if (_ballY - _ballR <= 0) { _ballY = _ballR; _vy = _vy.abs(); }
 
       // Paddle bounce
-      final paddleTop = _h - _paddleH - 28;
-      if (_ballY + _ballR >= paddleTop &&
-          _ballY + _ballR <= paddleTop + _paddleH + _ballR &&
-          _ballX >= _paddleX - _ballR &&
-          _ballX <= _paddleX + _paddleW + _ballR) {
-        // Angle based on hit position
-        final hitPos = (_ballX - _paddleX) / _paddleW; // 0-1
-        _vx = (hitPos - 0.5) * 10;
-        _vy = -_vy.abs();
-        _ballY = paddleTop - _ballR;
-        SystemSound.play(SystemSoundType.click);
-        HapticFeedback.selectionClick();
+      if (_ballY + _ballR >= _ph - _paddleH - 10 &&
+          _ballX >= _paddleX && _ballX <= _paddleX + _paddleW &&
+          _vy > 0) {
+        final rel = (_ballX - (_paddleX + _paddleW / 2)) / (_paddleW / 2);
+        _vx = rel * _ballSpeed * 1.2;
+        _vy = -_ballSpeed;
+        _ballY = _ph - _paddleH - 10 - _ballR;
+      }
+
+      // Ball lost
+      if (_ballY - _ballR > _ph) {
+        _lives--;
+        if (_lives <= 0) { _saveDB(); _gameOver = true; _running = false; return; }
+        _resetBall();
+        _running = false;
       }
 
       // Brick collision
-      for (final brick in _bricks) {
-        if (!brick.alive) continue;
-        if (_ballX + _ballR > brick.x &&
-            _ballX - _ballR < brick.x + brick.w &&
-            _ballY + _ballR > brick.y &&
-            _ballY - _ballR < brick.y + brick.h) {
-          brick.alive = false;
-          _score += 10;
-          SystemSound.play(SystemSoundType.click);
-          HapticFeedback.lightImpact();
-          // Determine bounce direction
-          final overlapLeft = (_ballX + _ballR) - brick.x;
-          final overlapRight = (brick.x + brick.w) - (_ballX - _ballR);
-          final overlapTop = (_ballY + _ballR) - brick.y;
-          final overlapBottom = (brick.y + brick.h) - (_ballY - _ballR);
-          final minLR = min(overlapLeft, overlapRight);
-          final minTB = min(overlapTop, overlapBottom);
-          if (minLR < minTB) {
-            _vx = -_vx;
-          } else {
-            _vy = -_vy;
+      final brickW = _pw / _brickCols;
+      const brickH = 22.0, brickTop = 60.0;
+      for (int r = 0; r < _brickRows; r++) {
+        for (int c = 0; c < _brickCols; c++) {
+          if (!_bricks[r][c]) continue;
+          final bx = c * brickW, by = brickTop + r * (brickH + 4);
+          if (_ballX + _ballR > bx && _ballX - _ballR < bx + brickW &&
+              _ballY + _ballR > by && _ballY - _ballR < by + brickH) {
+            _bricks[r][c] = false;
+            _score += 10 + _level * 3;
+            // Determine bounce direction
+            final overlapLeft = (_ballX + _ballR) - bx;
+            final overlapRight = (bx + brickW) - (_ballX - _ballR);
+            final overlapTop = (_ballY + _ballR) - by;
+            final overlapBottom = (by + brickH) - (_ballY - _ballR);
+            final minH = min(overlapLeft, overlapRight);
+            final minV = min(overlapTop, overlapBottom);
+            if (minH < minV) _vx = -_vx; else _vy = -_vy;
           }
-          break;
         }
       }
 
-      // Win condition
-      if (_bricks.every((b) => !b.alive)) {
+      // Check win
+      if (_bricks.every((row) => row.every((b) => !b))) {
         _level++;
-        _score += _level * 100; // Bonus for level completion
-        GameSoundsService.instance.playAchievementUnlocked();
-        // Start next level after a delay
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            setState(() {
-              _won = false;
-              _started = false;
-            });
-            _initBricks();
-            // Reset ball position
-            _ballX = _w / 2;
-            _ballY = _h - 120;
-            final angle = (_rng.nextDouble() * 60 - 30) * (3.14159 / 180);
-            double baseSpeed = 4.0 + (_level - 1) * 0.5;
-            _vx = baseSpeed * sin(angle);
-            _vy = -5 - (_level - 1) * 0.5;
-            _started = true;
-            _ticker.repeat();
-          }
-        });
-      }
-
-      // Ball fell below
-      if (_ballY - _ballR > _h) {
-        _gameOver = true;
-        _ticker.stop();
+        _won = true;
+        _running = false;
+        _saveDB();
       }
     });
   }
 
-  @override
-  void dispose() {
-    _ticker.dispose();
-    GameSoundsService.instance.stopBackgroundMusic();
-    super.dispose();
+  void _movePaddle(double dx) {
+    setState(() {
+      _paddleX = (_paddleX + dx).clamp(0, _pw - _paddleW);
+    });
   }
 
   @override
+  void dispose() { _ac.dispose(); super.dispose(); }
+
+  @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Block Breaker — Level $_level • $_score pts',
-            style: GoogleFonts.outfit(
-                color: Colors.cyanAccent, fontWeight: FontWeight.w800)),
-        leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              GameSoundsService.instance.soundEnabled
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
-              color: Colors.cyanAccent,
-            ),
-            onPressed: () => setState(() {
-              GameSoundsService.instance
-                  .setSoundEnabled(!GameSoundsService.instance.soundEnabled);
-            }),
-          ),
-        ],
+        backgroundColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        title: Text('Block Breaker — $_score pts', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontWeight: FontWeight.w800)),
       ),
-      body: Stack(
-        children: [
-          _GameBackdrop(
-            asset: _bgAsset,
-            glowColor: Colors.cyanAccent,
-            surfaceTint: const Color(0xFF060D18),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _w = constraints.maxWidth;
-                _h = constraints.maxHeight;
-                return GestureDetector(
-                  onPanUpdate: (d) {
-                    if (!_started || _gameOver || _won) return;
-                    setState(() {
-                      _paddleX = (_paddleX + d.delta.dx)
-                          .clamp(0, _w - _paddleW)
-                          .toDouble();
-                    });
-                  },
-                  onTap: () {
-                    if (!_started || _gameOver || _won) {
-                      _startGame();
-                    }
-                  },
-                  child: CustomPaint(
-                    size: Size(_w, _h),
-                    painter: _BreakerPainter(
-                      bricks: _bricks,
-                      ballX: _ballX,
-                      ballY: _ballY,
-                      ballR: _ballR,
-                      paddleX: _paddleX,
-                      paddleW: _paddleW,
-                      paddleH: _paddleH,
-                      screenH: _h,
-                    ),
-                    child: (!_started || _gameOver || _won)
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_won)
-                                  Text('You Win! 🎉',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.greenAccent,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900)),
-                                if (_gameOver)
-                                  Text('Game Over!',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.redAccent,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900)),
-                                const SizedBox(height: 8),
-                                if (_score > 0)
-                                  Text('Score: $_score',
-                                      style: GoogleFonts.outfit(
-                                          color: Colors.white70, fontSize: 18)),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.cyanAccent,
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 36, vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20))),
-                                  onPressed: _startGame,
-                                  child: Text(_started ? 'Play Again' : 'Start',
-                                      style: GoogleFonts.outfit(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 16)),
-                                ),
-                              ],
-                            ),
-                          )
-                        : const SizedBox.expand(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      body: Stack(children: [
+        _GameBackdrop(asset: _bgAsset, glowColor: Colors.cyanAccent, surfaceTint: const Color(0xFF001420)),
+        Column(children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(color: Colors.cyanAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+              child: Text('LVL $_level', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 8),
+            Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
+          ])),
+          Expanded(child: LayoutBuilder(builder: (_, constraints) {
+            _pw = constraints.maxWidth;
+            _ph = constraints.maxHeight;
+            return GestureDetector(
+              onHorizontalDragUpdate: (d) { _movePaddle(d.delta.dx); if (!_running && !_gameOver && !_won) { _running = true; } },
+              onTapDown: (_) { if (!_running && !_gameOver && !_won) setState(() => _running = true); },
+              child: CustomPaint(
+                size: Size(_pw, _ph),
+                painter: _BreakerPainter(
+                  pw: _pw, ph: _ph,
+                  paddleX: _paddleX, paddleW: _paddleW, paddleH: _paddleH,
+                  ballX: _ballX, ballY: _ballY, ballR: _ballR,
+                  bricks: _bricks, brickColors: _brickColors,
+                  brickCols: _brickCols, brickRows: _brickRows,
+                ),
+                child: (_gameOver || _won || !_running)
+                  ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      if (_gameOver) Text('Game Over!', style: GoogleFonts.outfit(color: Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                      if (_won) Text('Level Clear! 🎉', style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                      if (!_running && !_gameOver && !_won) Text('Tap to Start', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 22, fontWeight: FontWeight.w700)),
+                      if (_gameOver || _won) ...[
+                        const SizedBox(height: 8),
+                        Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent, foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
+                          onPressed: () {
+                            if (_gameOver) setState(() { _lives = 3; _score = 0; _level = 1; _buildLevel(); });
+                            else setState(() => _buildLevel());
+                          },
+                          child: Text(_gameOver ? 'New Game' : 'Next Level', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                        ),
+                      ],
+                    ]))
+                  : const SizedBox.expand(),
+              ),
+            );
+          })),
+        ]),
+      ]),
     );
   }
 }
 
 class _BreakerPainter extends CustomPainter {
-  final List<_BreakerBrick> bricks;
-  final double ballX, ballY, ballR, paddleX, paddleW, paddleH, screenH;
+  final double pw, ph, paddleX, paddleW, paddleH, ballX, ballY, ballR;
+  final List<List<bool>> bricks;
+  final List<List<Color>> brickColors;
+  final int brickCols, brickRows;
 
   const _BreakerPainter({
-    required this.bricks,
-    required this.ballX,
-    required this.ballY,
-    required this.ballR,
-    required this.paddleX,
-    required this.paddleW,
-    required this.paddleH,
-    required this.screenH,
+    required this.pw, required this.ph,
+    required this.paddleX, required this.paddleW, required this.paddleH,
+    required this.ballX, required this.ballY, required this.ballR,
+    required this.bricks, required this.brickColors,
+    required this.brickCols, required this.brickRows,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Background
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = const Color(0xFF060D18),
-    );
+    final brickW = pw / brickCols;
+    const brickH = 22.0, brickTop = 60.0;
 
     // Bricks
-    for (final b in bricks) {
-      if (!b.alive) continue;
-      final paint = Paint()
-        ..color = b.color
-        ..style = PaintingStyle.fill;
-      final glowPaint = Paint()
-        ..color = b.color.withValues(alpha: 0.35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      final rrect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(b.x, b.y, b.w, b.h), const Radius.circular(5));
-      canvas.drawRRect(rrect, glowPaint);
-      canvas.drawRRect(rrect, paint);
+    for (int r = 0; r < brickRows; r++) {
+      for (int c = 0; c < brickCols; c++) {
+        if (!bricks[r][c]) continue;
+        final rect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(c * brickW + 2, brickTop + r * (brickH + 4), brickW - 4, brickH),
+          const Radius.circular(6),
+        );
+        canvas.drawRRect(rect, Paint()..color = brickColors[r][c]);
+        canvas.drawRRect(rect, Paint()..color = Colors.white.withValues(alpha: 0.15)..style = PaintingStyle.stroke..strokeWidth = 1);
+      }
     }
 
-    // Ball
-    final ballGlow = Paint()
-      ..color = Colors.cyanAccent.withValues(alpha: 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(ballX, ballY), ballR + 4, ballGlow);
-    canvas.drawCircle(
-        Offset(ballX, ballY), ballR, Paint()..color = Colors.white);
-
     // Paddle
-    final paddleTop = screenH - paddleH - 28;
-    final paddlePaint = Paint()
-      ..shader = const LinearGradient(
-              colors: [Colors.cyanAccent, Colors.blueAccent])
-          .createShader(Rect.fromLTWH(paddleX, paddleTop, paddleW, paddleH));
     canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(paddleX, paddleTop, paddleW, paddleH),
-            const Radius.circular(7)),
-        paddlePaint);
+      RRect.fromRectAndRadius(Rect.fromLTWH(paddleX, ph - paddleH - 10, paddleW, paddleH), const Radius.circular(8)),
+      Paint()..shader = const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent])
+          .createShader(Rect.fromLTWH(paddleX, ph - paddleH - 10, paddleW, paddleH)),
+    );
+
+    // Ball
+    canvas.drawCircle(Offset(ballX, ballY), ballR,
+        Paint()..color = Colors.white..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+    canvas.drawCircle(Offset(ballX, ballY), ballR, Paint()..color = Colors.cyanAccent);
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class OrbitalStrikePage extends StatefulWidget {
   const OrbitalStrikePage({super.key});
@@ -32,6 +33,7 @@ class _OrbitalStrikePageState extends State<OrbitalStrikePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('orbital_strike'));
     _pulseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1200))
       ..repeat(reverse: true);

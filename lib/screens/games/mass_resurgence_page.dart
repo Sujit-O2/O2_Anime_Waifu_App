@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class MassResurgencePage extends StatefulWidget {
   const MassResurgencePage({super.key});
@@ -33,6 +34,7 @@ class _MassResurgencePageState extends State<MassResurgencePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('mass_resurgence'));
     _lightCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..repeat(reverse: true);
