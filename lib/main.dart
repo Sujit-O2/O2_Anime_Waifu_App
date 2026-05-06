@@ -589,6 +589,13 @@ class _ChatHomePageState extends State<ChatHomePage>
   // Voice Model State
   String get _voiceModel => _vp.voiceModel;
   set _voiceModel(String v) => _vp.voiceModel = v;
+
+  void _triggerRebuild() => setState(() {});
+
+  void _updateWakeWord(bool v) {
+    _wakeWordEnabledByUser = v;
+    setState(() {});
+  }
   bool get _wakeEffectVisible => _vp.wakeEffectVisible;
   set _wakeEffectVisible(bool v) => _vp.wakeEffectVisible = v;
   String get _apiKeyStatus => _cp.apiKeyStatus;

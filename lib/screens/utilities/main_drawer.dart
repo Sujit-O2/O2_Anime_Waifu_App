@@ -600,7 +600,7 @@ Widget drawerPulseStat({
     return tiles;
   }
 
-  Widget _availableFeatureChip(String name, IconData icon, Color color, String action, {bool isAdded = false, String? badge}) {
+  Widget _availableFeatureChip(String name, IconData icon, Color color, String action, {bool isAdded = false, String? badge, required void Function() onChanged}) {
     return GestureDetector(
       onTap: () {
         final currentFavs = List<Map<String, dynamic>>.from(_customFavorites);
@@ -615,7 +615,7 @@ Widget drawerPulseStat({
           });
         }
         _sp.setCustomFavorites(currentFavs);
-        setState(() {});
+        onChanged();
       },
       child: Container(
         decoration: BoxDecoration(
@@ -756,7 +756,7 @@ Widget drawerPulseStat({
                   final action = feat['action'] as String;
                   final isAdded = _customFavorites.any((f) => f['action'] == action);
                   
-                  return _availableFeatureChip(name, _getIconFromString(iconName), color, action, isAdded: isAdded);
+                  return _availableFeatureChip(name, _getIconFromString(iconName), color, action, isAdded: isAdded, onChanged: _triggerRebuild);
                 },
               ),
             ),
@@ -1408,7 +1408,7 @@ Container(
                         children: [
                           Expanded(child: _quickToggle(Icons.wb_sunny_rounded, 'Lite', _liteModeEnabled, (v) => _sp.liteModeEnabled = v)),
                           const SizedBox(width: 8),
-                          Expanded(child: _quickToggle(Icons.mic_rounded, 'Mic', _wakeWordEnabledByUser, (v) => setState(() => _wakeWordEnabledByUser = v))),
+                          Expanded(child: _quickToggle(Icons.mic_rounded, 'Mic', _wakeWordEnabledByUser, _updateWakeWord)),
                           const SizedBox(width: 8),
                           Expanded(child: _quickToggle(Icons.notifications_rounded, 'Notif', _notificationsAllowed, (v) => _sp.notificationsAllowed = v)),
                         ],
