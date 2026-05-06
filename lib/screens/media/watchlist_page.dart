@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/anime_media/watchlist_service.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Watchlist v2 — Tabbed anime/manga favorites with search, grid/list toggle,
 /// animated cards, empty states, swipe-to-remove with undo, and stats overview.
@@ -29,6 +31,7 @@ class _WatchlistPageState extends State<WatchlistPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('watchlist'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward();

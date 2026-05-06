@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 
 class WordPuzzlePage extends StatefulWidget {
   const WordPuzzlePage({super.key});
@@ -45,6 +47,9 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
   bool _won = false;
   bool _lost = false;
   int _streak = 0;
+  int _level = 1;
+  int _lives = 3;
+  int _bestScore = 0;
   int _bestStreak = 0;
   int _wins = 0;
 
@@ -75,6 +80,12 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
     setState(() {
       _bestStreak = prefs.getInt('word_puzzle_best_streak_v2') ?? 0;
       _wins = prefs.getInt('word_puzzle_wins_v2') ?? 0;
+    });
+    final rec = await GameProgressDB.instance.load('word_puzzle');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
     });
     _saveStats();
   }
@@ -117,6 +128,9 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
         if (_wrongGuesses >= _maxWrong) {
           _lost = true;
           _streak = 0;
+          _lives--;
+          if (_lives <= 0) _lives = 3;
+          unawaited(GameProgressDB.instance.save('word_puzzle', level: _level, bestScore: _bestScore, totalPlayed: _wins));
           _message = 'Oh no, Darling... The word was "${_current.word}" 😢';
         }
       } else {
@@ -126,6 +140,9 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
           _won = true;
           _streak++;
           _wins++;
+          _level++;
+          if (_wins > _bestScore) _bestScore = _wins;
+          unawaited(GameProgressDB.instance.save('word_puzzle', level: _level, bestScore: _bestScore, totalPlayed: _wins));
           if (_streak > _bestStreak) {
             _bestStreak = _streak;
           }

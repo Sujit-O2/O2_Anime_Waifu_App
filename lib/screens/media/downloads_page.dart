@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/utilities_core/download_service.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Downloads v2 — Offline content manager with storage stats, grid/list toggle,
 /// animated cards, search, and storage visualization.
@@ -30,6 +32,7 @@ class _DownloadsPageState extends State<DownloadsPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('downloads'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward();

@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/services/anime_media/free_apis_service.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AnimeRecommenderPage extends StatefulWidget {
   const AnimeRecommenderPage({super.key});
@@ -30,6 +32,7 @@ class _AnimeRecommenderPageState extends State<AnimeRecommenderPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('anime_recommender'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     _restoreState();

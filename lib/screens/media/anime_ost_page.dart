@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
@@ -7,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AnimeOstPage extends StatefulWidget {
   const AnimeOstPage({super.key});
@@ -31,6 +33,7 @@ class _AnimeOstPageState extends State<AnimeOstPage> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('anime_ost'));
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
     _restoreState();
   }
