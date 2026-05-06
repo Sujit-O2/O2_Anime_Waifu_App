@@ -82,7 +82,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       SystemSound.play(SystemSoundType.click);
     });
 
-    Future<void>.delayed(const Duration(milliseconds: 2800), () {
+Future<void>.delayed(const Duration(milliseconds: 2800), () {
       if (!mounted) {
         return;
       }
@@ -90,12 +90,15 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => widget.nextScreen,
+          pageBuilder: (context, animation, secondaryAnimation) => widget.nextScreen,
           transitionDuration: const Duration(milliseconds: 600),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
         ),
-      );
+      ).catchError((e, st) {
+        debugPrint('Splash navigation error: $e\n$st');
+      });
     });
   }
 

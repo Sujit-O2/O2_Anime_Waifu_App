@@ -11,11 +11,32 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
     required this.outlineStrong,
     required this.textMuted,
     required this.textSoft,
+    required this.onSurface,
+    required this.tertiary,
     required this.heroGradient,
     required this.glassGradient,
     required this.shadowColor,
     required this.glowColor,
   });
+
+  // Default fallback for when theme isn't loaded
+  factory AppDesignTokens.fallback() {
+    return const AppDesignTokens(
+      panel: Color(0xFF1A0025),
+      panelElevated: Color(0xFF2A0035),
+      panelMuted: Color(0xFF0D0018),
+      outline: Color(0x33FF0057),
+      outlineStrong: Color(0x66FF0057),
+      textMuted: Color(0x99FFFFFF),
+      textSoft: Color(0xCCFFFFFF),
+      onSurface: Color(0xFFFFFFFF),
+      tertiary: Color(0xFFAA00FF),
+      heroGradient: LinearGradient(colors: [Color(0xFFFF0057), Color(0xFFAA00FF)]),
+      glassGradient: LinearGradient(colors: [Color(0x22FF0057), Color(0x11AA00FF)]),
+      shadowColor: Color(0x66000000),
+      glowColor: Color(0xFFFF0057),
+    );
+  }
 
   final Color panel;
   final Color panelElevated;
@@ -24,6 +45,8 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
   final Color outlineStrong;
   final Color textMuted;
   final Color textSoft;
+  final Color onSurface;
+  final Color tertiary;
   final LinearGradient heroGradient;
   final LinearGradient glassGradient;
   final Color shadowColor;
@@ -38,6 +61,8 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
     Color? outlineStrong,
     Color? textMuted,
     Color? textSoft,
+    Color? onSurface,
+    Color? tertiary,
     LinearGradient? heroGradient,
     LinearGradient? glassGradient,
     Color? shadowColor,
@@ -51,6 +76,8 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
       outlineStrong: outlineStrong ?? this.outlineStrong,
       textMuted: textMuted ?? this.textMuted,
       textSoft: textSoft ?? this.textSoft,
+      onSurface: onSurface ?? this.onSurface,
+      tertiary: tertiary ?? this.tertiary,
       heroGradient: heroGradient ?? this.heroGradient,
       glassGradient: glassGradient ?? this.glassGradient,
       shadowColor: shadowColor ?? this.shadowColor,
@@ -72,6 +99,8 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
       outlineStrong: Color.lerp(outlineStrong, other.outlineStrong, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       textSoft: Color.lerp(textSoft, other.textSoft, t)!,
+      onSurface: Color.lerp(onSurface, other.onSurface, t)!,
+      tertiary: Color.lerp(tertiary, other.tertiary, t)!,
       heroGradient: LinearGradient(
         begin: heroGradient.begin,
         end: heroGradient.end,
@@ -107,7 +136,16 @@ class AppDesignTokens extends ThemeExtension<AppDesignTokens> {
 }
 
 extension AppThemeContext on BuildContext {
-  AppDesignTokens get appTokens => Theme.of(this).extension<AppDesignTokens>()!;
+  AppDesignTokens get appTokens {
+    try {
+      final theme = Theme.of(this);
+      final tokens = theme.extension<AppDesignTokens>();
+      if (tokens != null) return tokens;
+    } catch (e) {
+      debugPrint('appTokens error: $e');
+    }
+    return AppDesignTokens.fallback();
+  }
 }
 
 class _ThemeSeed {
@@ -614,6 +652,8 @@ class AppThemes {
       outlineStrong: outlineStrong,
       textMuted: onSurfaceMuted,
       textSoft: onSurfaceSoft,
+      onSurface: onSurface,
+      tertiary: effectiveAccent,
       heroGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,

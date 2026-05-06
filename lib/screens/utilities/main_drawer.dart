@@ -548,10 +548,6 @@ Widget drawerPulseStat({
       case 'diary':
         Navigator.pushNamed(context, '/diary');
         break;
-      case 'settings':
-        updateState(() => _navIndex = 3);
-        Navigator.pop(context);
-        break;
       case 'themes':
         updateState(() => _navIndex = 4);
         Navigator.pop(context);
@@ -691,7 +687,6 @@ Widget drawerPulseStat({
       {'name': 'Story', 'icon': 'psychology_rounded', 'color': '0xFFCDDC39', 'action': 'story'},
       {'name': 'Quotes', 'icon': 'format_quote_rounded', 'color': '0xFFFFEB3B', 'action': 'quotes'},
       {'name': 'Diary', 'icon': 'book_rounded', 'color': '0xFFF44336', 'action': 'diary'},
-      {'name': 'Settings', 'icon': 'settings_rounded', 'color': '0xFF607D8B', 'action': 'settings'},
       {'name': 'Themes', 'icon': 'palette_rounded', 'color': '0xFFE91E63', 'action': 'themes'},
       {'name': 'Affirmation', 'icon': 'self_improvement_rounded', 'color': '0xFF4CAF50', 'action': 'affirmation'},
       {'name': 'Horoscope', 'icon': 'auto_awesome_rounded', 'color': '0xFF9C27B0', 'action': 'horoscope'},
@@ -1152,97 +1147,6 @@ Widget drawerPulseStat({
             ),
             const SizedBox(height: 10),
 
-            // ── SCROLLING NAV LIST ─────────────────────────────────────────────
-            AnimatedBuilder(
-              animation: AffectionService.instance,
-              builder: (context, child) {
-                final srv = AffectionService.instance;
-                final mood = srv.levelProgress >= 0.75
-                    ? 'achievement'
-                    : srv.levelProgress >= 0.35
-                        ? 'motivated'
-                        : 'neutral';
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: GlassCard(
-                    margin: EdgeInsets.zero,
-                    padding: const EdgeInsets.all(14),
-                    glow: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            _AnimatedMissionIcon(primary: primary),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) => LinearGradient(
-                                      colors: [
-                                        primary,
-                                        Colors.pinkAccent,
-                                      ],
-                                    ).createShader(bounds),
-                                    child: Text(
-                                      'Mission Control',
-                                      style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    mood == 'achievement'
-                                        ? 'Zero Two is fully synced with you.'
-                                        : mood == 'motivated'
-                                            ? 'Momentum is building nicely.'
-                                            : 'Everything is calm and ready.',
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white60,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            drawerPulseStat(
-                              label: 'XP',
-                              value: '${srv.points}',
-                              icon: Icons.auto_awesome_rounded,
-                              color: primary,
-                            ),
-                            drawerPulseStat(
-                              label: 'Bond',
-                              value: srv.levelName.split(' ').first,
-                              icon: Icons.workspace_premium_rounded,
-                              color: Colors.amberAccent,
-                            ),
-                            drawerPulseStat(
-                              label: 'Hubs',
-                              value: '4',
-                              icon: Icons.hub_rounded,
-                              color: Colors.cyanAccent,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -1340,7 +1244,7 @@ Container(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'v2.0',
+                  'v11.0.2',
                   style: GoogleFonts.jetBrainsMono(
                     color: primary,
                     fontSize: 10,
@@ -1392,39 +1296,6 @@ Container(
                           _statItem(Icons.favorite_rounded, '${AffectionService.instance.affection}', 'Love', Colors.pinkAccent),
                           _statItem(Icons.local_fire_department_rounded, '${AffectionService.instance.streakDays}', 'Streak', Colors.orangeAccent),
                           _statItem(Icons.emoji_events_rounded, '${AffectionService.instance.level}', 'Level', Colors.amberAccent),
-                        ],
-                      ),
-                    ),
-
-                    // ═══ QUICK TOGGLES ═══
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: tokens.panel.withValues(alpha: 0.5),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: _quickToggle(Icons.wb_sunny_rounded, 'Lite', _liteModeEnabled, (v) => _sp.liteModeEnabled = v)),
-                          const SizedBox(width: 8),
-                          Expanded(child: _quickToggle(Icons.mic_rounded, 'Mic', _wakeWordEnabledByUser, _updateWakeWord)),
-                          const SizedBox(width: 8),
-                          Expanded(child: _quickToggle(Icons.notifications_rounded, 'Notif', _notificationsAllowed, (v) => _sp.notificationsAllowed = v)),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ═══ QUICK ACTIONS ═══
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          Expanded(child: _actionBtn(Icons.settings_rounded, 'Settings', () { Navigator.pop(context); updateState(() => _navIndex = 4); })),
-                          const SizedBox(width: 8),
-                          Expanded(child: _actionBtn(Icons.person_rounded, 'Profile', () { Navigator.pop(context); })),
                         ],
                       ),
                     ),
@@ -1916,82 +1787,6 @@ class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1)),
             ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AnimatedMissionIcon extends StatefulWidget {
-  final Color primary;
-  const _AnimatedMissionIcon({required this.primary});
-
-  @override
-  State<_AnimatedMissionIcon> createState() => _AnimatedMissionIconState();
-}
-
-class _AnimatedMissionIconState extends State<_AnimatedMissionIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _rotation;
-  late Animation<double> _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-    _rotation = Tween<double>(begin: 0, end: 1).animate(_ctrl);
-    _pulse = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _pulse.value,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                colors: [
-                  widget.primary,
-                  Colors.pinkAccent,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.primary.withValues(alpha: 0.5),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: RotationTransition(
-              turns: _rotation,
-              child: const Icon(
-                Icons.dashboard_customize_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
           ),
         );
       },

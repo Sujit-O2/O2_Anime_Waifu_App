@@ -81,7 +81,7 @@ class _PhotoMemoryAlbumPageState extends State<PhotoMemoryAlbumPage>
           IconButton(
             icon: Icon(
               _showFavoritesOnly ? Icons.favorite : Icons.favorite_border,
-              color: _showFavoritesOnly ? Colors.pinkAccent : null,
+              color: _showFavoritesOnly ? Colors.pinkAccent : Colors.white54,
             ),
             onPressed: () {
               setState(() => _showFavoritesOnly = !_showFavoritesOnly);
@@ -575,7 +575,7 @@ class _MemoryDetailSheetState extends State<_MemoryDetailSheet> {
                     IconButton(
                       icon: Icon(
                         _isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: _isFavorite ? Colors.pinkAccent : null,
+                        color: _isFavorite ? Colors.pinkAccent : Colors.white54,
                       ),
                       onPressed: () async {
                         await _service.toggleFavorite(widget.memory.id);

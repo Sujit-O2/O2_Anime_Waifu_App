@@ -121,11 +121,11 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     _AboutAnimatedItem(
                                       index: 8,
                                       child: _buildSectionTitle(
-                                        'WHAT\'S NEW IN V2.0',
+                                        'WHAT\'S NEW IN V11.0.2',
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    _AboutAnimatedItem(
+                                     _AboutAnimatedItem(
                                       index: 9,
                                       child: _buildV2FeaturesCard(),
                                     ),
