@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class NullZonePage extends StatefulWidget {
   const NullZonePage({super.key});
@@ -38,6 +39,7 @@ class _NullZonePageState extends State<NullZonePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('null_zone'));
     _zoneCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 700))
       ..repeat(reverse: true);

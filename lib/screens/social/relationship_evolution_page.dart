@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'dart:math' as math;
 
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Relationship Evolution Page — visual level map + daily login bonus.
 /// Shows the user's relationship progression through 7 tiers.
@@ -34,6 +36,7 @@ class _RelationshipEvolutionPageState extends State<RelationshipEvolutionPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('relationship_evolution'));
     _starCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 8))..repeat();
     _bonusCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _checkDailyBonus();

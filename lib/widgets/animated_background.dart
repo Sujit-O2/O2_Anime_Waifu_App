@@ -204,6 +204,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   Offset? interactionPoint;
   AppThemeMode? _lastMode;
   DateTime _lastFrameTime = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime _lastInteractionUpdate = DateTime.fromMillisecondsSinceEpoch(0);
 
   int _particleCountForTheme(AppThemeMode mode) {
     switch (AppThemes.getParticleType(mode)) {
@@ -275,6 +276,9 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
             return GestureDetector(
               onPanUpdate: (details) {
+                final now = DateTime.now();
+                if (now.difference(_lastInteractionUpdate).inMilliseconds < 33) return;  // ~30fps
+                _lastInteractionUpdate = now;
                 setState(() => interactionPoint = details.localPosition);
               },
               onPanEnd: (_) => setState(() => interactionPoint = null),
@@ -340,6 +344,10 @@ class _StaticBackgroundLayer extends StatelessWidget {
           valueListenable: customBackgroundUrlNotifier,
           builder: (context, bgUrl, _) {
             if (bgUrl != null && bgUrl.isNotEmpty) {
+              final screenSize = MediaQuery.sizeOf(context);
+              final dpr = MediaQuery.devicePixelRatioOf(context);
+              final cacheW = (screenSize.width * dpr).toInt().clamp(1, 1920);
+              final cacheH = (screenSize.height * dpr).toInt().clamp(1, 1920);
               return SizedBox(
                 width: double.infinity,
                 height: double.infinity,
@@ -348,6 +356,8 @@ class _StaticBackgroundLayer extends StatelessWidget {
                         bgUrl,
                         fit: BoxFit.cover,
                         filterQuality: FilterQuality.low,
+                        cacheWidth: cacheW,
+                        cacheHeight: cacheH,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFF0A0A1A),
                           child: const Center(
@@ -361,6 +371,8 @@ class _StaticBackgroundLayer extends StatelessWidget {
                         : Image.network(
                             bgUrl,
                             fit: BoxFit.cover,
+                            cacheWidth: cacheW,
+                            cacheHeight: cacheH,
                             errorBuilder: (c, e, s) => Image.asset(
                               'assets/gif/background_of_about_section_blurry.gif',
                               fit: BoxFit.cover,

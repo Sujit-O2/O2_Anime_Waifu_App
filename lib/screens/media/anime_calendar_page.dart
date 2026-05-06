@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Anime Calendar v2 — Weekly airing schedule with dark glass cards,
 /// today indicator, score badges, staggered animations, and haptics.
@@ -28,6 +30,7 @@ class _AnimeCalendarPageState extends State<AnimeCalendarPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('anime_calendar'));
     final todayIndex = DateTime.now().weekday - 1;
     _tabCtrl = TabController(length: 7, vsync: this, initialIndex: todayIndex);
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();

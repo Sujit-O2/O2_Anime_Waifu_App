@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/productivity/code_review_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class CodeReviewHelperPage extends StatefulWidget {
   const CodeReviewHelperPage({super.key});
@@ -24,6 +25,7 @@ class _CodeReviewHelperPageState extends State<CodeReviewHelperPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('code_review'));
     unawaited(_service.initialize());
     _langCtrl.text = 'dart';
   }

@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Future You Simulation v2 — "If I keep doing this, where will I be?"
 /// Uses your habits, streak, and time usage to make predictions with animated visualizations.
@@ -25,6 +27,7 @@ class _FutureSimPageState extends State<FutureSimPage> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('future_sim'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _shakeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);

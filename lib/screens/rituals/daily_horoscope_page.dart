@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Daily Horoscope v2 — AI-powered zodiac readings with sign picker,
 /// daily caching, fade animations, haptics, and FeaturePageV2 shell.
@@ -40,6 +42,7 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('daily_horoscope'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _loadSign();
   }

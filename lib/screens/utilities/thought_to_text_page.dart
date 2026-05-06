@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ThoughtToTextPage extends StatefulWidget {
   const ThoughtToTextPage({super.key});
@@ -34,6 +35,7 @@ class _ThoughtToTextPageState extends State<ThoughtToTextPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('thought_to_text'));
     _loadHistory();
   }
 

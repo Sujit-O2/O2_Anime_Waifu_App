@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Personal Search Engine — Search across ALL your data: notes, thoughts, goals, errors, knowledge.
 class PersonalSearchPage extends StatefulWidget {

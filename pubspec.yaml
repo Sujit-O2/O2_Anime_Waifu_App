@@ -1,7 +1,7 @@
 name: anime_waifu
 description: A Voice AI assistant with continuous listening, TTS, STT, and conversation memory.
 publish_to: "none"
-version: 10.0.2
+version: 11.0.2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -81,7 +81,6 @@ flutter:
 
   # Keep wake-word models under assets/wakeword for stable release loading.
   assets:
-    - assets/
     - assets/img/
     - assets/gif/background_of_about_section_blurry.gif
     - assets/gif/debug_area.gif

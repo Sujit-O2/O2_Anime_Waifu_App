@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class WordAssociationPage extends StatefulWidget {
   const WordAssociationPage({super.key});
@@ -28,6 +29,7 @@ class _WordAssociationPageState extends State<WordAssociationPage> with SingleTi
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('word_association'));
     _bgCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 6))..repeat();
     _loadStreak();
     _startGame();

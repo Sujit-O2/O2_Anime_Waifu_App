@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Gacha Waifu Collector — Daily card pulls with rarity tiers + animations.
 class GachaCollectorPage extends StatefulWidget {
@@ -54,6 +56,7 @@ class _GachaCollectorPageState extends State<GachaCollectorPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('gacha_collector'));
     _spinCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 2000));
     _spinAnim = CurvedAnimation(parent: _spinCtrl, curve: Curves.easeOutExpo);

@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/ai_personalization/ai_content_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 
 class LoveQuizPage extends StatefulWidget {
   const LoveQuizPage({super.key});
@@ -16,6 +18,9 @@ class _LoveQuizPageState extends State<LoveQuizPage>
   bool _loading = true;
   int _currentQ = 0;
   int _score = 0;
+  int _level = 1;
+  int _lives = 3;
+  int _bestScore = 0;
   bool _answered = false;
   int? _selectedOption;
   bool _finished = false;
@@ -24,6 +29,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
   @override
   void initState() {
     super.initState();
+    _loadDB();
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     _load();
   }
@@ -40,6 +46,15 @@ class _LoveQuizPageState extends State<LoveQuizPage>
     }
   }
 
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('love_quiz');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
+  }
+
   void _answer(int idx) {
     if (_answered || _questions.isEmpty) return;
     HapticFeedback.selectionClick();
@@ -53,7 +68,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
       correct = int.tryParse(rawAnswer) ?? 0;
     }
     if (correct >= options.length) correct = 0;
-    setState(() { _selectedOption = idx; _answered = true; if (idx == correct) _score++; });
+    setState(() { _selectedOption = idx; _answered = true; if (idx == correct) { _score++; _level++; if (_score > _bestScore) _bestScore = _score; unawaited(GameProgressDB.instance.save('love_quiz', level: _level, bestScore: _bestScore, totalPlayed: _score)); } else { _lives--; if (_lives <= 0) _lives = 3; } });
     _questions[_currentQ]['_correct_idx'] = correct;
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 
 /// Gratitude Journal — Firestore: gratitude/{uid}
@@ -49,6 +51,7 @@ class _GratitudeJournalPageState extends State<GratitudeJournalPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('gratitude_journal'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     _load();

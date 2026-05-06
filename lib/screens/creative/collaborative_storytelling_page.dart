@@ -2,6 +2,7 @@ import 'package:anime_waifu/services/creative/collaborative_storytelling_service
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class CollaborativeStorytellingPage extends StatefulWidget {
   const CollaborativeStorytellingPage({super.key});
@@ -26,6 +27,7 @@ class _CollaborativeStorytellingPageState
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('collab_story'));
     _tabs = TabController(length: 2, vsync: this);
     _init();
   }

@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class RoleplayScenarioPage extends StatefulWidget {
   const RoleplayScenarioPage({super.key});
@@ -86,6 +88,7 @@ class _RoleplayScenarioPageState extends State<RoleplayScenarioPage> with Single
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('roleplay_scenario'));
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
   }
 

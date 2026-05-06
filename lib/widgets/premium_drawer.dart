@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -351,8 +350,8 @@ class _ProfileHeader extends StatelessWidget {
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              Container(
+                color: theme.colorScheme.surface.withValues(alpha: 0.55),
                 child: Padding(
                   padding: const EdgeInsets.all(2),
                   child: Row(

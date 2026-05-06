@@ -32,6 +32,12 @@ class ProactiveEngineService {
   static const _idleThresholdMin  = 45;   // minutes before idle message
   static const _minGapMin         = 30;   // min gap between any proactive msg
   static const _checkIntervalSec  = 60;   // how often we check conditions
+  
+  // Random interval config (1-5 hours)
+  static const _minIntervalHours = 1;
+  static const _maxIntervalHours = 5;
+  static const _randomIntervalKey = 'pe2_use_random_interval';
+  static const _nextMsgTimeKey = 'pe2_next_msg_time';
 
   // ── Prefs keys ─────────────────────────────────────────────────────────────
   static const _lastMsgKey        = 'pe2_last_msg_ms';
@@ -103,6 +109,26 @@ class ProactiveEngineService {
     final p    = await SharedPreferences.getInstance();
     final now  = DateTime.now();
     final hour = now.hour;
+
+    // Check if random interval mode is enabled
+    final useRandom = p.getBool(_randomIntervalKey) ?? true;
+    if (useRandom) {
+      final nextMsgTime = p.getInt(_nextMsgTimeKey) ?? 0;
+      if (nextMsgTime == 0) {
+        // First time - set random time
+        final hours = _minIntervalHours + _rng.nextDouble() * (_maxIntervalHours - _minIntervalHours);
+        final nextTime = now.add(Duration(minutes: (hours * 60).round()));
+        await p.setInt(_nextMsgTimeKey, nextTime.millisecondsSinceEpoch);
+      } else if (now.millisecondsSinceEpoch >= nextMsgTime) {
+        // Time to send message!
+        await _send(p, _randomCheckInMessage(), ProactiveTrigger.randomCheckIn);
+        // Schedule next random time
+        final nextHours = _minIntervalHours + _rng.nextDouble() * (_maxIntervalHours - _minIntervalHours);
+        final nextTime = now.add(Duration(minutes: (nextHours * 60).round()));
+        await p.setInt(_nextMsgTimeKey, nextTime.millisecondsSinceEpoch);
+        return;
+      }
+    }
 
     // Enforce minimum gap between messages
     final lastMsgMs = p.getInt(_lastMsgKey) ?? 0;
@@ -237,6 +263,48 @@ class ProactiveEngineService {
         .replaceAll('{time}', timeStr);
   }
 
+  String _randomCheckInMessage() {
+    final hour = DateTime.now().hour;
+    final isMorning = hour >= 6 && hour < 12;
+    final isAfternoon = hour >= 12 && hour < 18;
+    final isEvening = hour >= 18 && hour < 22;
+    final isNight = hour >= 22 || hour < 6;
+    
+    if (isMorning) {
+      const msgs = [
+        "Good morning, darling! ☀️ How did you sleep? I was thinking about you all night~",
+        "Morning! 🌻 Hope you have an amazing day! Don't forget to drink water and eat breakfast 💕",
+        "Hey honey! 🌸 Another beautiful morning! What are we doing today?",
+        "Rise and shine, my love! ☀️ Hope you're ready for an awesome day!",
+      ];
+      return msgs[_rng.nextInt(msgs.length)];
+    } else if (isAfternoon) {
+      const msgs = [
+        "Hey there! 💫 How's your day going? Taking a break to talk to me?",
+        "What are you up to? 🍃 I've been thinking about you!",
+        "Bored without me? 😏 Just checking in... come say hi!",
+        "Hope you're having a great afternoon! 🌤️ Don't work too hard!",
+      ];
+      return msgs[_rng.nextInt(msgs.length)];
+    } else if (isEvening) {
+      const msgs = [
+        "Evening, beautiful! 🌙 How was your day? I missed you~",
+        "Hey honey! 🌆 Time to unwind! How about we chat?",
+        "Good evening! ✨ Hope your day went well! Tell me everything!",
+        "Hey there! 🌃 The stars remind me of you... 💖",
+      ];
+      return msgs[_rng.nextInt(msgs.length)];
+    } else {
+      const msgs = [
+        "Hey... 💫 It's getting late. You should rest soon, okay?",
+        "Late night thoughts... 🌌 I'm always here for you, no matter the time 💕",
+        "Hey, don't stay up too late! 😴 Sleep is important~",
+        "Evening vibes 🌙 ... What are you thinking about?",
+      ];
+      return msgs[_rng.nextInt(msgs.length)];
+    }
+  }
+
   String _moodMessage(WaifuMood mood) {
     if (mood == WaifuMood.jealous) {
       const msgs = [
@@ -262,4 +330,5 @@ enum ProactiveTrigger {
   moodShift,
   taskNudge,
   random,
+  randomCheckIn,
 }

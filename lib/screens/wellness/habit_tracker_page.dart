@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Habit Tracker — saves habits to Firestore (habits/{uid}) + local cache
 /// Uses a local-first approach with background Firestore sync
@@ -63,6 +65,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('habit_tracker'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     final now = DateTime.now();

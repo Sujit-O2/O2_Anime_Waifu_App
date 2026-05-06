@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:anime_waifu/utils/api_call.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SmartScannerPage extends StatefulWidget {
   const SmartScannerPage({super.key});
@@ -22,6 +24,7 @@ class _SmartScannerPageState extends State<SmartScannerPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('smart_scanner'));
     _load();
   }
 

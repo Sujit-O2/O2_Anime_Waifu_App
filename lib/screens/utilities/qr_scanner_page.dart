@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({super.key});
@@ -33,6 +35,7 @@ class _QrScannerPageState extends State<QrScannerPage> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('qr_scanner'));
     _tabCtrl = TabController(length: 2, vsync: this);
     _load();
   }

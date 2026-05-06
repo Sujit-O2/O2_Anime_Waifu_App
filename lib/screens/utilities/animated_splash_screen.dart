@@ -169,7 +169,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/img/front.png',
+                            'assets/gif/add_incircular_mode_app_oppening style.gif',
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Center(
                               child: Icon(Icons.favorite_rounded,

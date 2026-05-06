@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class BucketListPage extends StatefulWidget {
   const BucketListPage({super.key});
@@ -67,6 +69,7 @@ class _BucketListPageState extends State<BucketListPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('bucket_list'));
     _fadeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),

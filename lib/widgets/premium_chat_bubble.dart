@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +22,9 @@ class PremiumChatBubble extends StatefulWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onReact;
   final bool isSelected;
+  /// Pass true only for freshly inserted messages. Old messages skip the
+  /// animation entirely, saving one AnimationController per historical bubble.
+  final bool isNew;
 
   const PremiumChatBubble({
     super.key,
@@ -30,6 +34,7 @@ class PremiumChatBubble extends StatefulWidget {
     this.onLongPress,
     this.onReact,
     this.isSelected = false,
+    this.isNew = false,
   });
 
   @override
@@ -50,21 +55,20 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
       vsync: this,
       duration: const Duration(milliseconds: 350),
     );
-    _fadeAnim = CurvedAnimation(
-      parent: _animCtrl,
-      curve: Curves.easeOut,
-    );
+    _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animCtrl,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _scaleAnim = Tween<double>(begin: 0.96, end: 1.0).animate(
       CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic),
     );
-    _animCtrl.forward();
+    if (widget.isNew) {
+      _animCtrl.forward();
+    } else {
+      // Old message — skip animation, jump straight to final state
+      _animCtrl.value = 1.0;
+    }
   }
 
   @override
@@ -98,68 +102,26 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
               children: [
                 GestureDetector(
                   onLongPress: widget.onLongPress,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutCubic,
+                  child: Container(
                     decoration: BoxDecoration(
-                      gradient: isUser
-                          ? const LinearGradient(
-                              colors: [
-                                Color(0xFFFF4081),
-                                Color(0xFFC2185B),
-                                Color(0xFF7C4DFF),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              stops: [0.0, 0.5, 1.0],
-                            )
-                          : LinearGradient(
-                              colors: [
-                                tokens.panelElevated,
-                                tokens.panel,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(22),
                         topRight: const Radius.circular(22),
                         bottomLeft: Radius.circular(isUser ? 22 : 6),
                         bottomRight: Radius.circular(isUser ? 6 : 22),
                       ),
-                      border: widget.isSelected
-                          ? Border.all(
-                              color: theme.colorScheme.primary, width: 2.5)
-                          : isUser
-                              ? null
-                              : Border(
-                                  left: BorderSide(
-                                    color: theme.colorScheme.primary
-                                        .withValues(alpha: 0.6),
-                                    width: 3.5,
-                                  ),
-                                  top: BorderSide(
-                                      color: tokens.outline, width: 0.5),
-                                  right: BorderSide(
-                                      color: tokens.outline, width: 0.5),
-                                  bottom: BorderSide(
-                                      color: tokens.outline, width: 0.5),
-                                ),
                       boxShadow: [
                         BoxShadow(
                           color: isUser
-                              ? const Color(0xFFFF4081)
-                                  .withValues(alpha: 0.3)
-                              : theme.colorScheme.primary
-                                  .withValues(alpha: 0.1),
+                              ? const Color(0xFFFF4081).withValues(alpha: 0.3)
+                              : theme.colorScheme.primary.withValues(alpha: 0.1),
                           blurRadius: isUser ? 18 : 12,
                           offset: const Offset(0, 4),
                           spreadRadius: isUser ? -2 : -3,
                         ),
                         if (!isUser)
                           BoxShadow(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.06),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.06),
                             blurRadius: 24,
                             offset: const Offset(-2, 0),
                             spreadRadius: 0,
@@ -173,75 +135,16 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
                         bottomLeft: Radius.circular(isUser ? 22 : 6),
                         bottomRight: Radius.circular(isUser ? 6 : 22),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 14,
+                      child: isUser
+                          ? _buildUserBubble(theme, tokens)
+                          : BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                              child: _buildAIBubble(theme, tokens),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (widget.message.imageUrl != null ||
-                                    widget.message.imagePath != null)
-                                  _buildImage(context),
-                                if (widget.message.audioUrl != null)
-                                  _InlineAudioPlayer(url: widget.message.audioUrl!),
-                                if (widget.message.videoUrl != null)
-                                  _InlineVideoPlayer(url: widget.message.videoUrl!),
-                                if (widget.message.content.isNotEmpty)
-                                  SelectableText(
-                                    widget.message.content,
-                                    style: GoogleFonts.outfit(
-                                      color: isUser
-                                          ? Colors.white
-                                          : theme.colorScheme.onSurface,
-                                      fontSize: widget.fontSize,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.6,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          if (widget.message.reaction != null)
-                            Container(
-                              margin: const EdgeInsets.only(
-                                left: 14,
-                                right: 14,
-                                bottom: 10,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isUser
-                                    ? Colors.white.withValues(alpha: 0.2)
-                                    : theme.colorScheme.primary
-                                        .withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: isUser
-                                      ? Colors.white.withValues(alpha: 0.3)
-                                      : theme.colorScheme.primary
-                                          .withValues(alpha: 0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                widget.message.reaction!,
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            ),
-                        ],
-                      ),
                     ),
                   ),
                 ),
+                // end bubble
                 if (widget.showTimestamp)
                   Padding(
                     padding: const EdgeInsets.only(top: 6, left: 6, right: 6),
@@ -304,6 +207,126 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
                     ),
                   )
                 : const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildUserBubble(ThemeData theme, AppDesignTokens tokens) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFFF4081),
+            Color(0xFFC2185B),
+            Color(0xFF7C4DFF),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.0, 0.5, 1.0],
+        ),
+        border: widget.isSelected
+            ? Border.all(color: theme.colorScheme.primary, width: 2.5)
+            : null,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.message.imageUrl != null ||
+              widget.message.imagePath != null)
+            _buildImage(context),
+          if (widget.message.audioUrl != null)
+            _InlineAudioPlayer(url: widget.message.audioUrl!),
+          if (widget.message.videoUrl != null)
+            _InlineVideoPlayer(url: widget.message.videoUrl!),
+          if (widget.message.content.isNotEmpty)
+            SelectableText(
+              widget.message.content,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: widget.fontSize,
+                fontWeight: FontWeight.w500,
+                height: 1.6,
+                letterSpacing: 0.2,
+              ),
+            ),
+          if (widget.message.reaction != null)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                widget.message.reaction!,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAIBubble(ThemeData theme, AppDesignTokens tokens) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        border: widget.isSelected
+            ? Border.all(color: theme.colorScheme.primary, width: 2.5)
+            : Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.message.imageUrl != null ||
+              widget.message.imagePath != null)
+            _buildImage(context),
+          if (widget.message.audioUrl != null)
+            _InlineAudioPlayer(url: widget.message.audioUrl!),
+          if (widget.message.videoUrl != null)
+            _InlineVideoPlayer(url: widget.message.videoUrl!),
+          if (widget.message.content.isNotEmpty)
+            SelectableText(
+              widget.message.content,
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.95),
+                fontSize: widget.fontSize,
+                fontWeight: FontWeight.w500,
+                height: 1.6,
+                letterSpacing: 0.2,
+              ),
+            ),
+          if (widget.message.reaction != null)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                widget.message.reaction!,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+        ],
       ),
     );
   }

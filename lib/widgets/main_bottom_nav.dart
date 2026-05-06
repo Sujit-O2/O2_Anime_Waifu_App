@@ -50,45 +50,43 @@ class MainBottomNav extends StatelessWidget {
     final theme = Theme.of(context);
 
     return RepaintBoundary(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
+      child: Container(
         margin: EdgeInsets.fromLTRB(
-            14, 0, 14, bottomPadding > 0 ? bottomPadding + 4 : 14),
+            12, 0, 12, bottomPadding > 0 ? bottomPadding + 6 : 12),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
-              height: 70,
+              height: 72,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(28),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    tokens.panel.withValues(alpha: 0.78),
-                    tokens.panelElevated.withValues(alpha: 0.68),
+                    tokens.panel.withValues(alpha: 0.85),
+                    tokens.panelElevated.withValues(alpha: 0.75),
                   ],
                 ),
                 border: Border.all(
-                  color: accentColor.withValues(alpha: 0.22),
-                  width: 1.2,
+                  color: accentColor.withValues(alpha: 0.15),
+                  width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: accentColor.withValues(alpha: 0.18),
-                    blurRadius: 28,
-                    offset: const Offset(0, -2),
-                    spreadRadius: -6,
+                    color: accentColor.withValues(alpha: 0.25),
+                    blurRadius: 32,
+                    offset: const Offset(0, -4),
+                    spreadRadius: -8,
                   ),
                   BoxShadow(
                     color: theme.brightness == Brightness.dark
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : tokens.shadowColor,
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                    spreadRadius: -12,
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : tokens.shadowColor.withValues(alpha: 0.5),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                    spreadRadius: -14,
                   ),
                 ],
               ),
@@ -103,7 +101,7 @@ class MainBottomNav extends StatelessWidget {
                             disableAnimations: disableAnimations,
                             onTap: () {
                               if (selectedIndex != i) {
-                                HapticFeedback.selectionClick();
+                                HapticFeedback.mediumImpact();
                               }
                               onTap(i);
                             },
@@ -156,12 +154,12 @@ class _NavButtonState extends State<_NavButton>
       vsync: this,
       duration: widget.disableAnimations
           ? Duration.zero
-          : const Duration(milliseconds: 360),
+          : const Duration(milliseconds: 400),
       reverseDuration: widget.disableAnimations
           ? Duration.zero
-          : const Duration(milliseconds: 220),
+          : const Duration(milliseconds: 300),
     );
-    _scale = Tween<double>(begin: 1.0, end: 1.18).animate(
+    _scale = Tween<double>(begin: 1.0, end: 1.22).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
     );
     _glow = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -225,17 +223,17 @@ class _NavButtonState extends State<_NavButton>
                     AnimatedContainer(
                       duration: duration,
                       curve: Curves.easeOutCubic,
-                      width: widget.isSelected ? 48 : 0,
-                      height: widget.isSelected ? 36 : 0,
+                      width: widget.isSelected ? 52 : 0,
+                      height: widget.isSelected ? 38 : 0,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(20),
                         gradient: widget.isSelected
                             ? LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  widget.accentColor.withValues(alpha: 0.3),
-                                  widget.accentColor.withValues(alpha: 0.1),
+                                  widget.accentColor.withValues(alpha: 0.35),
+                                  widget.accentColor.withValues(alpha: 0.15),
                                 ],
                               )
                             : null,
@@ -243,9 +241,9 @@ class _NavButtonState extends State<_NavButton>
                             ? [
                                 BoxShadow(
                                   color: widget.accentColor
-                                      .withValues(alpha: 0.4 * _glow.value),
-                                  blurRadius: 16,
-                                  spreadRadius: -2,
+                                      .withValues(alpha: 0.5 * _glow.value),
+                                  blurRadius: 20,
+                                  spreadRadius: -4,
                                 ),
                               ]
                             : null,
@@ -254,7 +252,7 @@ class _NavButtonState extends State<_NavButton>
                     Transform.scale(
                       scale: _scale.value,
                       child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
+                        duration: const Duration(milliseconds: 300),
                         transitionBuilder: (child, anim) => ScaleTransition(
                           scale: anim,
                           child: child,
@@ -267,25 +265,25 @@ class _NavButtonState extends State<_NavButton>
                           color: widget.isSelected
                               ? widget.accentColor
                               : tokens.textMuted,
-                          size: 22,
+                          size: 24,
                           semanticLabel: widget.item.label,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 AnimatedDefaultTextStyle(
                   duration: duration,
                   curve: Curves.easeOutCubic,
                   style: GoogleFonts.outfit(
                     color: widget.isSelected
                         ? widget.accentColor
-                        : tokens.textSoft,
-                    fontSize: widget.isSelected ? 10.5 : 10,
+                        : tokens.textMuted,
+                    fontSize: widget.isSelected ? 11 : 10,
                     fontWeight:
-                        widget.isSelected ? FontWeight.w800 : FontWeight.w500,
-                    letterSpacing: widget.isSelected ? 0.3 : 0,
+                        widget.isSelected ? FontWeight.w700 : FontWeight.w500,
+                    letterSpacing: widget.isSelected ? 0.5 : 0.2,
                   ),
                   child: Text(
                     widget.item.label,

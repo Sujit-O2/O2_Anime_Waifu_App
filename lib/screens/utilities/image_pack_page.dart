@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/main.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ImagePack {
   final String name;
@@ -57,6 +59,7 @@ class _ImagePackPageState extends State<ImagePackPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('image_pack'));
     _currentBgUrl = customBackgroundUrlNotifier.value;
     _animationController = AnimationController(
       vsync: this,

@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class DrawLotsPage extends StatefulWidget {
   const DrawLotsPage({super.key});
@@ -37,6 +39,7 @@ class _DrawLotsPageState extends State<DrawLotsPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('draw_lots'));
     _shakeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),

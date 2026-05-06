@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/ai_personalization/ai_content_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class WouldYouRatherPage extends StatefulWidget {
   const WouldYouRatherPage({super.key});
@@ -37,6 +39,7 @@ class _WouldYouRatherPageState extends State<WouldYouRatherPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('would_you_rather'));
     _slideCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),

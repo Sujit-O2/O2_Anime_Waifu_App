@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class BattleCryPage extends StatefulWidget {
   const BattleCryPage({super.key});
@@ -34,6 +35,7 @@ class _BattleCryPageState extends State<BattleCryPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('battle_cry'));
     _auraCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 900))
       ..repeat(reverse: true);

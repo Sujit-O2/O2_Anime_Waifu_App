@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Character Database — view characters and voice actors for any anime.
 /// Uses Jikan API anime/{id}/characters endpoint.
@@ -33,6 +35,7 @@ class _CharacterDatabasePageState extends State<CharacterDatabasePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('character_db'));
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,

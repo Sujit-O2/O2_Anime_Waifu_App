@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class FinalJudgmentPage extends StatefulWidget {
   const FinalJudgmentPage({super.key});
@@ -37,6 +38,7 @@ class _FinalJudgmentPageState extends State<FinalJudgmentPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('final_judgment'));
     _swordCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600))
       ..repeat(reverse: true);

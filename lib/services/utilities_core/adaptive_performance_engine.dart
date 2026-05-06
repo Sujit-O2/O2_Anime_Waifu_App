@@ -6,7 +6,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// ADAPTIVE PERFORMANCE ENGINE — v10.0.2
+/// ADAPTIVE PERFORMANCE ENGINE — v11.0.2
 /// Battery-aware, thermal-aware, frame-budget-aware performance management.
 /// Automatically scales visual quality to preserve battery and smoothness.
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -44,50 +44,50 @@ class PerformanceProfile {
 
   static const ultra = PerformanceProfile(
     tier: PerformanceTier.ultra,
-    particleCount: 60,
-    blurSigma: 12,
+    particleCount: 8,
+    blurSigma: 4,
     enableParticles: true,
-    enableBackdropBlur: true,
-    enableShadows: true,
+    enableBackdropBlur: false,
+    enableShadows: false,
     enableAnimations: true,
-    targetFps: 120,
+    targetFps: 60,
     animationScale: 1.0,
   );
 
   static const high = PerformanceProfile(
     tier: PerformanceTier.high,
-    particleCount: 40,
-    blurSigma: 10,
-    enableParticles: true,
-    enableBackdropBlur: true,
-    enableShadows: true,
-    enableAnimations: true,
-    targetFps: 60,
-    animationScale: 1.0,
-  );
-
-  static const balanced = PerformanceProfile(
-    tier: PerformanceTier.balanced,
-    particleCount: 20,
-    blurSigma: 8,
-    enableParticles: true,
-    enableBackdropBlur: true,
-    enableShadows: false,
-    enableAnimations: true,
-    targetFps: 60,
-    animationScale: 0.8,
-  );
-
-  static const eco = PerformanceProfile(
-    tier: PerformanceTier.eco,
-    particleCount: 8,
-    blurSigma: 4,
+    particleCount: 4,
+    blurSigma: 0,
     enableParticles: false,
     enableBackdropBlur: false,
     enableShadows: false,
     enableAnimations: true,
+    targetFps: 60,
+    animationScale: 0.7,
+  );
+
+  static const balanced = PerformanceProfile(
+    tier: PerformanceTier.balanced,
+    particleCount: 0,
+    blurSigma: 0,
+    enableParticles: false,
+    enableBackdropBlur: false,
+    enableShadows: false,
+    enableAnimations: false,
     targetFps: 30,
-    animationScale: 0.5,
+    animationScale: 0.3,
+  );
+
+  static const eco = PerformanceProfile(
+    tier: PerformanceTier.eco,
+    particleCount: 0,
+    blurSigma: 0,
+    enableParticles: false,
+    enableBackdropBlur: false,
+    enableShadows: false,
+    enableAnimations: false,
+    targetFps: 30,
+    animationScale: 0.0,
   );
 
   static const minimal = PerformanceProfile(
@@ -109,8 +109,8 @@ class AdaptivePerformanceEngine extends ChangeNotifier {
   factory AdaptivePerformanceEngine() => _instance;
   AdaptivePerformanceEngine._internal();
 
-  PerformanceProfile _profile = PerformanceProfile.high;
-  PerformanceTier _tier = PerformanceTier.high;
+  PerformanceProfile _profile = PerformanceProfile.balanced;
+  PerformanceTier _tier = PerformanceTier.balanced;
   double _batteryLevel = 1.0;
   bool _isCharging = false;
   bool _userOverride = false;
@@ -132,7 +132,7 @@ class AdaptivePerformanceEngine extends ChangeNotifier {
     _startFrameMonitor();
     _startThermalMonitor();
     _monitorTimer = Timer.periodic(
-        const Duration(seconds: 30), (_) => _evaluate());
+        const Duration(seconds: 15), (_) => _evaluate());
     _evaluate();
   }
 
@@ -153,6 +153,16 @@ class AdaptivePerformanceEngine extends ChangeNotifier {
   double get _avgFrameMs {
     if (_frameTimes.isEmpty) return 16.0;
     return _frameTimes.reduce((a, b) => a + b) / _frameTimes.length;
+  }
+
+  double get _frameVariance {
+    if (_frameTimes.length < 5) return 0.0;
+    final avg = _avgFrameMs;
+    double sum = 0;
+    for (final t in _frameTimes) {
+      sum += (t - avg) * (t - avg);
+    }
+    return sum / _frameTimes.length;
   }
 
   // ── Thermal Monitor (via accelerometer variance as proxy) ─────────────────
@@ -182,14 +192,24 @@ class AdaptivePerformanceEngine extends ChangeNotifier {
     }
 
     final avgMs = _avgFrameMs;
-    final frameScore = avgMs < 20 ? 1.0 : avgMs < 40 ? 0.6 : 0.2;
+    final variance = _frameVariance;
+    
+    // Score based on average frame time (lower is better)
+    final frameScore = avgMs < 16.67 ? 1.0 : avgMs < 25 ? 0.8 : avgMs < 33 ? 0.5 : 0.2;
+    
+    // Penalize for high variance (unstable framerate)
+    final stabilityScore = variance < 10 ? 1.0 : variance < 30 ? 0.6 : 0.2;
+    
+    // Battery score
     final batteryScore = _isCharging ? 1.0 : _batteryLevel;
-    final combined = (frameScore * 0.4 + batteryScore * 0.6);
+    
+    // Combined with stability weight
+    final combined = (frameScore * 0.35 + stabilityScore * 0.25 + batteryScore * 0.4);
 
     PerformanceTier newTier;
-    if (combined >= 0.85) {
+    if (combined >= 0.8) {
       newTier = _isCharging ? PerformanceTier.ultra : PerformanceTier.high;
-    } else if (combined >= 0.65) {
+    } else if (combined >= 0.6) {
       newTier = PerformanceTier.balanced;
     } else if (combined >= 0.35) {
       newTier = PerformanceTier.eco;

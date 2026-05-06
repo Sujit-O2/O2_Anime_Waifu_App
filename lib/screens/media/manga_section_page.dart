@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'manga_detail_page.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Real MangaDex Genre UUIDs — no more fake IDs
 const _mdxGenres = {
@@ -162,6 +163,7 @@ class _MangaSectionPageState extends State<MangaSectionPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('manga_section'));
     _pulseCtrl =
         AnimationController(vsync: this, duration: const Duration(seconds: 2))
           ..repeat(reverse: true);

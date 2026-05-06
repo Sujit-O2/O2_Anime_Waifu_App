@@ -2,6 +2,7 @@ import 'package:anime_waifu/services/creative/game_master_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class GameMasterPage extends StatefulWidget {
   const GameMasterPage({super.key});
@@ -25,6 +26,7 @@ class _GameMasterPageState extends State<GameMasterPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('game_master'));
     _tabs = TabController(length: 3, vsync: this);
     _init();
   }

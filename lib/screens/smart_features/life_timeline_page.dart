@@ -1,6 +1,8 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/smart_features/life_timeline_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class LifeTimelinePage extends StatefulWidget {
   const LifeTimelinePage({super.key});
@@ -29,6 +31,7 @@ class _LifeTimelinePageState extends State<LifeTimelinePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('life_timeline'));
     _animCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);

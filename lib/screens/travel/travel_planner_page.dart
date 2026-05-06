@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:anime_waifu/services/travel/travel_planner_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class TravelPlannerPage extends StatefulWidget {
   const TravelPlannerPage({super.key});
@@ -23,6 +24,7 @@ class _TravelPlannerPageState extends State<TravelPlannerPage> with SingleTicker
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('travel_planner'));
     _tabController = TabController(length: 3, vsync: this);
     unawaited(_service.initialize());
   }

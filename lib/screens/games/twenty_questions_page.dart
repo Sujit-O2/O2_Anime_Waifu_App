@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class TwentyQuestionsPage extends StatefulWidget {
   const TwentyQuestionsPage({super.key});
@@ -25,6 +27,7 @@ class _TwentyQuestionsPageState extends State<TwentyQuestionsPage> with SingleTi
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('twenty_questions'));
     _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
     _loadStats();
   }

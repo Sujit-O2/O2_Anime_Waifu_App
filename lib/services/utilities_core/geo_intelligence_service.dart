@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// GEO INTELLIGENCE SERVICE — v10.0.2
+/// GEO INTELLIGENCE SERVICE — v11.0.2
 /// High-performance GIS: geo-fencing, heatmaps, smart location memory,
 /// place clustering, travel path, and location-based AI triggers.
 /// ═══════════════════════════════════════════════════════════════════════════

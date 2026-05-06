@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SpinnerWheelPage extends StatefulWidget {
   const SpinnerWheelPage({super.key});
@@ -33,6 +35,7 @@ class _SpinnerWheelPageState extends State<SpinnerWheelPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('spinner_wheel'));
     _spinCtrl =
         AnimationController(vsync: this, duration: const Duration(seconds: 3));
     _spinCtrl.addStatusListener((s) {

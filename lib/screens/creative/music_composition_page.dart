@@ -3,6 +3,7 @@ import 'package:anime_waifu/services/creative/music_gen_service.dart';
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class MusicCompositionPage extends StatefulWidget {
   const MusicCompositionPage({super.key});
@@ -42,6 +43,7 @@ class _MusicCompositionPageState extends State<MusicCompositionPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('music_composition'));
     _tabCtrl = TabController(length: 2, vsync: this);
     _stateSub = _player.onPlayerStateChanged.listen((s) {
       if (mounted) setState(() => _playerState = s);
@@ -112,7 +114,6 @@ class _MusicCompositionPageState extends State<MusicCompositionPage>
     try {
       final result = await MusicGenService.instance.generate(
         prompt: prompt,
-        durationSeconds: _duration,
       );
       if (mounted) {
         setState(() {

@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Auto Workflow Engine — "Start coding session" → AI opens IDE, sets timer, blocks distractions.
 class WorkflowEnginePage extends StatefulWidget {
@@ -82,6 +84,7 @@ class _WorkflowEnginePageState extends State<WorkflowEnginePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('workflow_engine'));
     _load();
   }
 

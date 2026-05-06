@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/smart_features/smart_study_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SmartStudyPage extends StatefulWidget {
   const SmartStudyPage({super.key});
@@ -48,6 +49,7 @@ class _SmartStudyPageState extends State<SmartStudyPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('smart_study'));
     _tabs = TabController(length: 5, vsync: this);
     _init();
   }

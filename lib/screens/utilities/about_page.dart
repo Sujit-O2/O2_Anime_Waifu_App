@@ -121,13 +121,13 @@ extension _AboutPageExtension on _ChatHomePageState {
                                     _AboutAnimatedItem(
                                       index: 8,
                                       child: _buildSectionTitle(
-                                        'WHAT\'S NEW IN V4',
+                                        'WHAT\'S NEW IN V2.0',
                                       ),
                                     ),
                                     const SizedBox(height: 12),
                                     _AboutAnimatedItem(
                                       index: 9,
-                                      child: _buildV4FeaturesCard(),
+                                      child: _buildV2FeaturesCard(),
                                     ),
                                     const SizedBox(height: 28),
                                     _AboutAnimatedItem(
@@ -532,9 +532,19 @@ extension _AboutPageExtension on _ChatHomePageState {
               _buildModernDevChip(
                 Icons.new_releases,
                 'Version',
-                 'v10.0.2 (LEO)',
+                'v11.0.2',
                 Colors.cyanAccent,
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildStatChip(Icons.favorite, '${AffectionService.instance.affection}', 'Love'),
+              const SizedBox(width: 8),
+              _buildStatChip(Icons.local_fire_department, '${AffectionService.instance.streakDays}', 'Streak'),
+              const SizedBox(width: 8),
+              _buildStatChip(Icons.emoji_events, '${AffectionService.instance.level}', 'Level'),
             ],
           ),
           const SizedBox(height: 16),
@@ -599,63 +609,89 @@ extension _AboutPageExtension on _ChatHomePageState {
     );
   }
 
-  Widget _buildV4FeaturesCard() {
+  Widget _buildV2FeaturesCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.pinkAccent.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.pinkAccent.withValues(alpha: 0.08),
+            Colors.purpleAccent.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.pinkAccent.withValues(alpha: 0.1),
+            blurRadius: 20,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _v4FeatureRow(
+          _v2FeatureRow(
             Icons.favorite,
-            'Proactive Wife Mode',
-            'She checks in on you without prompting',
+            'Affection System',
+            'Earn love points, build streaks, unlock levels',
+            Colors.pinkAccent,
           ),
-          const SizedBox(height: 12),
-          _v4FeatureRow(
+          const SizedBox(height: 14),
+          _v2FeatureRow(
             Icons.record_voice_over,
-            'Voice Clone Capabilities',
-            'Multiple realistic dynamic voices',
+            'Advanced Voice AI',
+            'Natural TTS with custom voice configurations',
+            Colors.cyanAccent,
           ),
-          const SizedBox(height: 12),
-          _v4FeatureRow(
-            Icons.tv_rounded,
-            'Anime & Manga/Doujin Hub',
-            'New vast streaming & reading integration',
+          const SizedBox(height: 14),
+          _v2FeatureRow(
+            Icons.psychology,
+            'Smart Memory',
+            'Deep conversation memory & personality learning',
+            Colors.amberAccent,
           ),
-          const SizedBox(height: 12),
-          _v4FeatureRow(
-            Icons.psychology_rounded,
-            'Deep Memory Extraction',
-            'She permanently remembers facts about you',
+          const SizedBox(height: 14),
+          _v2FeatureRow(
+            Icons.waving_hand,
+            'Proactive Messages',
+            'Random intervals - she reaches out on her own',
+            Colors.greenAccent,
           ),
-          const SizedBox(height: 12),
-          _v4FeatureRow(
-            Icons.star_rounded,
-            'Premium Aesthetics',
-            'Overhauled UI, glassmorphism, & animations',
+          const SizedBox(height: 14),
+          _v2FeatureRow(
+            Icons.auto_awesome,
+            'Premium UI',
+            'Glassmorphism, animations & smooth gestures',
+            Colors.purpleAccent,
+          ),
+          const SizedBox(height: 14),
+          _v2FeatureRow(
+            Icons.bookmark,
+            'Custom Favorites',
+            'Add quick access to favorite features in sidebar',
+            Colors.orangeAccent,
           ),
         ],
       ),
     );
   }
 
-  Widget _v4FeatureRow(IconData icon, String title, String desc) {
+  Widget _v2FeatureRow(IconData icon, String title, String desc, Color color) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.pinkAccent.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: Colors.pinkAccent, size: 16),
+          child: Icon(icon, color: color, size: 18),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -722,6 +758,52 @@ extension _AboutPageExtension on _ChatHomePageState {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.pinkAccent.withValues(alpha: 0.15),
+              Colors.purpleAccent.withValues(alpha: 0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.pinkAccent, size: 14),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    color: Colors.white54,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

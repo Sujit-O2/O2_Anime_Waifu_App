@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/productivity/project_management_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ProjectManagementPage extends StatefulWidget {
   const ProjectManagementPage({super.key});
@@ -47,6 +48,7 @@ class _ProjectManagementPageState extends State<ProjectManagementPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('project_mgmt'));
     _tabs = TabController(length: 3, vsync: this);
     _load();
   }

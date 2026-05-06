@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/memory_context/smart_photo_memory_service.dart';
 import 'package:anime_waifu/config/app_themes.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// 💕 Photo Memory Album Screen
 /// 
@@ -28,6 +29,7 @@ class _PhotoMemoryAlbumPageState extends State<PhotoMemoryAlbumPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('photo_memory'));
     _tabController = TabController(length: 4, vsync: this);
     _initializeService();
   }

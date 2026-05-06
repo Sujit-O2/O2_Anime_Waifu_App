@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/productivity/academic_research_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AcademicResearchPage extends StatefulWidget {
   const AcademicResearchPage({super.key});
@@ -29,6 +30,7 @@ class _AcademicResearchPageState extends State<AcademicResearchPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('academic_research'));
     _tabs = TabController(length: 2, vsync: this);
     _load();
   }

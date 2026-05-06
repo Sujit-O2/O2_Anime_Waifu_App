@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class PomodoroPage extends StatefulWidget {
   const PomodoroPage({super.key});
@@ -32,6 +33,7 @@ class _PomodoroPageState extends State<PomodoroPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('pomodoro'));
     _pulseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 900))
       ..repeat(reverse: true);

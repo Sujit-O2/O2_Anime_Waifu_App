@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AutoLifeManagerPage extends StatefulWidget {
   const AutoLifeManagerPage({super.key});
@@ -55,6 +56,7 @@ class _AutoLifeManagerPageState extends State<AutoLifeManagerPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('auto_life_manager'));
     _load();
   }
 

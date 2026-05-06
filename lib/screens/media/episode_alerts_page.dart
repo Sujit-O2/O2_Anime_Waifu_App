@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/anime_media/episode_alert_service.dart';
 import 'package:anime_waifu/widgets/app_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 
 class EpisodeAlertsPage extends StatefulWidget {
@@ -24,6 +26,7 @@ class _EpisodeAlertsPageState extends State<EpisodeAlertsPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('episode_alerts'));
     _tabController = TabController(length: 2, vsync: this);
     _load();
   }

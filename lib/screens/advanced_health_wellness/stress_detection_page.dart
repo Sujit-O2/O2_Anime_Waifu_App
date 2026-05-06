@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class StressDetectionPage extends StatefulWidget {
   const StressDetectionPage({super.key});
@@ -25,6 +27,7 @@ class _StressDetectionPageState extends State<StressDetectionPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('stress_detection'));
     _loadStressData();
   }
 

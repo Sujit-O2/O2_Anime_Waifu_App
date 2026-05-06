@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:math';
 
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 
 import 'package:anime_waifu/config/app_themes.dart';
 import 'package:anime_waifu/services/games_gamification/streak_service.dart';
@@ -25,6 +27,9 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
   int _streak = 0;
   int _bestStreak = 0;
   int _totalQuestions = 0;
+  int _level = 1;
+  int _lives = 3;
+  int _bestScore = 0;
   bool _loading = true;
   bool _answered = false;
   int? _selectedIndex;
@@ -55,6 +60,12 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
     if (!mounted) return;
     setState(() {
       _bestStreak = prefs.getInt('anime_quiz_best_streak_v2') ?? _bestStreak;
+    });
+    final rec = await GameProgressDB.instance.load('anime_quiz_v2');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
     });
   }
 
@@ -128,6 +139,8 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
         HapticFeedback.heavyImpact();
         _score++;
         _streak++;
+        _level++;
+        if (_score > _bestScore) _bestScore = _score;
         if (_streak > _bestStreak) {
           _bestStreak = _streak;
         }
@@ -138,10 +151,13 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
       } else {
         HapticFeedback.vibrate();
         _streak = 0;
+        _lives--;
+        if (_lives <= 0) _lives = 3;
         _shakeCtrl.forward(from: 0);
       }
     });
     _saveStats();
+    unawaited(GameProgressDB.instance.save('anime_quiz_v2', level: _level, bestScore: _bestScore, totalPlayed: _totalQuestions));
 
     Future<void>.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {

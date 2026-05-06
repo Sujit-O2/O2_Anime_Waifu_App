@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/models/chat_message.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class StatsAndHabitsPage extends StatefulWidget {
   const StatsAndHabitsPage({super.key});
@@ -27,6 +29,7 @@ class _StatsAndHabitsPageState extends State<StatsAndHabitsPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('stats_habits'));
     _tabController = TabController(length: 2, vsync: this);
     _loadStats();
     _loadHabits();

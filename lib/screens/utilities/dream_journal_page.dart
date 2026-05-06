@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Dream Journal — Firestore: dreams/{uid} → { entries: "[...]" }
 class DreamJournalPage extends StatefulWidget {
@@ -26,6 +28,7 @@ class _DreamJournalPageState extends State<DreamJournalPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('dream_journal'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     _load();

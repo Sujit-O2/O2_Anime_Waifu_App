@@ -831,7 +831,7 @@ extension _MainDebugExtension on _ChatHomePageState {
                           () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const GamesHubPage()))),
+                                  builder: (_) => GamesHubPage()))),
                       _debugActionBtn(
                           '📖 Story Adventure',
                           Icons.auto_stories_rounded,

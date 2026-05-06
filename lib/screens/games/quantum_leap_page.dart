@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class QuantumLeapPage extends StatefulWidget {
   const QuantumLeapPage({super.key});
@@ -34,6 +35,7 @@ class _QuantumLeapPageState extends State<QuantumLeapPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('quantum_leap'));
     _portalCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600))
       ..repeat(reverse: true);

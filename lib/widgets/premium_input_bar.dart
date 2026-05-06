@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// ═══════════════════════════════════════════════════════════════════════════
-/// PREMIUM CHAT INPUT BAR — v10.0.2
+/// ═══════════════════════════════════════════════════════════════════════════════════
+/// PREMIUM CHAT INPUT BAR — v11.0.2
 /// Glassmorphism design with frosted blur, neon glow border, morphing button
 /// ═══════════════════════════════════════════════════════════════════════════
 
@@ -199,16 +199,25 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color: Colors.white.withValues(alpha: 0.07),
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.02),
+                    ],
+                  ),
                   border: Border.all(
                     color: widget.isListening
-                        ? accent.withValues(alpha: 0.8)
-                        : accent.withValues(alpha: glowOpacity * 0.6),
-                    width: 1.2,
+                        ? accent.withValues(alpha: 0.9)
+                        : _hasText 
+                            ? accent.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.12),
+                    width: 1.5,
                   ),
                 ),
                 child: Row(
@@ -216,6 +225,7 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
                   children: [
                     const SizedBox(width: 4),
                     if (widget.onImagePick != null) _buildImageButton(accent),
+                    _buildEmojiButton(accent),
                     Expanded(
                       child: widget.isListening
                           ? _buildWaveform(accent)
@@ -270,38 +280,77 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     );
   }
 
-  Widget _buildTextField() {
-    return TextField(
-      controller: widget.controller,
-      focusNode: widget.focusNode,
-      maxLines: 5,
-      minLines: 1,
-      textCapitalization: TextCapitalization.sentences,
-      style: GoogleFonts.outfit(
-        fontSize: 15,
-        height: 1.5,
-        color: Colors.white.withValues(alpha: 0.92),
-        fontWeight: FontWeight.w400,
-      ),
-      cursorColor: widget.accentColor ?? const Color(0xFFFF0057),
-      cursorWidth: 2,
-      cursorRadius: const Radius.circular(4),
-      decoration: InputDecoration(
-        hintText: widget.isThinking
-            ? 'Zero Two is thinking...'
-            : 'Message Zero Two...',
-        hintStyle: GoogleFonts.outfit(
-          color: Colors.white.withValues(alpha: 0.28),
-          fontSize: 14.5,
-          fontStyle:
-              widget.isThinking ? FontStyle.italic : FontStyle.normal,
-          fontWeight: FontWeight.w300,
+  Widget _buildEmojiButton(Color accent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          final text = widget.controller.text;
+          final cursorPos = widget.controller.selection.baseOffset;
+          final newText = cursorPos >= 0 
+              ? text.substring(0, cursorPos) + '💖' + text.substring(cursorPos)
+              : text + '💖';
+          widget.controller.text = newText;
+          widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: cursorPos >= 0 ? cursorPos + 1 : newText.length),
+          );
+        },
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+          child: const Center(
+            child: Text('💖', style: TextStyle(fontSize: 14)),
+          ),
         ),
-        border: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      ),
+    );
+  }
+
+Widget _buildTextField() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.black.withValues(alpha: 0.2),
+      ),
+      child: TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        maxLines: 5,
+        minLines: 1,
+        textCapitalization: TextCapitalization.sentences,
+        style: GoogleFonts.outfit(
+          fontSize: 15,
+          height: 1.4,
+          color: Colors.white.withValues(alpha: 0.95),
+          fontWeight: FontWeight.w400,
+        ),
+        cursorColor: widget.accentColor ?? const Color(0xFFFF0057),
+        cursorWidth: 2,
+        cursorRadius: const Radius.circular(4),
+        decoration: InputDecoration(
+          hintText: widget.isThinking
+              ? 'Zero Two is thinking...'
+              : 'Type a message...',
+          hintStyle: GoogleFonts.outfit(
+            color: Colors.white.withValues(alpha: 0.25),
+            fontSize: 14,
+            fontStyle: widget.isThinking ? FontStyle.italic : FontStyle.normal,
+            fontWeight: FontWeight.w400,
+          ),
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
       ),
     );
   }

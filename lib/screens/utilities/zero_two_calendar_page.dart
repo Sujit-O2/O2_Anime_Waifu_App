@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// A yearly calendar view showing scheduled messages, special dates, and events.
 class ZeroTwoCalendarPage extends StatefulWidget {
@@ -19,6 +21,7 @@ class _ZeroTwoCalendarPageState extends State<ZeroTwoCalendarPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('zero_two_calendar'));
     _loadEvents();
   }
 
