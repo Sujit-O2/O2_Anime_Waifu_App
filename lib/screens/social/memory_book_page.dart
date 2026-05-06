@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class MemoryBookPage extends StatefulWidget {
   const MemoryBookPage({super.key});
@@ -54,6 +56,7 @@ class _MemoryBookPageState extends State<MemoryBookPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('memory_book'));
     _load();
   }
 

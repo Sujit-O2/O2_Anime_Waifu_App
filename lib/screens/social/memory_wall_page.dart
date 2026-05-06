@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class MemoryWallPage extends StatefulWidget {
   const MemoryWallPage({super.key});
@@ -40,6 +42,7 @@ class _MemoryWallPageState extends State<MemoryWallPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('memory_wall'));
     _fadeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../services/smart_features/inbox_copilot_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class InboxCopilotPage extends StatefulWidget {
   const InboxCopilotPage({super.key});
@@ -27,6 +28,7 @@ class _InboxCopilotPageState extends State<InboxCopilotPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('inbox_copilot'));
     _tabs = TabController(length: 3, vsync: this);
     _init();
   }

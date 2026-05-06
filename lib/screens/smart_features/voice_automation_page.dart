@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'package:anime_waifu/services/smart_features/voice_automation_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class VoiceAutomationPage extends StatefulWidget {
   const VoiceAutomationPage({super.key});
@@ -34,6 +35,7 @@ class _VoiceAutomationPageState extends State<VoiceAutomationPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('voice_automation'));
     _pulseCtrl =
         AnimationController(vsync: this, duration: const Duration(seconds: 2))
           ..repeat(reverse: true);

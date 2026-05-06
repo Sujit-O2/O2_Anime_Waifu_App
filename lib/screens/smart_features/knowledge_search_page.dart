@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/smart_features/knowledge_search_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class KnowledgeSearchPage extends StatefulWidget {
   const KnowledgeSearchPage({super.key});
@@ -41,6 +42,7 @@ class _KnowledgeSearchPageState extends State<KnowledgeSearchPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('knowledge_search'));
     _loadInitialData();
     _searchCtrl.addListener(_onSearchChanged);
   }

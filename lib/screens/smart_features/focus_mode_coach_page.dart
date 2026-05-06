@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import '../../services/smart_features/focus_mode_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class FocusModeCoachPage extends StatefulWidget {
   const FocusModeCoachPage({super.key});
@@ -39,6 +40,7 @@ class _FocusModeCoachPageState extends State<FocusModeCoachPage> with SingleTick
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('focus_mode'));
     _tabController = TabController(length: 3, vsync: this);
     _loadData();
     _checkActiveSession();

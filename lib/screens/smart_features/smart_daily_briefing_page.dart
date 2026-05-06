@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/smart_features/daily_briefing_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SmartDailyBriefingPage extends StatefulWidget {
   const SmartDailyBriefingPage({super.key});
@@ -24,6 +26,7 @@ class _SmartDailyBriefingPageState extends State<SmartDailyBriefingPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('daily_briefing'));
     _animCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
