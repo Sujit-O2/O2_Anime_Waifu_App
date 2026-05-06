@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 import 'package:anime_waifu/services/ai_personalization/ai_content_service.dart';
 
 class TruthOrDarePage extends StatefulWidget {
@@ -26,6 +28,17 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
   final Random _rng = Random();
   int _truthPulls = 0;
   int _darePulls = 0;
+  int _level = 1;
+  int _bestScore = 0;
+
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('truth_dare');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
+  }
 
   String get _commentaryMood {
     if ((_truthPulls + _darePulls) >= 6) {
@@ -48,6 +61,7 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
       CurvedAnimation(parent: _flipCtrl, curve: Curves.easeOut),
     );
     _load();
+    _loadDB();
   }
 
   @override
@@ -94,7 +108,11 @@ class _TruthOrDarePageState extends State<TruthOrDarePage>
       } else {
         _darePulls++;
       }
+      _level++;
+      final total = _truthPulls + _darePulls;
+      if (total > _bestScore) _bestScore = total;
     });
+    unawaited(GameProgressDB.instance.save('truth_dare', level: _level, bestScore: _bestScore, totalPlayed: _truthPulls + _darePulls));
   }
 
   @override

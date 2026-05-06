@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Waifu Tier List Maker — Drag-and-drop builder with save/share.
 class WaifuTierListPage extends StatefulWidget {
@@ -40,6 +42,7 @@ class _WaifuTierListPageState extends State<WaifuTierListPage> with SingleTicker
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('waifu_tier_list'));
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
     _load();
   }

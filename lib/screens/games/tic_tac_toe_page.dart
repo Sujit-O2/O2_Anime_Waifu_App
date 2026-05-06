@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 
 class TicTacToePage extends StatefulWidget {
   const TicTacToePage({super.key});
@@ -18,6 +19,9 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
   bool _playerTurn = true;
   String _status = 'Your turn, Darling~';
   int _wins = 0, _losses = 0, _draws = 0;
+  int _level = 1;
+  int _lives = 3;
+  int _bestScore = 0;
   bool _gameOver = false;
   List<int>? _winLine;
   late List<AnimationController> _cellCtrl;
@@ -54,6 +58,12 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
         });
       }
     } catch (_) {}
+    final rec = await GameProgressDB.instance.load('ttt');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
   }
 
   Future<void> _saveStats() async {
@@ -87,6 +97,9 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
     final win = _checkWinner(_board);
     if (win != null) {
       _wins++;
+      _level++;
+      if (_wins > _bestScore) _bestScore = _wins;
+      unawaited(GameProgressDB.instance.save('ttt', level: _level, bestScore: _bestScore, totalPlayed: _wins + _losses + _draws));
       setState(() { _winLine = win; _gameOver = true; _status = 'You win! I let you have that one~ 😏'; });
       _saveStats();
       return;
@@ -110,6 +123,9 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
     final win = _checkWinner(_board);
     if (win != null) {
       _losses++;
+      _lives--;
+      if (_lives <= 0) _lives = 3;
+      unawaited(GameProgressDB.instance.save('ttt', level: _level, bestScore: _bestScore, totalPlayed: _wins + _losses + _draws));
       setState(() { _winLine = win; _gameOver = true; _status = 'Fufu~ I win! Better luck next time 😈'; });
       _saveStats();
       return;

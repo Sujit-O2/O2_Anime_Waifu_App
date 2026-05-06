@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/utils/api_call.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class StoryAdventurePage extends StatefulWidget {
   const StoryAdventurePage({super.key});
@@ -81,6 +83,7 @@ class _StoryAdventurePageState extends State<StoryAdventurePage> with SingleTick
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('story_adventure'));
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
     _loadStory();
   }

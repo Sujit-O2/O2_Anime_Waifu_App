@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 
 class RockPaperScissorsPage extends StatefulWidget {
   const RockPaperScissorsPage({super.key});
@@ -37,6 +39,9 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
   int _playerWins = 0;
   int _zeroWins = 0;
   int _draws = 0;
+  int _level = 1;
+  int _lives = 3;
+  int _bestScore = 0;
 
   int? _playerChoice;
   int? _zeroChoice;
@@ -93,6 +98,12 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
       _zeroWins = prefs.getInt('rps_zerotwo_wins') ?? 0;
       _draws = prefs.getInt('rps_draws') ?? 0;
     });
+    final rec = await GameProgressDB.instance.load('rps');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
   }
 
   Future<void> _saveStats() async {
@@ -140,6 +151,15 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
       _draws++;
     }
     await _saveStats();
+    if (outcome == 'win') {
+      _level++;
+      final pts = _level * 10;
+      if (pts > _bestScore) _bestScore = pts;
+    } else if (outcome == 'lose') {
+      _lives--;
+      if (_lives <= 0) _lives = 3;
+    }
+    unawaited(GameProgressDB.instance.save('rps', level: _level, bestScore: _bestScore, totalPlayed: _playerWins + _zeroWins + _draws));
 
     final List<String> choices = _comments[outcome]!;
     final String comment = choices[Random().nextInt(choices.length)];

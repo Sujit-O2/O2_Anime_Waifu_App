@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class TimeFreezePage extends StatefulWidget {
   const TimeFreezePage({super.key});
@@ -37,6 +38,7 @@ class _TimeFreezePageState extends State<TimeFreezePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('time_freeze'));
     _clockCtrl = AnimationController(
         vsync: this, duration: const Duration(seconds: 2))
       ..repeat();

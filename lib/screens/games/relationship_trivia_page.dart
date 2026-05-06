@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/games_gamification/game_progress_db.dart';
 import 'package:anime_waifu/services/games_gamification/game_sounds_service.dart';
 
 class RelationshipTriviaPage extends StatefulWidget {
@@ -116,13 +118,25 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
   int? _chosen;
   bool _answered = false;
   int _score = 0;
+  int _level = 1;
+  int _bestScore = 0;
   bool _done = false;
   int _highScore = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadDB();
     _loadHighScore();
+  }
+
+  Future<void> _loadDB() async {
+    final rec = await GameProgressDB.instance.load('rel_trivia');
+    if (!mounted) return;
+    setState(() {
+      _level = (rec['level'] as int?) ?? 1;
+      _bestScore = (rec['bestScore'] as int?) ?? 0;
+    });
   }
 
   Future<void> _loadHighScore() async {
@@ -176,6 +190,9 @@ class _RelationshipTriviaPageState extends State<RelationshipTriviaPage> {
       _answered = true;
       if (correct) {
         _score++;
+        _level++;
+        if (_score > _bestScore) _bestScore = _score;
+        unawaited(GameProgressDB.instance.save('rel_trivia', level: _level, bestScore: _bestScore, totalPlayed: _score));
       }
     });
   }
