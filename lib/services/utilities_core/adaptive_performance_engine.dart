@@ -44,20 +44,20 @@ class PerformanceProfile {
 
   static const ultra = PerformanceProfile(
     tier: PerformanceTier.ultra,
-    particleCount: 60,
-    blurSigma: 12,
+    particleCount: 30,
+    blurSigma: 10,
     enableParticles: true,
     enableBackdropBlur: true,
     enableShadows: true,
     enableAnimations: true,
-    targetFps: 120,
+    targetFps: 60,
     animationScale: 1.0,
   );
 
   static const high = PerformanceProfile(
     tier: PerformanceTier.high,
-    particleCount: 40,
-    blurSigma: 10,
+    particleCount: 20,
+    blurSigma: 8,
     enableParticles: true,
     enableBackdropBlur: true,
     enableShadows: true,
@@ -68,10 +68,10 @@ class PerformanceProfile {
 
   static const balanced = PerformanceProfile(
     tier: PerformanceTier.balanced,
-    particleCount: 20,
-    blurSigma: 8,
+    particleCount: 10,
+    blurSigma: 6,
     enableParticles: true,
-    enableBackdropBlur: true,
+    enableBackdropBlur: false,
     enableShadows: false,
     enableAnimations: true,
     targetFps: 60,
@@ -109,8 +109,8 @@ class AdaptivePerformanceEngine extends ChangeNotifier {
   factory AdaptivePerformanceEngine() => _instance;
   AdaptivePerformanceEngine._internal();
 
-  PerformanceProfile _profile = PerformanceProfile.high;
-  PerformanceTier _tier = PerformanceTier.high;
+  PerformanceProfile _profile = PerformanceProfile.balanced;
+  PerformanceTier _tier = PerformanceTier.balanced;
   double _batteryLevel = 1.0;
   bool _isCharging = false;
   bool _userOverride = false;

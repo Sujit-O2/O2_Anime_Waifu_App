@@ -577,11 +577,6 @@ class _ChatHomePageState extends State<ChatHomePage>
   final TextEditingController _textController = TextEditingController();
   late final AnimationController _animationController;
   late final AnimationController _floatController;
-  late final AnimationController _openingController;
-  late final Animation<double> _openingFade;
-  late final Animation<double> _openingScale;
-  late final Animation<double> _contentFade;
-  late final Animation<Offset> _contentSlide;
 
   bool get _isAutoListening => _vp.isAutoListening;
   set _isAutoListening(bool v) => _vp.isAutoListening = v;
@@ -865,7 +860,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   static const Duration _wakeDetectCooldown = Duration(seconds: 4);
   static const int _maxConversationMessages = 50;
   static const int _maxPayloadMessages = 20;
-  bool _showOpeningOverlay = true;
   bool get _wakeWordReady => _vp.wakeWordReady;
   set _wakeWordReady(bool v) => _vp.wakeWordReady = v;
   bool get _wakeInitInProgress => _vp.wakeInitInProgress;
@@ -1065,43 +1059,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _floatController =
         AnimationController(duration: const Duration(seconds: 4), vsync: this)
           ..repeat();
-    _openingController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _openingFade = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _openingController,
-        curve: const Interval(0.68, 1.0, curve: Curves.easeOut),
-      ),
-    );
-    _openingScale = Tween<double>(begin: 0.92, end: 1.12).animate(
-      CurvedAnimation(
-        parent: _openingController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-    _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _openingController,
-        curve: const Interval(0.72, 1.0, curve: Curves.easeOut),
-      ),
-    );
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.03),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _openingController,
-        curve: const Interval(0.72, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
-    _openingController.addListener(() {
-      if (_openingController.value >= 0.85 && _showOpeningOverlay) {
-        setState(() => _showOpeningOverlay = false);
-      }
-    });
-    _openingController.forward();
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -2389,7 +2346,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     unawaited(_wakeWordService.dispose());
     _animationController.dispose();
     _floatController.dispose();
-    _openingController.dispose();
     _scrollController.dispose();
     _textController.dispose();
     _chatSearchController.dispose();
@@ -2403,11 +2359,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _backgroundTransitionTimer?.cancel();
 
     if (state == AppLifecycleState.resumed) {
-      // Ensure content is always visible when returning from background
-      if (mounted && _showOpeningOverlay) {
-        setState(() => _showOpeningOverlay = false);
-        _openingController.value = 1.0;
-      }
       _suspendWakeWord = false;
       if (_assistantModeEnabled) {
         // Hand-off: stop native wake first, then restore Flutter wake.
@@ -5251,7 +5202,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                   child: _buildNavBody(),
                 ),
                 if (_inAppNotifText.isNotEmpty) _buildInAppNotificationPopup(),
-                if (_showOpeningOverlay) _buildOpeningOverlay(),
                 if (!_liteModeEnabled &&
                     _navIndex == 0 &&
                     _messages.isEmpty &&
@@ -5287,79 +5237,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         particleCount: _liteModeEnabled ? 0 : AdaptivePerformanceEngine().particleCount,
         enableAurora: !_liteModeEnabled,
         child: const SizedBox.expand(),
-      ),
-    );
-  }
-
-  Widget _buildOpeningOverlay() {
-    return IgnorePointer(
-      child: FadeTransition(
-        opacity: _openingFade,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 1.05,
-              colors: [
-                const Color(0xFF40141D),
-                const Color(0xCC1A1018),
-                AppThemes.getTheme(themeNotifier.value).scaffoldBackgroundColor,
-              ],
-            ),
-          ),
-          child: Center(
-            child: ScaleTransition(
-              scale: _openingScale,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RepaintBoundary(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: Image.asset(
-                        'assets/img/front.png',
-                        width: 170,
-                        height: 170,
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.low,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Image.asset(
-                    'assets/img/front.png',
-                    width: 220,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.low,
-                    errorBuilder: (_, __, ___) => Text(
-                      'ZERO TWO',
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 4,
-                        shadows: [
-                          const Shadow(color: Colors.redAccent, blurRadius: 22)
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'CORE 0.02',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white60,
-                      fontSize: 10,
-                      letterSpacing: 2.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
