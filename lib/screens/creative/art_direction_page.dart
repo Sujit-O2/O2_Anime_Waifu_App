@@ -1,6 +1,7 @@
 import 'package:anime_waifu/services/creative/art_direction_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ArtDirectionPage extends StatefulWidget {
   const ArtDirectionPage({super.key});
@@ -21,6 +22,7 @@ class _ArtDirectionPageState extends State<ArtDirectionPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('art_direction'));
     _load();
   }
 

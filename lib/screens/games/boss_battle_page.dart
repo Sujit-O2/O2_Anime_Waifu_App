@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:math';
 
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Boss Battles — Anime trivia boss fights with HP bars and power-ups.
 class BossBattlePage extends StatefulWidget {
@@ -38,6 +40,7 @@ class _BossBattlePageState extends State<BossBattlePage> with TickerProviderStat
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('boss_battle'));
     _shakeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
     _shakeAnim = Tween<double>(begin: 0, end: 10).animate(
       CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticIn));

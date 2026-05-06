@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Writing Helper v2 — AI-powered writing assistant with type/tone selection,
 /// history persistence, copy-to-clipboard, word stats, and Zero Two voice.
@@ -49,6 +51,7 @@ class _WritingHelperPageState extends State<WritingHelperPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('writing_helper'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _loadHistory();
   }

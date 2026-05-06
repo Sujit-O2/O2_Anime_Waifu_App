@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AiStoryGamePage extends StatefulWidget {
   const AiStoryGamePage({super.key});
@@ -69,6 +71,7 @@ class _AiStoryGamePageState extends State<AiStoryGamePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('ai_story_game'));
     _loadHistory();
   }
 
