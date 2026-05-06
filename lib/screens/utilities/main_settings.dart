@@ -632,37 +632,31 @@ extension _MainSettingsExtension on _ChatHomePageState {
                                       fontWeight: FontWeight.w600)),
                               const Spacer(),
                               Text(
-                                  _voiceModel == 'arabic'
-                                      ? 'Aisha'
-                                      : _voiceModel == 'lulwa'
-                                          ? 'Lulwa'
-                                          : _voiceModel == 'autumn'
-                                              ? 'Autumn'
-                                              : 'Hannah',
+                                  _voiceModel[0].toUpperCase() + _voiceModel.substring(1),
                                   style: GoogleFonts.outfit(
                                       color: Colors.cyanAccent, fontSize: 11)),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Column(
+                          const SizedBox(height: 6),
+                          Text('🎙 English', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
                             children: [
-                              Row(
-                                children: [
-                                  _buildVoiceOption(context, 'arabic', 'Aisha'),
-                                  const SizedBox(width: 8),
-                                  _buildVoiceOption(context, 'lulwa', 'Lulwa'),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  _buildVoiceOption(
-                                      context, 'english', 'Hannah'),
-                                  const SizedBox(width: 8),
-                                  _buildVoiceOption(
-                                      context, 'autumn', 'Autumn'),
-                                ],
-                              ),
+                              for (final v in ['autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy'])
+                                _buildVoiceOption(context, v, v[0].toUpperCase() + v.substring(1)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text('🌙 Arabic', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              for (final v in ['aisha', 'lulwa', 'noura', 'abdullah', 'fahad', 'sultan'])
+                                _buildVoiceOption(context, v, v[0].toUpperCase() + v.substring(1)),
                             ],
                           ),
                         ],
@@ -698,7 +692,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              children: ['alloy', 'lulwa', 'nova', 'echo']
+                              children: ['autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy', 'aisha', 'lulwa', 'noura', 'abdullah', 'fahad', 'sultan']
                                   .map(
                                     (voice) => ChoiceChip(
                                       label: Text(

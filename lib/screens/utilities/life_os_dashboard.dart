@@ -12,6 +12,7 @@ import 'package:anime_waifu/services/ai_personalization/personality_engine.dart'
 import 'package:anime_waifu/services/ai_personalization/emotional_memory_service.dart';
 import 'package:anime_waifu/services/utilities_core/proactive_engine_service.dart';
 import 'package:anime_waifu/core/router/app_router.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// Life OS Dashboard — the startup-level main screen.
@@ -93,6 +94,7 @@ class _LifeOsDashboardState extends State<LifeOsDashboard>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('life_os_dashboard'));
     _breathCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 3000))
       ..repeat(reverse: true);

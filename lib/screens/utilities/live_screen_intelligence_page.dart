@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class LiveScreenIntelligencePage extends StatefulWidget {
   const LiveScreenIntelligencePage({super.key});
@@ -55,6 +56,7 @@ class _LiveScreenIntelligencePageState extends State<LiveScreenIntelligencePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('live_screen'));
     _loadState();
   }
 

@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                 const SizedBox(height: 20),
                 Center(
-                  child: Text('v10.0.2 · O2-WAIFU',
+                  child: Text('v11.0.2 · O2-WAIFU',
                       style: GoogleFonts.jetBrainsMono(
                         color: Colors.white.withValues(alpha: 0.12),
                         fontSize: 9,
