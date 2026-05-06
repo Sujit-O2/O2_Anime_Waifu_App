@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AiPersonalityModesPage extends StatefulWidget {
   const AiPersonalityModesPage({super.key});
@@ -106,6 +108,7 @@ class _AiPersonalityModesPageState extends State<AiPersonalityModesPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('ai_personality_modes'));
     _load();
   }
 

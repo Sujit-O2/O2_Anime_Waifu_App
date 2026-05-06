@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:anime_waifu/services/ai_personalization/assistant_mode_service.dart';
@@ -36,6 +37,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _chatImageFromSystemPrefKey = 'chat_image_from_system_v1';
   static const String _customAppIconPathPrefKey = 'custom_app_icon_path_v1';
   static const String _appIconFromCustomPrefKey = 'app_icon_from_custom_v1';
+  static const String _customFavoritesPrefKey = 'custom_favorites_v1';
   static const String _dualVoiceEnabledPrefKey = 'dual_voice_enabled_v1';
   static const String _dualVoiceSecondaryPrefKey = 'dual_voice_secondary_v1';
   static const String _liteModeEnabledPrefKey = 'lite_mode_enabled_v1';
@@ -45,6 +47,7 @@ class SettingsProvider extends ChangeNotifier {
       'true_background_proactive_enabled';
   static const String _proactiveIntervalSecondsPrefKey =
       'proactive_interval_seconds_v2';
+  static const String _proactiveRandomIntervalPrefKey = 'proactive_random_interval_v1';
 
   Future<SharedPreferences>? _prefsFuture;
 
@@ -97,6 +100,9 @@ class SettingsProvider extends ChangeNotifier {
   String? customChatImagePath;
   String? customAppIconPath;
 
+  // ── Custom Favorites ────────────────────────────────────────────────────
+  List<Map<String, dynamic>> customFavorites = [];
+
   // ── Dual Voice ──────────────────────────────────────────────────────────
   bool dualVoiceEnabled = false;
   String dualVoiceSecondary = 'alloy';
@@ -126,6 +132,7 @@ class SettingsProvider extends ChangeNotifier {
   bool idleTimerEnabled = true;
   bool proactiveEnabled = true;
   bool proactiveRandomEnabled = true;
+  bool proactiveRandomInterval = true; // 1-5 hour random interval
   bool trueBackgroundProactiveEnabled = false;
   int backgroundLastRunEpochMs = 0;
   int backgroundLastSuccessEpochMs = 0;
@@ -277,6 +284,7 @@ class SettingsProvider extends ChangeNotifier {
     proactiveIntervalSeconds =
         (prefs.getInt(_proactiveIntervalSecondsPrefKey) ?? 6 * 60 * 60)
             .clamp(15 * 60, 24 * 60 * 60);
+    proactiveRandomInterval = prefs.getBool(_proactiveRandomIntervalPrefKey) ?? true;
   }
 
   Future<void> loadOutfitPreference() async {
@@ -320,6 +328,61 @@ class SettingsProvider extends ChangeNotifier {
     devBrevoApiKeyOverride = prefs.getString(_devBrevoPrefKey) ?? '';
     devSttLangOverride = prefs.getString(_devSttLangPrefKey) ?? '';
     devSttTimeoutOverride = prefs.getInt(_devSttTimeoutPrefKey) ?? 0;
+  }
+
+  // ── Custom Favorites ────────────────────────────────────────────────────
+  Future<void> loadCustomFavorites() async {
+    final prefs = await _prefs();
+    final json = prefs.getString(_customFavoritesPrefKey);
+    if (json != null) {
+      try {
+        customFavorites = List<Map<String, dynamic>>.from(
+          (jsonDecode(json) as List).map((e) => Map<String, dynamic>.from(e))
+        );
+      } catch (_) {
+        customFavorites = [];
+      }
+    } else {
+      // Default favorites
+      customFavorites = [
+        {'name': 'Voice Call', 'icon': 'call_rounded', 'color': '0xFF00E676', 'action': 'voice_call'},
+        {'name': 'Cloud Videos', 'icon': 'cloud_queue_rounded', 'color': '0xFF00BCD4', 'action': 'cloud_videos', 'badge': 'HD'},
+        {'name': 'Manga Reader', 'icon': 'menu_book_rounded', 'color': '0xFFBB52FF', 'action': 'manga'},
+        {'name': 'Music Player', 'icon': 'music_note_rounded', 'color': '0xFF1DE9B6', 'action': 'music'},
+      ];
+    }
+    notifyListeners();
+  }
+
+  Future<void> addFavorite(String name, String icon, String color, String action, {String? badge}) async {
+    customFavorites.add({
+      'name': name,
+      'icon': icon,
+      'color': color,
+      'action': action,
+      'badge': badge,
+    });
+    await _saveCustomFavorites();
+    notifyListeners();
+  }
+
+  Future<void> removeFavorite(int index) async {
+    if (index >= 0 && index < customFavorites.length) {
+      customFavorites.removeAt(index);
+      await _saveCustomFavorites();
+      notifyListeners();
+    }
+  }
+
+  Future<void> setCustomFavorites(List<Map<String, dynamic>> favs) async {
+    customFavorites = favs;
+    await _saveCustomFavorites();
+    notifyListeners();
+  }
+
+  Future<void> _saveCustomFavorites() async {
+    final prefs = await _prefs();
+    await prefs.setString(_customFavoritesPrefKey, jsonEncode(customFavorites));
   }
 
   Future<void> loadAdvancedSettings() async {

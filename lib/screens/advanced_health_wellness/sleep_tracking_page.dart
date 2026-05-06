@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SleepTrackingPage extends StatefulWidget {
   const SleepTrackingPage({super.key});
@@ -26,6 +28,7 @@ class _SleepTrackingPageState extends State<SleepTrackingPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('sleep_tracking'));
     _loadSleepData();
   }
 

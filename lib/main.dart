@@ -479,15 +479,7 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
         accentColorNotifier.value = themeProv.accentColor;
         customBackgroundUrlNotifier.value = themeProv.customBackgroundUrl;
 
-        return TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOut,
-          builder: (context, opacity, child) => Opacity(
-            opacity: opacity,
-            child: child,
-          ),
-          child: MaterialApp(
+        return MaterialApp(
             title: 'Zero Two',
             debugShowCheckedModeBanner: false,
             showPerformanceOverlay: false,
@@ -500,7 +492,6 @@ class _VoiceAiAppState extends State<VoiceAiApp> {
             home: AnimatedSplashScreen(
               nextScreen: _FirstLaunchGate(child: AppLockWrapper(key: appLockKey, child: const ChatHomePage())),
             ),
-          ),
         );
       },
     );
@@ -875,6 +866,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   bool get _proactiveEnabled => _cp.proactiveEnabled;
   set _proactiveEnabled(bool v) => _cp.proactiveEnabled = v;
   bool get _proactiveRandomEnabled => _cp.proactiveRandomEnabled;
+  bool get _proactiveRandomInterval => _sp.proactiveRandomInterval;
+  set _proactiveRandomInterval(bool v) => _sp.proactiveRandomInterval = v;
   set _proactiveRandomEnabled(bool v) => _cp.proactiveRandomEnabled = v;
   final bool _backgroundWakeEnabled = true;
   bool get _hasUnreadNotifs => _cp.hasUnreadNotifs;
@@ -887,10 +880,61 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   bool get _notificationsAllowed => _sp.notificationsAllowed;
   bool get _dualVoiceEnabled => _sp.dualVoiceEnabled;
   String get _selectedOutfit => _sp.selectedOutfit;
+  
+  // Custom image state - delegate to SettingsProvider
   bool get _chatImageFromSystem => _sp.chatImageFromSystem;
   bool get _appIconFromCustom => _sp.appIconFromCustom;
+  String get _customChatImagePath => _sp.customChatImagePath ?? '';
+  String get _customAppIconPath => _sp.customAppIconPath ?? '';
+  List<Map<String, dynamic>> get _customFavorites => _sp.customFavorites;
 
   String get _dualVoiceSecondary => _sp.dualVoiceSecondary;
+
+  void _showSnack(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  void setCustomFavorites(List<Map<String, dynamic>> favs) {
+    _sp.setCustomFavorites(favs);
+  }
+
+  // For main_drawer extension
+  ThemeData get materialTheme => Theme.of(context);
+  Color get primary => Theme.of(context).colorScheme.primary;
+  AppDesignTokens get tokens => context.appTokens;
+  // ignore: deprecated_member_use
+  dynamic get colors => tokens;
+
+  Widget drawerPulseStat(IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+              Text(label, style: GoogleFonts.outfit(color: Colors.white54, fontSize: 10)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Animation<double>? _contentSlide;
+  Animation<double>? _contentFade;
   int get _dualVoiceTurn => _sp.dualVoiceTurn;
   int get _advancedMemoryLimit => _sp.advancedMemoryLimit;
   bool get _advancedDebugLogs => _sp.advancedDebugLogs;
@@ -1099,6 +1143,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _loadNotifHistory();
     unawaited(_loadOutfitPreference());
     unawaited(_loadCustomImagePaths());
+    unawaited(_loadCustomFavorites());
     unawaited(_loadNewSettings());
     unawaited(_loadPersonaAndSmartSettings());
     _scheduleStartupTasks();
@@ -1213,6 +1258,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Future<void> _loadOutfitPreference() => _sp.loadOutfitPreference();
   Future<void> _loadNewSettings() => _sp.loadNewSettings();
   Future<void> _loadCustomImagePaths() => _sp.loadCustomImagePaths();
+  Future<void> _loadCustomFavorites() => _sp.loadCustomFavorites();
 
   Future<void> _setOutfit(String assetPath) async {
     await _sp.setOutfit(assetPath);
@@ -1650,6 +1696,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       _appendMessage(ChatMessage(role: 'assistant', content: msg));
       _scrollToBottom();
       unawaited(_speakAssistantText(msg));
+      unawaited(_addNotifToHistory(msg));
       if (kDebugMode) debugPrint('[ProactiveEngine] $trigger → $msg');
     });
   }
@@ -2547,16 +2594,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
             : 'meta-llama/llama-4-scout-17b-16e-instruct',
         systemPrompt: _zeroTwoSystemPrompt,
         ttsApiKey: _effectiveTtsApiKey,
-        ttsModel: _voiceModel == 'arabic' || _voiceModel == 'lulwa'
+        ttsModel: const {'aisha','lulwa','noura','abdullah','fahad','sultan','arabic'}.contains(_voiceModel)
             ? 'canopylabs/orpheus-arabic-saudi'
             : 'canopylabs/orpheus-v1-english',
-        ttsVoice: _voiceModel == 'arabic'
-            ? 'aisha'
-            : _voiceModel == 'lulwa'
-                ? 'lulwa'
-                : _voiceModel == 'autumn'
-                    ? 'autumn'
-                    : 'hannah',
+        ttsVoice: _voiceModel == 'arabic' ? 'aisha'
+            : _voiceModel == 'english' ? 'hannah'
+            : _voiceModel,
         ttsSpeed: _ttsSpeed,
         intervalMs: _proactiveIntervalSeconds * 1000,
         proactiveRandomEnabled: _proactiveRandomEnabled,
@@ -4082,25 +4125,27 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       _sp.setDualVoiceSecondary(voice);
 
   Future<void> _speakAssistantText(String text) async {
-    if (!_dualVoiceEnabled) {
-      await _ttsService.speak(text);
-      return;
-    }
-    final primaryVoice = _devTtsVoiceOverride.trim().isNotEmpty
+    // Configure voice regardless of dual voice mode
+    final voiceOverride = _devTtsVoiceOverride.trim().isNotEmpty
         ? _devTtsVoiceOverride.trim()
-        : 'lulwa';
-    final secondaryVoice = _dualVoiceSecondary.trim().isNotEmpty
-        ? _dualVoiceSecondary.trim()
-        : 'alloy';
-    final selectedVoice =
-        (_dualVoiceTurn % 2 == 0) ? primaryVoice : secondaryVoice;
-    _sp.dualVoiceTurn++;
-
+        : _voiceModel;
+    
     _ttsService.configure(
       apiKeyOverride: _devTtsApiKeyOverride,
       modelOverride: _devTtsModelOverride,
-      voiceOverride: selectedVoice,
+      voiceOverride: voiceOverride,
     );
+    
+    if (_dualVoiceEnabled) {
+      final secondaryVoice = _dualVoiceSecondary.trim().isNotEmpty
+          ? _dualVoiceSecondary.trim()
+          : 'alloy';
+      final selectedVoice =
+          (_dualVoiceTurn % 2 == 0) ? voiceOverride : secondaryVoice;
+      _sp.dualVoiceTurn++;
+      _ttsService.configure(voiceOverride: selectedVoice);
+    }
+    
     await _ttsService.speak(text);
   }
 
@@ -4949,7 +4994,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       valueListenable: themeNotifier,
       builder: (context, themeMode, _) {
         final theme = Theme.of(context);
+        final primary = theme.colorScheme.primary;
         final tokens = context.appTokens;
+        final colors = theme.colorScheme;
         final wallpaperDimOpacity =
             ((1.0 - _wallpaperBrightness).clamp(0.0, 1.0) * 0.65).toDouble();
         return PopScope(
@@ -4976,107 +5023,99 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               onTap: (i) => setState(() => _navIndex = i),
               accentColor: theme.colorScheme.primary,
             ),
-             appBar: AppBar(
-               backgroundColor: Colors.transparent,
-               elevation: 0,
-               scrolledUnderElevation: 0,
-               systemOverlayStyle: SystemUiOverlayStyle(
-                 statusBarColor: Colors.transparent,
-                 statusBarIconBrightness: theme.brightness == Brightness.dark
-                     ? Brightness.light
-                     : Brightness.dark,
-               ),
-               leadingWidth: 64,
-               leading: Builder(
-                 builder: (ctx) => Padding(
-                   padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-                   child: AnimatedContainer(
-                     duration: const Duration(milliseconds: 250),
-                     decoration: BoxDecoration(
-                       gradient: tokens.glassGradient,
-                       color: tokens.panel.withValues(alpha: 0.92),
-                       borderRadius: BorderRadius.circular(16),
-                       border: Border.all(color: tokens.outlineStrong, width: 1.2),
-                       boxShadow: [
-                         BoxShadow(
-                           color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                           blurRadius: 12,
-                           offset: const Offset(0, 2),
-                         ),
-                       ],
-                     ),
-                     child: Material(
-                       color: Colors.transparent,
-                       borderRadius: BorderRadius.circular(16),
-                       child: InkWell(
-                         borderRadius: BorderRadius.circular(16),
-                         onTap: () {
-                           HapticFeedback.selectionClick();
-                           Scaffold.of(ctx).openDrawer();
-                         },
-                         child: Icon(Icons.menu_rounded,
-                             color: theme.colorScheme.onSurface, size: 22),
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-               title: GestureDetector(
-                 behavior: HitTestBehavior.translucent,
-                 onTap: () {
-                   HapticFeedback.selectionClick();
-                   _onTitleTap();
-                 },
-                 onLongPress: _openDevConfigSheet,
-                 child: AnimatedContainer(
-                   duration: const Duration(milliseconds: 300),
-                   curve: Curves.easeOutCubic,
-                   padding: const EdgeInsets.symmetric(
-                       horizontal: 20, vertical: 10),
-                   decoration: BoxDecoration(
-                     gradient: LinearGradient(
-                       begin: Alignment.topLeft,
-                       end: Alignment.bottomRight,
-                       colors: [
-                         tokens.panel.withValues(alpha: 0.90),
-                         tokens.panelElevated.withValues(alpha: 0.85),
-                       ],
-                     ),
-                     borderRadius: BorderRadius.circular(999),
-                     border: Border.all(
-                         color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                         width: 1.2),
-                     boxShadow: [
-                       BoxShadow(
-                         color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                         blurRadius: 20,
-                         spreadRadius: -6,
-                       ),
-                     ],
-                   ),
-                   child: Row(
-                     mainAxisSize: MainAxisSize.min,
-                     children: [
-                       Icon(Icons.favorite_rounded,
-                           size: 16,
-                           color: theme.colorScheme.primary.withValues(alpha: 0.8)),
-                       const SizedBox(width: 8),
-                       Text(
-                         'ZERO TWO',
-                         style: GoogleFonts.outfit(
-                           fontWeight: FontWeight.w900,
-                           letterSpacing: 2.0,
-                           color: theme.colorScheme.onSurface,
-                           fontSize: 15,
-                         ),
-                       ),
-                     ],
-                   ),
-                 ),
-               ),
-               titleSpacing: 8,
-               centerTitle: true,
-               actions: [
+appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                toolbarHeight: 60,
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: theme.brightness == Brightness.dark
+                      ? Brightness.light
+                      : Brightness.dark,
+                ),
+                leadingWidth: 50,
+                leading: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: 0.15),
+                          theme.colorScheme.primary.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Icon(Icons.menu_rounded,
+                            color: primary, size: 22),
+                      ),
+                    ),
+                  ),
+                ),
+                title: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    _onTitleTap();
+                  },
+                  onLongPress: _openDevConfigSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          primary.withValues(alpha: 0.12),
+                          Colors.transparent,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: primary.withValues(alpha: 0.2),
+                          width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: primary.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.favorite_rounded,
+                              size: 12, color: primary),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'ZERO TWO',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
+                            color: colors.onSurface,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                titleSpacing: 0,
+                centerTitle: true,
+                actions: [
                  // 🔥 Streak Badge — only show when streak >= 2
                  if (AffectionService.instance.streakDays >= 2)
                    Padding(
@@ -5085,45 +5124,39 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                        streak: AffectionService.instance.streakDays,
                      ),
                    ),
-                 const SizedBox(width: 2),
-                 // 🔔 Notification bell — top right (ENHANCED)
-                 Padding(
-                   padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
-                   child: AnimatedContainer(
-                     duration: const Duration(milliseconds: 250),
-                     decoration: BoxDecoration(
-                       gradient: tokens.glassGradient,
-                       color: tokens.panel.withValues(alpha: 0.92),
-                       borderRadius: BorderRadius.circular(16),
-                       border: Border.all(
-                           color: _hasUnreadNotifs
-                               ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                               : tokens.outlineStrong,
-                           width: 1.2),
-                       boxShadow: _hasUnreadNotifs
-                           ? [
-                               BoxShadow(
-                                 color: theme.colorScheme.primary
-                                     .withValues(alpha: 0.2),
-                                 blurRadius: 16,
-                                 spreadRadius: -4,
-                               ),
-                             ]
-                           : [],
-                     ),
-                     child: Material(
-                       color: Colors.transparent,
-                       borderRadius: BorderRadius.circular(16),
-                       child: InkWell(
-                         borderRadius: BorderRadius.circular(16),
-                         onTap: () {
-                           HapticFeedback.selectionClick();
-                           setState(() {
-                             _navIndex = 1;
-                             _hasUnreadNotifs = false;
-                           });
-                         },
-                         child: Padding(
+const SizedBox(width: 4),
+                  // Notification bell
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: _hasUnreadNotifs
+                              ? [primary.withValues(alpha: 0.2), primary.withValues(alpha: 0.1)]
+                              : [tokens.panelElevated, tokens.panel],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _hasUnreadNotifs 
+                              ? primary.withValues(alpha: 0.4)
+                              : tokens.outline.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _navIndex = 1;
+                              _hasUnreadNotifs = false;
+                            });
+                          },
+                          child: Padding(
                            padding: const EdgeInsets.all(8),
                            child: Stack(
                              clipBehavior: Clip.none,
@@ -5230,12 +5263,19 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
       AppThemeMode.arcticBlade => BackgroundPalette.cyberBlue,
       _ => BackgroundPalette.neonNight,
     };
+    
+    // Cache profile to avoid repeated lookups
+    final perfEngine = AdaptivePerformanceEngine();
+    final particles = _liteModeEnabled ? 0 : perfEngine.particleCount;
+    final useParticles = !_liteModeEnabled && particles > 0;
+    final useAurora = !_liteModeEnabled && particles > 3;
+    
     return Positioned.fill(
       child: O2AuroraBackground(
         palette: palette,
-        enableParticles: !_liteModeEnabled,
-        particleCount: _liteModeEnabled ? 0 : AdaptivePerformanceEngine().particleCount,
-        enableAurora: !_liteModeEnabled,
+        enableParticles: useParticles,
+        particleCount: particles,
+        enableAurora: useAurora,
         child: const SizedBox.expand(),
       ),
     );
@@ -5648,12 +5688,6 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
                       gradient: tokens.glassGradient,
                       color: tokens.panel.withValues(alpha: 0.94),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _chatSearchQuery.isNotEmpty
-                            ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                            : tokens.outlineStrong,
-                        width: 1.2,
-                      ),
                       boxShadow: [
                         BoxShadow(
                           color: tokens.shadowColor,
@@ -7412,9 +7446,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     switch (_navIndex) {
       case 0:
         return SlideTransition(
-          position: _contentSlide,
+          position: AlwaysStoppedAnimation(Offset.zero),
           child: FadeTransition(
-            opacity: _contentFade,
+            opacity: const AlwaysStoppedAnimation(1.0),
             child: SafeArea(
               bottom: false,
               child: Padding(
