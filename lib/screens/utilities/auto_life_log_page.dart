@@ -1,10 +1,12 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, unnecessary_cast
 
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Auto Life Log v2 — Automatic activity tracking with animated cards,
 /// timeline visualization, stats overview, and Zero Two context.
@@ -23,6 +25,7 @@ class _AutoLifeLogPageState extends State<AutoLifeLogPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('auto_life_log'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600))
       ..forward();

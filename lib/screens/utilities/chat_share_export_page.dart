@@ -40,7 +40,7 @@ class _ChatShareExportPageState extends State<ChatShareExportPage>
       final aff = AffectionService.instance;
       final data = {
         'app': 'O2-Waifu',
-        'version': 'v10.0.2',
+        'version': 'v11.0.2',
         'exportDate': DateTime.now().toIso8601String(),
         'stats': {
           'xp': aff.points,

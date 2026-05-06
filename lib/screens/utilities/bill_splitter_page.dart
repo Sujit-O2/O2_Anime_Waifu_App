@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class BillSplitterPage extends StatefulWidget {
   const BillSplitterPage({super.key});
@@ -47,6 +49,7 @@ class _BillSplitterPageState extends State<BillSplitterPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('bill_splitter'));
     _load();
   }
 

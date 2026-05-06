@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class AutoWorkflowBuilderPage extends StatefulWidget {
   const AutoWorkflowBuilderPage({super.key});
@@ -37,6 +39,7 @@ class _AutoWorkflowBuilderPageState extends State<AutoWorkflowBuilderPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('auto_workflow'));
     _load();
   }
 

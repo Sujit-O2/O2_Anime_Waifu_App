@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:anime_waifu/services/memory_context/memory_service.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class RelationshipTimelinePage extends StatefulWidget {
   const RelationshipTimelinePage({super.key});
@@ -77,6 +79,7 @@ class _RelationshipTimelinePageState extends State<RelationshipTimelinePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('relationship_timeline'));
     _load();
     _loadOrGenerateStory();
   }

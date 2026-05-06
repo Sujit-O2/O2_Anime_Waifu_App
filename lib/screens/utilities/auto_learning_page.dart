@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Auto Learning v2 — AI adapts behavior based on your feedback patterns
 /// with animated sliders, stats overview, and Zero Two context.
@@ -25,6 +27,7 @@ class _AutoLearningPageState extends State<AutoLearningPage> with TickerProvider
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('auto_learning'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))..forward();
     _load();
   }
