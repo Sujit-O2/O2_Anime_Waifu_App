@@ -29,8 +29,10 @@ class AffectionService extends ChangeNotifier {
 
   Future<void> _operationQueue = Future<void>.value();
 
-  int get points => _affectionPoints;
+int get points => _affectionPoints;
+  int get affection => _affectionPoints;
   int get streakDays => _streakDays;
+  int get level => (_affectionPoints / 100).floor() + 1;
   Stream<int> get onDailyLoginBonus => _bonusStreamController.stream;
 
   AffectionService._internal() {

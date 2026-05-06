@@ -1,8 +1,10 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class SleepModePage extends StatefulWidget {
   const SleepModePage({super.key});
@@ -21,6 +23,7 @@ class _SleepModePageState extends State<SleepModePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('sleep_mode'));
     _load();
   }
 
