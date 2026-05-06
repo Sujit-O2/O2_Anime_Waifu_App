@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ParkingSpotSaverPage extends StatefulWidget {
   const ParkingSpotSaverPage({super.key});
@@ -25,6 +27,7 @@ class _ParkingSpotSaverPageState extends State<ParkingSpotSaverPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('parking_spot_saver'));
     _pulseCtrl = AnimationController(
         vsync: this, duration: const Duration(seconds: 2))
       ..repeat(reverse: true);

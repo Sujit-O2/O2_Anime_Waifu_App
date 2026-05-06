@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// ── Zero Two's Star Map ──────────────────────────────────────────────────────
 /// Each relationship milestone unlocks a new star that lights up in the sky.
@@ -316,6 +318,7 @@ class _StarMapPageState extends State<StarMapPage> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('star_map'));
     _twinkleCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),

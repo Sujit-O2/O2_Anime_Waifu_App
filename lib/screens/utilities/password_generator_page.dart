@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:math';
 
@@ -7,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class PasswordGeneratorPage extends StatefulWidget {
   const PasswordGeneratorPage({super.key});
@@ -66,6 +68,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('password_generator'));
     _glowCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),

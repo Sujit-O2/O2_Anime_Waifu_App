@@ -1,7 +1,9 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Second Brain — Personal knowledge database with notes, ideas, code snippets,
 /// and semantic search. Never lose an idea again.

@@ -1,6 +1,8 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class RewardSystemPage extends StatefulWidget {
   const RewardSystemPage({super.key});
@@ -22,6 +24,7 @@ class _RewardSystemPageState extends State<RewardSystemPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('reward_system'));
     _headerController = AnimationController(
         duration: const Duration(milliseconds: 800), vsync: this);
     _headerAnimation =

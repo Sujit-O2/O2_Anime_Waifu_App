@@ -365,21 +365,39 @@ class _PremiumSettingsPageState extends State<PremiumSettingsPage> {
   }
 
   List<Widget> _buildVoiceOptions() {
-    final voices = ['autumn', 'hannah', 'diana', 'aisha', 'lulwa'];
-    return voices.map((voice) {
-      final isSelected = _voiceModel == voice;
-      return PremiumListTile(
-        title: voice.toUpperCase(),
-        trailing: isSelected
-            ? Icon(Icons.check_circle_rounded,
-                color: Theme.of(context).colorScheme.primary)
-            : null,
-        onTap: () {
-          setState(() => _voiceModel = voice);
-          Navigator.pop(context);
-        },
-      );
-    }).toList();
+    const englishVoices = ['autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy'];
+    const arabicVoices  = ['aisha', 'lulwa', 'noura', 'abdullah', 'fahad', 'sultan'];
+
+    Widget section(String label, List<String> voices) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(label, style: GoogleFonts.outfit(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
+            fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5,
+          )),
+        ),
+        ...voices.map((voice) {
+          final isSelected = _voiceModel == voice;
+          return PremiumListTile(
+            title: voice[0].toUpperCase() + voice.substring(1),
+            trailing: isSelected
+                ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary)
+                : null,
+            onTap: () {
+              setState(() => _voiceModel = voice);
+              Navigator.pop(context);
+            },
+          );
+        }),
+      ],
+    );
+
+    return [
+      section('🎙 ENGLISH', englishVoices),
+      section('🌙 ARABIC', arabicVoices),
+    ];
   }
 
   void _showResponseLengthPicker() {
