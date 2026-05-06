@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class EmergencySosPage extends StatefulWidget {
   const EmergencySosPage({super.key});
@@ -36,6 +37,7 @@ class _EmergencySosPageState extends State<EmergencySosPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('emergency_sos'));
     _pulseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..repeat(reverse: true);

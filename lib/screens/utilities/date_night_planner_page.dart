@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Date Night Planner v2 — AI-powered date planning with vibe/setting/budget
 /// selectors, history persistence, copy, staggered animations, and FeaturePageV2.
@@ -49,6 +51,7 @@ class _DateNightPlannerPageState extends State<DateNightPlannerPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('date_night_planner'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _loadHistory();
   }

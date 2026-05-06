@@ -1,9 +1,11 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Geofencing Settings v2 — Location-aware zone management with animated cards,
 /// status indicators, coordinate display, zone previews, and Zero Two context.
@@ -25,6 +27,7 @@ class _GeofencingSettingsPageState extends State<GeofencingSettingsPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('geofencing'));
     _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _loadData();
   }

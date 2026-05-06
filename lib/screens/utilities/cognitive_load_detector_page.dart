@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class CognitiveLoadDetectorPage extends StatefulWidget {
   const CognitiveLoadDetectorPage({super.key});
@@ -44,6 +45,7 @@ class _CognitiveLoadDetectorPageState extends State<CognitiveLoadDetectorPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('cognitive_load'));
     _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
     _pulseAnim = Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
     _load();

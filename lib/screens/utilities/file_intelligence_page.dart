@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// File Intelligence System — Read files, summarize code, analyze project structures.
 class FileIntelligencePage extends StatefulWidget {
@@ -22,6 +24,7 @@ class _FileIntelligencePageState extends State<FileIntelligencePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('file_intelligence'));
     _load();
   }
 

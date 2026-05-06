@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Dream Mode v2 — AI-generated dream journal with emotion tracking,
 /// animated starfield, dream categories, save/archive, and ambient effects.
@@ -36,6 +38,7 @@ class _DreamModePageState extends State<DreamModePage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('dream_mode'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward();

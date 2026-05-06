@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class CloudSyncPage extends StatefulWidget {
   const CloudSyncPage({super.key});
@@ -31,6 +33,7 @@ class _CloudSyncPageState extends State<CloudSyncPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('cloud_sync'));
     _loadLastSync();
   }
 
