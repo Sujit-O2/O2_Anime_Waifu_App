@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1A1018"
+                android:endColor="#40141D"
+                android:angle="270"
+                android:type="linear"/>
+        </shape>
+    </item>
+    <!-- Centered launcher icon -->
+    <item 
+        android:gravity="center"
+        android:width="120dp"
+        android:height="120dp">
+        <shape android:shape="oval">
+            <solid android:color="#30FF0057"/>
+        </shape>
+    </item>
+    <item 
+        android:gravity="center"
+        android:drawable="@mipmap/ic_launcher"/>
+</layer-list>

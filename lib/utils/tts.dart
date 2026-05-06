@@ -44,13 +44,16 @@ class TtsService {
     return 'autumn';
   }
 
+  // All voices supported by Orpheus on Groq
+  static const _englishVoices = {'autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy', 'english'};
+  static const _arabicVoices  = {'aisha', 'lulwa', 'noura', 'abdullah', 'fahad', 'sultan', 'arabic'};
+
   String get _effectiveModel {
     if (_modelOverride.trim().isNotEmpty) return _modelOverride.trim();
     final voice = _effectiveVoice.toLowerCase();
-    if (voice == 'autumn' || voice == 'hannah' || voice == 'diana' || voice == 'english') {
-      return 'canopylabs/orpheus-v1-english';
-    }
-    return 'canopylabs/orpheus-arabic-saudi';
+    if (_englishVoices.contains(voice)) return 'canopylabs/orpheus-v1-english';
+    if (_arabicVoices.contains(voice))  return 'canopylabs/orpheus-arabic-saudi';
+    return 'canopylabs/orpheus-v1-english'; // safe default
   }
 
   void configure({

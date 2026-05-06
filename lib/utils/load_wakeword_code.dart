@@ -63,20 +63,20 @@ class WakeWordService {
   static const int _targetFrames = 96; // 0.96 sec at 100 frames/sec
 
   // ── Multi-threshold confirmation engine ──────────────────────────────────
-  // HIGHLY STRICT: Requires near-perfect confidence across multiple
+  // ULTRA STRICT: Requires near-perfect confidence across multiple
   // consecutive frames with almost zero variance. Only clear, deliberate
   // "Zero Two" utterances will trigger detection.
-  static const double _fastPassThreshold = 0.9999;
-  static const double _detectFloor = 0.995;
-  static const int _confirmWindow = 6;
-  static const int _confirmQuorum = 6;
-  static const double _varianceCap = 0.002;
+  static const double _fastPassThreshold = 0.99999;
+  static const double _detectFloor = 0.998;
+  static const int _confirmWindow = 8;
+  static const int _confirmQuorum = 8;
+  static const double _varianceCap = 0.0005;
   final Float64List _confirmBuf = Float64List(_confirmWindow);
   int _confirmCount = 0;
   int _confirmWriteIndex = 0;
 
   // ── Energy gate ────────────────────────────────────────────────────────────
-  static const double _energyFloor = 0.005; // RMS threshold for silence skip
+  static const double _energyFloor = 0.015; // Higher RMS threshold for better noise rejection
 
   // ── Cooldown after a trigger ──────────────────────────────────────────────
   static const Duration _cooldown = Duration(seconds: 4);

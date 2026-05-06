@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 PREMIUM UI KIT — v10.0.2
+/// O2 PREMIUM UI KIT — v11.0.2
 /// Ultra-premium glassmorphism, neon glow, shimmer, depth effects
 /// All widgets are RepaintBoundary-wrapped and GPU-friendly.
 /// ═══════════════════════════════════════════════════════════════════════════

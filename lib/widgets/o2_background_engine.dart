@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// O2 BACKGROUND ENGINE — v10.0.2
+/// O2 BACKGROUND ENGINE — v11.0.2
 /// GPU-accelerated shader-like gradient animations:
 /// • Aurora borealis effect with sinusoidal color bands
 /// • Reactive particle mesh (responds to scroll/touch)
@@ -116,7 +116,7 @@ class _O2AuroraBackgroundState extends State<O2AuroraBackground>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 30), // Slower = less CPU
     )..repeat();
     _initParticles();
   }
