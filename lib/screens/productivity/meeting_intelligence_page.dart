@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:anime_waifu/services/productivity/meeting_intelligence_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class MeetingIntelligencePage extends StatefulWidget {
   const MeetingIntelligencePage({super.key});
@@ -34,6 +35,7 @@ class _MeetingIntelligencePageState extends State<MeetingIntelligencePage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('meeting_intel'));
     unawaited(_service.initialize());
   }
 

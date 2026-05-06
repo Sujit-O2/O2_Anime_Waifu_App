@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:anime_waifu/services/smart_features/document_scanner_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class DocumentScannerPage extends StatefulWidget {
   const DocumentScannerPage({super.key});
@@ -41,6 +43,7 @@ class _DocumentScannerPageState extends State<DocumentScannerPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('document_scanner'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward();

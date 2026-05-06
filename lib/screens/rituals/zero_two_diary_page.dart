@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class ZeroTwoDiaryPage extends StatefulWidget {
   const ZeroTwoDiaryPage({super.key});
@@ -28,6 +30,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('zero_two_diary'));
     _load();
   }
 

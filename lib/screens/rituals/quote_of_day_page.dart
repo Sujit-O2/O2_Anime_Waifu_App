@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anime_waifu/services/anime_media/free_apis_service.dart';
 import 'package:anime_waifu/widgets/waifu_background.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 class QuoteOfDayPage extends StatefulWidget {
   const QuoteOfDayPage({super.key});
@@ -71,6 +73,7 @@ class _QuoteOfDayPageState extends State<QuoteOfDayPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('quote_of_day'));
     _bounceCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _bounceAnim = Tween(begin: 0.8, end: 1.0).animate(

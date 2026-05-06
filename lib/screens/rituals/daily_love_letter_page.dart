@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:anime_waifu/utils/api_call.dart';
 import 'package:anime_waifu/services/user_profile/affection_service.dart';
 import 'package:anime_waifu/core/v2_upgrade_kit.dart';
 import 'package:anime_waifu/config/app_themes.dart';
+import 'package:anime_waifu/services/database_storage/app_db.dart';
 
 /// Daily Love Letter v2 — AI-generated daily letters with archive,
 /// animated paper effect, envelope open, calendar tracking, and persistence.
@@ -30,6 +32,7 @@ class _DailyLoveLetterPageState extends State<DailyLoveLetterPage>
   @override
   void initState() {
     super.initState();
+    unawaited(AppDB.instance.recordUsage('daily_love_letter'));
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward();
