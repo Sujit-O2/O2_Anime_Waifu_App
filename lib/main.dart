@@ -5053,9 +5053,10 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               SystemNavigator.pop();
             }
           },
-           child: Scaffold(
-            extendBody: true,
-            extendBodyBehindAppBar: true,
+child: Scaffold(
+             backgroundColor: Color(0xFF08000F),
+             extendBody: true,
+             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
             drawer: _buildNavDrawer(themeMode),
             bottomNavigationBar: (_navIndex == 0 || _navIndex > 4) ? null : MainBottomNav(

@@ -126,7 +126,11 @@ extension _MainSettingsExtension on _ChatHomePageState {
             child: _buildSettingsHero(),
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                color: tokens.panel.withValues(alpha: 0.5),
+              ),
+              child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

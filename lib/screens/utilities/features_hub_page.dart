@@ -59,6 +59,7 @@ import 'package:anime_waifu/screens/media/manga_section_page.dart';
 import 'package:anime_waifu/screens/media/watch_history_page.dart';
 import 'package:anime_waifu/screens/media/watchlist_page.dart';
 import 'package:anime_waifu/screens/media/web_streamers_hub_page.dart';
+import 'package:anime_waifu/screens/utilities/music_player_page.dart';
 import 'package:anime_waifu/screens/rituals/checkin_streak_page.dart';
 import 'package:anime_waifu/screens/rituals/daily_affirmations_page.dart';
 import 'package:anime_waifu/screens/rituals/daily_challenge_page.dart';
@@ -697,6 +698,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                 label: 'Anime OST',
                 icon: Icons.music_note_rounded,
                 builder: (_) => const AnimeOstPage()),
+            _HubItem(
+                label: 'Music Player',
+                icon: Icons.play_circle_rounded,
+                builder: (_) => const MusicPlayerPage()),
             _HubItem(
                 label: 'Anime Calendar',
                 icon: Icons.calendar_month_rounded,
