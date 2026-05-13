@@ -881,6 +881,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Timer? _backgroundTransitionTimer;
   int _navIndex =
       0; // 0=Chat 1=Notification 2=Videos 3=Setting 4=Themes 5=DevConfig 6=Debug 7=About
+  // Cached from AdaptivePerformanceEngine — updated once on init, not every build
+  int _cachedParticleCount = 20;
   Timer? _wakeInitRetryTimer;
   Timer? _wakeWatchdogTimer;
   Timer? _widgetRefreshTimer;
@@ -1190,6 +1192,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _startIdleTimer();
     _initProactiveEngine();
     _startProactiveTimer();
+
+    // Cache perf engine result once — avoids calling it every build frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _cachedParticleCount = AdaptivePerformanceEngine().particleCount;
+        });
+      }
+    });
 
     // Check if we were woken up by WaifuAlarmService
     Future.delayed(const Duration(seconds: 2), _checkTriggeredAlarms);
@@ -5345,9 +5356,8 @@ const SizedBox(width: 4),
       _ => BackgroundPalette.neonNight,
     };
     
-    // Cache profile to avoid repeated lookups
-    final perfEngine = AdaptivePerformanceEngine();
-    final particles = _liteModeEnabled ? 0 : perfEngine.particleCount;
+    // Use cached particle count — avoids AdaptivePerformanceEngine lookup every build
+    final particles = _liteModeEnabled ? 0 : _cachedParticleCount;
     final useParticles = !_liteModeEnabled && particles > 0;
     final useAurora = !_liteModeEnabled && particles > 3;
     
@@ -5357,6 +5367,7 @@ const SizedBox(width: 4),
         enableParticles: useParticles,
         particleCount: particles,
         enableAurora: useAurora,
+        active: _navIndex == 0, // pause animation on non-chat pages
         child: const SizedBox.expand(),
       ),
     );

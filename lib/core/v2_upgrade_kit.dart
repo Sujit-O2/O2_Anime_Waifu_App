@@ -302,14 +302,17 @@ class GlassCard extends StatelessWidget {
 
     final cardBody = ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: ultraCompact ? 12 : 18,
-          sigmaY: ultraCompact ? 12 : 18,
-        ),
-        child: Container(
-          decoration: decoration,
-          child: Stack(
+      child: ColoredBox(
+        // Solid fallback so BackdropFilter never renders pure black
+        color: tokens.panel,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: ultraCompact ? 12 : 18,
+            sigmaY: ultraCompact ? 12 : 18,
+          ),
+          child: Container(
+            decoration: decoration,
+            child: Stack(
             children: <Widget>[
               Positioned(
                 top: 0,
@@ -352,6 +355,7 @@ class GlassCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
 
     final content = AnimatedContainer(

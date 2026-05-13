@@ -90,6 +90,8 @@ class O2AuroraBackground extends StatefulWidget {
   final int particleCount;
   final bool enableAurora;
   final bool enableDepthLayers;
+  /// When false, the animation is paused to save CPU/GPU on non-chat pages.
+  final bool active;
 
   const O2AuroraBackground({
     super.key,
@@ -99,6 +101,7 @@ class O2AuroraBackground extends StatefulWidget {
     this.particleCount = 30,
     this.enableAurora = true,
     this.enableDepthLayers = true,
+    this.active = true,
   });
 
   @override
@@ -130,6 +133,13 @@ class _O2AuroraBackgroundState extends State<O2AuroraBackground>
     super.didUpdateWidget(old);
     if (old.particleCount != widget.particleCount) {
       _initParticles();
+    }
+    if (old.active != widget.active) {
+      if (widget.active) {
+        _ctrl.repeat();
+      } else {
+        _ctrl.stop();
+      }
     }
   }
 
