@@ -68,9 +68,9 @@ android {
         }
         release {
             signingConfig = signingConfigs.getByName("debug")
-            // Enable R8 code shrinking — removes unused classes/methods from 53MB dex
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Temporarily disabled due to memory constraints
+            isMinifyEnabled = false
+            isShrinkResources = false
             ndk {
                 debugSymbolLevel = "NONE"
             }
