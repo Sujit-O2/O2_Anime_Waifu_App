@@ -649,6 +649,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   // ── Multi-select message deletion state ────────────────────────────────────
   bool _isMultiSelectMode = false;
+  bool _drawerOpen = false;
   final Set<String> _selectedMessageIds = {};
 
   // ── Liveliness state ───────────────────────────────────────────────────
@@ -1156,8 +1157,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     _floatController =
-        AnimationController(duration: const Duration(seconds: 4), vsync: this)
-          ..repeat();
+        AnimationController(duration: const Duration(seconds: 4), vsync: this);
+    // Note: _floatController kept for API compatibility but not animating
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -2363,16 +2364,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   }
 
   void _syncLiteModeRuntime() {
-    if (_liteModeEnabled) {
-      if (_floatController.isAnimating) {
-        _floatController.stop();
-      }
-      return;
-    }
-
-    if (!_floatController.isAnimating) {
-      _floatController.repeat();
-    }
+    // lite mode only affects particles/background — handled by AdaptivePerformanceEngine
   }
 
   Future<void> _toggleLiteMode() async {
@@ -5090,6 +5082,7 @@ child: Scaffold(
              extendBody: true,
              extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
+            onDrawerChanged: (open) => setState(() => _drawerOpen = open),
             drawer: _buildNavDrawer(themeMode),
             bottomNavigationBar: (_navIndex == 0 || _navIndex > 4) ? null : MainBottomNav(
               currentIndex: _navIndex.clamp(0, 4),

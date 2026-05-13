@@ -853,7 +853,9 @@ Widget drawerPulseStat({
   return Drawer(
     width: drawerWidth,
     backgroundColor: materialTheme.scaffoldBackgroundColor,
-    child: Stack(
+    child: TickerMode(
+      enabled: _drawerOpen,
+      child: Stack(
       children: [
         // Simple gradient background (no GIF for performance)
         Positioned.fill(
@@ -1621,6 +1623,7 @@ Container(
         // Stack children end
       ],
     ),
+    ),
   );
   }
 
@@ -1708,6 +1711,7 @@ class _DrawerStatusFooter extends StatefulWidget {
 class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
     with SingleTickerProviderStateMixin {
   late AnimationController _glow;
+
   @override
   void initState() {
     super.initState();
