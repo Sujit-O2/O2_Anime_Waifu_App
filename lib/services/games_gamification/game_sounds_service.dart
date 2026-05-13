@@ -350,7 +350,7 @@ class GameSoundsService {
     if (!_isInitialized) await initialize();
     
     try {
-      await _player.play(AssetSource('sounds/$name.wav'));
+      await _player.play(AssetSource('sounds/$name.ogg'));
     } catch (e1) {
       try {
         await _player.play(AssetSource('sounds/$name.mp3'));

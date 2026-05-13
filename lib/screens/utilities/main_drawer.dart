@@ -1423,13 +1423,6 @@ Container(
                                   () => Navigator.pushNamed(
                                       context, '/story-mode')),
                               drawerTile(
-                                  'AR Companion',
-                                  Icons.view_in_ar_rounded,
-                                  Colors.pinkAccent,
-                                  () => Navigator.pushNamed(
-                                      context, '/ar-companion'),
-                                  badge: '3D'),
-                              drawerTile(
                                   'Virtual Date',
                                   Icons.favorite_outline_rounded,
                                   Colors.redAccent,
