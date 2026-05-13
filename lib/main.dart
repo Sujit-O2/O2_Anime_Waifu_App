@@ -865,14 +865,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (_devTtsModelOverride.trim().isNotEmpty) {
       return _devTtsModelOverride.trim();
     }
-    return 'canopylabs/orpheus-arabic-saudi';
+    const arabicVoices = {'arabic', 'aisha', 'lulwa', 'noura', 'fahad', 'sultan', 'abdullah'};
+    return arabicVoices.contains(_voiceModel)
+        ? 'canopylabs/orpheus-arabic-saudi'
+        : 'canopylabs/orpheus-v1-english';
   }
 
   String get _effectiveTtsVoice {
     if (_devTtsVoiceOverride.trim().isNotEmpty) {
       return _devTtsVoiceOverride.trim();
     }
-    return 'aisha';
+    const arabicVoices = {'arabic', 'aisha', 'lulwa', 'noura', 'fahad', 'sultan', 'abdullah'};
+    const englishVoices = {'autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy'};
+    if (arabicVoices.contains(_voiceModel)) return _voiceModel == 'arabic' ? 'aisha' : _voiceModel;
+    if (englishVoices.contains(_voiceModel)) return _voiceModel;
+    return 'autumn'; // default
   }
 
   Timer? _wakeEffectTimer;
@@ -935,8 +942,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   void _showSnack(String msg) {
     if (mounted) {
+      // Use root scaffold messenger to avoid closing drawer
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(msg), 
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }
@@ -2304,7 +2317,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final advancedStrictWake =
         prefs.getBool('flutter.advanced_strict_wake') ?? false;
 
-    final voiceModel = prefs.getString(PrefsKeys.voiceModel) ?? 'arabic';
+    final voiceModel = prefs.getString(PrefsKeys.voiceModel) ?? 'english';
     final persona = prefs.getString(_personaPrefKey) ?? 'Default';
 
     // Provider-managed settings:
@@ -2345,6 +2358,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
     // Ensure proactive scheduler uses loaded saved values immediately.
     _startProactiveTimer();
+    // Apply loaded voice model to TTS service
+    _applyVoiceModelToTts(_voiceModel);
   }
 
   void _syncLiteModeRuntime() {
@@ -4181,9 +4196,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ? _devTtsVoiceOverride.trim()
         : _voiceModel;
     
+    // Only pass API key override if it's actually set (not empty)
+    final apiKeyToUse = _devTtsApiKeyOverride.trim().isNotEmpty 
+        ? _devTtsApiKeyOverride.trim() 
+        : null;
+    
+    final modelToUse = _devTtsModelOverride.trim().isNotEmpty 
+        ? _devTtsModelOverride.trim() 
+        : null;
+    
     _ttsService.configure(
-      apiKeyOverride: _devTtsApiKeyOverride,
-      modelOverride: _devTtsModelOverride,
+      apiKeyOverride: apiKeyToUse,
+      modelOverride: modelToUse,
       voiceOverride: voiceOverride,
     );
     
@@ -4536,6 +4560,19 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
   }
 
+  void _applyVoiceModelToTts(String model) {
+    if (model == 'arabic' || model == 'aisha') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-arabic-saudi', voiceOverride: 'aisha');
+    } else if (model == 'lulwa' || model == 'noura' || model == 'fahad' || model == 'sultan' || model == 'abdullah') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-arabic-saudi', voiceOverride: model);
+    } else if (model == 'autumn' || model == 'diana' || model == 'hannah' || model == 'austin' || model == 'daniel' || model == 'troy') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-v1-english', voiceOverride: model);
+    } else {
+      // default: english / autumn
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-v1-english', voiceOverride: 'autumn');
+    }
+  }
+
   Future<void> _setVoiceModel(String model) async {
     if (_voiceModel == model) return;
     final prefs = await SharedPreferences.getInstance();
@@ -4547,23 +4584,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     } else {
       _voiceModel = model;
     }
-    if (_voiceModel == 'arabic') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-arabic-saudi',
-          voiceOverride: 'aisha');
-    } else if (_voiceModel == 'lulwa') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-arabic-saudi',
-          voiceOverride: 'lulwa');
-    } else if (_voiceModel == 'autumn') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-v1-english',
-          voiceOverride: 'autumn');
-    } else {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-v1-english',
-          voiceOverride: 'hannah');
-    }
+    _applyVoiceModelToTts(model);
 
     // Restart assistant mode to apply new voice in background
     if (_assistantModeEnabled) {

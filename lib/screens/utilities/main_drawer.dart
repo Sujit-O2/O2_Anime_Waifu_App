@@ -698,64 +698,76 @@ Widget drawerPulseStat({
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
-          color: tokens.panel,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: tokens.textMuted,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text('Customize Favorites', style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  )),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.close, color: tokens.textMuted),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1.1,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: BoxDecoration(
+            color: tokens.panel,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: tokens.textMuted,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                itemCount: availableFeatures.length,
-                itemBuilder: (ctx, i) {
-                  final feat = availableFeatures[i];
-                  final name = feat['name'] as String;
-                  final iconName = feat['icon'] as String;
-                  final colorVal = int.tryParse(feat['color'] as String) ?? 0xFFFF9800;
-                  final color = Color(colorVal);
-                  final action = feat['action'] as String;
-                  final isAdded = _customFavorites.any((f) => f['action'] == action);
-                  
-                  return _availableFeatureChip(name, _getIconFromString(iconName), color, action, isAdded: isAdded, onChanged: _triggerRebuild);
-                },
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text('Customize Favorites', style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    )),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close, color: tokens.textMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 1.1,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: availableFeatures.length,
+                  itemBuilder: (ctx, i) {
+                    final feat = availableFeatures[i];
+                    final name = feat['name'] as String;
+                    final iconName = feat['icon'] as String;
+                    final colorVal = int.tryParse(feat['color'] as String) ?? 0xFFFF9800;
+                    final color = Color(colorVal);
+                    final action = feat['action'] as String;
+                    final isAdded = _customFavorites.any((f) => f['action'] == action);
+                    
+                    return _availableFeatureChip(
+                      name, 
+                      _getIconFromString(iconName), 
+                      color, 
+                      action, 
+                      isAdded: isAdded, 
+                      onChanged: () {
+                        setModalState(() {});
+                        _triggerRebuild();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

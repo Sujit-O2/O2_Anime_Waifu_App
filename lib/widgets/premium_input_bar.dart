@@ -55,7 +55,6 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 
   late Animation<double> _sendMorph;
   late Animation<double> _chipSlide;
-  late Animation<double> _glowAnim;
 
   bool _hasText = false;
   bool _showChips = false;
@@ -74,15 +73,13 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
     _chipCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     _glowCtrl = AnimationController(
-        vsync: this, duration: const Duration(seconds: 2))
-      ..repeat(reverse: true);
+        vsync: this, duration: const Duration(seconds: 2));
+    // Only start glow when listening — started in didUpdateWidget
 
     _sendMorph =
         CurvedAnimation(parent: _sendMorphCtrl, curve: Curves.easeInOut);
     _chipSlide =
         CurvedAnimation(parent: _chipCtrl, curve: Curves.easeOutBack);
-    _glowAnim = Tween<double>(begin: 0.3, end: 0.7)
-        .animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
 
     widget.controller.addListener(_onTextChanged);
 
@@ -107,11 +104,10 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 
   void _updateWave() {
     if (!widget.isListening) return;
-    setState(() {
-      for (int i = 0; i < _waveBars.length; i++) {
-        _waveBars[i] = 0.1 + _random.nextDouble() * 0.9;
-      }
-    });
+    for (int i = 0; i < _waveBars.length; i++) {
+      _waveBars[i] = 0.1 + _random.nextDouble() * 0.9;
+    }
+    // No setState here — waveform reads directly from _waveBars via AnimatedBuilder
   }
 
   @override
@@ -120,11 +116,11 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
 
     if (widget.isListening && !old.isListening) {
       _waveCtrl.repeat();
+      _glowCtrl.repeat(reverse: true);
     } else if (!widget.isListening && old.isListening) {
       _waveCtrl.stop();
-      setState(() {
-        for (int i = 0; i < _waveBars.length; i++) _waveBars[i] = 0.2;
-      });
+      _glowCtrl.stop();
+      for (int i = 0; i < _waveBars.length; i++) _waveBars[i] = 0.2;
     }
 
     final hasReplies =
@@ -175,71 +171,53 @@ class _PremiumChatInputBarState extends State<PremiumChatInputBar>
   }
 
   Widget _buildGlassBar(Color accent) {
-    return AnimatedBuilder(
-      animation: _glowAnim,
-      builder: (context, _) {
-        final glowOpacity =
-            widget.isListening ? _glowAnim.value : (_hasText ? 0.45 : 0.2);
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: glowOpacity * 0.5),
-                blurRadius: 20,
-                spreadRadius: -4,
-              ),
-              BoxShadow(
-                color: const Color(0xFF6C00FF).withValues(alpha: glowOpacity * 0.3),
-                blurRadius: 30,
-                spreadRadius: -8,
-              ),
-            ],
+    final glowOpacity = widget.isListening ? 0.6 : (_hasText ? 0.45 : 0.2);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: glowOpacity * 0.5),
+            blurRadius: 16,
+            spreadRadius: -4,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.08),
-                      Colors.white.withValues(alpha: 0.02),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: widget.isListening
-                        ? accent.withValues(alpha: 0.9)
-                        : _hasText 
-                            ? accent.withValues(alpha: 0.5)
-                            : Colors.white.withValues(alpha: 0.12),
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(width: 4),
-                    if (widget.onImagePick != null) _buildImageButton(accent),
-                    _buildEmojiButton(accent),
-                    Expanded(
-                      child: widget.isListening
-                          ? _buildWaveform(accent)
-                          : _buildTextField(),
-                    ),
-                    _buildActionButton(accent),
-                    const SizedBox(width: 6),
-                  ],
-                ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: Colors.white.withValues(alpha: 0.06),
+              border: Border.all(
+                color: widget.isListening
+                    ? accent.withValues(alpha: 0.9)
+                    : _hasText
+                        ? accent.withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.12),
+                width: 1.5,
               ),
             ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 4),
+                if (widget.onImagePick != null) _buildImageButton(accent),
+                _buildEmojiButton(accent),
+                Expanded(
+                  child: widget.isListening
+                      ? _buildWaveform(accent)
+                      : _buildTextField(),
+                ),
+                _buildActionButton(accent),
+                const SizedBox(width: 6),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -358,26 +336,28 @@ Widget _buildTextField() {
   Widget _buildWaveform(Color accent) {
     return SizedBox(
       height: 48,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(_waveBars.length, (i) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 80),
-              width: 3,
-              height: 4 + _waveBars[i] * 32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [accent, accent.withValues(alpha: 0.3)],
+      child: AnimatedBuilder(
+        animation: _waveCtrl,
+        builder: (_, __) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(_waveBars.length, (i) {
+              return Container(
+                width: 3,
+                height: 4 + _waveBars[i] * 32,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [accent, accent.withValues(alpha: 0.3)],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -481,29 +461,22 @@ Widget _buildTextField() {
                         HapticFeedback.selectionClick();
                         widget.onSmartReply?.call(reply);
                       },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter:
-                              ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: accent.withValues(alpha: 0.12),
-                              border: Border.all(
-                                  color: accent.withValues(alpha: 0.35),
-                                  width: 1),
-                            ),
-                            child: Text(
-                              reply,
-                              style: GoogleFonts.outfit(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: accent.withValues(alpha: 0.15),
+                          border: Border.all(
+                              color: accent.withValues(alpha: 0.35),
+                              width: 1),
+                        ),
+                        child: Text(
+                          reply,
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -526,71 +499,40 @@ class _SurpriseChip extends StatefulWidget {
   State<_SurpriseChip> createState() => _SurpriseChipState();
 }
 
-class _SurpriseChipState extends State<_SurpriseChip>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _glow;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(seconds: 2))
-      ..repeat(reverse: true);
-    _glow = Tween<double>(begin: 0.3, end: 0.8)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
+class _SurpriseChipState extends State<_SurpriseChip> {
   @override
   Widget build(BuildContext context) {
     const p1 = Color(0xFFBB52FF);
     const p2 = Color(0xFFFF4FA8);
     return GestureDetector(
       onTap: widget.onPressed,
-      child: AnimatedBuilder(
-        animation: _glow,
-        builder: (context, child) => ClipRRect(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(colors: [p1, p2]),
-                boxShadow: [
-                  BoxShadow(
-                    color: p1.withValues(alpha: _glow.value * 0.5),
-                    blurRadius: 12,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.auto_awesome_rounded,
-                      color: Colors.white, size: 13),
-                  SizedBox(width: 5),
-                  Text(
-                    'Surprise Me',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+          gradient: const LinearGradient(colors: [p1, p2]),
+          boxShadow: [
+            BoxShadow(
+              color: p1.withValues(alpha: 0.3),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 13),
+            SizedBox(width: 5),
+            Text(
+              'Surprise Me',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
