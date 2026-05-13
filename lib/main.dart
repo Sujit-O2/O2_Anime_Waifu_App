@@ -5973,21 +5973,26 @@ const SizedBox(width: 4),
                             final bubble = RepaintBoundary(
                               child: _buildBubble(context, msg, isGhost: false),
                             );
-                            if (!isNewest) return bubble;
+
+                            // Staggered entrance animation for new messages
+                            // Only animate the last few messages for performance
+                            final isRecent = msgIndex >= visibleMessages.length - 3;
+                            if (!isRecent) return bubble;
+
                             return TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0.0, end: 1.0),
-                              duration: const Duration(milliseconds: 280),
-                              curve: Curves.easeOutCubic,
-                              builder: (context, value, child) =>
-                                  Transform.translate(
-                                offset: Offset(0, 12 * (1 - value)),
-                                child: Opacity(opacity: value, child: child),
+                              duration: Duration(milliseconds: 350 + (visibleMessages.length - 1 - msgIndex) * 50),
+                              curve: Curves.easeOutQuart,
+                              builder: (context, value, child) => Transform.translate(
+                                offset: Offset(0, 15 * (1 - value)),
+                                child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
                               ),
                               child: bubble,
                             );
-                          },
-                        );
-                      }),
+                            },
+                            );
+                            }),
+
               ),
             ),
             // ── Enhanced mood-aware typing indicator ───────────────────────
@@ -7547,24 +7552,22 @@ const SizedBox(width: 4),
         );
 
       case 1:
-        return RepaintBoundary(child: _buildNotificationsPage());
+        return _buildNotificationsPage();
       case 2:
-        return RepaintBoundary(
-          child: FeaturesHubPage(
-            onBack: () => setState(() => _navIndex = 0),
-            onOpenCloudinary: () => setState(() => _navIndex = 0),
-          ),
+        return FeaturesHubPage(
+          onBack: () => setState(() => _navIndex = 0),
+          onOpenCloudinary: () => setState(() => _navIndex = 0),
         );
       case 3:
-        return RepaintBoundary(child: _buildSettingsPage());
+        return _buildSettingsPage();
       case 4:
-        return const RepaintBoundary(child: ThemesPage());
+        return const ThemesPage();
       case 5:
-        return RepaintBoundary(child: _buildDevConfigPage());
+        return _buildDevConfigPage();
       case 6:
-        return RepaintBoundary(child: _buildDebugPage());
+        return _buildDebugPage();
       case 7:
-        return RepaintBoundary(child: _buildAboutPage());
+        return _buildAboutPage();
       default:
         return const SizedBox.shrink();
     }

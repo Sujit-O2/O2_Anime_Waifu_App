@@ -870,132 +870,134 @@ Widget drawerPulseStat({
           children: [
             SizedBox(
               height: 180, // Restored, slightly more compact
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Static cover image to keep drawer motion smooth
-                  Image.asset(
-                    'assets/gif/sidebar_top.gif',
-                    fit: BoxFit.cover,
-                    alignment: const Alignment(0, -0.2), // Focus on face/eyes
-                  ),
-
-                  // Deep Vignette + Fade to Black (seamless merge)
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black
-                              .withValues(alpha: 0.2), // Top edge shading
-                          Colors.transparent,
-                          const Color(0xFF0F1014).withValues(alpha: 0.6),
-                          const Color(
-                              0xFF0F1014), // Exactly matches drawer BG
-                        ],
-                        stops: const [0.0, 0.4, 0.8, 1.0],
+              child: RepaintBoundary(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Static cover image to keep drawer motion smooth
+                    Image.asset(
+                      'assets/gif/sidebar_top.gif',
+                      fit: BoxFit.cover,
+                      alignment: const Alignment(0, -0.2), // Focus on face/eyes
+                    ),
+  
+                    // Deep Vignette + Fade to Black (seamless merge)
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black
+                                .withValues(alpha: 0.2), // Top edge shading
+                            Colors.transparent,
+                            const Color(0xFF0F1014).withValues(alpha: 0.6),
+                            const Color(
+                                0xFF0F1014), // Exactly matches drawer BG
+                          ],
+                          stops: const [0.0, 0.4, 0.8, 1.0],
+                        ),
                       ),
                     ),
-                  ),
-
-                  // Top-right dynamic ambient quote
-                  // Avatar & Stats directly overlaid on the fade
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Scaled down Avatar
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: primary.withValues(alpha: 0.8),
-                                    width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: primary.withValues(alpha: 0.6),
-                                      blurRadius: 16,
-                                      spreadRadius: -2),
-                                  BoxShadow(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.8),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4)),
-                                ],
-                                image: DecorationImage(
-                                  image: _imageProviderFor(
-                                      assetPath: _appIconImageAsset,
-                                      customPath:
-                                          _effectiveAppIconCustomPath),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    ShaderMask(
-                                      shaderCallback: (bounds) =>
-                                          LinearGradient(
-                                        colors: [
-                                          Colors.white,
-                                          Colors.pink.shade200
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds),
-                                      child: Text('ZERO TWO',
-                                          style: GoogleFonts.outfit(
-                                              color: Colors.white,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 3)),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text('SYSTEM ONLINE',
-                                            style: GoogleFonts.jetBrainsMono(
-                                                color: Colors.white70,
-                                                fontSize: 9,
-                                                letterSpacing: 1.5,
-                                                fontWeight: FontWeight.w800)),
-                                      ],
-                                    ),
+  
+                    // Top-right dynamic ambient quote
+                    // Avatar & Stats directly overlaid on the fade
+                    Positioned(
+                      left: 20,
+                      right: 20,
+                      bottom: 0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Scaled down Avatar
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: primary.withValues(alpha: 0.8),
+                                      width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: primary.withValues(alpha: 0.6),
+                                        blurRadius: 16,
+                                        spreadRadius: -2),
+                                    BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4)),
                                   ],
+                                  image: DecorationImage(
+                                    image: _imageProviderFor(
+                                        assetPath: _appIconImageAsset,
+                                        customPath:
+                                            _effectiveAppIconCustomPath),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ShaderMask(
+                                        shaderCallback: (bounds) =>
+                                            LinearGradient(
+                                          colors: [
+                                            Colors.white,
+                                            Colors.pink.shade200
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds),
+                                        child: Text('ZERO TWO',
+                                            style: GoogleFonts.outfit(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 3)),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.greenAccent,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text('SYSTEM ONLINE',
+                                              style: GoogleFonts.jetBrainsMono(
+                                                  color: Colors.white70,
+                                                  fontSize: 9,
+                                                  letterSpacing: 1.5,
+                                                  fontWeight: FontWeight.w800)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -1717,79 +1719,81 @@ class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _glow,
-      builder: (_, __) {
-        final t = _glow.value;
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: const Color(0xFFFF4FA8).withValues(alpha: 0.2)),
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFFF4FA8).withValues(alpha: 0.06 + 0.03 * t),
-                const Color(0xFF9B59B6).withValues(alpha: 0.04),
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (_, __) {
+          final t = _glow.value;
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: const Color(0xFFFF4FA8).withValues(alpha: 0.2)),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFFF4FA8).withValues(alpha: 0.06 + 0.03 * t),
+                  const Color(0xFF9B59B6).withValues(alpha: 0.04),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      const Color(0xFFFF4FA8).withValues(alpha: 0.08 + 0.06 * t),
+                  blurRadius: 20,
+                ),
               ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    const Color(0xFFFF4FA8).withValues(alpha: 0.08 + 0.06 * t),
-                blurRadius: 20,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Pulsing status dot
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.greenAccent,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.greenAccent.withValues(alpha: 0.3 + 0.5 * t),
-                      blurRadius: 8,
-                    )
-                  ],
+            child: Row(
+              children: [
+                // Pulsing status dot
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.greenAccent,
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.greenAccent.withValues(alpha: 0.3 + 0.5 * t),
+                        blurRadius: 8,
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('CORE ONLINE',
-                        style: GoogleFonts.jetBrainsMono(
-                            color: Colors.greenAccent.withValues(alpha: 0.8),
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2)),
-                    Text('ZERO TWO  002',
-                        style: GoogleFonts.jetBrainsMono(
-                            color: Colors.white30,
-                            fontSize: 8,
-                            letterSpacing: 1.5)),
-                  ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CORE ONLINE',
+                          style: GoogleFonts.jetBrainsMono(
+                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2)),
+                      Text('ZERO TWO  002',
+                          style: GoogleFonts.jetBrainsMono(
+                              color: Colors.white30,
+                              fontSize: 8,
+                              letterSpacing: 1.5)),
+                    ],
+                  ),
                 ),
-              ),
-              Text('❤️ MY DARLING',
-                  style: GoogleFonts.outfit(
-                      color: const Color(0xFFFF4FA8)
-                          .withValues(alpha: 0.6 + 0.3 * t),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1)),
-            ],
-          ),
-        );
-      },
+                Text('❤️ MY DARLING',
+                    style: GoogleFonts.outfit(
+                        color: const Color(0xFFFF4FA8)
+                            .withValues(alpha: 0.6 + 0.3 * t),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

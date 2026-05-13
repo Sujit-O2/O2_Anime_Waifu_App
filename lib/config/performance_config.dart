@@ -1,42 +1,45 @@
-/// Performance optimization settings
-class PerformanceConfig {
-  /// Enable/disable performance monitoring
-  static const bool enableMonitoring = false; // Set to false in release
+import 'package:flutter/material.dart';
 
-  /// Cache network responses for this duration
-  static const Duration networkCacheDuration = Duration(hours: 1);
+/// ⚡ PERFORMANCE OPTIMIZATION CONFIG
+/// Central configuration for app-wide performance settings
 
-  /// Maximum concurrent downloads
-  static const int maxConcurrentDownloads = 3;
-
-  /// Image quality optimization
-  static const bool compressImages = true;
-  static const int imageCompressionQuality = 80;
-
-  /// Lazy load non-critical services
-  static const bool lazyLoadServices = true;
-
-  /// Disable animations on low-end devices
-  static const bool respectAnimationSettings = true;
-
-  /// Pre-cache frequently used fonts
-  static const bool preCacheFonts = true;
-
-  /// Enable frame throttling for expensive operations
-  static const int frameThrottleMs = 16; // 60 FPS
-
-  /// Limit rebuild frequency for expensive widgets
-  static const Duration rebuildThrottle = Duration(milliseconds: 250);
-
-  /// Memory limits
-  static const int maxCacheItems = 100;
-  static const int maxCacheMemoryMB = 100;
-
-  /// Database optimization
-  static const bool useQueryOptimization = true;
-  static const bool enableIndexing = true;
-
-  /// Firebase optimization
-  static const int firestoreBatchSize = 100;
-  static const Duration firestoreCacheDuration = Duration(minutes: 5);
+class O2PerformanceConfig {
+  // ── Particle System ──────────────────────────────────────────
+  static const int maxParticlesRain = 6;
+  static const int maxParticlesSnow = 8;
+  static const int maxParticlesStars = 10;
+  static const int maxParticlesBubbles = 8;
+  static const int maxParticlesDefault = 12;
+  
+  // ── Animation Frame Budgets ──────────────────────────────────
+  static const int targetFPS = 60;
+  static const int frameTimeMs = 16; // 60fps = 16ms per frame
+  static const int maxFrameTimeMs = 20; // Allow some slack
+  
+  // ── Image Caching ────────────────────────────────────────────
+  static const int imageCacheWidth = 1920;
+  static const int imageCacheHeight = 1920;
+  static const FilterQuality defaultFilterQuality = FilterQuality.low;
+  
+  // ── Audio ────────────────────────────────────────────────────
+  static const double bgmVolume = 0.6;
+  static const double sfxVolume = 0.8;
+  static const int audioInitDelayMs = 100;
+  
+  // ── List Performance ─────────────────────────────────────────
+  static const int listCacheExtent = 500;
+  static const bool addRepaintBoundaries = true;
+  
+  // ── Network ──────────────────────────────────────────────────
+  static const Duration networkTimeout = Duration(seconds: 10);
+  static const int maxConcurrentRequests = 3;
+  
+  // ── Memory ───────────────────────────────────────────────────
+  static const int maxCachedImages = 50;
+  static const int maxChatMessages = 100;
+  
+  // ── Debounce/Throttle ────────────────────────────────────────
+  static const Duration searchDebounce = Duration(milliseconds: 300);
+  static const Duration scrollThrottle = Duration(milliseconds: 100);
+  static const Duration interactionThrottle = Duration(milliseconds: 33); // ~30fps
 }

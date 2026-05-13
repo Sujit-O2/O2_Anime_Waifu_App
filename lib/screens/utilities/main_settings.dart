@@ -6,31 +6,29 @@ extension _MainSettingsExtension on _ChatHomePageState {
     final colors = Theme.of(context).colorScheme;
     final tokens = context.appTokens;
     final bool sel = _voiceModel == id;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => unawaited(_setVoiceModel(id)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            gradient: sel
-                ? tokens.glassGradient
-                : LinearGradient(
-                    colors: [tokens.panelElevated, tokens.panel],
-                  ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color:
-                  sel ? colors.primary.withValues(alpha: 0.45) : tokens.outline,
-            ),
+    return GestureDetector(
+      onTap: () => unawaited(_setVoiceModel(id)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          gradient: sel
+              ? tokens.glassGradient
+              : LinearGradient(
+                  colors: [tokens.panelElevated, tokens.panel],
+                ),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                sel ? colors.primary.withValues(alpha: 0.45) : tokens.outline,
           ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: GoogleFonts.outfit(
-                color: sel ? colors.primary : tokens.textSoft,
-                fontSize: 12,
-                fontWeight: sel ? FontWeight.bold : FontWeight.normal),
-          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+              color: sel ? colors.primary : tokens.textSoft,
+              fontSize: 12,
+              fontWeight: sel ? FontWeight.bold : FontWeight.normal),
         ),
       ),
     );
@@ -123,18 +121,16 @@ extension _MainSettingsExtension on _ChatHomePageState {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-            child: _buildSettingsHero(),
+            child: RepaintBoundary(child: _buildSettingsHero()),
           ),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: tokens.panel.withValues(alpha: 0.5),
-              ),
+            child: RepaintBoundary(
               child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
@@ -248,45 +244,40 @@ extension _MainSettingsExtension on _ChatHomePageState {
                       onChanged: (_) => _toggleIdleTimer(),
                       activeColor: Colors.orangeAccent,
                     ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: _idleTimerEnabled
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                          'Idle (In-app): ${_formatCheckInDuration(_idleDurationSeconds)}',
-                                          style: GoogleFonts.outfit(
-                                              color: Colors.white70,
-                                              fontSize: 13)),
-                                      Text('Timer',
-                                          style: GoogleFonts.outfit(
-                                              color: Colors.white24,
-                                              fontSize: 11)),
-                                    ],
-                                  ),
-                                  Slider(
-                                    value: _idleDurationSeconds.toDouble(),
-                                    min: 60,
-                                    max: 3600,
-                                    divisions: 59,
-                                    onChanged: (v) =>
-                                        _updateIdleDuration(v.toInt()),
-                                    activeColor: Colors.orangeAccent,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
+                    if (_idleTimerEnabled)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                    'Idle (In-app): ${_formatCheckInDuration(_idleDurationSeconds)}',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white70,
+                                        fontSize: 13)),
+                                Text('Timer',
+                                    style: GoogleFonts.outfit(
+                                        color: Colors.white24,
+                                        fontSize: 11)),
+                              ],
+                            ),
+                            Slider(
+                              value: _idleDurationSeconds.toDouble(),
+                              min: 60,
+                              max: 3600,
+                              divisions: 59,
+                              onChanged: (v) =>
+                                  _updateIdleDuration(v.toInt()),
+                              activeColor: Colors.orangeAccent,
+                            ),
+                          ],
+                        ),
+                      ),
                     AnimatedSize(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -644,9 +635,13 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           const SizedBox(height: 6),
                           Text('🎙 English', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
                           const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
+                          GridView.count(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
+                            childAspectRatio: 2.5,
                             children: [
                               for (final v in ['autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy'])
                                 _buildVoiceOption(context, v, v[0].toUpperCase() + v.substring(1)),
@@ -655,9 +650,13 @@ extension _MainSettingsExtension on _ChatHomePageState {
                           const SizedBox(height: 10),
                           Text('🌙 Arabic', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
                           const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
+                          GridView.count(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
+                            childAspectRatio: 2.5,
                             children: [
                               for (final v in ['aisha', 'lulwa', 'noura', 'abdullah', 'fahad', 'sultan'])
                                 _buildVoiceOption(context, v, v[0].toUpperCase() + v.substring(1)),
@@ -1841,6 +1840,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
                 ],
               ),
             ),
+            ),
           ),
         ],
       ),
@@ -2019,11 +2019,12 @@ extension _MainSettingsExtension on _ChatHomePageState {
   Widget _settingsSectionCard(String title, List<Widget> children) {
     final theme = Theme.of(context);
     final tokens = context.appTokens;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 10, top: 4),
             child: Row(
@@ -2077,6 +2078,7 @@ extension _MainSettingsExtension on _ChatHomePageState {
             ),
           ),
         ],
+        ),
       ),
     );
   }

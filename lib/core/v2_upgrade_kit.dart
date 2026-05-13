@@ -925,7 +925,7 @@ class PremiumErrorState extends StatelessWidget {
   }
 }
 
-class StatCard extends StatelessWidget {
+class StatCard extends StatefulWidget {
   const StatCard({
     super.key,
     required this.title,
@@ -940,53 +940,92 @@ class StatCard extends StatelessWidget {
   final Color color;
 
   @override
+  State<StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _scaleAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final compact = _useCompactTopSectionLayout(context);
     final ultraCompact = _useUltraCompactTopSectionLayout(context);
     final theme = Theme.of(context);
     final tokens = context.appTokens;
-    return GlassCard(
-      margin: EdgeInsets.symmetric(
-        horizontal: ultraCompact ? 3 : (compact ? 4 : 8),
-        vertical: ultraCompact ? 3 : (compact ? 4 : 8),
-      ),
-      padding: EdgeInsets.all(ultraCompact ? 12 : (compact ? 14 : 18)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: ultraCompact ? 32 : (compact ? 36 : 42),
-            height: ultraCompact ? 32 : (compact ? 36 : 42),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(
-                  ultraCompact ? 10 : (compact ? 12 : 14)),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: ultraCompact ? 16 : (compact ? 18 : 22),
-            ),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: GlassCard(
+          margin: EdgeInsets.symmetric(
+            horizontal: ultraCompact ? 3 : (compact ? 4 : 8),
+            vertical: ultraCompact ? 3 : (compact ? 4 : 8),
           ),
-          SizedBox(height: ultraCompact ? 8 : (compact ? 10 : 14)),
-          Text(
-            value,
-            style: TextStyle(
-              color: theme.colorScheme.onSurface,
-              fontSize: ultraCompact ? 14 : (compact ? 16 : 18),
-              fontWeight: FontWeight.w700,
-            ),
+          padding: EdgeInsets.all(ultraCompact ? 12 : (compact ? 14 : 18)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: ultraCompact ? 32 : (compact ? 36 : 42),
+                height: ultraCompact ? 32 : (compact ? 36 : 42),
+                decoration: BoxDecoration(
+                  color: widget.color.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(
+                      ultraCompact ? 10 : (compact ? 12 : 14)),
+                ),
+                child: Icon(
+                  widget.icon,
+                  color: widget.color,
+                  size: ultraCompact ? 16 : (compact ? 18 : 22),
+                ),
+              ),
+              SizedBox(height: ultraCompact ? 8 : (compact ? 10 : 14)),
+              Text(
+                widget.value,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: ultraCompact ? 14 : (compact ? 16 : 18),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: ultraCompact ? 1 : (compact ? 2 : 4)),
+              Text(
+                widget.title,
+                style: TextStyle(
+                  color: tokens.textMuted,
+                  fontSize: ultraCompact ? 10 : (compact ? 11 : 12),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: ultraCompact ? 1 : (compact ? 2 : 4)),
-          Text(
-            title,
-            style: TextStyle(
-              color: tokens.textMuted,
-              fontSize: ultraCompact ? 10 : (compact ? 11 : 12),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

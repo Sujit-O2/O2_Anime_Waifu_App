@@ -186,10 +186,12 @@ class MiniGameService {
     if (answer.toLowerCase().contains(correct.toLowerCase())) {
       _triviaWins++;
       unawaited(_saveStats());
+      unawaited(GameSoundsService.instance.playCorrect());
       return "✅ Correct! You're amazing, darling! The answer was: **$correct**";
     }
     
     unawaited(_saveStats());
+    unawaited(GameSoundsService.instance.playWrong());
     return "❌ Not quite! The correct answer was: **$correct**. Don't give up!";
   }
 
@@ -224,6 +226,7 @@ class MiniGameService {
 
   static String startTicTacToe() {
     _tttBoard = List.filled(9, '');
+    unawaited(GameSoundsService.instance.playEventStart());
     return '🎮 **Tic-Tac-Toe!** You are **X**, I am **O**.\nSay a number (1–9) for your move:\n```\n 1 | 2 | 3\n---+---+---\n 4 | 5 | 6\n---+---+---\n 7 | 8 | 9\n```';
   }
 
@@ -243,16 +246,22 @@ class MiniGameService {
       return 'That cell is already taken! Choose another one.';
     }
     _tttBoard![idx] = 'X';
+    unawaited(GameSoundsService.instance.playTap());
+    
     var winner = _tttWinner(_tttBoard!);
     if (winner != null) {
+      final finalBoard = _renderBoard(_tttBoard!);
       _tttBoard = null;
       _tttWins++;
       unawaited(_saveStats());
-      return "🎉 You win! Well played, darling!\n${_renderBoard([for(int i =0; i<9; i++) (_tttBoard?[i] ?? '')])}";
+      unawaited(GameSoundsService.instance.playMiniGameWin());
+      return "🎉 You win! Well played, darling!\n$finalBoard";
     }
     if (!_tttBoard!.contains('')) {
+      final finalBoard = _renderBoard(_tttBoard!);
       _tttBoard = null;
-      return "It's a draw! You're as good as me 😏";
+      unawaited(GameSoundsService.instance.playMiniGameRound());
+      return "It's a draw! You're as good as me 😏\n$finalBoard";
     }
     // AI move (simple: pick first empty)
     final aiIdx = _tttBoard!.indexWhere((c) => c.isEmpty);
@@ -263,10 +272,12 @@ class MiniGameService {
       _tttBoard = null;
       _tttLosses++;
       unawaited(_saveStats());
+      unawaited(GameSoundsService.instance.playMiniGameLose());
       return '😏 I win! Better luck next time!\n$board';
     }
     if (!_tttBoard!.contains('')) {
       _tttBoard = null;
+      unawaited(GameSoundsService.instance.playMiniGameRound());
       return 'Draw! Great minds think alike 😄\n$board';
     }
     return 'I played **${aiIdx + 1}**. Your turn!\n$board';
