@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'chat_provider.dart';
@@ -6,12 +7,6 @@ import 'theme_provider.dart';
 import 'settings_provider.dart';
 import 'persona_provider.dart';
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// AppProviders
-///
-/// Wraps the widget tree with all ChangeNotifier providers. This is the single
-/// entry point for dependency injection across the entire app.
-/// ─────────────────────────────────────────────────────────────────────────────
 class AppProviders extends StatelessWidget {
   final Widget child;
   const AppProviders({super.key, required this.child});
@@ -41,6 +36,7 @@ class _AppBootstrap extends StatefulWidget {
 
 class _AppBootstrapState extends State<_AppBootstrap> {
   late final Future<void> _initializationFuture;
+  String? _initError;
 
   @override
   void initState() {
@@ -49,17 +45,26 @@ class _AppBootstrapState extends State<_AppBootstrap> {
   }
 
   Future<void> _initializeProviders() async {
-    final themeProvider = context.read<ThemeProvider>();
-    final settingsProvider = context.read<SettingsProvider>();
-    final personaProvider = context.read<PersonaProvider>();
-    final chatProvider = context.read<ChatProvider>();
+    try {
+      final themeProvider = context.read<ThemeProvider>();
+      final settingsProvider = context.read<SettingsProvider>();
+      final personaProvider = context.read<PersonaProvider>();
+      final chatProvider = context.read<ChatProvider>();
 
-    await Future.wait([
-      themeProvider.restore(),
-      settingsProvider.loadAll(),
-      personaProvider.initialize(),
-      chatProvider.loadPersistedState(),
-    ]);
+      await Future.wait([
+        themeProvider.restore(),
+        settingsProvider.loadAll(),
+        personaProvider.initialize(),
+        chatProvider.loadPersistedState(),
+      ]);
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('Provider init error: $e\n$st');
+      }
+      if (mounted) {
+        setState(() => _initError = e.toString());
+      }
+    }
   }
 
   @override
@@ -67,15 +72,26 @@ class _AppBootstrapState extends State<_AppBootstrap> {
     return FutureBuilder<void>(
       future: _initializationFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return widget.child;
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Material(
+            color: Color(0xFF08000F),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.pinkAccent),
+            ),
+          );
         }
-        return const Material(
-          color: Colors.black,
-          child: Center(
-            child: CircularProgressIndicator.adaptive(),
-          ),
-        );
+        if (snapshot.hasError) {
+          return Material(
+            color: const Color(0xFF08000F),
+            child: Center(
+              child: Text(
+                'Init Error: ${snapshot.error}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+        }
+        return widget.child;
       },
     );
   }

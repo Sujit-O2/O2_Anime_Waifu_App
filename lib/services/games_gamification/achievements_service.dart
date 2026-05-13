@@ -146,7 +146,7 @@ class AchievementBadge extends StatelessWidget {
                   Colors.deepPurple.withValues(alpha: 0.15),
                 ])
               : null,
-          color: unlocked ? null : Colors.white.withValues(alpha: 0.05),
+          color: unlocked ? Colors.transparent : Colors.white.withValues(alpha: 0.05),
           border: Border.all(
             color: unlocked
                 ? Colors.pinkAccent.withValues(alpha: 0.5)

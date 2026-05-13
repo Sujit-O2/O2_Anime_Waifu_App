@@ -397,7 +397,7 @@ class _ZeroTwoDiaryPageState extends State<ZeroTwoDiaryPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight)
             : null,
-        color: isToday ? null : Colors.white.withValues(alpha: 0.04),
+        color: isToday ? Colors.transparent : Colors.white.withValues(alpha: 0.04),
         border: Border.all(
             color: isToday
                 ? Colors.pinkAccent.withValues(alpha: 0.4)

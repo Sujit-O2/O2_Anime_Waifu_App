@@ -160,7 +160,7 @@ class _ComprehensiveFeaturesHubState extends State<ComprehensiveFeaturesHub> {
     _Feature('Advanced Settings', Icons.settings_rounded, AppRouter.advancedSettings, 'Utilities'),
     _Feature('Anniversary', Icons.cake_rounded, AppRouter.anniversary, 'Utilities'),
     _Feature('App Icon Picker', Icons.apps_rounded, AppRouter.appIconPicker, 'Utilities'),
-    _Feature('AR Companion', Icons.view_in_ar_rounded, AppRouter.arCompanion, 'Utilities'),
+    _Feature('AR Ruler', Icons.view_in_ar_rounded, AppRouter.arRuler, 'Utilities'),
     _Feature('AR Ruler', Icons.straighten_rounded, AppRouter.arRuler, 'Utilities'),
     _Feature('Auto Learning', Icons.school_rounded, AppRouter.autoLearning, 'Utilities'),
     _Feature('Auto Life Log', Icons.auto_awesome_rounded, AppRouter.autoLifeLog, 'Utilities'),

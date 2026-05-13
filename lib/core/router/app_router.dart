@@ -168,7 +168,6 @@ import 'package:anime_waifu/screens/utilities/anime_section_page.dart';
 import 'package:anime_waifu/screens/utilities/anime_sticker_sheet.dart';
 import 'package:anime_waifu/screens/utilities/anniversary_page.dart';
 import 'package:anime_waifu/screens/utilities/app_icon_picker_page.dart';
-import 'package:anime_waifu/screens/utilities/ar_companion_page.dart';
 import 'package:anime_waifu/screens/utilities/ar_ruler_page.dart';
 import 'package:anime_waifu/screens/utilities/auto_learning_page.dart';
 import 'package:anime_waifu/screens/utilities/auto_life_log_page.dart';
@@ -461,7 +460,6 @@ class AppRouter {
   static const String waifuXpLevel = '/waifu-xp-level';
   static const String workflowEngine = '/workflow-engine';
   static const String gacha = '/gacha';
-  static const String arCompanion = '/ar-companion';
   static const String geofencingSettings = '/geofencing-settings';
   static const String memoryVault = '/memory-vault';
   static const String hianime = '/hianime';
@@ -734,7 +732,6 @@ class AppRouter {
         waifuXpLevel: (_) => const WaifuXpLevelPage(),
         workflowEngine: (_) => const WorkflowEnginePage(),
         gacha: (_) => const GachaPage(),
-        arCompanion: (_) => const ArCompanionPage(),
         geofencingSettings: (_) => const GeofencingSettingsPage(),
         memoryVault: (_) => const MemoryVaultPage(),
         AppRouter.hianime: (_) =>

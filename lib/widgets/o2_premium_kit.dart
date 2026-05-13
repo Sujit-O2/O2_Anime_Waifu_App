@@ -455,13 +455,9 @@ class GlassPanel extends StatelessWidget {
                 Color(0x0AFFFFFF),
               ],
             ),
-            border: Border(
-              top: showTopAccent
-                  ? BorderSide(color: accent, width: 2)
-                  : const BorderSide(color: O2Colors.glassEdge, width: 1),
-              left: const BorderSide(color: O2Colors.glassEdge, width: 1),
-              right: const BorderSide(color: O2Colors.glassEdgeDim, width: 0.5),
-              bottom: const BorderSide(color: O2Colors.glassEdgeDim, width: 0.5),
+            border: Border.all(
+              color: showTopAccent ? accent : O2Colors.glassEdge,
+              width: showTopAccent ? 1.5 : 1,
             ),
           ),
           child: child,

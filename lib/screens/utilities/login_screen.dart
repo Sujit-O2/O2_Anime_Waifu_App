@@ -263,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen>
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),

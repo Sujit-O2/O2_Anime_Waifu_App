@@ -176,7 +176,7 @@ class _DayRecapPageState extends State<DayRecapPage>
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
                       gradient: isSelected ? V2Theme.primaryGradient : null,
-                      color: isSelected ? null : V2Theme.darkGlass,
+                      color: isSelected ? Colors.transparent : V2Theme.darkGlass,
                       borderRadius: BorderRadius.circular(16),
                       border:
                           isSelected ? null : Border.all(color: Colors.white12),
@@ -240,7 +240,7 @@ class _DayRecapPageState extends State<DayRecapPage>
                                 gradient: isSelected
                                     ? V2Theme.primaryGradient.scale(0.3)
                                     : null,
-                                color: isSelected ? null : V2Theme.darkGlass,
+                                color: isSelected ? Colors.transparent : V2Theme.darkGlass,
                                 shape: BoxShape.circle,
                                 border: isSelected
                                     ? Border.all(

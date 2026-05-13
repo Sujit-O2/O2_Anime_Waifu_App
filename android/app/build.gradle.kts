@@ -52,6 +52,12 @@ android {
         targetSdkVersion(35)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Only ship arm64-v8a — covers 99%+ of modern Android devices.
+        // Drops x86_64 (emulators) and armeabi-v7a (32-bit, pre-2016 phones).
+        // This alone cuts native lib size by ~2/3 (~70MB saved).
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {
@@ -62,11 +68,16 @@ android {
         }
         release {
             signingConfig = signingConfigs.getByName("debug")
+            // Temporarily disabled due to memory constraints
             isMinifyEnabled = false
             isShrinkResources = false
             ndk {
                 debugSymbolLevel = "NONE"
             }
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

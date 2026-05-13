@@ -347,7 +347,7 @@ class _AchievementCard extends StatelessWidget {
                 achievement.emoji,
                 style: TextStyle(
                   fontSize: 38,
-                  color: unlocked ? null : const Color(0x44FFFFFF),
+                  color: unlocked ? Colors.white : const Color(0x44FFFFFF),
                 ),
               ),
               if (unlocked)

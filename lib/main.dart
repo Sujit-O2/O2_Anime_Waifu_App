@@ -114,7 +114,7 @@ import 'package:anime_waifu/widgets/reactive_pulse.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -514,30 +514,64 @@ class _FirstLaunchGateState extends State<_FirstLaunchGate> {
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((p) {
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    try {
+      final p = await SharedPreferences.getInstance();
       if (!mounted) return;
       setState(() => _hasLaunched = p.getBool(_key) ?? false);
-    });
+    } catch (e) {
+      debugPrint('FirstLaunchGate init error: $e');
+      if (mounted) {
+        setState(() => _hasLaunched = false);
+      }
+    }
   }
 
   void _onLoginDone() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_key, true);
-    if (!mounted) return;
-    setState(() => _hasLaunched = true);
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setBool(_key, true);
+      if (!mounted) return;
+      setState(() => _hasLaunched = true);
+    } catch (e) {
+      debugPrint('FirstLaunchGate login done error: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_hasLaunched == null) {
       return const Scaffold(
+        backgroundColor: Color(0xFF08000F),
         body: Center(child: CircularProgressIndicator(color: Colors.pinkAccent)),
       );
     }
     if (!_hasLaunched!) {
       return LoginScreen(onDone: _onLoginDone);
     }
-    return widget.child;
+    try {
+      return widget.child;
+    } catch (e, st) {
+      debugPrint('FirstLaunchGate child error: $e\n$st');
+      return Scaffold(
+        backgroundColor: const Color(0xFF08000F),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.pinkAccent, size: 48),
+              const SizedBox(height: 16),
+              const Text('Something went wrong', style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 8),
+              Text(e.toString(), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -615,6 +649,7 @@ class _ChatHomePageState extends State<ChatHomePage>
 
   // ── Multi-select message deletion state ────────────────────────────────────
   bool _isMultiSelectMode = false;
+  bool _drawerOpen = false;
   final Set<String> _selectedMessageIds = {};
 
   // ── Liveliness state ───────────────────────────────────────────────────
@@ -831,14 +866,21 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     if (_devTtsModelOverride.trim().isNotEmpty) {
       return _devTtsModelOverride.trim();
     }
-    return 'canopylabs/orpheus-arabic-saudi';
+    const arabicVoices = {'arabic', 'aisha', 'lulwa', 'noura', 'fahad', 'sultan', 'abdullah'};
+    return arabicVoices.contains(_voiceModel)
+        ? 'canopylabs/orpheus-arabic-saudi'
+        : 'canopylabs/orpheus-v1-english';
   }
 
   String get _effectiveTtsVoice {
     if (_devTtsVoiceOverride.trim().isNotEmpty) {
       return _devTtsVoiceOverride.trim();
     }
-    return 'aisha';
+    const arabicVoices = {'arabic', 'aisha', 'lulwa', 'noura', 'fahad', 'sultan', 'abdullah'};
+    const englishVoices = {'autumn', 'diana', 'hannah', 'austin', 'daniel', 'troy'};
+    if (arabicVoices.contains(_voiceModel)) return _voiceModel == 'arabic' ? 'aisha' : _voiceModel;
+    if (englishVoices.contains(_voiceModel)) return _voiceModel;
+    return 'autumn'; // default
   }
 
   Timer? _wakeEffectTimer;
@@ -847,6 +889,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
   Timer? _backgroundTransitionTimer;
   int _navIndex =
       0; // 0=Chat 1=Notification 2=Videos 3=Setting 4=Themes 5=DevConfig 6=Debug 7=About
+  // Cached from AdaptivePerformanceEngine — updated once on init, not every build
+  int _cachedParticleCount = 20;
   Timer? _wakeInitRetryTimer;
   Timer? _wakeWatchdogTimer;
   Timer? _widgetRefreshTimer;
@@ -899,8 +943,14 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   void _showSnack(String msg) {
     if (mounted) {
+      // Use root scaffold messenger to avoid closing drawer
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(msg), 
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
       );
     }
   }
@@ -911,10 +961,9 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
 
   // For main_drawer extension
   ThemeData get materialTheme => Theme.of(context);
-  Color get primary => Theme.of(context).colorScheme.primary;
+  ColorScheme get colors => materialTheme.colorScheme;
   AppDesignTokens get tokens => context.appTokens;
-  // ignore: deprecated_member_use
-  dynamic get colors => tokens;
+  Color get primary => colors.primary;
 
   Widget drawerPulseStat(IconData icon, String value, String label, Color color) {
     return Container(
@@ -1108,8 +1157,8 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _animationController = AnimationController(
         duration: const Duration(milliseconds: 600), vsync: this);
     _floatController =
-        AnimationController(duration: const Duration(seconds: 4), vsync: this)
-          ..repeat();
+        AnimationController(duration: const Duration(seconds: 4), vsync: this);
+    // Note: _floatController kept for API compatibility but not animating
 
     _speechService.onResult = _handleSpeechResult;
     _speechService.onStatus = (status) {
@@ -1157,6 +1206,15 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     _startIdleTimer();
     _initProactiveEngine();
     _startProactiveTimer();
+
+    // Cache perf engine result once — avoids calling it every build frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _cachedParticleCount = AdaptivePerformanceEngine().particleCount;
+        });
+      }
+    });
 
     // Check if we were woken up by WaifuAlarmService
     Future.delayed(const Duration(seconds: 2), _checkTriggeredAlarms);
@@ -2260,7 +2318,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     final advancedStrictWake =
         prefs.getBool('flutter.advanced_strict_wake') ?? false;
 
-    final voiceModel = prefs.getString(PrefsKeys.voiceModel) ?? 'arabic';
+    final voiceModel = prefs.getString(PrefsKeys.voiceModel) ?? 'english';
     final persona = prefs.getString(_personaPrefKey) ?? 'Default';
 
     // Provider-managed settings:
@@ -2301,19 +2359,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     }
     // Ensure proactive scheduler uses loaded saved values immediately.
     _startProactiveTimer();
+    // Apply loaded voice model to TTS service
+    _applyVoiceModelToTts(_voiceModel);
   }
 
   void _syncLiteModeRuntime() {
-    if (_liteModeEnabled) {
-      if (_floatController.isAnimating) {
-        _floatController.stop();
-      }
-      return;
-    }
-
-    if (!_floatController.isAnimating) {
-      _floatController.repeat();
-    }
+    // lite mode only affects particles/background — handled by AdaptivePerformanceEngine
   }
 
   Future<void> _toggleLiteMode() async {
@@ -4137,9 +4188,18 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
         ? _devTtsVoiceOverride.trim()
         : _voiceModel;
     
+    // Only pass API key override if it's actually set (not empty)
+    final apiKeyToUse = _devTtsApiKeyOverride.trim().isNotEmpty 
+        ? _devTtsApiKeyOverride.trim() 
+        : null;
+    
+    final modelToUse = _devTtsModelOverride.trim().isNotEmpty 
+        ? _devTtsModelOverride.trim() 
+        : null;
+    
     _ttsService.configure(
-      apiKeyOverride: _devTtsApiKeyOverride,
-      modelOverride: _devTtsModelOverride,
+      apiKeyOverride: apiKeyToUse,
+      modelOverride: modelToUse,
       voiceOverride: voiceOverride,
     );
     
@@ -4492,6 +4552,19 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     );
   }
 
+  void _applyVoiceModelToTts(String model) {
+    if (model == 'arabic' || model == 'aisha') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-arabic-saudi', voiceOverride: 'aisha');
+    } else if (model == 'lulwa' || model == 'noura' || model == 'fahad' || model == 'sultan' || model == 'abdullah') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-arabic-saudi', voiceOverride: model);
+    } else if (model == 'autumn' || model == 'diana' || model == 'hannah' || model == 'austin' || model == 'daniel' || model == 'troy') {
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-v1-english', voiceOverride: model);
+    } else {
+      // default: english / autumn
+      _ttsService.configure(modelOverride: 'canopylabs/orpheus-v1-english', voiceOverride: 'autumn');
+    }
+  }
+
   Future<void> _setVoiceModel(String model) async {
     if (_voiceModel == model) return;
     final prefs = await SharedPreferences.getInstance();
@@ -4503,23 +4576,7 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
     } else {
       _voiceModel = model;
     }
-    if (_voiceModel == 'arabic') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-arabic-saudi',
-          voiceOverride: 'aisha');
-    } else if (_voiceModel == 'lulwa') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-arabic-saudi',
-          voiceOverride: 'lulwa');
-    } else if (_voiceModel == 'autumn') {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-v1-english',
-          voiceOverride: 'autumn');
-    } else {
-      _ttsService.configure(
-          modelOverride: 'canopylabs/orpheus-v1-english',
-          voiceOverride: 'hannah');
-    }
+    _applyVoiceModelToTts(model);
 
     // Restart assistant mode to apply new voice in background
     if (_assistantModeEnabled) {
@@ -5020,10 +5077,12 @@ ${_customRules.trim().isNotEmpty ? '\n// Additional custom rules:\n$_customRules
               SystemNavigator.pop();
             }
           },
-           child: Scaffold(
-            extendBody: true,
-            extendBodyBehindAppBar: true,
+child: Scaffold(
+             backgroundColor: Color(0xFF08000F),
+             extendBody: true,
+             extendBodyBehindAppBar: true,
             drawerEnableOpenDragGesture: true,
+            onDrawerChanged: (open) => setState(() => _drawerOpen = open),
             drawer: _buildNavDrawer(themeMode),
             bottomNavigationBar: (_navIndex == 0 || _navIndex > 4) ? null : MainBottomNav(
               currentIndex: _navIndex.clamp(0, 4),
@@ -5042,33 +5101,35 @@ appBar: AppBar(
                       : Brightness.dark,
                 ),
                 leadingWidth: 50,
-                leading: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.15),
-                          theme.colorScheme.primary.withValues(alpha: 0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
+                leading: Builder(
+                  builder: (ctx) => Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary.withValues(alpha: 0.15),
+                            theme.colorScheme.primary.withValues(alpha: 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          Scaffold.of(context).openDrawer();
-                        },
-                        child: Icon(Icons.menu_rounded,
-                            color: primary, size: 22),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            Scaffold.of(ctx).openDrawer();
+                          },
+                          child: Icon(Icons.menu_rounded,
+                              color: primary, size: 22),
+                        ),
                       ),
                     ),
                   ),
@@ -5224,23 +5285,60 @@ const SizedBox(width: 4),
                  ),
                ],
              ),
-            body: Stack(
-              children: [
-                finalDecorativeBackground(themeMode),
-                if (_navIndex == 0)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: AnimatedOpacity(
-                        opacity: wallpaperDimOpacity,
-                        duration: const Duration(milliseconds: 180),
-                        curve: Curves.easeOut,
-                        child: const ColoredBox(color: Colors.black),
+            body: Container(
+              color: const Color(0xFF08000F), // Fallback dark background
+              child: Stack(
+                children: [
+                  finalDecorativeBackground(themeMode),
+                  if (_navIndex == 0)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedOpacity(
+                          opacity: wallpaperDimOpacity,
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOut,
+                          child: const ColoredBox(color: Colors.black),
+                        ),
                       ),
                     ),
+                  Positioned.fill(
+                    child: Builder(
+                      builder: (context) {
+                        try {
+                          return _buildNavBody();
+                        } catch (e, st) {
+                          debugPrint('NavBody render error: $e\n$st');
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.error_outline, color: Colors.pinkAccent, size: 48),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Render Error',
+                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    e.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () => setState(() {}),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                Positioned.fill(
-                  child: _buildNavBody(),
-                ),
                 if (_inAppNotifText.isNotEmpty) _buildInAppNotificationPopup(),
                 if (!_liteModeEnabled &&
                     _navIndex == 0 &&
@@ -5253,6 +5351,7 @@ const SizedBox(width: 4),
                 if (_isMultiSelectMode) _buildDeleteActionBar(),
               ],
             ),
+          ),
           ),
         );
       },
@@ -5271,9 +5370,8 @@ const SizedBox(width: 4),
       _ => BackgroundPalette.neonNight,
     };
     
-    // Cache profile to avoid repeated lookups
-    final perfEngine = AdaptivePerformanceEngine();
-    final particles = _liteModeEnabled ? 0 : perfEngine.particleCount;
+    // Use cached particle count — avoids AdaptivePerformanceEngine lookup every build
+    final particles = _liteModeEnabled ? 0 : _cachedParticleCount;
     final useParticles = !_liteModeEnabled && particles > 0;
     final useAurora = !_liteModeEnabled && particles > 3;
     
@@ -5283,6 +5381,7 @@ const SizedBox(width: 4),
         enableParticles: useParticles,
         particleCount: particles,
         enableAurora: useAurora,
+        active: _navIndex == 0, // pause animation on non-chat pages
         child: const SizedBox.expand(),
       ),
     );
@@ -5623,7 +5722,7 @@ const SizedBox(width: 4),
                     ],
                   )
                 : null,
-            color: isActive ? null : tokens.panelMuted.withValues(alpha: 0.72),
+            color: isActive ? Colors.transparent : tokens.panelMuted.withValues(alpha: 0.72),
             border: Border.all(
               color: Color.lerp(
                 tokens.outline,
@@ -5899,21 +5998,26 @@ const SizedBox(width: 4),
                             final bubble = RepaintBoundary(
                               child: _buildBubble(context, msg, isGhost: false),
                             );
-                            if (!isNewest) return bubble;
+
+                            // Staggered entrance animation for new messages
+                            // Only animate the last few messages for performance
+                            final isRecent = msgIndex >= visibleMessages.length - 3;
+                            if (!isRecent) return bubble;
+
                             return TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0.0, end: 1.0),
-                              duration: const Duration(milliseconds: 280),
-                              curve: Curves.easeOutCubic,
-                              builder: (context, value, child) =>
-                                  Transform.translate(
-                                offset: Offset(0, 12 * (1 - value)),
-                                child: Opacity(opacity: value, child: child),
+                              duration: Duration(milliseconds: 350 + (visibleMessages.length - 1 - msgIndex) * 50),
+                              curve: Curves.easeOutQuart,
+                              builder: (context, value, child) => Transform.translate(
+                                offset: Offset(0, 15 * (1 - value)),
+                                child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
                               ),
                               child: bubble,
                             );
-                          },
-                        );
-                      }),
+                            },
+                            );
+                            }),
+
               ),
             ),
             // ── Enhanced mood-aware typing indicator ───────────────────────
@@ -6665,7 +6769,7 @@ const SizedBox(width: 4),
                     ],
                   )
                 : null,
-            color: isUser ? null : bgColor,
+            color: isUser ? Colors.transparent : bgColor,
             border: Border(
               top: BorderSide(color: borderColor, width: 1.0),
               right: BorderSide(color: borderColor, width: 1.0),
@@ -7473,24 +7577,22 @@ const SizedBox(width: 4),
         );
 
       case 1:
-        return RepaintBoundary(child: _buildNotificationsPage());
+        return _buildNotificationsPage();
       case 2:
-        return RepaintBoundary(
-          child: FeaturesHubPage(
-            onBack: () => setState(() => _navIndex = 0),
-            onOpenCloudinary: () => setState(() => _navIndex = 0),
-          ),
+        return FeaturesHubPage(
+          onBack: () => setState(() => _navIndex = 0),
+          onOpenCloudinary: () => setState(() => _navIndex = 0),
         );
       case 3:
-        return RepaintBoundary(child: _buildSettingsPage());
+        return _buildSettingsPage();
       case 4:
-        return const RepaintBoundary(child: ThemesPage());
+        return const ThemesPage();
       case 5:
-        return RepaintBoundary(child: _buildDevConfigPage());
+        return _buildDevConfigPage();
       case 6:
-        return RepaintBoundary(child: _buildDebugPage());
+        return _buildDebugPage();
       case 7:
-        return RepaintBoundary(child: _buildAboutPage());
+        return _buildAboutPage();
       default:
         return const SizedBox.shrink();
     }

@@ -179,7 +179,7 @@ class Defaults {
       'zerozerotwoxsujit@gmail.com'; // Fallback — overridden by SENDER_EMAIL in .env
   static const String defaultCity = 'Bhubaneswar';
   static const String defaultPersona = 'Default';
-  static const String defaultVoiceModel = 'arabic';
+  static const String defaultVoiceModel = 'english';
   static const String defaultSttProvider = 'groq';
 
   static const int defaultIdleDurationSeconds = 600; // 10 min

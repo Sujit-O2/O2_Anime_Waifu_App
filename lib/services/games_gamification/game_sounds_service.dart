@@ -10,10 +10,25 @@ class GameSoundsService {
   static final GameSoundsService instance = GameSoundsService._();
 
   final AudioPlayer _player = AudioPlayer();
-  final AudioPlayer _bgmPlayer =
-      AudioPlayer(); // Separate player for background music
+  final AudioPlayer _bgmPlayer = AudioPlayer();
   bool _soundEnabled = true;
+  bool _isInitialized = false;
   String? _currentBgm;
+
+  /// Initialize audio players with proper configuration
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    try {
+      await _player.setReleaseMode(ReleaseMode.stop);
+      await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+      await _bgmPlayer.setVolume(0.6);
+      await _player.setVolume(0.8);
+      _isInitialized = true;
+      if (kDebugMode) debugPrint('[GameSounds] ✅ Initialized');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] ❌ Init error: $e');
+    }
+  }
 
   /// ===== BASIC UI SOUNDS (Tap, Navigation) =====
   Future<void> playTap() async {
@@ -42,249 +57,209 @@ class GameSoundsService {
   }
 
   /// ===== BATTLE SYSTEM SOUNDS =====
-  /// Battle hit/damage sound
   Future<void> playBattleHit() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('battle_hit');
   }
 
-  /// Enemy attack sound
   Future<void> playEnemyAttack() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('enemy_attack');
   }
 
-  /// Critical hit - dramatic sound
   Future<void> playCriticalHit() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('critical_hit');
   }
 
-  /// Battle victory fanfare
   Future<void> playBattleVictory() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('battle_victory');
   }
 
-  /// Battle defeat/loss sound
   Future<void> playBattleDefeat() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('battle_defeat');
   }
 
-  /// Blocking/Shield sound
   Future<void> playBlock() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('block');
   }
 
-  /// Special ability used
   Future<void> playSpecialAbility() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('special_ability');
   }
 
-  /// Magic/Energy casting
   Future<void> playMagic() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('magic');
   }
 
   /// ===== ACHIEVEMENT & REWARD SOUNDS =====
-  /// Achievement unlocked - triumphant fanfare
   Future<void> playAchievementUnlocked() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('achievement_unlocked');
   }
 
-  /// Level up sound
   Future<void> playLevelUp() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('level_up');
   }
 
-  /// Coin/reward collected
   Future<void> playRewardCollect() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('reward_collect');
   }
 
-  /// Treasure/bonus reward - exciting sound
   Future<void> playTreasureFound() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('treasure_found');
   }
 
   /// ===== SEASONAL EVENTS & GACHA =====
-  /// Gacha pull/roll sound
   Future<void> playGachaPull() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('gacha_pull');
   }
 
-  /// Gacha 5-star/legendary pull
   Future<void> playGachaLegendary() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('gacha_legendary');
   }
 
-  /// Event started/activated
   Future<void> playEventStart() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('event_start');
   }
 
-  /// Event completed
   Future<void> playEventComplete() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('event_complete');
   }
 
-  /// Battle pass tier completed
   Future<void> playBattlePassTier() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('battle_pass_tier');
   }
 
   /// ===== TOURNAMENT & RANKED =====
-  /// Tournament match started
   Future<void> playTournamentStart() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('tournament_start');
   }
 
-  /// Tournament match won
   Future<void> playTournamentWin() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('tournament_win');
   }
 
-  /// Tournament final victory
   Future<void> playTournamentChampion() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('tournament_champion');
   }
 
-  /// Rank up/promotion sound
   Future<void> playRankUp() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('rank_up');
   }
 
   /// ===== GUILD & TEAM SOUNDS =====
-  /// Guild war declaration
   Future<void> playGuildWarStart() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('guild_war_start');
   }
 
-  /// Guild war victory
   Future<void> playGuildWarVictory() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('guild_war_victory');
   }
 
-  /// Guild member joined
   Future<void> playGuildMemberJoined() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('guild_member_joined');
   }
 
-  /// Treasury deposited
   Future<void> playTreasuryDeposit() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('treasury_deposit');
   }
 
-  /// Guild perk unlocked
   Future<void> playGuildPerkUnlocked() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('guild_perk_unlocked');
   }
 
   /// ===== RAID SOUNDS =====
-  /// Raid battle started
   Future<void> playRaidStart() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('raid_start');
   }
 
-  /// Raid phase boss appears
   Future<void> playRaidBossAppear() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('raid_boss_appear');
   }
 
-  /// Raid completed - victory
   Future<void> playRaidComplete() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('raid_complete');
   }
 
-  /// Raid treasure reward
   Future<void> playRaidTreasure() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('raid_treasure');
   }
 
   /// ===== MINI-GAME SOUNDS =====
-  /// Mini-game win
   Future<void> playMiniGameWin() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('mini_game_win');
   }
 
-  /// Mini-game lose
   Future<void> playMiniGameLose() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('mini_game_lose');
   }
 
-  /// Mini-game round complete
   Future<void> playMiniGameRound() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('mini_game_round');
   }
 
   /// ===== COMBO & STREAK SOUNDS =====
-  /// Combo hit
   Future<void> playCombo() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('combo');
   }
 
-  /// Combo multiplier increase
   Future<void> playComboBurst() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('combo_burst');
   }
 
-  /// Streak milestone reached
   Future<void> playStreakBonus() async {
     await HapticFeedback.mediumImpact();
     await _tryPlay('streak_bonus');
   }
 
   /// ===== GENERAL NOTIFICATIONS =====
-  /// Warning/alert sound
   Future<void> playAlert() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('alert');
   }
 
-  /// Notification received
   Future<void> playNotification() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('notification');
   }
 
-  /// Affection increase
   Future<void> playAffectionIncrease() async {
     await HapticFeedback.lightImpact();
     await _tryPlay('affection_increase');
   }
 
-  /// Affection decrease
   Future<void> playAffectionDecrease() async {
     await HapticFeedback.heavyImpact();
     await _tryPlay('affection_decrease');
@@ -293,15 +268,38 @@ class GameSoundsService {
   /// ===== BACKGROUND MUSIC =====
   /// Play looping background music for games
   Future<void> playBackgroundMusic(String bgmAsset) async {
-    if (!_soundEnabled || _currentBgm == bgmAsset) return;
+    if (!_soundEnabled) return;
+    
+    // Initialize if needed
+    if (!_isInitialized) await initialize();
+    
+    if (_currentBgm == bgmAsset) return;
+    
     try {
       await _bgmPlayer.stop();
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-      await _bgmPlayer.play(AssetSource(bgmAsset));
-      _currentBgm = bgmAsset;
+      
+      // Try the provided path first
+      try {
+        await _bgmPlayer.play(AssetSource(bgmAsset));
+        _currentBgm = bgmAsset;
+        if (kDebugMode) debugPrint('[GameSounds] 🎵 Playing BGM: $bgmAsset');
+      } catch (e) {
+        // If it fails and was .mp3, try .wav
+        if (bgmAsset.endsWith('.mp3')) {
+          final wavAsset = bgmAsset.replaceAll('.mp3', '.wav');
+          await _bgmPlayer.play(AssetSource(wavAsset));
+          _currentBgm = bgmAsset;
+        } else if (bgmAsset.endsWith('.wav')) {
+          final mp3Asset = bgmAsset.replaceAll('.wav', '.mp3');
+          await _bgmPlayer.play(AssetSource(mp3Asset));
+          _currentBgm = bgmAsset;
+        } else {
+          rethrow;
+        }
+      }
     } catch (e) {
-      if (kDebugMode)
-        debugPrint('[GameSounds] Failed to play BGM $bgmAsset: $e');
+      if (kDebugMode) debugPrint('[GameSounds] ❌ Failed to play BGM $bgmAsset: $e');
     }
   }
 
@@ -310,6 +308,7 @@ class GameSoundsService {
     try {
       await _bgmPlayer.stop();
       _currentBgm = null;
+      if (kDebugMode) debugPrint('[GameSounds] ⏹️ Stopped BGM');
     } catch (e) {
       if (kDebugMode) debugPrint('[GameSounds] Failed to stop BGM: $e');
     }
@@ -334,10 +333,8 @@ class GameSoundsService {
   }
 
   /// ===== CONTROLS =====
-  /// Get current sound state
   bool get soundEnabled => _soundEnabled;
 
-  /// Toggle sound on/off
   void setSoundEnabled(bool enabled) {
     _soundEnabled = enabled;
     if (!enabled) {
@@ -345,82 +342,54 @@ class GameSoundsService {
     }
   }
 
-  /// Internal: Try to play audio asset with fallback (.mp3 then .wav)
+  /// Internal: Try to play audio asset with fallback (.wav then .mp3)
   Future<void> _tryPlay(String name) async {
     if (!_soundEnabled) return;
+    
+    // Initialize if needed
+    if (!_isInitialized) await initialize();
+    
     try {
-      await _player.play(AssetSource('sounds/$name.mp3'));
+      await _player.play(AssetSource('sounds/$name.ogg'));
     } catch (e1) {
       try {
-        await _player.play(AssetSource('sounds/$name.wav'));
+        await _player.play(AssetSource('sounds/$name.mp3'));
       } catch (e2) {
         if (kDebugMode) debugPrint('[GameSounds] Failed to play $name: $e2');
       }
     }
   }
 
-  /// Play sound with custom duration (for looping battle music, etc)
+  /// Play sound with custom duration
   Future<void> playCustom(String assetPath) async {
     if (!_soundEnabled) return;
+    if (!_isInitialized) await initialize();
+    
     try {
       await _player.play(AssetSource(assetPath));
     } catch (e) {
-      if (kDebugMode)
-        debugPrint('[GameSounds] Failed to play custom sound: $e');
+      if (kDebugMode) debugPrint('[GameSounds] Failed to play custom sound: $e');
     }
   }
 
   /// Stop current sound
   Future<void> stop() async {
-    await _player.stop();
+    try {
+      await _player.stop();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] Failed to stop sound: $e');
+    }
   }
 
-   /// Preload sounds for faster playback
-   Future<void> preloadSounds() async {
-     const sounds = [
-       'tap',
-       'correct',
-       'wrong',
-       'spin',
-       'reveal',
-       'battle_hit',
-       'enemy_attack',
-       'critical_hit',
-       'battle_victory',
-       'battle_defeat',
-       'block',
-       'special_ability',
-       'magic',
-       'achievement_unlocked',
-       'level_up',
-       'raid_boss_appear',
-       'raid_complete',
-       'raid_treasure',
-       'mini_game_win',
-       'mini_game_lose',
-       'mini_game_round',
-       'combo',
-       'combo_burst',
-       'streak_bonus',
-       'alert',
-       'notification',
-       'affection_increase',
-       'affection_decrease',
-     ];
-      for (final sound in sounds) {
-        // Try .wav first
-        try {
-          await _player.play(AssetSource('sounds/$sound.wav'));
-          await _player.stop();
-        } catch (_) {
-          // Try .mp3 fallback
-          try {
-            await _player.play(AssetSource('sounds/$sound.mp3'));
-            await _player.stop();
-          } catch (_) {
-            // Preload failed for this sound, skip
-          }
-        }
-      }
+  /// Dispose audio players
+  Future<void> dispose() async {
+    try {
+      await _player.dispose();
+      await _bgmPlayer.dispose();
+      _isInitialized = false;
+      if (kDebugMode) debugPrint('[GameSounds] 🗑️ Disposed');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[GameSounds] Dispose error: $e');
     }
+  }
 }

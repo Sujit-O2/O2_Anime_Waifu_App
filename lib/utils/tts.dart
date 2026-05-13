@@ -40,7 +40,13 @@ class TtsService {
   }
 
   String get _effectiveVoice {
-    if (_voiceOverride.trim().isNotEmpty) return _voiceOverride.trim();
+    if (_voiceOverride.trim().isNotEmpty) {
+      final voice = _voiceOverride.trim().toLowerCase();
+      // Handle generic keywords
+      if (voice == 'english') return 'autumn';
+      if (voice == 'arabic') return 'aisha';
+      return _voiceOverride.trim();
+    }
     return 'autumn';
   }
 
@@ -61,9 +67,24 @@ class TtsService {
     String? modelOverride,
     String? voiceOverride,
   }) {
-    if (apiKeyOverride != null) _apiKeyOverride = apiKeyOverride;
-    if (modelOverride != null) _modelOverride = modelOverride;
-    if (voiceOverride != null) _voiceOverride = voiceOverride;
+    // Reset or set API key override
+    if (apiKeyOverride == null) {
+      _apiKeyOverride = ''; // Reset to use .env key
+    } else if (apiKeyOverride.trim().isNotEmpty) {
+      _apiKeyOverride = apiKeyOverride.trim();
+    }
+    
+    // Reset or set model override
+    if (modelOverride == null) {
+      _modelOverride = ''; // Reset to default
+    } else if (modelOverride.trim().isNotEmpty) {
+      _modelOverride = modelOverride.trim();
+    }
+    
+    // Always set voice override (required parameter)
+    if (voiceOverride != null && voiceOverride.trim().isNotEmpty) {
+      _voiceOverride = voiceOverride.trim();
+    }
   }
 
   TtsService() {
@@ -112,9 +133,11 @@ class TtsService {
         .toList();
 
     if (keys.isEmpty) {
-      if (kDebugMode) debugPrint('TTS API key is missing');
+      if (kDebugMode) debugPrint('❌ TTS: API key is missing or empty');
       return null;
     }
+
+    if (kDebugMode) debugPrint('🔑 TTS: Found ${keys.length} API key(s)');
 
     // Shuffle for random rotation
     keys.shuffle();
@@ -126,6 +149,8 @@ class TtsService {
       'input': text,
       'response_format': 'wav'
     };
+
+    if (kDebugMode) debugPrint('🌐 TTS: Calling Groq API with model: ${_effectiveModel}, voice: ${_effectiveVoice}');
 
     for (int i = 0; i < keys.length; i++) {
       final key = keys[i];
@@ -142,21 +167,22 @@ class TtsService {
             .timeout(_ttsRequestTimeout);
 
         if (response.statusCode == 200) {
+          if (kDebugMode) debugPrint('✅ TTS: API success with key ${i + 1}/${keys.length}');
           return response.bodyBytes;
         } else {
           if (kDebugMode) {
             debugPrint(
-              'TTS API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body}');
+              '❌ TTS: API Error (Key ${i + 1}/${keys.length}): ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
           }
         }
       } on TimeoutException catch (_) {
-        if (kDebugMode) debugPrint('TTS API request timeout (Key ${i + 1}/${keys.length})');
+        if (kDebugMode) debugPrint('⏱️ TTS: API request timeout (Key ${i + 1}/${keys.length})');
       } catch (e) {
-        if (kDebugMode) debugPrint('TTS API Exception (Key ${i + 1}/${keys.length}): $e');
+        if (kDebugMode) debugPrint('❌ TTS: API Exception (Key ${i + 1}/${keys.length}): $e');
       }
     }
 
-    if (kDebugMode) debugPrint('All TTS API keys failed.');
+    if (kDebugMode) debugPrint('❌ TTS: All ${keys.length} API key(s) failed.');
     return null;
   }
 
@@ -168,6 +194,12 @@ class TtsService {
       return;
     }
 
+    if (kDebugMode) {
+      debugPrint('🎤 TTS: Starting speech for: "${cleanText.substring(0, cleanText.length > 50 ? 50 : cleanText.length)}..."');
+      debugPrint('🎤 TTS: API Key available: ${_effectiveApiKey.isNotEmpty}');
+      debugPrint('🎤 TTS: Voice: $_effectiveVoice, Model: $_effectiveModel');
+    }
+
     final sessionId = ++_sessionCounter;
     _activeSessionId = sessionId;
     _startCompletionGuard(sessionId, cleanText);
@@ -177,10 +209,12 @@ class TtsService {
       final audioBytes = await _fetchAudioFromApi(cleanText);
 
       if (audioBytes == null || audioBytes.isEmpty) {
-        if (kDebugMode) debugPrint('No audio from Groq TTS, falling back to device TTS');
+        if (kDebugMode) debugPrint('❌ TTS: No audio from Groq TTS, falling back to device TTS');
         await _speakWithFallbackTts(cleanText, sessionId);
         return;
       }
+
+      if (kDebugMode) debugPrint('✅ TTS: Got ${audioBytes.length} bytes from Groq API');
 
       _playerSessionId = sessionId;
       _fallbackSessionId = 0;
@@ -300,7 +334,11 @@ class TtsService {
     int scoreVoice(Map<String, dynamic> voice) {
       final name = (voice['name'] ?? '').toString().toLowerCase();
       final locale = (voice['locale'] ?? '').toString().toLowerCase();
-      final quality = (voice['quality'] as num?)?.toInt() ?? 0;
+      // Handle quality as either num or String
+      final qualityRaw = voice['quality'];
+      final quality = qualityRaw is num 
+          ? qualityRaw.toInt() 
+          : (qualityRaw is String ? int.tryParse(qualityRaw) ?? 0 : 0);
       final notInstalled = voice['notInstalled'] == true;
       final networkRequired = voice['network_required'] == true;
 

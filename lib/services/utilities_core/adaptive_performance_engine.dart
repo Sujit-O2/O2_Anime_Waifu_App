@@ -44,38 +44,38 @@ class PerformanceProfile {
 
   static const ultra = PerformanceProfile(
     tier: PerformanceTier.ultra,
-    particleCount: 8,
+    particleCount: 40,
+    blurSigma: 12,
+    enableParticles: true,
+    enableBackdropBlur: true,
+    enableShadows: true,
+    enableAnimations: true,
+    targetFps: 120,
+    animationScale: 1.0,
+  );
+
+  static const high = PerformanceProfile(
+    tier: PerformanceTier.high,
+    particleCount: 25,
+    blurSigma: 8,
+    enableParticles: true,
+    enableBackdropBlur: true,
+    enableShadows: true,
+    enableAnimations: true,
+    targetFps: 60,
+    animationScale: 0.85,
+  );
+
+  static const balanced = PerformanceProfile(
+    tier: PerformanceTier.balanced,
+    particleCount: 12,
     blurSigma: 4,
     enableParticles: true,
     enableBackdropBlur: false,
     enableShadows: false,
     enableAnimations: true,
     targetFps: 60,
-    animationScale: 1.0,
-  );
-
-  static const high = PerformanceProfile(
-    tier: PerformanceTier.high,
-    particleCount: 4,
-    blurSigma: 0,
-    enableParticles: false,
-    enableBackdropBlur: false,
-    enableShadows: false,
-    enableAnimations: true,
-    targetFps: 60,
     animationScale: 0.7,
-  );
-
-  static const balanced = PerformanceProfile(
-    tier: PerformanceTier.balanced,
-    particleCount: 0,
-    blurSigma: 0,
-    enableParticles: false,
-    enableBackdropBlur: false,
-    enableShadows: false,
-    enableAnimations: false,
-    targetFps: 30,
-    animationScale: 0.3,
   );
 
   static const eco = PerformanceProfile(

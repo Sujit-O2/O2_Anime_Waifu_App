@@ -138,7 +138,7 @@ class _PremiumChatBubbleState extends State<PremiumChatBubble>
                       child: isUser
                           ? _buildUserBubble(theme, tokens)
                           : BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                               child: _buildAIBubble(theme, tokens),
                             ),
                     ),

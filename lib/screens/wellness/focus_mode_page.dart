@@ -266,7 +266,7 @@ class _FocusModePageState extends State<FocusModePage>
     return Container(
       decoration: BoxDecoration(
         gradient: isPrimary ? V2Theme.primaryGradient : null,
-        color: isPrimary ? null : V2Theme.darkGlass,
+        color: isPrimary ? Colors.transparent : V2Theme.darkGlass,
         shape: BoxShape.circle,
         boxShadow: isPrimary
             ? [
@@ -318,7 +318,7 @@ class _FocusModePageState extends State<FocusModePage>
                             horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: isSelected ? V2Theme.primaryGradient : null,
-                          color: isSelected ? null : V2Theme.darkGlass,
+                          color: isSelected ? Colors.transparent : V2Theme.darkGlass,
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
                               color: isSelected
@@ -375,7 +375,7 @@ class _FocusModePageState extends State<FocusModePage>
                         gradient: isSelected
                             ? V2Theme.primaryGradient.scale(0.5)
                             : null,
-                        color: isSelected ? null : V2Theme.darkGlass,
+                        color: isSelected ? Colors.transparent : V2Theme.darkGlass,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: isSelected

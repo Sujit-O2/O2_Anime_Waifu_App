@@ -59,6 +59,7 @@ import 'package:anime_waifu/screens/media/manga_section_page.dart';
 import 'package:anime_waifu/screens/media/watch_history_page.dart';
 import 'package:anime_waifu/screens/media/watchlist_page.dart';
 import 'package:anime_waifu/screens/media/web_streamers_hub_page.dart';
+import 'package:anime_waifu/screens/utilities/music_player_page.dart';
 import 'package:anime_waifu/screens/rituals/checkin_streak_page.dart';
 import 'package:anime_waifu/screens/rituals/daily_affirmations_page.dart';
 import 'package:anime_waifu/screens/rituals/daily_challenge_page.dart';
@@ -84,7 +85,6 @@ import 'package:anime_waifu/screens/social/relationship_evolution_page.dart';
 import 'package:anime_waifu/screens/social/relationship_level_map_page.dart';
 import 'package:anime_waifu/screens/utilities/anniversary_page.dart';
 // ── Orphan Integration ──
-import 'package:anime_waifu/screens/utilities/ar_companion_page.dart';
 import 'package:anime_waifu/screens/utilities/ar_ruler_page.dart';
 import 'package:anime_waifu/screens/utilities/auto_learning_page.dart';
 import 'package:anime_waifu/screens/utilities/auto_life_log_page.dart';
@@ -698,6 +698,10 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                 icon: Icons.music_note_rounded,
                 builder: (_) => const AnimeOstPage()),
             _HubItem(
+                label: 'Music Player',
+                icon: Icons.play_circle_rounded,
+                builder: (_) => const MusicPlayerPage()),
+            _HubItem(
                 label: 'Anime Calendar',
                 icon: Icons.calendar_month_rounded,
                 builder: (_) => const AnimeCalendarPage()),
@@ -1118,10 +1122,6 @@ class _FeaturesHubPageState extends State<FeaturesHubPage>
                 label: 'QR Tools',
                 icon: Icons.qr_code_scanner_rounded,
                 builder: (_) => const QrScannerPage()),
-            _HubItem(
-                label: 'AR Companion',
-                icon: Icons.view_in_ar_rounded,
-                builder: (_) => const ArCompanionPage()),
             _HubItem(
                 label: 'Geofence Zones',
                 icon: Icons.my_location_rounded,

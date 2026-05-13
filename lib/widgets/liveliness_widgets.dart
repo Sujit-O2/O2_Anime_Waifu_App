@@ -747,75 +747,77 @@ class _EnhancedTypingIndicatorState extends State<EnhancedTypingIndicator>
   Widget build(BuildContext context) {
     final dotColor = _dotColor(widget.moodLabel);
     final text = _moodText(widget.moodLabel);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.09),
-            dotColor.withValues(alpha: 0.06),
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.09),
+              dotColor.withValues(alpha: 0.06),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: dotColor.withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: dotColor.withValues(alpha: 0.18),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+              spreadRadius: 0,
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: dotColor.withValues(alpha: 0.35),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: dotColor.withValues(alpha: 0.18),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        // Animated blush circle with glow
-        AnimatedBuilder(
-          animation: _blushAnim,
-          builder: (_, __) => Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: dotColor.withValues(alpha: _blushAnim.value),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: dotColor.withValues(alpha: _blushAnim.value * 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ],
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          // Animated blush circle with glow
+          AnimatedBuilder(
+            animation: _blushAnim,
+            builder: (_, __) => Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: dotColor.withValues(alpha: _blushAnim.value),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: dotColor.withValues(alpha: _blushAnim.value * 0.6),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        ...List.generate(
-            3,
-            (i) => AnimatedBuilder(
-                  animation: _dotAnims[i],
-                  builder: (_, __) => Transform.translate(
-                    offset: Offset(0, _dotAnims[i].value),
-                    child: Container(
-                      width: 7,
-                      height: 7,
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      decoration: BoxDecoration(
-                          color: dotColor.withValues(alpha: 0.85),
-                          shape: BoxShape.circle),
+          const SizedBox(width: 8),
+          ...List.generate(
+              3,
+              (i) => AnimatedBuilder(
+                    animation: _dotAnims[i],
+                    builder: (_, __) => Transform.translate(
+                      offset: Offset(0, _dotAnims[i].value),
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        decoration: BoxDecoration(
+                            color: dotColor.withValues(alpha: 0.85),
+                            shape: BoxShape.circle),
+                      ),
                     ),
-                  ),
-                )),
-        const SizedBox(width: 8),
-        Text(text,
-            style: GoogleFonts.outfit(
-                color: Colors.white38,
-                fontSize: 11,
-                fontStyle: FontStyle.italic)),
-      ]),
+                  )),
+          const SizedBox(width: 8),
+          Text(text,
+              style: GoogleFonts.outfit(
+                  color: Colors.white38,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic)),
+        ]),
+      ),
     );
   }
 }

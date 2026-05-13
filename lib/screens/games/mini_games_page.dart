@@ -496,7 +496,15 @@ class _SnakeGameState extends State<SnakeGamePage> {
     _bgAsset = _randomO2GameBackground();
     _loadDB();
     _resetSnake();
-    GameSoundsService.instance.playBackgroundMusic('sounds/game_arcade_bgm.mp3');
+    // Initialize sound service before playing
+    _initSound();
+  }
+
+  Future<void> _initSound() async {
+    await GameSoundsService.instance.initialize();
+    if (mounted) {
+      await GameSoundsService.instance.playBackgroundMusic('sounds/game_arcade_bgm.ogg');
+    }
   }
 
   Future<void> _loadDB() async {
@@ -727,6 +735,8 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    _buildBoard();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_puzzle_bgm.ogg');
   }
 
   Future<void> _loadDB() async {
@@ -905,6 +915,7 @@ class _TapReactionState extends State<TapReactionPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_reaction_bgm.ogg');
   }
 
   Future<void> _loadDB() async {
@@ -972,7 +983,12 @@ class _TapReactionState extends State<TapReactionPage> {
   }
 
   @override
-  void dispose() { _waitTimer?.cancel(); _hideTimer?.cancel(); super.dispose(); }
+  void dispose() {
+    _waitTimer?.cancel();
+    _hideTimer?.cancel();
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1090,6 +1106,7 @@ class _NumberGuesserState extends State<NumberGuesserPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_brain_bgm.ogg');
   }
 
   Future<void> _loadDB() async {
@@ -1147,7 +1164,11 @@ class _NumberGuesserState extends State<NumberGuesserPage> {
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1272,6 +1293,13 @@ class _WordleGameState extends State<WordleGamePage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_brain_bgm.ogg');
+  }
+
+  @override
+  void dispose() {
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
   }
 
   Future<void> _loadDB() async {
@@ -1492,6 +1520,7 @@ class _AnimeQuizState extends State<AnimeQuizPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_brain_bgm.ogg');
   }
 
   Future<void> _loadDB() async {
@@ -1765,6 +1794,13 @@ class _BlockBlastState extends State<BlockBlastPage> {
     super.initState();
     _bgAsset = _randomO2GameBackground();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_puzzle_bgm.ogg');
+  }
+
+  @override
+  void dispose() {
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
   }
 
   Future<void> _loadDB() async {
@@ -2067,6 +2103,7 @@ class _BlockBreakerState extends State<BlockBreakerPage> with SingleTickerProvid
       ..addListener(_tick)
       ..repeat();
     _loadDB();
+    GameSoundsService.instance.playBackgroundMusic('sounds/game_arcade_bgm.ogg');
   }
 
   Future<void> _loadDB() async {
@@ -2173,7 +2210,11 @@ class _BlockBreakerState extends State<BlockBreakerPage> with SingleTickerProvid
   }
 
   @override
-  void dispose() { _ac.dispose(); super.dispose(); }
+  void dispose() {
+    _ac.dispose();
+    GameSoundsService.instance.stopBackgroundMusic();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

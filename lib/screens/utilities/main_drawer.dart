@@ -548,10 +548,6 @@ Widget drawerPulseStat({
       case 'diary':
         Navigator.pushNamed(context, '/diary');
         break;
-      case 'settings':
-        updateState(() => _navIndex = 3);
-        Navigator.pop(context);
-        break;
       case 'themes':
         updateState(() => _navIndex = 4);
         Navigator.pop(context);
@@ -691,7 +687,6 @@ Widget drawerPulseStat({
       {'name': 'Story', 'icon': 'psychology_rounded', 'color': '0xFFCDDC39', 'action': 'story'},
       {'name': 'Quotes', 'icon': 'format_quote_rounded', 'color': '0xFFFFEB3B', 'action': 'quotes'},
       {'name': 'Diary', 'icon': 'book_rounded', 'color': '0xFFF44336', 'action': 'diary'},
-      {'name': 'Settings', 'icon': 'settings_rounded', 'color': '0xFF607D8B', 'action': 'settings'},
       {'name': 'Themes', 'icon': 'palette_rounded', 'color': '0xFFE91E63', 'action': 'themes'},
       {'name': 'Affirmation', 'icon': 'self_improvement_rounded', 'color': '0xFF4CAF50', 'action': 'affirmation'},
       {'name': 'Horoscope', 'icon': 'auto_awesome_rounded', 'color': '0xFF9C27B0', 'action': 'horoscope'},
@@ -703,64 +698,76 @@ Widget drawerPulseStat({
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
-          color: tokens.panel,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: tokens.textMuted,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text('Customize Favorites', style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  )),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.close, color: tokens.textMuted),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1.1,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: BoxDecoration(
+            color: tokens.panel,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: tokens.textMuted,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                itemCount: availableFeatures.length,
-                itemBuilder: (ctx, i) {
-                  final feat = availableFeatures[i];
-                  final name = feat['name'] as String;
-                  final iconName = feat['icon'] as String;
-                  final colorVal = int.tryParse(feat['color'] as String) ?? 0xFFFF9800;
-                  final color = Color(colorVal);
-                  final action = feat['action'] as String;
-                  final isAdded = _customFavorites.any((f) => f['action'] == action);
-                  
-                  return _availableFeatureChip(name, _getIconFromString(iconName), color, action, isAdded: isAdded, onChanged: _triggerRebuild);
-                },
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text('Customize Favorites', style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    )),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close, color: tokens.textMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 1.1,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: availableFeatures.length,
+                  itemBuilder: (ctx, i) {
+                    final feat = availableFeatures[i];
+                    final name = feat['name'] as String;
+                    final iconName = feat['icon'] as String;
+                    final colorVal = int.tryParse(feat['color'] as String) ?? 0xFFFF9800;
+                    final color = Color(colorVal);
+                    final action = feat['action'] as String;
+                    final isAdded = _customFavorites.any((f) => f['action'] == action);
+                    
+                    return _availableFeatureChip(
+                      name, 
+                      _getIconFromString(iconName), 
+                      color, 
+                      action, 
+                      isAdded: isAdded, 
+                      onChanged: () {
+                        setModalState(() {});
+                        _triggerRebuild();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -846,7 +853,9 @@ Widget drawerPulseStat({
   return Drawer(
     width: drawerWidth,
     backgroundColor: materialTheme.scaffoldBackgroundColor,
-    child: Stack(
+    child: TickerMode(
+      enabled: _drawerOpen,
+      child: Stack(
       children: [
         // Simple gradient background (no GIF for performance)
         Positioned.fill(
@@ -875,132 +884,134 @@ Widget drawerPulseStat({
           children: [
             SizedBox(
               height: 180, // Restored, slightly more compact
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Static cover image to keep drawer motion smooth
-                  Image.asset(
-                    'assets/gif/sidebar_top.gif',
-                    fit: BoxFit.cover,
-                    alignment: const Alignment(0, -0.2), // Focus on face/eyes
-                  ),
-
-                  // Deep Vignette + Fade to Black (seamless merge)
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black
-                              .withValues(alpha: 0.2), // Top edge shading
-                          Colors.transparent,
-                          const Color(0xFF0F1014).withValues(alpha: 0.6),
-                          const Color(
-                              0xFF0F1014), // Exactly matches drawer BG
-                        ],
-                        stops: const [0.0, 0.4, 0.8, 1.0],
+              child: RepaintBoundary(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Static cover image to keep drawer motion smooth
+                    Image.asset(
+                      'assets/gif/sidebar_top.gif',
+                      fit: BoxFit.cover,
+                      alignment: const Alignment(0, -0.2), // Focus on face/eyes
+                    ),
+  
+                    // Deep Vignette + Fade to Black (seamless merge)
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black
+                                .withValues(alpha: 0.2), // Top edge shading
+                            Colors.transparent,
+                            const Color(0xFF0F1014).withValues(alpha: 0.6),
+                            const Color(
+                                0xFF0F1014), // Exactly matches drawer BG
+                          ],
+                          stops: const [0.0, 0.4, 0.8, 1.0],
+                        ),
                       ),
                     ),
-                  ),
-
-                  // Top-right dynamic ambient quote
-                  // Avatar & Stats directly overlaid on the fade
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Scaled down Avatar
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: primary.withValues(alpha: 0.8),
-                                    width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: primary.withValues(alpha: 0.6),
-                                      blurRadius: 16,
-                                      spreadRadius: -2),
-                                  BoxShadow(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.8),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4)),
-                                ],
-                                image: DecorationImage(
-                                  image: _imageProviderFor(
-                                      assetPath: _appIconImageAsset,
-                                      customPath:
-                                          _effectiveAppIconCustomPath),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    ShaderMask(
-                                      shaderCallback: (bounds) =>
-                                          LinearGradient(
-                                        colors: [
-                                          Colors.white,
-                                          Colors.pink.shade200
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ).createShader(bounds),
-                                      child: Text('ZERO TWO',
-                                          style: GoogleFonts.outfit(
-                                              color: Colors.white,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 3)),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text('SYSTEM ONLINE',
-                                            style: GoogleFonts.jetBrainsMono(
-                                                color: Colors.white70,
-                                                fontSize: 9,
-                                                letterSpacing: 1.5,
-                                                fontWeight: FontWeight.w800)),
-                                      ],
-                                    ),
+  
+                    // Top-right dynamic ambient quote
+                    // Avatar & Stats directly overlaid on the fade
+                    Positioned(
+                      left: 20,
+                      right: 20,
+                      bottom: 0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Scaled down Avatar
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: primary.withValues(alpha: 0.8),
+                                      width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: primary.withValues(alpha: 0.6),
+                                        blurRadius: 16,
+                                        spreadRadius: -2),
+                                    BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4)),
                                   ],
+                                  image: DecorationImage(
+                                    image: _imageProviderFor(
+                                        assetPath: _appIconImageAsset,
+                                        customPath:
+                                            _effectiveAppIconCustomPath),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ShaderMask(
+                                        shaderCallback: (bounds) =>
+                                            LinearGradient(
+                                          colors: [
+                                            Colors.white,
+                                            Colors.pink.shade200
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds),
+                                        child: Text('ZERO TWO',
+                                            style: GoogleFonts.outfit(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 3)),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.greenAccent,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text('SYSTEM ONLINE',
+                                              style: GoogleFonts.jetBrainsMono(
+                                                  color: Colors.white70,
+                                                  fontSize: 9,
+                                                  letterSpacing: 1.5,
+                                                  fontWeight: FontWeight.w800)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -1152,97 +1163,6 @@ Widget drawerPulseStat({
             ),
             const SizedBox(height: 10),
 
-            // ── SCROLLING NAV LIST ─────────────────────────────────────────────
-            AnimatedBuilder(
-              animation: AffectionService.instance,
-              builder: (context, child) {
-                final srv = AffectionService.instance;
-                final mood = srv.levelProgress >= 0.75
-                    ? 'achievement'
-                    : srv.levelProgress >= 0.35
-                        ? 'motivated'
-                        : 'neutral';
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: GlassCard(
-                    margin: EdgeInsets.zero,
-                    padding: const EdgeInsets.all(14),
-                    glow: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            _AnimatedMissionIcon(primary: primary),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) => LinearGradient(
-                                      colors: [
-                                        primary,
-                                        Colors.pinkAccent,
-                                      ],
-                                    ).createShader(bounds),
-                                    child: Text(
-                                      'Mission Control',
-                                      style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    mood == 'achievement'
-                                        ? 'Zero Two is fully synced with you.'
-                                        : mood == 'motivated'
-                                            ? 'Momentum is building nicely.'
-                                            : 'Everything is calm and ready.',
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white60,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            drawerPulseStat(
-                              label: 'XP',
-                              value: '${srv.points}',
-                              icon: Icons.auto_awesome_rounded,
-                              color: primary,
-                            ),
-                            drawerPulseStat(
-                              label: 'Bond',
-                              value: srv.levelName.split(' ').first,
-                              icon: Icons.workspace_premium_rounded,
-                              color: Colors.amberAccent,
-                            ),
-                            drawerPulseStat(
-                              label: 'Hubs',
-                              value: '4',
-                              icon: Icons.hub_rounded,
-                              color: Colors.cyanAccent,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -1340,7 +1260,7 @@ Container(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'v2.0',
+                  'v11.0.2',
                   style: GoogleFonts.jetBrainsMono(
                     color: primary,
                     fontSize: 10,
@@ -1392,39 +1312,6 @@ Container(
                           _statItem(Icons.favorite_rounded, '${AffectionService.instance.affection}', 'Love', Colors.pinkAccent),
                           _statItem(Icons.local_fire_department_rounded, '${AffectionService.instance.streakDays}', 'Streak', Colors.orangeAccent),
                           _statItem(Icons.emoji_events_rounded, '${AffectionService.instance.level}', 'Level', Colors.amberAccent),
-                        ],
-                      ),
-                    ),
-
-                    // ═══ QUICK TOGGLES ═══
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: tokens.panel.withValues(alpha: 0.5),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: _quickToggle(Icons.wb_sunny_rounded, 'Lite', _liteModeEnabled, (v) => _sp.liteModeEnabled = v)),
-                          const SizedBox(width: 8),
-                          Expanded(child: _quickToggle(Icons.mic_rounded, 'Mic', _wakeWordEnabledByUser, _updateWakeWord)),
-                          const SizedBox(width: 8),
-                          Expanded(child: _quickToggle(Icons.notifications_rounded, 'Notif', _notificationsAllowed, (v) => _sp.notificationsAllowed = v)),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ═══ QUICK ACTIONS ═══
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          Expanded(child: _actionBtn(Icons.settings_rounded, 'Settings', () { Navigator.pop(context); updateState(() => _navIndex = 4); })),
-                          const SizedBox(width: 8),
-                          Expanded(child: _actionBtn(Icons.person_rounded, 'Profile', () { Navigator.pop(context); })),
                         ],
                       ),
                     ),
@@ -1549,13 +1436,6 @@ Container(
                                   Colors.purpleAccent,
                                   () => Navigator.pushNamed(
                                       context, '/story-mode')),
-                              drawerTile(
-                                  'AR Companion',
-                                  Icons.view_in_ar_rounded,
-                                  Colors.pinkAccent,
-                                  () => Navigator.pushNamed(
-                                      context, '/ar-companion'),
-                                  badge: '3D'),
                               drawerTile(
                                   'Virtual Date',
                                   Icons.favorite_outline_rounded,
@@ -1743,6 +1623,7 @@ Container(
         // Stack children end
       ],
     ),
+    ),
   );
   }
 
@@ -1830,6 +1711,7 @@ class _DrawerStatusFooter extends StatefulWidget {
 class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
     with SingleTickerProviderStateMixin {
   late AnimationController _glow;
+
   @override
   void initState() {
     super.initState();
@@ -1846,155 +1728,81 @@ class _DrawerStatusFooterState extends State<_DrawerStatusFooter>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _glow,
-      builder: (_, __) {
-        final t = _glow.value;
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: const Color(0xFFFF4FA8).withValues(alpha: 0.2)),
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFFF4FA8).withValues(alpha: 0.06 + 0.03 * t),
-                const Color(0xFF9B59B6).withValues(alpha: 0.04),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    const Color(0xFFFF4FA8).withValues(alpha: 0.08 + 0.06 * t),
-                blurRadius: 20,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Pulsing status dot
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.greenAccent,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.greenAccent.withValues(alpha: 0.3 + 0.5 * t),
-                      blurRadius: 8,
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('CORE ONLINE',
-                        style: GoogleFonts.jetBrainsMono(
-                            color: Colors.greenAccent.withValues(alpha: 0.8),
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2)),
-                    Text('ZERO TWO  002',
-                        style: GoogleFonts.jetBrainsMono(
-                            color: Colors.white30,
-                            fontSize: 8,
-                            letterSpacing: 1.5)),
-                  ],
-                ),
-              ),
-              Text('❤️ MY DARLING',
-                  style: GoogleFonts.outfit(
-                      color: const Color(0xFFFF4FA8)
-                          .withValues(alpha: 0.6 + 0.3 * t),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1)),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AnimatedMissionIcon extends StatefulWidget {
-  final Color primary;
-  const _AnimatedMissionIcon({required this.primary});
-
-  @override
-  State<_AnimatedMissionIcon> createState() => _AnimatedMissionIconState();
-}
-
-class _AnimatedMissionIconState extends State<_AnimatedMissionIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _rotation;
-  late Animation<double> _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-    _rotation = Tween<double>(begin: 0, end: 1).animate(_ctrl);
-    _pulse = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _pulse.value,
-          child: Container(
-            width: 40,
-            height: 40,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (_, __) {
+          final t = _glow.value;
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: const Color(0xFFFF4FA8).withValues(alpha: 0.2)),
               gradient: LinearGradient(
                 colors: [
-                  widget.primary,
-                  Colors.pinkAccent,
+                  const Color(0xFFFF4FA8).withValues(alpha: 0.06 + 0.03 * t),
+                  const Color(0xFF9B59B6).withValues(alpha: 0.04),
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: widget.primary.withValues(alpha: 0.5),
-                  blurRadius: 16,
-                  spreadRadius: 2,
+                  color:
+                      const Color(0xFFFF4FA8).withValues(alpha: 0.08 + 0.06 * t),
+                  blurRadius: 20,
                 ),
               ],
             ),
-            child: RotationTransition(
-              turns: _rotation,
-              child: const Icon(
-                Icons.dashboard_customize_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+            child: Row(
+              children: [
+                // Pulsing status dot
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.greenAccent,
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.greenAccent.withValues(alpha: 0.3 + 0.5 * t),
+                        blurRadius: 8,
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CORE ONLINE',
+                          style: GoogleFonts.jetBrainsMono(
+                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2)),
+                      Text('ZERO TWO  002',
+                          style: GoogleFonts.jetBrainsMono(
+                              color: Colors.white30,
+                              fontSize: 8,
+                              letterSpacing: 1.5)),
+                    ],
+                  ),
+                ),
+                Text('❤️ MY DARLING',
+                    style: GoogleFonts.outfit(
+                        color: const Color(0xFFFF4FA8)
+                            .withValues(alpha: 0.6 + 0.3 * t),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1)),
+              ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
