@@ -20,7 +20,7 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
   String _status = 'Your turn, Darling~';
   int _wins = 0, _losses = 0, _draws = 0;
   int _level = 1;
-  int _lives = 3;
+  // Lives removed - each game is independent
   int _bestScore = 0;
   bool _gameOver = false;
   List<int>? _winLine;
@@ -123,8 +123,7 @@ class _TicTacToePageState extends State<TicTacToePage> with TickerProviderStateM
     final win = _checkWinner(_board);
     if (win != null) {
       _losses++;
-      _lives--;
-      if (_lives <= 0) _lives = 3;
+      // No lives system
       unawaited(GameProgressDB.instance.save('ttt', level: _level, bestScore: _bestScore, totalPlayed: _wins + _losses + _draws));
       setState(() { _winLine = win; _gameOver = true; _status = 'Fufu~ I win! Better luck next time 😈'; });
       _saveStats();

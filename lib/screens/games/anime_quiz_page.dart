@@ -28,7 +28,7 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
   int _bestStreak = 0;
   int _totalQuestions = 0;
   int _level = 1;
-  int _lives = 3;
+  // Lives removed - each quiz is independent
   int _bestScore = 0;
   bool _loading = true;
   bool _answered = false;
@@ -151,8 +151,6 @@ class _AnimeQuizGamePageState extends State<AnimeQuizGamePage>
       } else {
         HapticFeedback.vibrate();
         _streak = 0;
-        _lives--;
-        if (_lives <= 0) _lives = 3;
         _shakeCtrl.forward(from: 0);
       }
     });

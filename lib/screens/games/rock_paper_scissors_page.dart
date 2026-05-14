@@ -40,7 +40,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
   int _zeroWins = 0;
   int _draws = 0;
   int _level = 1;
-  int _lives = 3;
+  // Lives removed - each round is independent
   int _bestScore = 0;
 
   int? _playerChoice;
@@ -156,8 +156,7 @@ class _RockPaperScissorsPageState extends State<RockPaperScissorsPage>
       final pts = _level * 10;
       if (pts > _bestScore) _bestScore = pts;
     } else if (outcome == 'lose') {
-      _lives--;
-      if (_lives <= 0) _lives = 3;
+      // No lives system - just track score
     }
     unawaited(GameProgressDB.instance.save('rps', level: _level, bestScore: _bestScore, totalPlayed: _playerWins + _zeroWins + _draws));
 

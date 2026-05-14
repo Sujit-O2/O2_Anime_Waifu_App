@@ -19,7 +19,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
   int _currentQ = 0;
   int _score = 0;
   int _level = 1;
-  int _lives = 3;
+  // Lives removed - each quiz is independent
   int _bestScore = 0;
   bool _answered = false;
   int? _selectedOption;
@@ -68,7 +68,7 @@ class _LoveQuizPageState extends State<LoveQuizPage>
       correct = int.tryParse(rawAnswer) ?? 0;
     }
     if (correct >= options.length) correct = 0;
-    setState(() { _selectedOption = idx; _answered = true; if (idx == correct) { _score++; _level++; if (_score > _bestScore) _bestScore = _score; unawaited(GameProgressDB.instance.save('love_quiz', level: _level, bestScore: _bestScore, totalPlayed: _score)); } else { _lives--; if (_lives <= 0) _lives = 3; } });
+    setState(() { _selectedOption = idx; _answered = true; if (idx == correct) { _score++; _level++; if (_score > _bestScore) _bestScore = _score; unawaited(GameProgressDB.instance.save('love_quiz', level: _level, bestScore: _bestScore, totalPlayed: _score)); } });
     _questions[_currentQ]['_correct_idx'] = correct;
   }
 

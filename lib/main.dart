@@ -5124,7 +5124,9 @@ appBar: AppBar(
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            HapticFeedback.selectionClick();
+                            if (_hapticFeedbackEnabled) {
+                              HapticFeedback.selectionClick();
+                            }
                             Scaffold.of(ctx).openDrawer();
                           },
                           child: Icon(Icons.menu_rounded,
@@ -5137,7 +5139,9 @@ appBar: AppBar(
                 title: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
-                    HapticFeedback.selectionClick();
+                    if (_hapticFeedbackEnabled) {
+                      HapticFeedback.selectionClick();
+                    }
                     _onTitleTap();
                   },
                   onLongPress: _openDevConfigSheet,
@@ -5218,7 +5222,9 @@ const SizedBox(width: 4),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            HapticFeedback.selectionClick();
+                            if (_hapticFeedbackEnabled) {
+                              HapticFeedback.selectionClick();
+                            }
                             setState(() {
                               _navIndex = 1;
                               _hasUnreadNotifs = false;

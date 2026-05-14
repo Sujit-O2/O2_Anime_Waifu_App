@@ -48,7 +48,6 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
   bool _lost = false;
   int _streak = 0;
   int _level = 1;
-  int _lives = 3;
   int _bestScore = 0;
   int _bestStreak = 0;
   int _wins = 0;
@@ -128,8 +127,6 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
         if (_wrongGuesses >= _maxWrong) {
           _lost = true;
           _streak = 0;
-          _lives--;
-          if (_lives <= 0) _lives = 3;
           unawaited(GameProgressDB.instance.save('word_puzzle', level: _level, bestScore: _bestScore, totalPlayed: _wins));
           _message = 'Oh no, Darling... The word was "${_current.word}" 😢';
         }
@@ -160,7 +157,7 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
         .split('')
         .map((c) => _guessedLetters.contains(c) ? c : '_')
         .join(' ');
-    final lives = _maxWrong - _wrongGuesses;
+    final attemptsLeft = _maxWrong - _wrongGuesses;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -212,7 +209,7 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
             Expanded(
                 child: _statCard('Best', '$_bestStreak', Colors.orangeAccent)),
             const SizedBox(width: 8),
-            Expanded(child: _statCard('Lives', '$lives', Colors.pinkAccent)),
+            Expanded(child: _statCard('Tries', '$attemptsLeft', Colors.pinkAccent)),
           ]),
           const SizedBox(height: 16),
           WaifuCommentary(mood: _commentaryMood),
@@ -235,12 +232,12 @@ class _WordPuzzlePageState extends State<WordPuzzlePage> with SingleTickerProvid
                         ? '💀'
                         : _won
                             ? '🎉'
-                            : '❤️' * lives,
+                            : '❤️' * attemptsLeft,
                     style: TextStyle(fontSize: _won || _lost ? 36 : 18)),
                 const SizedBox(height: 4),
-                Text('$lives / $_maxWrong lives',
+                Text('$attemptsLeft / $_maxWrong tries',
                     style: GoogleFonts.outfit(
-                        color: lives <= 2 ? Colors.redAccent : Colors.white38,
+                        color: attemptsLeft <= 2 ? Colors.redAccent : Colors.white38,
                         fontSize: 12)),
                 if (_wrongGuesses > 0)
                   Text(

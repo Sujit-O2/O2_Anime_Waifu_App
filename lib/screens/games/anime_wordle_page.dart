@@ -27,7 +27,7 @@ class _AnimeWordlePageState extends State<AnimeWordlePage>
   int _wins = 0;
   int _losses = 0;
   int _level = 1;
-  int _lives = 3;
+  // Lives removed - each word is independent
   int _bestScore = 0;
   int _bestSolveStreak = 0;
   int _currentSolveStreak = 0;
@@ -157,8 +157,7 @@ class _AnimeWordlePageState extends State<AnimeWordlePage>
       } else if (_guesses.length >= _maxGuesses) {
         _lost = true;
         _losses++;
-        _lives--;
-        if (_lives <= 0) _lives = 3;
+        // No lives system
         unawaited(GameProgressDB.instance.save('anime_wordle', level: _level, bestScore: _bestScore, totalPlayed: _wins + _losses));
         _currentSolveStreak = 0;
       }

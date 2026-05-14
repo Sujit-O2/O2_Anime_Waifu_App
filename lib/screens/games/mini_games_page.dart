@@ -109,8 +109,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
 
   static const List<String> _categories = ['All', 'Puzzle', 'Action', 'Quiz', 'Arcade'];
   static const List<String> _gameIds = [
-    'snake', 'memory_match', 'tap_reaction', 'number_guesser',
-    'wordle', 'anime_quiz', 'block_blast', 'block_breaker'
+    'snake', 'memory_match', 'wordle', 'anime_quiz', 'block_blast', 'block_breaker'
   ];
 
   Map<String, Map<String, dynamic>> _dbStats = {};
@@ -232,7 +231,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                           const Icon(Icons.videogame_asset_rounded, color: Colors.pinkAccent, size: 24),
                           const SizedBox(height: 4),
-                          Text('8', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.w900)),
+                          Text('6', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.w900)),
                           Text('Games', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.w600)),
                         ]),
                       ),
@@ -242,7 +241,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
                   const WaifuCommentary(mood: 'motivated'),
                   const SizedBox(height: 20),
                   Row(children: [
-                    Expanded(child: _buildStatCard('Arcade', '4', Icons.flash_on_rounded, Colors.orangeAccent, 'Action Games')),
+                    Expanded(child: _buildStatCard('Arcade', '2', Icons.flash_on_rounded, Colors.orangeAccent, 'Action Games')),
                     const SizedBox(width: 12),
                     Expanded(child: _buildStatCard('Brain', '2', Icons.psychology_rounded, Colors.cyanAccent, 'Puzzle Games')),
                   ]),
@@ -296,7 +295,7 @@ class _GamesHubPageState extends State<GamesHubPage> {
               padding: const EdgeInsets.all(20),
               sliver: _isLoading
                   ? SliverGrid.count(crossAxisCount: 2, mainAxisSpacing: 18, crossAxisSpacing: 18, childAspectRatio: 0.82,
-                      children: List.generate(8, (_) => const _GameCardShimmer()))
+                      children: List.generate(6, (_) => const _GameCardShimmer()))
                   : SliverGrid.count(crossAxisCount: 2, mainAxisSpacing: 18, crossAxisSpacing: 18, childAspectRatio: 0.82, children: [
                       _GameCard(title: 'Snake', subtitle: 'Classic snake — eat, grow, survive',
                         icon: Icons.shuffle_rounded, gradient: const [Color(0xFF00E676), Color(0xFF00897B)],
@@ -306,14 +305,6 @@ class _GamesHubPageState extends State<GamesHubPage> {
                         icon: Icons.grid_view_rounded, gradient: const [Color(0xFFFF4081), Color(0xFFAD1457)],
                         level: _level('memory_match'), bestScore: _best('memory_match'),
                         onTap: () => Navigator.push(context, PremiumPageRoute(child: const MemoryMatchPage(), style: RouteTransitionStyle.fadeSlide))),
-                      _GameCard(title: 'Tap Reaction', subtitle: 'Test your reflexes!',
-                        icon: Icons.touch_app_rounded, gradient: const [Color(0xFFFF9100), Color(0xFFE65100)],
-                        level: _level('tap_reaction'), bestScore: _best('tap_reaction'),
-                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const TapReactionPage(), style: RouteTransitionStyle.fadeScale))),
-                      _GameCard(title: 'Number Guess', subtitle: 'Guess Zero Two\'s secret number',
-                        icon: Icons.casino_rounded, gradient: const [Color(0xFF7C4DFF), Color(0xFF4527A0)],
-                        level: _level('number_guesser'), bestScore: _best('number_guesser'),
-                        onTap: () => Navigator.push(context, PremiumPageRoute(child: const NumberGuesserPage(), style: RouteTransitionStyle.fadeSlide))),
                       _GameCard(title: 'Wordle', subtitle: 'Guess a hidden anime word. Green = right spot, Yellow = wrong spot',
                         icon: Icons.abc_rounded, gradient: const [Color(0xFF26C6DA), Color(0xFF00838F)],
                         level: _level('wordle'), bestScore: _best('wordle'),
@@ -544,16 +535,16 @@ class _SnakeGameState extends State<SnakeGamePage> {
     if (_snake.isEmpty) return;
     final head = Point(_snake.first.x + _dir.x, _snake.first.y + _dir.y);
     if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || _snake.any((s) => s == head)) {
-      _timer?.cancel();
-      _lives--;
-      if (_lives <= 0) {
-        _saveDB();
-        setState(() { _dead = true; _running = false; });
-      } else {
-        setState(() { _dead = true; _running = false; });
-      }
-      return;
+    _timer?.cancel();
+    _lives--;
+    if (_lives <= 0) {
+      _saveDB();
+      setState(() { _dead = true; _running = false; });
+    } else {
+      setState(() { _dead = false; _running = false; });
     }
+    return;
+  }
     setState(() {
       _snake.insert(0, head);
       if (head == _food) {
@@ -715,11 +706,9 @@ class MemoryMatchPage extends StatefulWidget {
 class _MemoryMatchState extends State<MemoryMatchPage> {
   static const _emojis = ['🌸','⚔️','🎌','🦊','🐉','💮','🎴','🌙','⭐','🔥','💎','🎭','🌊','🎵','🍡','🦋'];
 
-  int _level = 1;
-  int _lives = 3;
   int _score = 0;
   int _bestScore = 0;
-  int _totalPlayed = 0;
+  int _moves = 0;
   late List<String> _cards;
   late List<bool> _flipped;
   late List<bool> _matched;
@@ -728,7 +717,7 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
   bool _won = false;
   late final String _bgAsset;
 
-  int get _pairCount => min(4 + _level, _emojis.length);
+  static const int _pairCount = 8; // Fixed 8 pairs = 16 cards
 
   @override
   void initState() {
@@ -743,11 +732,8 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
     final rec = await GameProgressDB.instance.load('memory_match');
     if (!mounted) return;
     setState(() {
-      _level = (rec['level'] as int?) ?? 1;
       _bestScore = (rec['bestScore'] as int?) ?? 0;
-      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
     });
-    _buildBoard();
   }
 
   void _buildBoard() {
@@ -758,6 +744,7 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
     _firstIdx = null;
     _locked = false;
     _won = false;
+    _moves = 0;
   }
 
   void _onTap(int idx) {
@@ -768,14 +755,14 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
     } else {
       final a = _firstIdx!;
       _firstIdx = null;
+      _moves++;
       if (_cards[a] == _cards[idx]) {
         setState(() {
           _matched[a] = true;
           _matched[idx] = true;
-          _score += 10 + _level * 2;
+          _score += 10;
         });
         if (_matched.every((m) => m)) {
-          _level++;
           _won = true;
           _saveDB();
           setState(() {});
@@ -788,25 +775,20 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
             _flipped[a] = false;
             _flipped[idx] = false;
             _locked = false;
-            _lives--;
           });
-          if (_lives <= 0) { _saveDB(); setState(() {}); }
         });
       }
     }
   }
 
   Future<void> _saveDB() async {
-    _totalPlayed++;
     if (_score > _bestScore) _bestScore = _score;
-    await GameProgressDB.instance.save('memory_match', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+    await GameProgressDB.instance.save('memory_match', level: 1, bestScore: _bestScore, totalPlayed: 1);
   }
 
   void _restart() {
     setState(() {
-      _lives = 3;
       _score = 0;
-      _level = 1;
       _buildBoard();
     });
   }
@@ -814,8 +796,6 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final cols = _pairCount <= 6 ? 3 : 4;
-    final gameOver = _lives <= 0;
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
@@ -827,31 +807,29 @@ class _MemoryMatchState extends State<MemoryMatchPage> {
         _GameBackdrop(asset: _bgAsset, glowColor: Colors.pinkAccent, surfaceTint: const Color(0xFF120810)),
         Column(children: [
           Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 12),
             Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(color: Colors.pinkAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-              child: Text('LVL $_level', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 13, fontWeight: FontWeight.w800))),
-            const SizedBox(width: 8),
+              child: Text('Moves: $_moves', style: GoogleFonts.outfit(color: Colors.pinkAccent, fontSize: 13, fontWeight: FontWeight.w800))),
+            const SizedBox(width: 12),
             Text('🏆 $_bestScore', style: GoogleFonts.outfit(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.w700)),
           ])),
-          Expanded(child: (gameOver || _won)
+          Expanded(child: _won
             ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(_won ? '🎉 Level Complete!' : '💔 Game Over!',
-                    style: GoogleFonts.outfit(color: _won ? Colors.greenAccent : Colors.redAccent, fontSize: 28, fontWeight: FontWeight.w900)),
+                Text('🎉 Perfect Match!',
+                    style: GoogleFonts.outfit(color: Colors.greenAccent, fontSize: 28, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
-                Text('Score: $_score', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                Text('Score: $_score in $_moves moves', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent, foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
-                  onPressed: () { if (_won) { setState(() { _lives = 3; _buildBoard(); }); } else { _restart(); } },
-                  child: Text(_won ? 'Next Level' : 'Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+                  onPressed: _restart,
+                  child: Text('Play Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
                 ),
               ]))
             : Padding(padding: const EdgeInsets.all(16), child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 10, crossAxisSpacing: 10),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 10, crossAxisSpacing: 10),
                 itemCount: _cards.length,
                 itemBuilder: (_, i) {
                   final show = _flipped[i] || _matched[i];
@@ -1272,16 +1250,14 @@ class _WordleGameState extends State<WordleGamePage> {
   ];
 
   int _level = 1;
-  int _lives = 3;
   int _score = 0;
   int _bestScore = 0;
-  int _totalPlayed = 0;
   late String _secret;
   late List<String> _guesses;
   late List<List<int>> _colors; // 0=grey,1=yellow,2=green
   String _current = '';
   bool _won = false;
-  bool _gameOver = false;
+  bool _lost = false;
   String _msg = '';
   late final String _bgAsset;
 
@@ -1308,7 +1284,6 @@ class _WordleGameState extends State<WordleGamePage> {
     setState(() {
       _level = (rec['level'] as int?) ?? 1;
       _bestScore = (rec['bestScore'] as int?) ?? 0;
-      _totalPlayed = (rec['totalPlayed'] as int?) ?? 0;
     });
     _newRound();
   }
@@ -1320,18 +1295,17 @@ class _WordleGameState extends State<WordleGamePage> {
     _colors = [];
     _current = '';
     _won = false;
-    _gameOver = false;
+    _lost = false;
     _msg = '';
   }
 
   Future<void> _saveDB() async {
-    _totalPlayed++;
     if (_score > _bestScore) _bestScore = _score;
-    await GameProgressDB.instance.save('wordle', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
+    await GameProgressDB.instance.save('wordle', level: _level, bestScore: _bestScore, totalPlayed: 1);
   }
 
   void _key(String ch) {
-    if (_won || _gameOver || _current.length >= 5) return;
+    if (_won || _lost || _current.length >= 5) return;
     setState(() => _current += ch);
   }
 
@@ -1371,8 +1345,7 @@ class _WordleGameState extends State<WordleGamePage> {
       _saveDB();
       setState(() => _msg = '🎉 Correct! +$pts pts');
     } else if (_guesses.length >= _maxGuesses) {
-      _lives--;
-      _gameOver = _lives <= 0;
+      _lost = true;
       _saveDB();
       setState(() => _msg = '💔 It was $_secret');
     }
@@ -1396,8 +1369,6 @@ class _WordleGameState extends State<WordleGamePage> {
         _GameBackdrop(asset: _bgAsset, glowColor: Colors.cyanAccent, surfaceTint: const Color(0xFF001418)),
         Column(children: [
           Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            for (int i = 0; i < 3; i++) Text(i < _lives ? '❤️' : '🖤', style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 12),
             Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(color: Colors.cyanAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
               child: Text('LVL $_level  •  $_maxGuesses tries', style: GoogleFonts.outfit(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.w800))),
@@ -1431,7 +1402,7 @@ class _WordleGameState extends State<WordleGamePage> {
               ])),
           ]))),
           // Keyboard
-          if (!_won && !_gameOver)
+          if (!_won && !_lost)
             Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 16), child: Column(children: [
               for (final row in _rows)
                 Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -1464,16 +1435,13 @@ class _WordleGameState extends State<WordleGamePage> {
                   ],
                 ])),
             ])),
-          if (_won || _gameOver)
+          if (_won || _lost)
             Padding(padding: const EdgeInsets.only(bottom: 24), child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent, foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14)),
-              onPressed: () {
-                if (_gameOver) setState(() { _lives = 3; _score = 0; _level = 1; _newRound(); });
-                else setState(() => _newRound());
-              },
-              child: Text(_gameOver ? 'New Game' : 'Next Level', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
+              onPressed: () => setState(() => _newRound()),
+              child: Text(_won ? 'Next Level' : 'Try Again', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16)),
             )),
         ]),
       ]),
@@ -1507,10 +1475,24 @@ class _AnimeQuizState extends State<AnimeQuizPage> {
   String _error = '';
   late final String _bgAsset;
 
-  // Current question from API
+  // Current question from API or fallback
   String _question = '';
   List<String> _opts = [];
   int _correctIdx = 0;
+
+  // Fallback questions when API fails
+  static const _fallbackQuestions = [
+    {'q': 'Who is the main protagonist of Naruto?', 'a': 'Naruto Uzumaki', 'opts': ['Naruto Uzumaki', 'Sasuke Uchiha', 'Kakashi Hatake', 'Sakura Haruno']},
+    {'q': 'What is the name of the Death Note owner?', 'a': 'Light Yagami', 'opts': ['Light Yagami', 'L Lawliet', 'Misa Amane', 'Ryuk']},
+    {'q': 'In Attack on Titan, what is Eren\'s titan form called?', 'a': 'Attack Titan', 'opts': ['Attack Titan', 'Colossal Titan', 'Armored Titan', 'Beast Titan']},
+    {'q': 'Who is the captain of the Straw Hat Pirates?', 'a': 'Monkey D. Luffy', 'opts': ['Monkey D. Luffy', 'Roronoa Zoro', 'Nami', 'Sanji']},
+    {'q': 'What is the name of the virtual world in Sword Art Online?', 'a': 'Aincrad', 'opts': ['Aincrad', 'Alfheim', 'Gun Gale', 'Underworld']},
+    {'q': 'In My Hero Academia, what is Deku\'s quirk?', 'a': 'One For All', 'opts': ['One For All', 'Explosion', 'Half-Cold Half-Hot', 'Zero Gravity']},
+    {'q': 'Who is the main character in Demon Slayer?', 'a': 'Tanjiro Kamado', 'opts': ['Tanjiro Kamado', 'Nezuko Kamado', 'Zenitsu Agatsuma', 'Inosuke Hashibira']},
+    {'q': 'What is the name of the notebook in Death Note?', 'a': 'Death Note', 'opts': ['Death Note', 'Life Note', 'Shinigami Note', 'Kill Note']},
+    {'q': 'In Dragon Ball Z, what is Goku\'s Saiyan name?', 'a': 'Kakarot', 'opts': ['Kakarot', 'Vegeta', 'Raditz', 'Bardock']},
+    {'q': 'Who is the main antagonist in Fullmetal Alchemist?', 'a': 'Father', 'opts': ['Father', 'Envy', 'Lust', 'Pride']},
+  ];
 
   int get _timerSecs => max(5, 15 - _level);
   String get _difficulty => _level <= 4 ? 'easy' : _level <= 8 ? 'medium' : 'hard';
@@ -1540,7 +1522,7 @@ class _AnimeQuizState extends State<AnimeQuizPage> {
     await GameProgressDB.instance.save('anime_quiz', level: _level, bestScore: _bestScore, totalPlayed: _totalPlayed);
   }
 
-  /// Calls the LLM to generate a fresh anime trivia question.
+  /// Calls the LLM to generate a fresh anime trivia question, with fallback.
   Future<void> _fetchQuestion() async {
     if (!mounted) return;
     setState(() { _loading = true; _error = ''; _answered = false; _selected = null; });
@@ -1564,7 +1546,9 @@ Rules: exactly 4 options, correct answer must be one of the options, no duplicat
           'max_tokens': 200,
           'temperature': 0.9,
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 10));
+
+      if (res.statusCode != 200) throw Exception('API error: ${res.statusCode}');
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
       final raw = (data['choices'][0]['message']['content'] as String).trim();
@@ -1586,8 +1570,17 @@ Rules: exactly 4 options, correct answer must be one of the options, no duplicat
       });
       _startTimer();
     } catch (e) {
+      // Fallback to local questions
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'Failed to load question. Tap retry.'; });
+      final fb = _fallbackQuestions[Random().nextInt(_fallbackQuestions.length)];
+      setState(() {
+        _question = fb['q'] as String;
+        _opts = List<String>.from(fb['opts'] as List);
+        _correctIdx = _opts.indexOf(fb['a'] as String);
+        _loading = false;
+        _error = '';
+      });
+      _startTimer();
     }
   }
 
@@ -1897,8 +1890,9 @@ class _BlockBlastState extends State<BlockBlastPage> {
     final box = _boardKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return (0, 0);
     final local = box.globalToLocal(global);
-    final col = (local.dx / _cellSize).floor();
-    final row = (local.dy / _cellSize).floor();
+    // Center the piece on the cursor
+    final col = ((local.dx - _cellSize / 2) / _cellSize).round().clamp(0, _cols - 1);
+    final row = ((local.dy - _cellSize / 2) / _cellSize).round().clamp(0, _rows - 1);
     return (row, col);
   }
 
